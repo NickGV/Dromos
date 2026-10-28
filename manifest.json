@@ -1,0 +1,10 @@
+{
+	"id": "dromos",
+	"name": "Dromos",
+	"version": "0.0.1",
+	"minAppVersion": "1.7.2",
+	"description": "Your life as a calm RPG inside your vault: character, skills, quests from Habitica, campaigns and a scribe guide.",
+	"author": "Nicolás Gómez",
+	"authorUrl": "https://github.com/NickGV",
+	"isDesktopOnly": false
+}
