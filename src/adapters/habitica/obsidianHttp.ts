@@ -1,13 +1,15 @@
 import { requestUrl } from 'obsidian';
 import type { HttpFunction } from './http';
+import { withTimeout } from './withTimeout';
 
 /**
  * The real `HttpFunction`: Obsidian's `requestUrl` with `throw: false`, so error
- * statuses resolve and only network failures reject. The only file of this
- * adapter that imports 'obsidian'; tests never load it.
+ * statuses resolve and only network failures reject. Requests that hang past
+ * `HTTP_TIMEOUT_MS` reject too. The only file of this adapter that imports
+ * 'obsidian'; tests never load it.
  */
 export function createObsidianHttp(): HttpFunction {
-	return async (request) => {
+	return withTimeout(async (request) => {
 		const response = await requestUrl({
 			url: request.url,
 			method: request.method,
@@ -16,7 +18,7 @@ export function createObsidianHttp(): HttpFunction {
 			throw: false,
 		});
 		return { status: response.status, headers: response.headers, json: parseJson(response.text) };
-	};
+	});
 }
 
 // `requestUrl`'s own `json` getter throws on a non-JSON body; read the text and fall back to null.

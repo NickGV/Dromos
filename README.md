@@ -44,7 +44,7 @@ Under *Settings → Community plugins → Dromos*:
 
 ## Network use and privacy
 
-- Dromos calls one external service, the Habitica API at `https://habitica.com/api/v3`, and only when both the user ID and the token are set. It sends two read-only requests (`GET /tasks/user?type=dailys` and `GET /tasks/user?type=todos`) once when the Dromos tab opens and each time you select **Sincronizar**. There is no background polling and no telemetry.
+- Dromos calls one external service, the Habitica API at `https://habitica.com/api/v3`, and only when both the user ID and the token are set. It sends two read-only requests (`GET /tasks/user?type=dailys` and `GET /tasks/user?type=todos`) once when the Dromos tab opens and each time you select **Sincronizar**. A request that has not answered after 15 seconds counts as offline. There is no background polling and no telemetry.
 - The requests carry your user ID and token in the `x-api-user` and `x-api-key` headers, as Habitica requires, plus `x-client: <user ID>-dromos`.
 - The token is stored only in the plugin's `data.json` (`.obsidian/plugins/dromos/data.json`) on each device. Dromos never writes it to a note, never logs it and never shows it. If you sync your `.obsidian` folder with another tool, that tool copies `data.json` too.
 - Quests are kept in memory for the session only; nothing from Habitica is written to your vault.
