@@ -32,4 +32,10 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		rules: {
+			// Habitica and Dromos are proper nouns; Character.md is a file name.
+			'obsidianmd/ui/sentence-case': ['warn', { brands: ['Habitica', 'Dromos'], ignoreRegex: ['Character\\.md'] }],
+		},
+	},
 );

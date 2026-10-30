@@ -1,2 +1,4 @@
-// Adapter implementations arrive with M1 to M3.
-export {};
+// Obsidian-backed adapters: plugin settings, the settings tab and the system clock.
+export * from './DromosSettingTab';
+export * from './PluginSettingsStore';
+export * from './SystemClock';

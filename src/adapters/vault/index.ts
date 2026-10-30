@@ -1,2 +1,4 @@
-// Adapter implementations arrive with M1 to M3.
-export {};
+// Vault-backed adapters: game state read from notes.
+export * from './characterMapper';
+export * from './folderPath';
+export * from './VaultGameStateRepository';
