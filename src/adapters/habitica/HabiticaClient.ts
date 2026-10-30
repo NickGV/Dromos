@@ -1,0 +1,67 @@
+import { TaskSourceError } from '../../ports';
+import type { HttpFunction, HttpResponse } from './http';
+
+/** Root of Habitica's API v3; request paths are appended to it. */
+export const HABITICA_BASE_URL = 'https://habitica.com/api/v3';
+
+/** Habitica account credentials, as stored in the plugin settings (S3). */
+export interface HabiticaCredentials {
+	readonly userId: string;
+	readonly apiToken: string;
+}
+
+/** Called before every request, so edited settings apply without rebuilding the client. */
+export type CredentialsProvider = () => HabiticaCredentials | Promise<HabiticaCredentials>;
+
+/**
+ * Habitica API v3 client over an injected `HttpFunction` (S4). Unwraps the
+ * `{ success, data }` envelope and turns every HTTP failure into a
+ * `TaskSourceError` (S5). Error messages never carry credentials (S9).
+ */
+export class HabiticaClient {
+	constructor(
+		private readonly http: HttpFunction,
+		private readonly credentials: CredentialsProvider,
+	) {}
+
+	/** `GET` a path such as `/tasks/user?type=dailys` and resolve with the envelope's `data`. */
+	async get(path: string): Promise<unknown> {
+		const { userId, apiToken } = await this.credentials();
+		let response: HttpResponse;
+		try {
+			response = await this.http({
+				url: `${HABITICA_BASE_URL}${path}`,
+				method: 'GET',
+				headers: { 'x-api-user': userId, 'x-api-key': apiToken, 'x-client': `${userId}-dromos` },
+			});
+		} catch {
+			// The original error is dropped on purpose: it may echo request details.
+			throw new TaskSourceError('Offline', null, 'Habitica could not be reached');
+		}
+		return dataOf(response);
+	}
+}
+
+// Maps the status and body to the envelope's data or a typed error (S5).
+function dataOf(response: HttpResponse): unknown {
+	const { status, json } = response;
+	if (status === 401) throw new TaskSourceError('Unauthorized', null, 'Habitica rejected the credentials');
+	if (status === 429) {
+		throw new TaskSourceError('RateLimited', retryAfterSeconds(response.headers), 'Habitica rate limit reached');
+	}
+	if (status < 200 || status >= 300) throw new TaskSourceError('Unknown', null, `Habitica answered with status ${status}`);
+	if (!isSuccessEnvelope(json)) throw new TaskSourceError('Unknown', null, 'Habitica sent an unexpected response');
+	return json.data;
+}
+
+function isSuccessEnvelope(body: unknown): body is { success: true; data: unknown } {
+	return typeof body === 'object' && body !== null && 'success' in body && body.success === true && 'data' in body;
+}
+
+// Retry-After in whole seconds; header names are matched case-insensitively. HTTP-date values read as null.
+function retryAfterSeconds(headers: Readonly<Record<string, string>>): number | null {
+	const value = Object.entries(headers).find(([name]) => name.toLowerCase() === 'retry-after')?.[1]?.trim();
+	if (!value) return null;
+	const seconds = Number(value);
+	return Number.isFinite(seconds) && seconds >= 0 ? Math.ceil(seconds) : null;
+}

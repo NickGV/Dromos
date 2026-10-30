@@ -1,0 +1,187 @@
+{
+	"success": true,
+	"data": [
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b001",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b001",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Renew the library card",
+			"notes": "",
+			"type": "todo",
+			"tags": [
+				"7a8b9c0d-0000-4000-8000-0000000000a2"
+			],
+			"value": -1.5,
+			"priority": 2,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": false,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z",
+			"date": "2026-10-28T05:00:00.000Z"
+		},
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b002",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b002",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Water the plants",
+			"notes": "",
+			"type": "todo",
+			"tags": [],
+			"value": -1.5,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": false,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z",
+			"date": "2026-10-30T05:00:00.000Z"
+		},
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b003",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b003",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Send the monthly report",
+			"notes": "",
+			"type": "todo",
+			"tags": [
+				"7a8b9c0d-0000-4000-8000-0000000000a3"
+			],
+			"value": -1.5,
+			"priority": 1.5,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": false,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z",
+			"date": "2026-10-31T03:00:00.000Z"
+		},
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b004",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b004",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Sort the photo archive",
+			"notes": "",
+			"type": "todo",
+			"tags": [],
+			"value": -1.5,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": false,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z"
+		},
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b005",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b005",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Plan a weekend walk",
+			"notes": "",
+			"type": "todo",
+			"tags": [],
+			"value": -1.5,
+			"priority": 0.1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": false,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z",
+			"date": null
+		},
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b006",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b006",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Book the dentist appointment",
+			"notes": "",
+			"type": "todo",
+			"tags": [],
+			"value": -1.5,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": false,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z",
+			"date": "2026-11-05T05:00:00.000Z"
+		},
+		{
+			"_id": "5f1c2d3e-0000-4000-8000-00000000b007",
+			"id": "5f1c2d3e-0000-4000-8000-00000000b007",
+			"userId": "00000000-0000-4000-8000-000000000000",
+			"text": "Return the borrowed book",
+			"notes": "",
+			"type": "todo",
+			"tags": [],
+			"value": 1,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"checklist": [],
+			"collapseChecklist": false,
+			"completed": true,
+			"createdAt": "2026-10-20T15:00:00.000Z",
+			"updatedAt": "2026-10-29T18:30:00.000Z",
+			"date": "2026-10-27T05:00:00.000Z",
+			"dateCompleted": "2026-10-29T18:30:00.000Z"
+		}
+	],
+	"notifications": [],
+	"userV": 4821,
+	"appVersion": "5.30.0"
+}
