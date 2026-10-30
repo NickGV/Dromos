@@ -1,0 +1,75 @@
+name: Development task
+description: One unit of work for a Dromos milestone, explained well enough to pick up on any device.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe one unit of work. Quote the plan (`02-Phases.md`) and the decisions (ADRs, open questions) instead of paraphrasing them, so the task can be picked up without the vault at hand.
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Milestone
+      options:
+        - M2 — Campañas
+        - M3 — Skills y XP
+        - M4 — Esdras en pantalla
+        - M5 — Pulido y release
+        - Follow-up
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why this task exists and what already exists in the code or the vault.
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: The outcome, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What to build or change, by layer and file.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkable statements; quote the spec text verbatim where it exists.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      description: Automated tests (Vitest, test-first) and manual checks in Obsidian.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Plan sections, ADRs, open questions, commits.
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Issues this one waits for (`#n`).
+    validations:
+      required: false
