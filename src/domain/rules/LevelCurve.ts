@@ -18,6 +18,9 @@ export interface LevelProgress {
 	readonly xpToNext: number;
 }
 
+/** Totals above this are clamped so the per-level loop in `progressFor` always ends quickly. */
+const MAX_TOTAL_XP = Number.MAX_SAFE_INTEGER;
+
 export class LevelCurve {
 	constructor(private readonly config: CurveConfig) {}
 
@@ -31,7 +34,7 @@ export class LevelCurve {
 	}
 
 	progressFor(totalXp: number): LevelProgress {
-		let remaining = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
+		let remaining = Number.isFinite(totalXp) ? Math.min(MAX_TOTAL_XP, Math.max(0, Math.floor(totalXp))) : 0;
 		let level = 1;
 		while (remaining >= this.xpToNext(level)) {
 			remaining -= this.xpToNext(level);

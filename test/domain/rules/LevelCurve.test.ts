@@ -34,4 +34,10 @@ describe('LevelCurve (character curve: round(100 * level^1.5))', () => {
 		expect(curve.progressFor(99.9)).toEqual({ level: 1, xpIntoLevel: 99, xpToNext: 100 });
 		expect(curve.progressFor(Number.NaN)).toEqual({ level: 1, xpIntoLevel: 0, xpToNext: 100 });
 	});
+
+	it('caps absurd totals so computing the level always ends', () => {
+		const progress = curve.progressFor(1e300);
+		expect(progress).toEqual(curve.progressFor(Number.MAX_SAFE_INTEGER));
+		expect(Number.isFinite(progress.level)).toBe(true);
+	});
 });

@@ -12,6 +12,10 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 - Settings tab with the Habitica user ID, the Habitica API token (masked, stored only in the plugin's `data.json`) and the Dromos folder.
 - Habitica API v3 client over `requestUrl` with typed errors for unauthorized, rate-limited, offline and unknown failures.
 
+### Fixed
+
+- An absurdly large `total_xp` in `Character.md` no longer freezes Obsidian: the level curve clamps totals to `Number.MAX_SAFE_INTEGER`.
+
 ### Changed
 
 - The view's styles use Obsidian theme variables instead of a fixed palette, so it follows light and dark themes, and adapts to phone width.
