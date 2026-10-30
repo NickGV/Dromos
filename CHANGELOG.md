@@ -4,6 +4,18 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Character card read from `<folder>/Character.md`: name, title, level and XP bar derived from `total_xp`, and the four stats; an empty state names the expected path when the note is missing.
+- Today's quests from Habitica: dailies due today (completed ones struck through), then overdue and due-today to-dos, then undated to-dos.
+- Status band ("Sincronizado hace N min", "Sin conexión", "Token inválido" and others) and a manual **Sincronizar** button; the quests sync once when the view opens and on the button, never on a timer.
+- Settings tab with the Habitica user ID, the Habitica API token (masked, stored only in the plugin's `data.json`) and the Dromos folder.
+- Habitica API v3 client over `requestUrl` with typed errors for unauthorized, rate-limited, offline and unknown failures.
+
+### Changed
+
+- The view's styles use Obsidian theme variables instead of a fixed palette, so it follows light and dark themes, and adapts to phone width.
+
 ## [0.0.1] - 2026-10-28
 
 ### Added

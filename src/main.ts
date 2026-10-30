@@ -1,9 +1,12 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { createDromos } from './composition/createDromos';
 import { DromosView, VIEW_TYPE_DROMOS } from './ui/DromosView';
 
 export default class DromosPlugin extends Plugin {
-	onload(): void {
-		this.registerView(VIEW_TYPE_DROMOS, (leaf) => new DromosView(leaf));
+	async onload(): Promise<void> {
+		const { home, settingTab } = await createDromos(this);
+		this.addSettingTab(settingTab);
+		this.registerView(VIEW_TYPE_DROMOS, (leaf) => new DromosView(leaf, home));
 
 		this.addRibbonIcon('footprints', 'Dromos', () => {
 			void this.activateView();

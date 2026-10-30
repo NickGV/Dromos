@@ -1,56 +1,246 @@
-/* Dromos — M0 placeholder styles. The warm palette is defined as tokens so the
-   real components in M1 only have to consume them. */
+/* Dromos — home view (M1). Colors come only from Obsidian theme variables, so the
+   view follows light and dark themes. Every rule is scoped under .dromos-root. */
 .dromos-root {
-	--dromos-linen: #faf5ea;
-	--dromos-parchment: #f3e9d2;
-	--dromos-ink: #3b2f2a;
-	--dromos-ink-soft: #7a6657;
-	--dromos-outline: #8b5e3c;
-	--dromos-hills: #8fa66b;
-	--dromos-hills-shadow: #6e8b4e;
-	--dromos-sky: #cfe3e8;
-	--dromos-ochre: #c9962b;
-	--dromos-clay: #b5593c;
-	--dromos-locked: #b8afa3;
-
-	background: var(--dromos-linen);
-	color: var(--dromos-ink);
+	background: var(--background-primary);
+	color: var(--text-normal);
 	padding: 0;
 	overflow-y: auto;
 }
 
-.dromos-home {
-	max-width: 960px;
+.dromos-root .dromos-home {
+	container-type: inline-size;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	max-width: 720px;
 	margin: 0 auto;
-	padding: 0 16px 32px;
+	padding: 12px 16px 32px;
 }
 
-.dromos-header {
-	background: linear-gradient(var(--dromos-sky), var(--dromos-hills));
-	border-bottom: 1px solid var(--dromos-outline);
-	margin: 0 -16px 16px;
-	padding: 48px 16px 24px;
-	text-align: center;
+/* Status band and sync button */
+.dromos-root .dromos-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
-.dromos-title {
-	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
-	font-size: 2.4rem;
-	font-weight: 500;
-	letter-spacing: 0.08em;
-	margin: 0;
-	color: var(--dromos-ink);
+.dromos-root .dromos-banner {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 2px 8px;
+	padding: 6px 12px;
+	border-left: 3px solid var(--text-faint);
+	border-radius: var(--radius-s);
+	background: var(--background-secondary);
+	font-size: var(--font-ui-small);
 }
 
-.dromos-subtitle {
-	margin: 4px 0 0;
-	font-style: italic;
-	color: var(--dromos-ink);
-}
+.dromos-root .dromos-banner.is-success { border-left-color: var(--text-success); }
+.dromos-root .dromos-banner.is-warning { border-left-color: var(--text-warning); }
+.dromos-root .dromos-banner.is-error { border-left-color: var(--text-error); }
+.dromos-root .dromos-banner.is-error .dromos-banner-message { color: var(--text-error); }
 
-.dromos-panel {
-	background: var(--dromos-parchment);
-	border: 1px solid var(--dromos-outline);
-	border-radius: 6px;
+.dromos-root .dromos-banner-message { font-weight: var(--font-semibold); }
+.dromos-root .dromos-banner-detail { color: var(--text-muted); }
+.dromos-root .dromos-sync-button { flex: 0 0 auto; }
+
+/* Cards */
+.dromos-root .dromos-card {
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
 	padding: 16px;
+}
+
+.dromos-root .dromos-card-title {
+	margin: 0 0 8px;
+	font-size: var(--font-ui-medium);
+	font-weight: var(--font-semibold);
+	font-variant: small-caps;
+	letter-spacing: 0.04em;
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-empty {
+	margin: 0;
+	color: var(--text-muted);
+}
+
+/* Character */
+.dromos-root .dromos-character-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.dromos-root .dromos-character-names { min-width: 0; }
+
+.dromos-root .dromos-character-name {
+	margin: 0;
+	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+	font-size: 1.8em;
+	font-weight: 500;
+	line-height: 1.15;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-character-title {
+	margin: 2px 0 0;
+	font-style: italic;
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-character-level {
+	flex: 0 0 auto;
+	padding: 2px 10px;
+	border: 1px solid var(--interactive-accent);
+	border-radius: var(--radius-l);
+	color: var(--text-accent);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+	white-space: nowrap;
+}
+
+.dromos-root .dromos-xp {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.dromos-root .dromos-xp-track {
+	flex: 1 1 auto;
+	height: 8px;
+	overflow: hidden;
+	border-radius: var(--radius-s);
+	background: var(--background-modifier-border);
+}
+
+.dromos-root .dromos-xp-fill {
+	height: 100%;
+	background: var(--interactive-accent);
+}
+
+.dromos-root .dromos-xp-text {
+	flex: 0 0 auto;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-stats {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.dromos-root .dromos-stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 8px 4px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	background: var(--background-primary);
+}
+
+.dromos-root .dromos-stat-value {
+	font-size: 1.3em;
+	font-weight: var(--font-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+.dromos-root .dromos-stat-label {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+
+/* Quests */
+.dromos-root .dromos-quest-group + .dromos-quest-group { margin-top: 12px; }
+
+.dromos-root .dromos-quest-group-title {
+	margin: 0 0 4px;
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+	color: var(--text-faint);
+}
+
+.dromos-root .dromos-quest-items {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.dromos-root .dromos-quest {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.dromos-root .dromos-quest:last-child { border-bottom: none; }
+
+.dromos-root .dromos-quest-check {
+	flex: 0 0 auto;
+	width: 14px;
+	height: 14px;
+	border: 1.5px solid var(--text-muted);
+	border-radius: 50%;
+}
+
+.dromos-root .dromos-quest-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-quest.is-completed .dromos-quest-check {
+	border-color: var(--text-faint);
+	background: var(--text-faint);
+}
+
+.dromos-root .dromos-quest.is-completed .dromos-quest-title {
+	color: var(--text-faint);
+	text-decoration: line-through;
+}
+
+.dromos-root .dromos-quest-due {
+	flex: 0 0 auto;
+	padding: 1px 8px;
+	border: 1px solid currentColor;
+	border-radius: var(--radius-l);
+	font-size: var(--font-ui-smaller);
+}
+
+.dromos-root .dromos-quest-due.is-overdue { color: var(--text-error); }
+.dromos-root .dromos-quest-due.is-today { color: var(--text-accent); }
+
+.dromos-root .dromos-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Narrow panes and phones (Android): stack the toolbar, two stats per row. */
+@container (max-width: 440px) {
+	.dromos-root .dromos-toolbar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.dromos-root .dromos-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
