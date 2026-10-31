@@ -22,11 +22,22 @@ const STATUSES: readonly LifecycleStatus[] = ['planning', 'active', 'paused', 'c
 const PRIORITIES: readonly Priority[] = ['high', 'medium', 'low'];
 const DEFAULT_PRIORITY: Priority = 'low';
 const DATE = /^\d{4}-\d{2}-\d{2}/;
+/** `04-Game-Design`, Campaign: a project is the README of `02 - Projects/<Project>/`. */
+const PROJECT_README = /^02 - Projects\/[^/]+\/README\.md$/;
+/** `04-Game-Design`, Campaign: a research lives under `03 - Areas/<Area>/Estudio/`. */
+const RESEARCH_FOLDER = /^03 - Areas\/[^/]+\/Estudio\//;
 
-/** True for an active `index` or `research` note outside `Templates/` (Q023). */
+/**
+ * True for an active campaign note (Q023): an `index` that is the README of a
+ * project folder, or a `research` under an area's `Estudio` folder. The path rule
+ * keeps other active `index` or `research` notes (maps, audits, templates) out.
+ */
 export function isCampaignNote(note: VaultNote): boolean {
 	const fields = asRecord(note.frontmatter);
-	return (fields.type === 'index' || fields.type === 'research') && fields.status === 'active' && !note.path.startsWith('Templates/');
+	if (fields.status !== 'active') return false;
+	if (fields.type === 'index') return PROJECT_README.test(note.path);
+	if (fields.type === 'research') return RESEARCH_FOLDER.test(note.path);
+	return false;
 }
 
 /**

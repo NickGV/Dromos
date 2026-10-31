@@ -90,13 +90,34 @@ describe('isCampaignNote', () => {
 
 	it('rejects notes that are not active, including closed research', () => {
 		for (const status of ['planning', 'paused', 'completed', 'archived', undefined]) {
-			expect(isCampaignNote(note('a.md', { type: 'research', status }))).toBe(false);
+			expect(isCampaignNote({ ...APOCRIFOS, frontmatter: { type: 'research', status } })).toBe(false);
+			expect(isCampaignNote({ ...KAIROS, frontmatter: { type: 'index', status } })).toBe(false);
 		}
 	});
 
 	it('rejects the templates', () => {
 		expect(isCampaignNote(note('Templates/research.md', { type: 'research', status: 'active' }))).toBe(false);
 		expect(isCampaignNote(note('Templates/index.md', { type: 'index', status: 'active' }))).toBe(false);
+	});
+});
+
+describe('isCampaignNote: location', () => {
+	const active = { type: 'index', status: 'active' };
+	const activeResearch = { type: 'research', status: 'active' };
+
+	it('accepts an index only as the README of a project folder', () => {
+		expect(isCampaignNote(note('02 - Projects/Dromos/README.md', active))).toBe(true);
+		expect(isCampaignNote(note('02 - Projects/Dromos/Plan.md', active))).toBe(false);
+		expect(isCampaignNote(note('02 - Projects/00-INVESTIGACION-MAPA/00-INDEX-INVESTIGACION.md', active))).toBe(false);
+		expect(isCampaignNote(note('02 - Projects/README.md', active))).toBe(false);
+		expect(isCampaignNote(note('02 - Projects/Dromos/Docs/README.md', active))).toBe(false);
+		expect(isCampaignNote(note('00-MAPA-MAESTRO-APRENDIZAJE.md', active))).toBe(false);
+	});
+
+	it('accepts a research only under the Estudio folder of an area', () => {
+		expect(isCampaignNote(note('03 - Areas/Bible/Estudio/Historia/Estudio - Historia.md', activeResearch))).toBe(true);
+		expect(isCampaignNote(note('03 - Areas/Bible/Notas/Estudio - X.md', activeResearch))).toBe(false);
+		expect(isCampaignNote(note('02 - Projects/Dromos/09-Auditoria-Logos.md', activeResearch))).toBe(false);
 	});
 });
 
@@ -255,6 +276,9 @@ describe('buildActiveCampaigns', () => {
 			note('02 - Projects/Cheshbon/README.md', { type: 'index', status: 'completed' }),
 			note('02 - Projects/Kairos/Tarea.md', { type: 'project', status: 'active', parent: '[[Kairos]]' }),
 			note('Templates/research.md', { type: 'research', status: 'active' }),
+			note('00-MAPA-MAESTRO-APRENDIZAJE.md', { type: 'index', status: 'active' }),
+			note('02 - Projects/00-INVESTIGACION-MAPA/00-INDEX-INVESTIGACION.md', { type: 'index', status: 'active' }),
+			note('02 - Projects/Dromos/09-Auditoria-Logos.md', { type: 'research', status: 'active' }),
 		];
 
 		const campaigns = buildActiveCampaigns(notes);
@@ -264,7 +288,7 @@ describe('buildActiveCampaigns', () => {
 	});
 
 	it('sorts by priority, high first, then by title', () => {
-		const make = (name: string, priority?: string) => note(`p/${name}/README.md`, { type: 'index', status: 'active', title: name, priority });
+		const make = (name: string, priority?: string) => note(`02 - Projects/${name}/README.md`, { type: 'index', status: 'active', title: name, priority });
 
 		const titles = buildActiveCampaigns([make('Zeta', 'low'), make('Beta', 'high'), make('Alfa', 'medium'), make('Acme', 'high'), make('Sin prioridad')]).map(
 			(campaign) => campaign.title,
