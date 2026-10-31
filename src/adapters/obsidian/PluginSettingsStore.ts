@@ -1,3 +1,4 @@
+import { languageOrDefault } from '../../i18n';
 import { DEFAULT_SETTINGS, type Settings, type SettingsStore } from '../../ports';
 import { normalizeVaultFolder } from '../vault/folderPath';
 
@@ -19,8 +20,8 @@ export class PluginSettingsStore implements SettingsStore {
 	}
 
 	async save(settings: Settings): Promise<void> {
-		const { habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays } = settings;
-		await this.plugin.saveData({ habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays });
+		const { habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays, language } = settings;
+		await this.plugin.saveData({ habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays, language });
 	}
 }
 
@@ -32,6 +33,7 @@ function settingsFromData(data: unknown): Settings {
 		habiticaApiToken: textOr(stored.habiticaApiToken, DEFAULT_SETTINGS.habiticaApiToken),
 		vaultFolder: normalizeVaultFolder(textOr(stored.vaultFolder, DEFAULT_SETTINGS.vaultFolder)),
 		staleAfterDays: positiveIntegerOr(stored.staleAfterDays, DEFAULT_SETTINGS.staleAfterDays),
+		language: languageOrDefault(stored.language),
 	};
 }
 
