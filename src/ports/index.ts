@@ -1,5 +1,6 @@
 // Interfaces that cross the hexagon boundary. Implemented under src/adapters.
-// CampaignRepository and the ledger side of GameStateRepository arrive with M2 and M3.
+// The ledger side of GameStateRepository arrives with M3.
+export * from './CampaignRepository';
 export * from './Clock';
 export * from './GameStateRepository';
 export * from './SettingsStore';
