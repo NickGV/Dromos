@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
+import { HABITICA_X_CLIENT, HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { TaskSourceError } from '../../../src/ports/TaskSourceError';
 import { FakeHttp, respond, type FakeOutcome } from './FakeHttp';
 
@@ -32,7 +32,7 @@ describe('HabiticaClient.post', () => {
 		expect(http.requests[0]?.headers).toMatchObject({
 			'x-api-user': 'user-1',
 			'x-api-key': TOKEN,
-			'x-client': 'user-1-dromos',
+			'x-client': HABITICA_X_CLIENT,
 			'Content-Type': 'application/json',
 		});
 	});

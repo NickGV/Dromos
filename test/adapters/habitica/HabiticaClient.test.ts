@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
+import { HABITICA_X_CLIENT, HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { TaskSourceError } from '../../../src/ports/TaskSourceError';
 import { FakeHttp, respond, type FakeOutcome } from './FakeHttp';
 
@@ -32,9 +32,20 @@ describe('HabiticaClient: requests (S4)', () => {
 			{
 				url: URL,
 				method: 'GET',
-				headers: { 'x-api-user': USER_ID, 'x-api-key': TOKEN, 'x-client': `${USER_ID}-dromos` },
+				headers: { 'x-api-user': USER_ID, 'x-api-key': TOKEN, 'x-client': HABITICA_X_CLIENT },
 			},
 		]);
+	});
+
+	it('identifies the tool with its creator in X-Client, never with the end user', async () => {
+		const { client, http } = clientWith(respond(200, { success: true, data: [] }));
+
+		await client.get('/tasks/user?type=dailys');
+
+		const xClient = http.requests[0]?.headers['x-client'];
+		expect(xClient).toBe(HABITICA_X_CLIENT);
+		expect(xClient).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-dromos$/);
+		expect(xClient).not.toContain(USER_ID);
 	});
 
 	it('reads the credentials on every request, so settings changes apply', async () => {

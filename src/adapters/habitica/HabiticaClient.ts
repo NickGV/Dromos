@@ -4,6 +4,13 @@ import type { HttpFunction, HttpResponse } from './http';
 /** Root of Habitica's API v3; request paths are appended to it. */
 export const HABITICA_BASE_URL = 'https://habitica.com/api/v3';
 
+/**
+ * Value of the `X-Client` header. Habitica's API usage guidelines ask for
+ * `<creator's user ID>-<app name>`: the id of the person who made the tool, not of whoever
+ * runs it. The id is not a secret; it only tells Habitica whom to contact about this tool.
+ */
+export const HABITICA_X_CLIENT = '283a330c-db80-446e-abea-d8260ca7978b-dromos';
+
 /** Habitica account credentials, as stored in the plugin settings (S3). */
 export interface HabiticaCredentials {
 	readonly userId: string;
@@ -52,7 +59,7 @@ export class HabiticaClient {
 				headers: {
 					'x-api-user': userId,
 					'x-api-key': apiToken,
-					'x-client': `${userId}-dromos`,
+					'x-client': HABITICA_X_CLIENT,
 					...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
 				},
 				...(body === undefined ? {} : { body: JSON.stringify(body) }),

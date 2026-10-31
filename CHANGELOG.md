@@ -4,6 +4,10 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Changed
+
+- The `x-client` header now carries the tool author's Habitica user ID, as Habitica's API usage guidelines require, instead of the ID of whoever runs the plugin.
+
 ### Added
 
 - Campaigns: every active project (the `README.md` of a folder under `02 - Projects/`) and research (a note under `03 - Areas/<area>/Estudio/`) shows as a card with its kind, open phase, progress bar, next step and folded task list, ordered by `priority`. Progress of project tasks comes from Habitica; a research counts its completed phases.

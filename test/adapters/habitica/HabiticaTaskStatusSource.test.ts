@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
+import { HABITICA_X_CLIENT, HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { HabiticaTaskStatusSource } from '../../../src/adapters/habitica/HabiticaTaskStatusSource';
 import { TaskSourceError } from '../../../src/ports/TaskSourceError';
 import { FakeHttp, respond, type FakeOutcome } from './FakeHttp';
@@ -70,7 +70,7 @@ describe('HabiticaTaskStatusSource.fetchStatuses: lists', () => {
 		await source.fetchStatuses([id(1), id(2)]);
 
 		expect(http.requests.map((request) => request.url)).toEqual([TODOS_URL, COMPLETED_URL]);
-		expect(http.requests[0]?.headers).toMatchObject({ 'x-api-user': 'user-1', 'x-api-key': TOKEN, 'x-client': 'user-1-dromos' });
+		expect(http.requests[0]?.headers).toMatchObject({ 'x-api-user': 'user-1', 'x-api-key': TOKEN, 'x-client': HABITICA_X_CLIENT });
 	});
 });
 
