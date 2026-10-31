@@ -11,6 +11,8 @@ export interface HabiticaTaskDto {
 	/** `habit`, `daily`, `todo` or `reward`. */
 	readonly type: string;
 	readonly completed?: boolean;
+	/** To-dos only: when it was completed, as an ISO timestamp; may be missing or `null`. */
+	readonly dateCompleted?: string | null;
 	/** Dailies only: due today for the user's day start. */
 	readonly isDue?: boolean;
 	readonly tags?: readonly string[];
@@ -28,11 +30,18 @@ export function readHabiticaTasks(data: unknown): HabiticaTaskDto[] {
 	return data;
 }
 
+/** Checks that an envelope's `data` is one task; rejects anything else as `Unknown` (S5). */
+export function readHabiticaTask(data: unknown): HabiticaTaskDto {
+	if (!isHabiticaTask(data)) throw new TaskSourceError('Unknown', null, 'Habitica sent an unexpected task');
+	return data;
+}
+
 function isHabiticaTask(value: unknown): value is HabiticaTaskDto {
 	if (typeof value !== 'object' || value === null) return false;
 	const task = value as Record<string, unknown>;
 	const hasId = typeof task.id === 'string' || typeof task._id === 'string';
 	const tagsOk = task.tags === undefined || (Array.isArray(task.tags) && task.tags.every((tag) => typeof tag === 'string'));
 	const dateOk = task.date === undefined || task.date === null || typeof task.date === 'string';
-	return hasId && typeof task.text === 'string' && typeof task.type === 'string' && tagsOk && dateOk;
+	const completedDateOk = task.dateCompleted === undefined || task.dateCompleted === null || typeof task.dateCompleted === 'string';
+	return hasId && typeof task.text === 'string' && typeof task.type === 'string' && tagsOk && dateOk && completedDateOk;
 }

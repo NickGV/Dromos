@@ -2,4 +2,6 @@
 export * from './http';
 export * from './obsidianHttp';
 export * from './HabiticaClient';
+export * from './HabiticaTaskCreator';
 export * from './HabiticaTaskSource';
+export * from './HabiticaTaskStatusSource';

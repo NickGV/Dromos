@@ -8,6 +8,7 @@ import { QuestList } from '../organisms/QuestList';
 import { characterCardView } from '../presenters/characterCardView';
 import { questListView } from '../presenters/questListView';
 import { syncBannerView } from '../presenters/syncBanner';
+import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
 export interface HomeScreenDeps {
@@ -16,6 +17,7 @@ export interface HomeScreenDeps {
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
+	readonly campaigns: CampaignsDeps;
 }
 
 type CharacterState = HomeSnapshot['character'] | { readonly kind: 'loading' } | { readonly kind: 'unreadable' };
@@ -27,11 +29,13 @@ const CLOCK_TICK_MS = 30_000;
  * The only UI component that calls `application/` (S8). On mount and on
  * "Sincronizar" it reads the character (LoadHome, no network), renders it with
  * the session's quests, then runs one SyncQuests: it renders the `syncing`
- * snapshot first and the outcome when the sync settles. No polling (S7).
+ * snapshot first and the outcome when the sync settles. Each run also bumps `syncKey`,
+ * which makes the campaigns panel sync too. No polling (S7).
  */
 export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [character, setCharacter] = useState<CharacterState>({ kind: 'loading' });
 	const [quests, setQuests] = useState<QuestSnapshot>(deps.questSnapshot);
+	const [syncKey, setSyncKey] = useState(0);
 	const mounted = useRef(false);
 	useClockTick();
 
@@ -40,6 +44,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		if (!mounted.current) return;
 		setCharacter(home ? home.character : { kind: 'unreadable' });
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
+		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
 		setQuests(deps.questSnapshot());
 		const synced = await pending;
@@ -62,6 +67,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			</div>
 			<CharacterPanel state={panelState(character)} />
 			<QuestList view={questListView(quests.quests, deps.clock.today())} />
+			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
 		</main>
 	);
 }

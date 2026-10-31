@@ -19,8 +19,8 @@ export class PluginSettingsStore implements SettingsStore {
 	}
 
 	async save(settings: Settings): Promise<void> {
-		const { habiticaUserId, habiticaApiToken, vaultFolder } = settings;
-		await this.plugin.saveData({ habiticaUserId, habiticaApiToken, vaultFolder });
+		const { habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays } = settings;
+		await this.plugin.saveData({ habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays });
 	}
 }
 
@@ -31,9 +31,14 @@ function settingsFromData(data: unknown): Settings {
 		habiticaUserId: textOr(stored.habiticaUserId, DEFAULT_SETTINGS.habiticaUserId),
 		habiticaApiToken: textOr(stored.habiticaApiToken, DEFAULT_SETTINGS.habiticaApiToken),
 		vaultFolder: normalizeVaultFolder(textOr(stored.vaultFolder, DEFAULT_SETTINGS.vaultFolder)),
+		staleAfterDays: positiveIntegerOr(stored.staleAfterDays, DEFAULT_SETTINGS.staleAfterDays),
 	};
 }
 
 function textOr(value: unknown, fallback: string): string {
 	return typeof value === 'string' ? value : fallback;
+}
+
+function positiveIntegerOr(value: unknown, fallback: number): number {
+	return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : fallback;
 }

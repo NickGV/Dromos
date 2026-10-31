@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
+import { HABITICA_X_CLIENT, HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { HabiticaTaskSource } from '../../../src/adapters/habitica/HabiticaTaskSource';
 import type { Quest } from '../../../src/domain/quest/Quest';
 import type { Clock } from '../../../src/ports/Clock';
@@ -49,7 +49,7 @@ describe('HabiticaTaskSource.fetchToday with real fixtures (S6, S10)', () => {
 			['GET', TODOS_URL],
 		]);
 		for (const request of http.requests) {
-			expect(request.headers).toEqual({ 'x-api-user': USER_ID, 'x-api-key': TOKEN, 'x-client': `${USER_ID}-dromos` });
+			expect(request.headers).toEqual({ 'x-api-user': USER_ID, 'x-api-key': TOKEN, 'x-client': HABITICA_X_CLIENT });
 		}
 	});
 

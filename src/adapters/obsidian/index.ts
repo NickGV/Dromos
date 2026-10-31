@@ -2,3 +2,4 @@
 export * from './DromosSettingTab';
 export * from './PluginSettingsStore';
 export * from './SystemClock';
+export * from './noteUri';
