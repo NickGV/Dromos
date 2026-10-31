@@ -23,6 +23,7 @@ const STORED: Settings = {
 	habiticaUserId: 'user-123',
 	habiticaApiToken: 'token-abc',
 	vaultFolder: 'Notas/Dromos',
+	staleAfterDays: 21,
 };
 
 describe('PluginSettingsStore.load', () => {
@@ -79,5 +80,26 @@ describe('PluginSettingsStore.save', () => {
 		const store = new PluginSettingsStore(plugin);
 		await store.save(STORED);
 		expect(await store.load()).toEqual(STORED);
+	});
+});
+
+describe('PluginSettingsStore: staleAfterDays', () => {
+	it('defaults to 14 days and keeps a stored positive whole number', async () => {
+		expect(DEFAULT_SETTINGS.staleAfterDays).toBe(14);
+		expect((await new PluginSettingsStore(new FakePlugin({ staleAfterDays: 30 })).load()).staleAfterDays).toBe(30);
+	});
+
+	it('falls back to the default for anything else', async () => {
+		for (const bad of [0, -3, 2.5, '14', null, Number.NaN]) {
+			expect((await new PluginSettingsStore(new FakePlugin({ staleAfterDays: bad })).load()).staleAfterDays).toBe(14);
+		}
+	});
+
+	it('saves it with the other settings', async () => {
+		const plugin = new FakePlugin(null);
+
+		await new PluginSettingsStore(plugin).save(STORED);
+
+		expect(plugin.saved[0]).toMatchObject({ staleAfterDays: 21 });
 	});
 });

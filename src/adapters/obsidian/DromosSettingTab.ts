@@ -2,7 +2,7 @@ import { PluginSettingTab, Setting, type App, type Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, type Settings, type SettingsStore } from '../../ports';
 
 /**
- * Settings tab (S3): Habitica credentials and the Dromos vault folder. Every change
+ * Settings tab (S3): Habitica credentials, the Dromos vault folder and the stale threshold. Every change
  * is saved through the `SettingsStore` and then reported to `onChange`. The token
  * input is masked and its value is never logged.
  */
@@ -55,6 +55,20 @@ export class DromosSettingTab extends PluginSettingTab {
 					.setPlaceholder(DEFAULT_SETTINGS.vaultFolder)
 					.setValue(settings.vaultFolder)
 					.onChange((value) => void update({ vaultFolder: value })),
+			);
+
+		new Setting(containerEl)
+			.setName('Días para marcar una campaña como detenida')
+			.setDesc('Días sin completar ninguna tarea antes de marcar una campaña activa como detenida. Cada campaña puede fijar el suyo con stale_after_days.')
+			.addText((text) =>
+				text
+					.setPlaceholder(String(DEFAULT_SETTINGS.staleAfterDays))
+					.setValue(String(settings.staleAfterDays))
+					.onChange((value) => {
+						// Ignore half-typed or invalid values; the last valid one stays.
+						const days = Number(value);
+						if (Number.isInteger(days) && days > 0) void update({ staleAfterDays: days });
+					}),
 			);
 	}
 }
