@@ -4,6 +4,8 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-31
+
 ### Added
 
 - Interface language setting: English by default, Español optional. It switches the open view at once and changes only Dromos' own text, never your notes or the keys of `Character.md`.
