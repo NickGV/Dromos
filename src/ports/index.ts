@@ -5,4 +5,5 @@ export * from './Clock';
 export * from './GameStateRepository';
 export * from './SettingsStore';
 export * from './TaskSource';
+export * from './TaskStatusSource';
 export * from './TaskSourceError';

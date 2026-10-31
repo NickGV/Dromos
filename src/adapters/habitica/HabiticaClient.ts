@@ -26,10 +26,22 @@ export class HabiticaClient {
 
 	/** `GET` a path such as `/tasks/user?type=dailys` and resolve with the envelope's `data`. */
 	async get(path: string): Promise<unknown> {
+		return dataOf(await this.request(path));
+	}
+
+	/**
+	 * Like `get`, but resolves `null` on a 404 so a deleted task is told apart from
+	 * a failure. Every other outcome behaves as in `get`.
+	 */
+	async find(path: string): Promise<unknown> {
+		const response = await this.request(path);
+		return response.status === 404 ? null : dataOf(response);
+	}
+
+	private async request(path: string): Promise<HttpResponse> {
 		const { userId, apiToken } = await this.credentials();
-		let response: HttpResponse;
 		try {
-			response = await this.http({
+			return await this.http({
 				url: `${HABITICA_BASE_URL}${path}`,
 				method: 'GET',
 				headers: { 'x-api-user': userId, 'x-api-key': apiToken, 'x-client': `${userId}-dromos` },
@@ -38,7 +50,6 @@ export class HabiticaClient {
 			// The original error is dropped on purpose: it may echo request details.
 			throw new TaskSourceError('Offline', null, 'Habitica could not be reached');
 		}
-		return dataOf(response);
 	}
 }
 

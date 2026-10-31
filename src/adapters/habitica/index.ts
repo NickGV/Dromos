@@ -3,3 +3,4 @@ export * from './http';
 export * from './obsidianHttp';
 export * from './HabiticaClient';
 export * from './HabiticaTaskSource';
+export * from './HabiticaTaskStatusSource';
