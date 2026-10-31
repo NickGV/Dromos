@@ -4,6 +4,8 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-31
+
 ### Changed
 
 - The `x-client` header now carries the tool author's Habitica user ID, as Habitica's API usage guidelines require, instead of the ID of whoever runs the plugin.
