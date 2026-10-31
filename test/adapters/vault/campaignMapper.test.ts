@@ -3,6 +3,7 @@ import {
 	buildActiveCampaigns,
 	campaignFromNote,
 	isCampaignNote,
+	linkPath,
 	linkTarget,
 	type VaultNote,
 } from '../../../src/adapters/vault/campaignMapper';
@@ -72,6 +73,15 @@ describe('linkTarget', () => {
 		expect(linkTarget(undefined)).toBeNull();
 		expect(linkTarget(42)).toBeNull();
 		expect(linkTarget('plain text')).toBeNull();
+	});
+});
+
+describe('linkPath', () => {
+	it('returns the path a wikilink points to, with its folder, without alias or heading', () => {
+		expect(linkPath('[[Carpeta/Estudio - X|alias]]')).toBe('Carpeta/Estudio - X');
+		expect(linkPath('[[Estudio - X#Heading]]')).toBe('Estudio - X');
+		expect(linkPath('[[]]')).toBeNull();
+		expect(linkPath(42)).toBeNull();
 	});
 });
 
@@ -259,6 +269,22 @@ describe('campaignFromNote: research', () => {
 		const campaign = campaignFromNote(APOCRIFOS, [aliased, headed, other, unlinked, notASession]);
 
 		expect(campaign.tasks.map((task) => task.title)).toEqual(['Sesión A', 'Sesión B']);
+	});
+
+	it('tells apart two research notes with the same name when the sessions carry the path their link resolves to', () => {
+		const first = note('03 - Areas/Bible/Estudio/A/Estudio - T.md', { type: 'research', status: 'active' });
+		const second = note('03 - Areas/Bible/Estudio/B/Estudio - T.md', { type: 'research', status: 'active' });
+		const own = (name: string, researchPath: string | null) => ({ ...session(name, { research: '[[Estudio - T]]' }), researchPath });
+		const sessions = [own('Sesión A', first.path), own('Sesión B', second.path)];
+
+		expect(campaignFromNote(first, sessions).tasks.map((task) => task.title)).toEqual(['Sesión A']);
+		expect(campaignFromNote(second, sessions).tasks.map((task) => task.title)).toEqual(['Sesión B']);
+	});
+
+	it('falls back to the file name when the link did not resolve', () => {
+		const unresolved = { ...session('Sesión U', { research: '[[Estudio - Libros Apócrifos]]' }), researchPath: null };
+
+		expect(campaignFromNote(APOCRIFOS, [unresolved]).tasks.map((task) => task.title)).toEqual(['Sesión U']);
 	});
 
 	it('orders sessions by their number, then by title, and tolerates a missing number', () => {

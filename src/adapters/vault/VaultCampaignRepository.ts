@@ -4,7 +4,7 @@ import type { CampaignRepository, LinkResult } from '../../ports';
 import { SystemClock } from '../obsidian/SystemClock';
 import { waitForCache } from './cacheWait';
 import { linkHabiticaIdInFrontmatter } from './campaignLink';
-import { buildActiveCampaigns, type VaultNote } from './campaignMapper';
+import { buildActiveCampaigns, linkPath, type VaultNote } from './campaignMapper';
 
 /** Note types `listActive` needs: the campaigns themselves and the sessions of a research. */
 const RELEVANT_TYPES: readonly unknown[] = ['index', 'research', 'study-session'];
@@ -47,6 +47,12 @@ export class VaultCampaignRepository implements CampaignRepository {
 		return result;
 	}
 
+	/** The note a session's `research` link points to, as Obsidian resolves it, or `null`. */
+	private resolveResearch(file: TFile, frontmatter: unknown): string | null {
+		const target = linkPath((frontmatter as Record<string, unknown>).research);
+		return target === null ? null : (this.app.metadataCache.getFirstLinkpathDest(target, file.path)?.path ?? null);
+	}
+
 	private cacheHasId(file: TFile, habiticaId: string): boolean {
 		const tasks: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter?.tasks;
 		return Array.isArray(tasks) && tasks.some((task: unknown) => (task as { habitica_id?: unknown } | null)?.habitica_id === habiticaId);
@@ -57,7 +63,8 @@ export class VaultCampaignRepository implements CampaignRepository {
 			const frontmatter: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter;
 			const type = typeof frontmatter === 'object' && frontmatter !== null ? (frontmatter as Record<string, unknown>).type : undefined;
 			if (!RELEVANT_TYPES.includes(type)) return [];
-			return [{ path: file.path, frontmatter, createdOn: new SystemClock(() => new Date(file.stat.ctime)).today() }];
+			const createdOn = new SystemClock(() => new Date(file.stat.ctime)).today();
+			return [{ path: file.path, frontmatter, createdOn, ...(type === 'study-session' ? { researchPath: this.resolveResearch(file, frontmatter) } : {}) }];
 		});
 	}
 }

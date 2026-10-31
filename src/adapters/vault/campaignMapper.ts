@@ -17,6 +17,12 @@ export interface VaultNote {
 	readonly frontmatter: unknown;
 	/** Local creation date (`YYYY-MM-DD`) of the file, used when `created` is missing or invalid. */
 	readonly createdOn: string;
+	/**
+	 * Study sessions only: the path the `research` wikilink resolves to, or `null` when it
+	 * does not resolve. Absent when the caller could not resolve links. It tells apart two
+	 * research notes that share a file name.
+	 */
+	readonly researchPath?: string | null;
 }
 
 const STATUSES: readonly LifecycleStatus[] = ['planning', 'active', 'paused', 'completed', 'archived'];
@@ -42,15 +48,20 @@ export function isCampaignNote(note: VaultNote): boolean {
 }
 
 /**
- * The file name a wikilink points to, without folder, alias or heading
- * (`[[Folder/Note#Heading|alias]]` gives `Note`), or `null` when the value is not a link.
+ * What a wikilink points to, folder included, without alias or heading
+ * (`[[Folder/Note#Heading|alias]]` gives `Folder/Note`), or `null` when the value is not a link.
  */
-export function linkTarget(value: unknown): string | null {
+export function linkPath(value: unknown): string | null {
 	if (typeof value !== 'string') return null;
 	const inner = /^\[\[([^\]]*)\]\]$/.exec(value.trim())?.[1];
 	if (inner === undefined) return null;
-	const target = (inner.split('|')[0] ?? '').split('#')[0] ?? '';
-	const name = target.split('/').pop()?.trim() ?? '';
+	const target = ((inner.split('|')[0] ?? '').split('#')[0] ?? '').trim();
+	return target === '' ? null : target;
+}
+
+/** The file name a wikilink points to, without folder, alias or heading, or `null`. */
+export function linkTarget(value: unknown): string | null {
+	const name = linkPath(value)?.split('/').pop()?.trim() ?? '';
 	return name === '' ? null : name;
 }
 
@@ -77,7 +88,7 @@ export function campaignFromNote(note: VaultNote, sessions: readonly VaultNote[]
 		staleAfterDays: positiveInteger(fields.stale_after_days),
 		created: dateOrNull(fields.created) ?? note.createdOn,
 		phases: phasesFrom(fields.phases),
-		tasks: kind === 'research' ? sessionTasks(name, sessions) : projectTasks(fields.tasks),
+		tasks: kind === 'research' ? sessionTasks(note.path, name, sessions) : projectTasks(fields.tasks),
 	};
 }
 
@@ -119,10 +130,19 @@ function projectTasks(value: unknown): CampaignTask[] {
 	});
 }
 
-/** Sessions of the research named `researchName`, ordered by `session` then title. Completed means `status: completed` (ADR-012). */
-function sessionTasks(researchName: string, sessions: readonly VaultNote[]): CampaignTask[] {
+/**
+ * Sessions of one research, ordered by `session` then title. A session belongs to it when its
+ * link resolved to this note's path; when the link did not resolve (or the caller could not
+ * resolve links) the file name decides. Completed means `status: completed` (ADR-012).
+ */
+function sessionTasks(researchPath: string, researchName: string, sessions: readonly VaultNote[]): CampaignTask[] {
 	return sessions
-		.filter((note) => asRecord(note.frontmatter).type === 'study-session' && linkTarget(asRecord(note.frontmatter).research) === researchName)
+		.filter((note) => {
+			const fields = asRecord(note.frontmatter);
+			if (fields.type !== 'study-session') return false;
+			if (typeof note.researchPath === 'string') return note.researchPath === researchPath;
+			return linkTarget(fields.research) === researchName;
+		})
 		.map((note) => {
 			const fields = asRecord(note.frontmatter);
 			const completed = fields.status === 'completed';
