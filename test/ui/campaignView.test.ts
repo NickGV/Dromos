@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { CampaignSnapshot } from '../../src/application';
+import { createTranslator } from '../../src/i18n';
 import { campaignCardView, campaignListView } from '../../src/ui/presenters/campaignView';
 import { campaign, phase, task } from '../domain/campaign/campaignFixtures';
 
+const t = createTranslator('es');
 const TODAY = '2026-10-31';
-const ctx = { today: TODAY, defaultStaleAfterDays: 14, issues: [], canSend: true, habiticaKnown: true };
+const ctx = { today: TODAY, defaultStaleAfterDays: 14, issues: [], canSend: true, habiticaKnown: true, t };
 
 const kairos = campaign({
 	path: 'P/Kairos/README.md',
@@ -135,7 +137,7 @@ describe('campaignListView', () => {
 		status: { kind: 'synced' },
 		...overrides,
 	});
-	const view = (value: CampaignSnapshot) => campaignListView(value, { today: TODAY, defaultStaleAfterDays: 14 });
+	const view = (value: CampaignSnapshot) => campaignListView(value, { today: TODAY, defaultStaleAfterDays: 14, t });
 
 	it('trusts the stale stamp only once Habitica has answered', () => {
 		const old = campaign({ created: '2026-08-01', tasks: [task('Linked', null, { habiticaId: 'h1' })] });

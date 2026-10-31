@@ -24,6 +24,7 @@ const STORED: Settings = {
 	habiticaApiToken: 'token-abc',
 	vaultFolder: 'Notas/Dromos',
 	staleAfterDays: 21,
+	language: 'es',
 };
 
 describe('PluginSettingsStore.load', () => {
@@ -101,5 +102,27 @@ describe('PluginSettingsStore: staleAfterDays', () => {
 		await new PluginSettingsStore(plugin).save(STORED);
 
 		expect(plugin.saved[0]).toMatchObject({ staleAfterDays: 21 });
+	});
+});
+
+describe('PluginSettingsStore: language', () => {
+	it('defaults to English and keeps a stored supported language', async () => {
+		expect(DEFAULT_SETTINGS.language).toBe('en');
+		expect((await new PluginSettingsStore(new FakePlugin({})).load()).language).toBe('en');
+		expect((await new PluginSettingsStore(new FakePlugin({ language: 'es' })).load()).language).toBe('es');
+	});
+
+	it('falls back to English for an unknown value, so an old or edited data.json never breaks the view', async () => {
+		for (const bad of ['fr', '', 'ES', 1, null]) {
+			expect((await new PluginSettingsStore(new FakePlugin({ language: bad })).load()).language).toBe('en');
+		}
+	});
+
+	it('saves it with the other settings', async () => {
+		const plugin = new FakePlugin(null);
+
+		await new PluginSettingsStore(plugin).save(STORED);
+
+		expect(plugin.saved[0]).toMatchObject({ language: 'es' });
 	});
 });

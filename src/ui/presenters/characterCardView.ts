@@ -1,11 +1,12 @@
 import { STAT_IDS, type Character, type StatId } from '../../domain';
+import type { MessageKey, Translator } from '../../i18n';
 
-/** Spanish labels of the four stats. */
-export const STAT_LABELS: Readonly<Record<StatId, string>> = {
-	fuerza: 'Fuerza',
-	inteligencia: 'Inteligencia',
-	espiritu: 'Espíritu',
-	disciplina: 'Disciplina',
+/** Copy keys of the four stats; the ids themselves are the frontmatter keys of `Character.md` and never change. */
+const STAT_KEYS: Readonly<Record<StatId, MessageKey>> = {
+	fuerza: 'stat.fuerza',
+	inteligencia: 'stat.inteligencia',
+	espiritu: 'stat.espiritu',
+	disciplina: 'stat.disciplina',
 };
 
 export interface StatBadgeView {
@@ -35,14 +36,14 @@ export interface CharacterCardView {
 }
 
 /** Maps a character read from `Character.md` to the card's display values. */
-export function characterCardView(character: Character): CharacterCardView {
+export function characterCardView(character: Character, t: Translator): CharacterCardView {
 	const { xpIntoLevel, xpToNext } = character;
 	return {
-		name: character.name === '' ? 'Sin nombre' : character.name,
+		name: character.name === '' ? t('character.unnamed') : character.name,
 		title: character.title === '' ? null : character.title,
-		levelText: `Nivel ${character.level}`,
+		levelText: t('character.level', { level: character.level }),
 		xp: { current: xpIntoLevel, total: xpToNext, percent: percentOf(xpIntoLevel, xpToNext), text: `${xpIntoLevel} / ${xpToNext} XP` },
-		stats: STAT_IDS.map((id) => ({ id, label: STAT_LABELS[id], value: character.stats[id] })),
+		stats: STAT_IDS.map((id) => ({ id, label: t(STAT_KEYS[id]), value: character.stats[id] })),
 	};
 }
 

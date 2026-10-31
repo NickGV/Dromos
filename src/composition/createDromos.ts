@@ -1,4 +1,5 @@
 import type { Plugin } from 'obsidian';
+import { createTranslator } from '../i18n';
 import {
 	createObsidianHttp,
 	HabiticaClient,
@@ -37,6 +38,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		return userId !== '' && apiToken !== '';
 	};
 
+	const settingsListeners = new Set<() => void>();
 	const clock = new SystemClock();
 	const state = new QuestState();
 	const repository = new VaultGameStateRepository(plugin.app, () => settings.vaultFolder);
@@ -51,6 +53,11 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			questSnapshot: () => state.snapshot(),
 			clock,
+			translator: () => createTranslator(settings.language),
+			subscribeSettings: (onChange) => {
+				settingsListeners.add(onChange);
+				return () => void settingsListeners.delete(onChange);
+			},
 			campaigns: {
 				syncCampaigns: new SyncCampaigns({
 					repository: campaignRepository,
@@ -76,6 +83,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		},
 		settingTab: new DromosSettingTab(plugin.app, plugin, store, (next) => {
 			settings = next;
+			settingsListeners.forEach((listener) => listener());
 		}),
 	};
 }

@@ -4,6 +4,14 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Interface language setting: English by default, Español optional. It switches the open view at once and changes only Dromos' own text, never your notes or the keys of `Character.md`.
+
+### Changed
+
+- The interface is now in English by default. Users who want the previous Spanish copy choose **Español** under Settings → Dromos → Language; the Spanish text is exactly what 0.2.0 showed.
+
 ## [0.2.0] - 2026-10-31
 
 ### Changed

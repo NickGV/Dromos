@@ -1,4 +1,6 @@
+import { plural } from '../../i18n';
 import { PhaseProgress } from '../atoms/PhaseProgress';
+import { useT } from '../i18n';
 import { CampaignTaskRow } from '../molecules/CampaignTaskRow';
 import type { CampaignCardView } from '../presenters/campaignView';
 import type { LinkOutcomeView } from '../presenters/linkOutcomeView';
@@ -18,6 +20,7 @@ export interface CampaignCardProps {
  * its bar, the next step and, folded, its tasks. The name opens the note.
  */
 export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: CampaignCardProps) {
+	const t = useT();
 	return (
 		<article className={view.stale ? 'dromos-campaign is-stale' : 'dromos-campaign'}>
 			<header className="dromos-campaign-head">
@@ -29,18 +32,18 @@ export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: Ca
 				<span className="dromos-chip">{view.kindLabel}</span>
 				<span className="dromos-chip is-mono">{view.chip}</span>
 				{view.stale ? (
-					<span className="dromos-stamp">Detenida · {view.stale.days === 1 ? '1 día' : `${view.stale.days} días`}</span>
+					<span className="dromos-stamp">{plural(t, 'campaign.stalled', view.stale.days)}</span>
 				) : null}
 			</header>
 			<p className="dromos-campaign-next">
-				<span className="dromos-campaign-next-label">Siguiente:</span> {view.next ?? 'Nada pendiente'}
+				<span className="dromos-campaign-next-label">{t('campaign.next')}</span> {view.next ?? t('campaign.next.none')}
 			</p>
 			{message ? (
 				<p className={`dromos-campaign-message is-${message.tone}`} role="status" aria-live="polite">
 					{message.message}
 				</p>
 			) : null}
-			<PhaseProgress percent={view.progress.percent} label={`Progreso de ${view.title}`} />
+			<PhaseProgress percent={view.progress.percent} label={t('campaign.progress.aria', { title: view.title })} />
 			{view.warnings.map((warning) => (
 				<p key={warning} className="dromos-campaign-warning" role="status">
 					{warning}
@@ -48,7 +51,7 @@ export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: Ca
 			))}
 			{view.tasks.length > 0 ? (
 				<details className="dromos-campaign-tasks">
-					<summary>{view.tasks.length === 1 ? '1 tarea' : `${view.tasks.length} tareas`}</summary>
+					<summary>{plural(t, 'campaign.tasks', view.tasks.length)}</summary>
 					<ul className="dromos-campaign-task-list">
 						{view.tasks.map((row, index) => (
 							<CampaignTaskRow

@@ -1,4 +1,5 @@
 import type { LinkOutcome } from '../../application';
+import type { Translator } from '../../i18n';
 import type { BannerTone } from './syncBanner';
 
 /** The message shown after pressing "Enviar a Habitica". */
@@ -7,40 +8,34 @@ export interface LinkOutcomeView {
 	readonly message: string;
 }
 
-export function linkOutcomeView(outcome: LinkOutcome): LinkOutcomeView {
+export function linkOutcomeView(outcome: LinkOutcome, t: Translator): LinkOutcomeView {
 	switch (outcome.kind) {
 		case 'linked':
-			return { tone: 'success', message: 'Tarea enviada a Habitica.' };
+			return { tone: 'success', message: t('link.linked') };
 		case 'already-linked':
-			return { tone: 'neutral', message: 'Esa tarea ya está en Habitica.' };
+			return { tone: 'neutral', message: t('link.alreadyLinked') };
 		case 'not-found':
-			return { tone: 'warning', message: 'No se encontró la tarea en la nota. Sincroniza e inténtalo de nuevo.' };
+			return { tone: 'warning', message: t('link.notFound') };
 		case 'not-a-project':
-			return { tone: 'warning', message: 'Solo las tareas de proyectos se envían a Habitica.' };
+			return { tone: 'warning', message: t('link.notAProject') };
 		case 'habitica-failed':
-			return failure(outcome.error);
+			return failure(outcome.error, t);
 		case 'duplicate':
-			return {
-				tone: 'warning',
-				message: `Esa tarea ya estaba vinculada, así que se creó un to-do duplicado en Habitica. Bórralo allí. Id: ${outcome.habiticaId}`,
-			};
+			return { tone: 'warning', message: t('link.duplicate', { id: outcome.habiticaId }) };
 		case 'write-failed':
-			return {
-				tone: 'error',
-				message: `La tarea se creó en Habitica pero no se pudo guardar su id en la nota. Id: ${outcome.habiticaId}`,
-			};
+			return { tone: 'error', message: t('link.writeFailed', { id: outcome.habiticaId }) };
 	}
 }
 
-function failure(error: Extract<LinkOutcome, { kind: 'habitica-failed' }>['error']): LinkOutcomeView {
+function failure(error: Extract<LinkOutcome, { kind: 'habitica-failed' }>['error'], t: Translator): LinkOutcomeView {
 	switch (error) {
 		case 'Offline':
-			return { tone: 'warning', message: 'Sin conexión: no se pudo enviar la tarea.' };
+			return { tone: 'warning', message: t('link.offline') };
 		case 'Unauthorized':
-			return { tone: 'error', message: 'Token inválido: no se pudo enviar la tarea.' };
+			return { tone: 'error', message: t('link.unauthorized') };
 		case 'RateLimited':
-			return { tone: 'warning', message: 'Demasiadas solicitudes a Habitica. Inténtalo en un momento.' };
+			return { tone: 'warning', message: t('link.rateLimited') };
 		case 'Unknown':
-			return { tone: 'error', message: 'No se pudo enviar la tarea a Habitica.' };
+			return { tone: 'error', message: t('link.unknown') };
 	}
 }

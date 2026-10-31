@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CampaignSnapshot, LinkTaskToCampaign, SyncCampaigns } from '../../application';
 import type { Clock } from '../../ports';
+import { useT } from '../i18n';
 import { CampaignList } from '../organisms/CampaignList';
 import { campaignListView } from '../presenters/campaignView';
 import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcomeView';
@@ -27,6 +28,7 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 	const [sendingTitle, setSendingTitle] = useState<string | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
 	const mounted = useRef(false);
+	const t = useT();
 
 	const sync = useCallback(async (): Promise<void> => {
 		const pending = deps.syncCampaigns.execute();
@@ -54,17 +56,17 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 			setMessage(null);
 			const outcome = await deps.linkTask.execute(path, taskTitle);
 			if (!mounted.current) return;
-			setMessage({ ...linkOutcomeView(outcome), path });
+			setMessage({ ...linkOutcomeView(outcome, t), path });
 			// Keep "Enviando…" until the list is refreshed, so the button never flashes back. Only
 			// the note changed, so re-read the vault: it spends no Habitica request.
 			const reloaded = await deps.syncCampaigns.reload();
 			if (mounted.current) setSnapshot(reloaded);
 			if (mounted.current) setSendingTitle(null);
 		},
-		[deps, sync],
+		[deps, sync, t],
 	);
 
-	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays() });
+	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
 	return (
 		<CampaignList
 			view={view}
