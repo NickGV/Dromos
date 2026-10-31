@@ -33,6 +33,23 @@ export class SyncCampaigns {
 		return this.inFlight;
 	}
 
+	/**
+	 * Re-reads the vault only, with no Habitica request: the progress already known is kept
+	 * and the status stays as it was. For after a change Dromos itself made to a note. Joins
+	 * a sync that is already running. Never rejects.
+	 */
+	async reload(): Promise<CampaignSnapshot> {
+		if (this.inFlight) return this.inFlight;
+		const { repository, state } = this.deps;
+		try {
+			const merged = mergeTaskStatuses(await repository.listActive(), this.known);
+			state.recordVault(merged.campaigns, merged.issues);
+		} catch {
+			state.setStatus({ kind: 'error' });
+		}
+		return state.snapshot();
+	}
+
 	private async run(): Promise<CampaignSnapshot> {
 		const { repository, source, clock, state, hasCredentials } = this.deps;
 		state.setStatus({ kind: 'syncing' });

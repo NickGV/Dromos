@@ -7,7 +7,7 @@ import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcome
 
 /** What the campaigns panel needs from the application layer; built in `src/composition`. */
 export interface CampaignsDeps {
-	readonly syncCampaigns: Pick<SyncCampaigns, 'execute'>;
+	readonly syncCampaigns: Pick<SyncCampaigns, 'execute' | 'reload'>;
 	readonly linkTask: Pick<LinkTaskToCampaign, 'execute'>;
 	/** The session's campaigns right now; reads `syncing` as soon as `syncCampaigns.execute()` returns. */
 	readonly campaignSnapshot: () => CampaignSnapshot;
@@ -55,8 +55,10 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 			const outcome = await deps.linkTask.execute(path, taskTitle);
 			if (!mounted.current) return;
 			setMessage({ ...linkOutcomeView(outcome), path });
-			// Keep "Enviando…" until the list is refreshed, so the button never flashes back.
-			await sync();
+			// Keep "Enviando…" until the list is refreshed, so the button never flashes back. Only
+			// the note changed, so re-read the vault: it spends no Habitica request.
+			const reloaded = await deps.syncCampaigns.reload();
+			if (mounted.current) setSnapshot(reloaded);
 			if (mounted.current) setSendingTitle(null);
 		},
 		[deps, sync],

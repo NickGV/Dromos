@@ -4,7 +4,7 @@ import { campaignCardView, campaignListView } from '../../src/ui/presenters/camp
 import { campaign, phase, task } from '../domain/campaign/campaignFixtures';
 
 const TODAY = '2026-10-31';
-const ctx = { today: TODAY, defaultStaleAfterDays: 14, issues: [], canSend: true };
+const ctx = { today: TODAY, defaultStaleAfterDays: 14, issues: [], canSend: true, habiticaKnown: true };
 
 const kairos = campaign({
 	path: 'P/Kairos/README.md',
@@ -81,6 +81,23 @@ describe('campaignCardView: projects', () => {
 	});
 });
 
+describe('campaignCardView: before Habitica has answered', () => {
+	const old = campaign({ created: '2026-08-01', tasks: [task('Linked', null, { habiticaId: 'h1' })] });
+
+	it('does not stamp a project whose progress lives in Habitica as stale', () => {
+		expect(campaignCardView(old, { ...ctx, habiticaKnown: false }).stale).toBeNull();
+		expect(campaignCardView(old, ctx).stale).toEqual({ days: 91 });
+	});
+
+	it('still stamps a project with nothing sent to Habitica, and a research', () => {
+		const unsent = campaign({ created: '2026-08-01', tasks: [task('Idle', null)] });
+		const research = campaign({ kind: 'research', created: '2026-08-01', tasks: [task('Session', 's1', { habiticaId: 'h1' })] });
+
+		expect(campaignCardView(unsent, { ...ctx, habiticaKnown: false }).stale).toEqual({ days: 91 });
+		expect(campaignCardView(research, { ...ctx, habiticaKnown: false }).stale).toEqual({ days: 91 });
+	});
+});
+
 describe('campaignCardView: sending', () => {
 	it('offers no send button when Habitica is not set up', () => {
 		const rows = campaignCardView(kairos, { ...ctx, canSend: false }).tasks;
@@ -119,6 +136,14 @@ describe('campaignListView', () => {
 		...overrides,
 	});
 	const view = (value: CampaignSnapshot) => campaignListView(value, { today: TODAY, defaultStaleAfterDays: 14 });
+
+	it('trusts the stale stamp only once Habitica has answered', () => {
+		const old = campaign({ created: '2026-08-01', tasks: [task('Linked', null, { habiticaId: 'h1' })] });
+		const stale = (value: CampaignSnapshot) => view(value).cards[0]?.stale;
+
+		expect(stale(snapshot({ campaigns: [old], lastSyncedAt: null, status: { kind: 'offline' } }))).toBeNull();
+		expect(stale(snapshot({ campaigns: [old] }))).toEqual({ days: 91 });
+	});
 
 	it('hides the send button until Habitica is set up', () => {
 		const rows = (status: CampaignSnapshot['status']) => view(snapshot({ status })).cards[0]?.tasks.filter((row) => row.canSend) ?? [];

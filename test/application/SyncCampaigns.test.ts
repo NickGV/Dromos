@@ -134,6 +134,41 @@ describe('SyncCampaigns', () => {
 		expect(state.snapshot().status).toEqual({ kind: 'synced' });
 	});
 
+	it('reloads from the vault without asking Habitica and keeps the status and the progress', async () => {
+		const { sync, source, repository, state } = setup();
+		source.resolves({ [H1]: { kind: 'completed', completedOn: '2026-10-30' }, [H2]: { kind: 'open' } });
+		await sync.execute();
+		Object.assign(repository, { campaigns: [campaign({ title: 'Renamed', path: 'P/Kairos/README.md', phases: [phase('mvp', 'active')], tasks: [task('a', 'mvp', { habiticaId: H1 }), task('new', 'mvp', { habiticaId: '3f2a1c8e-0000-4000-8000-000000000009' })] })] });
+
+		const snapshot = await sync.reload();
+
+		expect(source.calls).toBe(1);
+		expect(snapshot.campaigns?.[0]?.title).toBe('Renamed');
+		expect(completedFlags(snapshot.campaigns)).toEqual([true, false]);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+		expect(snapshot.lastSyncedAt).toEqual(NOW);
+		expect(state.snapshot()).toEqual(snapshot);
+	});
+
+	it('does not start a second read while a sync is running', async () => {
+		const { sync, source } = setup();
+		const release = source.holds({ [H1]: { kind: 'open' }, [H2]: { kind: 'open' } });
+
+		const running = sync.execute();
+		const reloaded = sync.reload();
+		release();
+
+		expect(await reloaded).toEqual(await running);
+		expect(source.calls).toBe(1);
+	});
+
+	it('answers `error` when the vault cannot be read on a reload, and never rejects', async () => {
+		const { sync, repository } = setup();
+		repository.listActive = () => Promise.reject(new Error('vault down'));
+
+		expect((await sync.reload()).status).toEqual({ kind: 'error' });
+	});
+
 	it('answers `error` and keeps the previous list when the vault cannot be read', async () => {
 		const { sync, repository, source } = setup();
 		source.resolves({ [H1]: { kind: 'open' }, [H2]: { kind: 'open' } });

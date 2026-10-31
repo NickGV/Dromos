@@ -35,6 +35,8 @@ export interface CampaignViewContext {
 	readonly issues: readonly CampaignIssue[];
 	/** False while Habitica is not set up: sending a task would only fail. */
 	readonly canSend: boolean;
+	/** True once Habitica has answered this session. Until then a project's progress is unknown. */
+	readonly habiticaKnown: boolean;
 }
 
 /** What `CampaignList` renders. */
@@ -57,7 +59,7 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 		path: campaign.path,
 		title: campaign.title,
 		kindLabel: KIND_LABELS[campaign.kind],
-		stale: isStale(campaign, context.today, context.defaultStaleAfterDays)
+		stale: !progressUnknown(campaign, context) && isStale(campaign, context.today, context.defaultStaleAfterDays)
 			? { days: daysSince(lastActivity(campaign), context.today) }
 			: null,
 		chip,
@@ -77,11 +79,11 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 	};
 }
 
-export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues' | 'canSend'>): CampaignListView {
+export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues' | 'canSend' | 'habiticaKnown'>): CampaignListView {
 	const campaigns = snapshot.campaigns ?? [];
 	const canSend = snapshot.status.kind !== 'not-configured';
 	return {
-		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues, canSend })),
+		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues, canSend, habiticaKnown: snapshot.lastSyncedAt !== null })),
 		emptyText:
 			snapshot.campaigns === null
 				? 'Las campañas aparecerán después de sincronizar.'
@@ -91,6 +93,12 @@ export function campaignListView(snapshot: CampaignSnapshot, context: Omit<Campa
 		notice: noticeFor(snapshot.status.kind),
 		footer: campaigns.length === 1 ? '1 campaña activa' : `${campaigns.length} campañas activas`,
 	};
+}
+
+// A project that has tasks in Habitica cannot be called stale before Habitica has answered:
+// its tasks read as pending only because nobody has looked yet.
+function progressUnknown(campaign: Campaign, context: CampaignViewContext): boolean {
+	return campaign.kind === 'project' && !context.habiticaKnown && campaign.tasks.some((task) => task.habiticaId !== null);
 }
 
 // The bar of a project follows its open phase (the card), the total only when no phase is open.

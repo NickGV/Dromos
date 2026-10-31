@@ -28,6 +28,11 @@ export class CampaignState {
 		this.current = { campaigns: [...campaigns], issues: [...issues], lastSyncedAt: syncedAt, status: { kind: 'synced' } };
 	}
 
+	/** A fresh list from the vault alone: the status and the sync time stay as they were. */
+	recordVault(campaigns: readonly Campaign[], issues: readonly CampaignIssue[]): void {
+		this.current = { ...this.current, campaigns: [...campaigns], issues: [...issues] };
+	}
+
 	/** The vault list is fresh but Habitica did not answer: keeps the last sync time. */
 	recordPartial(campaigns: readonly Campaign[], issues: readonly CampaignIssue[], status: PendingOrFailedStatus): void {
 		this.current = { ...this.current, campaigns: [...campaigns], issues: [...issues], status };
