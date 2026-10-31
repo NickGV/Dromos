@@ -33,6 +33,8 @@ export interface CampaignViewContext {
 	/** The plugin's `staleAfterDays` setting. */
 	readonly defaultStaleAfterDays: number;
 	readonly issues: readonly CampaignIssue[];
+	/** False while Habitica is not set up: sending a task would only fail. */
+	readonly canSend: boolean;
 }
 
 /** What `CampaignList` renders. */
@@ -69,16 +71,17 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 					: campaign.kind === 'project' && task.habiticaId === null
 						? 'unsent'
 						: 'pending';
-			return { title: task.title, state, canSend: state === 'unsent' };
+			return { title: task.title, state, canSend: state === 'unsent' && context.canSend };
 		}),
 		warnings: [...missing].map((title) => `"${title}" no se encontró en Habitica.`),
 	};
 }
 
-export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues'>): CampaignListView {
+export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues' | 'canSend'>): CampaignListView {
 	const campaigns = snapshot.campaigns ?? [];
+	const canSend = snapshot.status.kind !== 'not-configured';
 	return {
-		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues })),
+		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues, canSend })),
 		emptyText:
 			snapshot.campaigns === null
 				? 'Las campañas aparecerán después de sincronizar.'

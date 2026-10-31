@@ -4,7 +4,7 @@ import { campaignCardView, campaignListView } from '../../src/ui/presenters/camp
 import { campaign, phase, task } from '../domain/campaign/campaignFixtures';
 
 const TODAY = '2026-10-31';
-const ctx = { today: TODAY, defaultStaleAfterDays: 14, issues: [] };
+const ctx = { today: TODAY, defaultStaleAfterDays: 14, issues: [], canSend: true };
 
 const kairos = campaign({
 	path: 'P/Kairos/README.md',
@@ -81,6 +81,14 @@ describe('campaignCardView: projects', () => {
 	});
 });
 
+describe('campaignCardView: sending', () => {
+	it('offers no send button when Habitica is not set up', () => {
+		const rows = campaignCardView(kairos, { ...ctx, canSend: false }).tasks;
+
+		expect(rows.find((row) => row.title === 'Send gold')).toMatchObject({ state: 'unsent', canSend: false });
+	});
+});
+
 describe('campaignCardView: research', () => {
 	const research = campaign({
 		kind: 'research',
@@ -111,6 +119,13 @@ describe('campaignListView', () => {
 		...overrides,
 	});
 	const view = (value: CampaignSnapshot) => campaignListView(value, { today: TODAY, defaultStaleAfterDays: 14 });
+
+	it('hides the send button until Habitica is set up', () => {
+		const rows = (status: CampaignSnapshot['status']) => view(snapshot({ status })).cards[0]?.tasks.filter((row) => row.canSend) ?? [];
+
+		expect(rows({ kind: 'synced' })).toHaveLength(1);
+		expect(rows({ kind: 'not-configured' })).toHaveLength(0);
+	});
 
 	it('has a card per campaign and a footer that counts them', () => {
 		expect(view(snapshot()).cards.map((card) => card.title)).toEqual(['Kairos']);

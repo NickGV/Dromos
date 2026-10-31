@@ -4,6 +4,13 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Campaigns: every active project (the `README.md` of a folder under `02 - Projects/`) and research (a note under `03 - Areas/<area>/Estudio/`) shows as a card with its kind, open phase, progress bar, next step and folded task list, ordered by `priority`. Progress of project tasks comes from Habitica; a research counts its completed phases.
+- **Detenida** stamp for an active campaign with no completed task in 14 days; new setting "Días para marcar una campaña como detenida" and a per-campaign `stale_after_days`.
+- **Enviar a Habitica** on a project task without a `habitica_id`: creates the to-do once and writes its id back into the note.
+- A warning on a task whose Habitica to-do no longer exists; a notice when Habitica's progress could not be refreshed, with the last known progress kept for the session.
+
 ## [0.1.0] - 2026-10-30
 
 ### Added
