@@ -15,7 +15,9 @@ export type LinkOutcome =
 	| { readonly kind: 'not-a-project' }
 	| { readonly kind: 'habitica-failed'; readonly error: TaskSourceErrorKind }
 	/** The to-do exists in Habitica but its id could not be written into the note. */
-	| { readonly kind: 'write-failed'; readonly habiticaId: string };
+	| { readonly kind: 'write-failed'; readonly habiticaId: string }
+	/** The note was linked meanwhile, so the to-do just created is a duplicate the user has to delete. */
+	| { readonly kind: 'duplicate'; readonly habiticaId: string };
 
 /**
  * "Enviar a Habitica" (S6): creates the to-do of a project task and writes its id back
@@ -58,7 +60,7 @@ export class LinkTaskToCampaign {
 		try {
 			const result = await repository.linkHabiticaId(campaignPath, taskTitle, habiticaId);
 			if (result === 'linked') return { kind: 'linked', habiticaId };
-			if (result === 'already-linked') return { kind: 'already-linked' };
+			if (result === 'already-linked') return { kind: 'duplicate', habiticaId };
 		} catch {
 			// Fall through: the to-do exists, so the id must reach the user.
 		}

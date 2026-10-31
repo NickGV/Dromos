@@ -27,6 +27,14 @@ describe('linkOutcomeView', () => {
 		expect(message('Unknown')).toEqual({ tone: 'error', message: 'No se pudo enviar la tarea a Habitica.' });
 	});
 
+	it('warns about a duplicate to-do and gives its id so it can be deleted', () => {
+		const view = linkOutcomeView({ kind: 'duplicate', habiticaId: ID });
+
+		expect(view.tone).toBe('warning');
+		expect(view.message).toContain(ID);
+		expect(view.message).toContain('duplicad');
+	});
+
 	it('gives the id when the task exists in Habitica but could not be written into the note', () => {
 		const view = linkOutcomeView({ kind: 'write-failed', habiticaId: ID });
 

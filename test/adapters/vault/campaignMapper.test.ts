@@ -195,7 +195,7 @@ describe('campaignFromNote: projects', () => {
 		const campaign = campaignFromNote(messy);
 
 		expect(campaign).toMatchObject({ priority: 'low', created: '2026-10-02', deadline: null, staleAfterDays: null, phases: [] });
-		expect(campaign.tasks).toEqual([{ title: 'ok', phase: null, habiticaId: null, skill: null, resources: [], completed: false, completedOn: null }]);
+		expect(campaign.tasks).toEqual([{ title: 'ok', phase: null, habiticaId: '3', skill: null, resources: [], completed: false, completedOn: null }]);
 	});
 
 	it('skips phases without an id, defaults the name to the id and a bad status to planning', () => {
@@ -209,10 +209,20 @@ describe('campaignFromNote: projects', () => {
 		]);
 	});
 
-	it('treats an empty habitica_id as not sent', () => {
-		const campaign = campaignFromNote(note('a/README.md', { type: 'index', status: 'active', tasks: [{ title: 't', habitica_id: '' }] }));
+	it('treats an empty or blank habitica_id as not sent, and trims a real one', () => {
+		const ids = (...values: unknown[]) =>
+			campaignFromNote(note('a/README.md', { type: 'index', status: 'active', tasks: values.map((habitica_id) => ({ title: 't', habitica_id })) })).tasks.map(
+				(task) => task.habiticaId,
+			);
 
-		expect(campaign.tasks[0]?.habiticaId).toBeNull();
+		expect(ids('', '   ', null, undefined)).toEqual([null, null, null, null]);
+		expect(ids(' h1 ')).toEqual(['h1']);
+	});
+
+	it('keeps a habitica_id that is not text as a value the Habitica check will flag', () => {
+		const campaign = campaignFromNote(note('a/README.md', { type: 'index', status: 'active', tasks: [{ title: 'a', habitica_id: 7 }, { title: 'b', habitica_id: {} }] }));
+
+		expect(campaign.tasks.map((item) => item.habiticaId)).toEqual(['7', '[invalid]']);
 	});
 
 	it('accepts only a positive whole number as stale_after_days', () => {

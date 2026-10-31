@@ -7,6 +7,7 @@ import {
 	type Phase,
 	type Priority,
 } from '../../domain';
+import { habiticaIdFrom } from './habiticaId';
 
 /** A markdown note as the mapper sees it: no `obsidian` types, so it is testable. */
 export interface VaultNote {
@@ -108,7 +109,7 @@ function projectTasks(value: unknown): CampaignTask[] {
 			{
 				title,
 				phase: nonEmpty(fields.phase),
-				habiticaId: nonEmpty(fields.habitica_id),
+				habiticaId: habiticaIdFrom(fields.habitica_id),
 				skill: nonEmpty(fields.skill),
 				resources: Array.isArray(fields.resources) ? fields.resources.filter((item): item is string => typeof item === 'string') : [],
 				completed: false,
@@ -131,7 +132,7 @@ function sessionTasks(researchName: string, sessions: readonly VaultNote[]): Cam
 				task: {
 					title: fileName(note.path),
 					phase: nonEmpty(fields.phase),
-					habiticaId: nonEmpty(fields.habitica_id),
+					habiticaId: habiticaIdFrom(fields.habitica_id),
 					skill: null,
 					resources: [],
 					completed,

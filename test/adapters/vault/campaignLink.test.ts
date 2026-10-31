@@ -23,6 +23,23 @@ describe('linkHabiticaIdInFrontmatter', () => {
 		expect(frontmatter.tasks).toEqual([{ title: 'A', habitica_id: ID }, { title: 'B', habitica_id: ID }]);
 	});
 
+	it('treats blank text as not sent and replaces it', () => {
+		const frontmatter = project([{ title: 'A', habitica_id: '   ' }]);
+
+		expect(linkHabiticaIdInFrontmatter(frontmatter, 'A', ID)).toBe('linked');
+		expect(frontmatter.tasks).toEqual([{ title: 'A', habitica_id: ID }]);
+	});
+
+	it('never overwrites a value that is not blank, whatever its type', () => {
+		for (const value of [0, 5, false, {}, [], ['x']]) {
+			const frontmatter = project([{ title: 'A', habitica_id: value }]);
+			const before = structuredClone(frontmatter);
+
+			expect(linkHabiticaIdInFrontmatter(frontmatter, 'A', ID)).toBe('already-linked');
+			expect(frontmatter).toEqual(before);
+		}
+	});
+
 	it('never overwrites an id that is already there', () => {
 		const frontmatter = project([{ title: 'A', habitica_id: 'existing-id' }]);
 

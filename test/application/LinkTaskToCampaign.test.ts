@@ -86,6 +86,14 @@ describe('LinkTaskToCampaign', () => {
 		expect(await link.execute(PATH, 'Write tests')).toEqual({ kind: 'write-failed', habiticaId: '3f2a1c8e-0000-4000-8000-000000000001' });
 	});
 
+	it('tells the user about the duplicate when the note was linked in the meantime', async () => {
+		const { repository, creator, link } = setup();
+		repository.linkHabiticaId = () => Promise.resolve('already-linked');
+
+		expect(await link.execute(PATH, 'Write tests')).toEqual({ kind: 'duplicate', habiticaId: '3f2a1c8e-0000-4000-8000-000000000001' });
+		expect(creator.created).toHaveLength(1);
+	});
+
 	it('can be retried after a failure', async () => {
 		const { creator, link } = setup();
 		creator.failWith = new TaskSourceError('Offline');
