@@ -1,11 +1,14 @@
 import { PhaseProgress } from '../atoms/PhaseProgress';
 import { CampaignTaskRow } from '../molecules/CampaignTaskRow';
 import type { CampaignCardView } from '../presenters/campaignView';
+import type { LinkOutcomeView } from '../presenters/linkOutcomeView';
 
 export interface CampaignCardProps {
 	readonly view: CampaignCardView;
 	/** Title of the task being sent right now, or `null`. */
 	readonly sendingTitle: string | null;
+	/** Result of the last "Enviar a Habitica" on this campaign, or `null`. */
+	readonly message: LinkOutcomeView | null;
 	readonly onOpen: () => void;
 	readonly onSend: (taskTitle: string) => void;
 }
@@ -14,7 +17,7 @@ export interface CampaignCardProps {
  * One campaign (S5): name and kind, the "detenida" stamp when stale, the open phase with
  * its bar, the next step and, folded, its tasks. The name opens the note.
  */
-export function CampaignCard({ view, sendingTitle, onOpen, onSend }: CampaignCardProps) {
+export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: CampaignCardProps) {
 	return (
 		<article className={view.stale ? 'dromos-campaign is-stale' : 'dromos-campaign'}>
 			<header className="dromos-campaign-head">
@@ -32,6 +35,11 @@ export function CampaignCard({ view, sendingTitle, onOpen, onSend }: CampaignCar
 			<p className="dromos-campaign-next">
 				<span className="dromos-campaign-next-label">Siguiente:</span> {view.next ?? 'Nada pendiente'}
 			</p>
+			{message ? (
+				<p className={`dromos-campaign-message is-${message.tone}`} role="status" aria-live="polite">
+					{message.message}
+				</p>
+			) : null}
 			<PhaseProgress percent={view.progress.percent} label={`Progreso de ${view.title}`} />
 			{view.warnings.map((warning) => (
 				<p key={warning} className="dromos-campaign-warning" role="status">

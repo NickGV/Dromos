@@ -25,7 +25,7 @@ export interface CampaignsDeps {
 export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps; readonly syncKey: number }) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
 	const [sendingTitle, setSendingTitle] = useState<string | null>(null);
-	const [message, setMessage] = useState<LinkOutcomeView | null>(null);
+	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
 	const mounted = useRef(false);
 
 	const sync = useCallback(async (): Promise<void> => {
@@ -54,9 +54,10 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 			setMessage(null);
 			const outcome = await deps.linkTask.execute(path, taskTitle);
 			if (!mounted.current) return;
-			setSendingTitle(null);
-			setMessage(linkOutcomeView(outcome));
+			setMessage({ ...linkOutcomeView(outcome), path });
+			// Keep "Enviando…" until the list is refreshed, so the button never flashes back.
 			await sync();
+			if (mounted.current) setSendingTitle(null);
 		},
 		[deps, sync],
 	);

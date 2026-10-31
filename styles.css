@@ -417,3 +417,21 @@
 	color: var(--text-muted);
 	font-size: var(--font-ui-small);
 }
+
+.dromos-root .dromos-spinner {
+	display: inline-block;
+	width: 0.9em;
+	height: 0.9em;
+	margin-right: 6px;
+	vertical-align: -0.1em;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: dromos-spin 0.8s linear infinite;
+}
+
+@keyframes dromos-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-spinner { animation-duration: 3s; }
+}

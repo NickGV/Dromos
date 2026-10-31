@@ -20,7 +20,14 @@ export function CampaignTaskRow({ row, sending, onSend }: CampaignTaskRowProps) 
 			{row.state === 'unsent' ? <span className="dromos-chip">Sin vincular</span> : null}
 			{row.canSend ? (
 				<button type="button" className="dromos-send-button" disabled={sending} aria-busy={sending} onClick={onSend}>
-					Enviar a Habitica
+					{sending ? (
+						<>
+							<span className="dromos-spinner" aria-hidden="true" />
+							Enviando…
+						</>
+					) : (
+						'Enviar a Habitica'
+					)}
 				</button>
 			) : null}
 		</li>

@@ -1,12 +1,12 @@
-import type { BannerTone } from '../presenters/syncBanner';
 import type { CampaignListView } from '../presenters/campaignView';
+import type { LinkOutcomeView } from '../presenters/linkOutcomeView';
 import { CampaignCard } from './CampaignCard';
 
 export interface CampaignListProps {
 	readonly view: CampaignListView;
 	readonly sendingTitle: string | null;
-	/** Result of the last "Enviar a Habitica", or `null`. */
-	readonly message: { readonly tone: BannerTone; readonly message: string } | null;
+	/** Result of the last "Enviar a Habitica" and the campaign it belongs to, or `null`. */
+	readonly message: (LinkOutcomeView & { readonly path: string }) | null;
 	readonly onOpen: (path: string) => void;
 	readonly onSend: (path: string, taskTitle: string) => void;
 }
@@ -17,11 +17,6 @@ export function CampaignList({ view, sendingTitle, message, onOpen, onSend }: Ca
 		<section className="dromos-card dromos-campaigns" aria-label="Campañas">
 			<h2 className="dromos-card-title">Campañas</h2>
 			{view.notice ? <p className="dromos-campaign-notice">{view.notice}</p> : null}
-			{message ? (
-				<p className={`dromos-campaign-message is-${message.tone}`} role="status" aria-live="polite">
-					{message.message}
-				</p>
-			) : null}
 			{view.emptyText ? (
 				<p className="dromos-empty">{view.emptyText}</p>
 			) : (
@@ -31,6 +26,7 @@ export function CampaignList({ view, sendingTitle, message, onOpen, onSend }: Ca
 							key={card.path}
 							view={card}
 							sendingTitle={sendingTitle}
+							message={message?.path === card.path ? message : null}
 							onOpen={() => onOpen(card.path)}
 							onSend={(taskTitle) => onSend(card.path, taskTitle)}
 						/>
