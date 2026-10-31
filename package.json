@@ -1,6 +1,6 @@
 {
 	"name": "dromos",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Obsidian plugin that shows your productive life as a calm RPG: character, skills, quests from Habitica, campaigns and a scribe guide.",
 	"main": "main.js",
 	"type": "module",
