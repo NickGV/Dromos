@@ -26,7 +26,12 @@ export class HabiticaClient {
 
 	/** `GET` a path such as `/tasks/user?type=dailys` and resolve with the envelope's `data`. */
 	async get(path: string): Promise<unknown> {
-		return dataOf(await this.request(path));
+		return dataOf(await this.request('GET', path));
+	}
+
+	/** `POST` a JSON body and resolve with the envelope's `data` (for example the created task). */
+	async post(path: string, body: unknown): Promise<unknown> {
+		return dataOf(await this.request('POST', path, body));
 	}
 
 	/**
@@ -34,17 +39,23 @@ export class HabiticaClient {
 	 * a failure. Every other outcome behaves as in `get`.
 	 */
 	async find(path: string): Promise<unknown> {
-		const response = await this.request(path);
+		const response = await this.request('GET', path);
 		return response.status === 404 ? null : dataOf(response);
 	}
 
-	private async request(path: string): Promise<HttpResponse> {
+	private async request(method: 'GET' | 'POST', path: string, body?: unknown): Promise<HttpResponse> {
 		const { userId, apiToken } = await this.credentials();
 		try {
 			return await this.http({
 				url: `${HABITICA_BASE_URL}${path}`,
-				method: 'GET',
-				headers: { 'x-api-user': userId, 'x-api-key': apiToken, 'x-client': `${userId}-dromos` },
+				method,
+				headers: {
+					'x-api-user': userId,
+					'x-api-key': apiToken,
+					'x-client': `${userId}-dromos`,
+					...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+				},
+				...(body === undefined ? {} : { body: JSON.stringify(body) }),
 			});
 		} catch {
 			// The original error is dropped on purpose: it may echo request details.

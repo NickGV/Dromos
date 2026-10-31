@@ -4,6 +4,7 @@ export * from './CampaignRepository';
 export * from './Clock';
 export * from './GameStateRepository';
 export * from './SettingsStore';
+export * from './TaskCreator';
 export * from './TaskSource';
 export * from './TaskStatusSource';
 export * from './TaskSourceError';
