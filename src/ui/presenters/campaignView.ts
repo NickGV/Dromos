@@ -1,5 +1,6 @@
 import type { CampaignSnapshot, CampaignIssue } from '../../application';
-import { campaignProgress, daysSince, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignKind, type Progress } from '../../domain';
+import { plural, type Translator } from '../../i18n';
+import { campaignProgress, daysSince, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type Progress } from '../../domain';
 
 /** How one task is shown in a campaign card. */
 export type TaskRowState = 'completed' | 'pending' | 'unsent' | 'missing';
@@ -15,7 +16,7 @@ export interface TaskRowView {
 export interface CampaignCardView {
 	readonly path: string;
 	readonly title: string;
-	readonly kindLabel: 'Proyecto' | 'Investigación';
+	readonly kindLabel: string;
 	/** Set when the campaign is stale, with the days since its last completed task. */
 	readonly stale: { readonly days: number } | null;
 	/** Projects: the open phase and its progress. Research: phases done over phases. */
@@ -37,6 +38,7 @@ export interface CampaignViewContext {
 	readonly canSend: boolean;
 	/** True once Habitica has answered this session. Until then a project's progress is unknown. */
 	readonly habiticaKnown: boolean;
+	readonly t: Translator;
 }
 
 /** What `CampaignList` renders. */
@@ -49,16 +51,15 @@ export interface CampaignListView {
 	readonly footer: string;
 }
 
-const KIND_LABELS: Record<CampaignKind, CampaignCardView['kindLabel']> = { project: 'Proyecto', research: 'Investigación' };
-
 export function campaignCardView(campaign: Campaign, context: CampaignViewContext): CampaignCardView {
 	const missing = new Set(context.issues.filter((issue) => issue.campaignPath === campaign.path).map((issue) => issue.taskTitle));
-	const { chip, progress } = headline(campaign);
+	const { t } = context;
+	const { chip, progress } = headline(campaign, t);
 	const next = nextAction(campaign);
 	return {
 		path: campaign.path,
 		title: campaign.title,
-		kindLabel: KIND_LABELS[campaign.kind],
+		kindLabel: t(campaign.kind === 'project' ? 'campaign.kind.project' : 'campaign.kind.research'),
 		stale: !progressUnknown(campaign, context) && isStale(campaign, context.today, context.defaultStaleAfterDays)
 			? { days: daysSince(lastActivity(campaign), context.today) }
 			: null,
@@ -75,23 +76,19 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 						: 'pending';
 			return { title: task.title, state, canSend: state === 'unsent' && context.canSend };
 		}),
-		warnings: [...missing].map((title) => `"${title}" no se encontró en Habitica.`),
+		warnings: [...missing].map((title) => t('campaign.warning.missing', { title })),
 	};
 }
 
 export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues' | 'canSend' | 'habiticaKnown'>): CampaignListView {
+	const { t } = context;
 	const campaigns = snapshot.campaigns ?? [];
 	const canSend = snapshot.status.kind !== 'not-configured';
 	return {
 		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues, canSend, habiticaKnown: snapshot.lastSyncedAt !== null })),
-		emptyText:
-			snapshot.campaigns === null
-				? 'Las campañas aparecerán después de sincronizar.'
-				: campaigns.length === 0
-					? 'No hay campañas activas.'
-					: null,
-		notice: noticeFor(snapshot.status.kind),
-		footer: campaigns.length === 1 ? '1 campaña activa' : `${campaigns.length} campañas activas`,
+		emptyText: snapshot.campaigns === null ? t('campaign.empty.beforeSync') : campaigns.length === 0 ? t('campaign.empty.none') : null,
+		notice: noticeFor(snapshot.status.kind, t),
+		footer: plural(t, 'campaign.footer', campaigns.length),
 	};
 }
 
@@ -102,10 +99,10 @@ function progressUnknown(campaign: Campaign, context: CampaignViewContext): bool
 }
 
 // The bar of a project follows its open phase (the card), the total only when no phase is open.
-function headline(campaign: Campaign): { chip: string; progress: Progress } {
+function headline(campaign: Campaign, t: Translator): { chip: string; progress: Progress } {
 	if (campaign.kind === 'research') {
 		const progress = campaignProgress(campaign);
-		return { chip: `${progress.done}/${progress.total} fases`, progress };
+		return { chip: t('campaign.chip.phases', { done: progress.done, total: progress.total }), progress };
 	}
 	const open = campaign.phases.find((phase) => phase.status !== 'completed');
 	if (open) {
@@ -113,18 +110,18 @@ function headline(campaign: Campaign): { chip: string; progress: Progress } {
 		return { chip: `${open.name} ${progress.done}/${progress.total}`, progress };
 	}
 	const progress = campaignProgress(campaign);
-	return { chip: `${progress.done}/${progress.total} tareas`, progress };
+	return { chip: t('campaign.chip.tasks', { done: progress.done, total: progress.total }), progress };
 }
 
-function noticeFor(kind: CampaignSnapshot['status']['kind']): string | null {
+function noticeFor(kind: CampaignSnapshot['status']['kind'], t: Translator): string | null {
 	switch (kind) {
 		case 'not-configured':
-			return 'Conecta tu cuenta de Habitica para ver el progreso de las tareas enviadas.';
+			return t('campaign.notice.notConfigured');
 		case 'offline':
 		case 'unauthorized':
 		case 'rate-limited':
 		case 'error':
-			return 'No se pudo actualizar el progreso desde Habitica.';
+			return t('campaign.notice.failed');
 		case 'idle':
 		case 'syncing':
 		case 'synced':

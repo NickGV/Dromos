@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HomeSnapshot, LoadHome, QuestSnapshot, SyncQuests } from '../../application';
+import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import { SyncButton } from '../atoms/SyncButton';
+import { I18nProvider } from '../i18n';
 import { StatusBanner } from '../molecules/StatusBanner';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { QuestList } from '../organisms/QuestList';
@@ -18,6 +20,10 @@ export interface HomeScreenDeps {
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
 	readonly campaigns: CampaignsDeps;
+	/** The translator for the language chosen in the settings; read on every render. */
+	readonly translator: () => Translator;
+	/** Calls `onChange` whenever the settings change, so the open view re-renders (a language switch applies at once). Returns the unsubscribe function. */
+	readonly subscribeSettings: (onChange: () => void) => () => void;
 }
 
 type CharacterState = HomeSnapshot['character'] | { readonly kind: 'loading' } | { readonly kind: 'unreadable' };
@@ -38,6 +44,8 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [syncKey, setSyncKey] = useState(0);
 	const mounted = useRef(false);
 	useClockTick();
+	useSettingsChange(deps.subscribeSettings);
+	const t = deps.translator();
 
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await loadHomeOrNull(deps.loadHome);
@@ -60,15 +68,17 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	}, [refresh]);
 
 	return (
+		<I18nProvider t={t}>
 		<main className="dromos-home">
 			<div className="dromos-toolbar">
-				<StatusBanner {...syncBannerView(quests, deps.clock.now())} />
+				<StatusBanner {...syncBannerView(quests, deps.clock.now(), t)} />
 				<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
 			</div>
-			<CharacterPanel state={panelState(character)} />
-			<QuestList view={questListView(quests.quests, deps.clock.today())} />
+			<CharacterPanel state={panelState(character, t)} />
+			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
 			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
 		</main>
+		</I18nProvider>
 	);
 }
 
@@ -81,8 +91,8 @@ async function loadHomeOrNull(loadHome: HomeScreenDeps['loadHome']): Promise<Hom
 	}
 }
 
-function panelState(character: CharacterState): CharacterPanelState {
-	return character.kind === 'found' ? { kind: 'found', view: characterCardView(character.character) } : character;
+function panelState(character: CharacterState, t: Translator): CharacterPanelState {
+	return character.kind === 'found' ? { kind: 'found', view: characterCardView(character.character, t) } : character;
 }
 
 function useClockTick(): void {
@@ -91,4 +101,9 @@ function useClockTick(): void {
 		const id = window.setInterval(() => setTick((tick) => tick + 1), CLOCK_TICK_MS);
 		return () => window.clearInterval(id);
 	}, []);
+}
+
+function useSettingsChange(subscribe: HomeScreenDeps['subscribeSettings']): void {
+	const [, setVersion] = useState(0);
+	useEffect(() => subscribe(() => setVersion((version) => version + 1)), [subscribe]);
 }

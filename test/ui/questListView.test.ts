@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { createTranslator } from '../../src/i18n';
 import { questListView } from '../../src/ui/presenters/questListView';
 import { aQuest } from '../fakes/quests';
 
 const TODAY = '2026-10-30';
 
+const t = createTranslator('es');
+
 describe('questListView', () => {
 	it('explains that quests appear after syncing when nothing was fetched yet', () => {
-		expect(questListView(null, TODAY)).toEqual({
+		expect(questListView(null, TODAY, t)).toEqual({
 			dailies: [],
 			todos: [],
 			emptyText: 'Las quests aparecerán después de sincronizar con Habitica.',
@@ -14,11 +17,11 @@ describe('questListView', () => {
 	});
 
 	it('says "No hay quests para hoy" when a sync returned nothing', () => {
-		expect(questListView([], TODAY).emptyText).toBe('No hay quests para hoy');
+		expect(questListView([], TODAY, t).emptyText).toBe('No hay quests para hoy');
 	});
 
 	it('has no empty text when there are quests', () => {
-		expect(questListView([aQuest('d1')], TODAY).emptyText).toBeNull();
+		expect(questListView([aQuest('d1')], TODAY, t).emptyText).toBeNull();
 	});
 
 	it('puts dailies first and to-dos after, each in source order', () => {
@@ -30,14 +33,14 @@ describe('questListView', () => {
 				aQuest('d2'),
 			],
 			TODAY,
-		);
+		t);
 
 		expect(view.dailies.map((row) => row.id)).toEqual(['d1', 'd2']);
 		expect(view.todos.map((row) => row.id)).toEqual(['t1', 't2']);
 	});
 
 	it('keeps completed dailies, flagged so they can be struck through', () => {
-		const view = questListView([aQuest('d1', { title: 'Rutina', completed: true }), aQuest('d2')], TODAY);
+		const view = questListView([aQuest('d1', { title: 'Rutina', completed: true }), aQuest('d2')], TODAY, t);
 
 		expect(view.dailies).toEqual([
 			{ id: 'd1', title: 'Rutina', completed: true, due: null },
@@ -53,7 +56,7 @@ describe('questListView', () => {
 				aQuest('undated', { type: 'todo', dueDate: null, dueToday: false }),
 			],
 			TODAY,
-		);
+		t);
 
 		expect(view.todos.map((row) => [row.id, row.due])).toEqual([
 			['late', { tone: 'overdue', label: 'Vencida' }],
@@ -63,13 +66,13 @@ describe('questListView', () => {
 	});
 
 	it('labels against the given day, so a list synced yesterday shows yesterday’s to-dos as overdue', () => {
-		const view = questListView([aQuest('t1', { type: 'todo', dueDate: '2026-10-29', dueToday: true })], TODAY);
+		const view = questListView([aQuest('t1', { type: 'todo', dueDate: '2026-10-29', dueToday: true })], TODAY, t);
 
 		expect(view.todos[0]?.due).toEqual({ tone: 'overdue', label: 'Vencida' });
 	});
 
 	it('gives no label to a future-dated to-do', () => {
-		const view = questListView([aQuest('t1', { type: 'todo', dueDate: '2026-11-02', dueToday: false })], TODAY);
+		const view = questListView([aQuest('t1', { type: 'todo', dueDate: '2026-11-02', dueToday: false })], TODAY, t);
 
 		expect(view.todos[0]?.due).toBeNull();
 	});

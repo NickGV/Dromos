@@ -1,17 +1,19 @@
+import { useT } from '../i18n';
 import { QuestItem } from '../molecules/QuestItem';
 import type { QuestListView, QuestRowView } from '../presenters/questListView';
 
 /** Today's quests (S8): dailies first, then to-dos, or an empty state. */
 export function QuestList({ view }: { readonly view: QuestListView }) {
+	const t = useT();
 	return (
-		<section className="dromos-card dromos-quests" aria-label="Quests de hoy">
-			<h2 className="dromos-card-title">Quests de hoy</h2>
+		<section className="dromos-card dromos-quests" aria-label={t('quests.title')}>
+			<h2 className="dromos-card-title">{t('quests.title')}</h2>
 			{view.emptyText ? (
 				<p className="dromos-empty">{view.emptyText}</p>
 			) : (
 				<>
-					<QuestGroup heading="Diarias" rows={view.dailies} />
-					<QuestGroup heading="Pendientes" rows={view.todos} />
+					<QuestGroup heading={t('quests.dailies')} rows={view.dailies} />
+					<QuestGroup heading={t('quests.todos')} rows={view.todos} />
 				</>
 			)}
 		</section>

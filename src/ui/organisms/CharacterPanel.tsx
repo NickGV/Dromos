@@ -1,4 +1,5 @@
 import type { CharacterCardView } from '../presenters/characterCardView';
+import { useT } from '../i18n';
 import { CharacterCard } from './CharacterCard';
 
 /** What the character area shows: the card, or why there is no card. */
@@ -13,29 +14,31 @@ export type CharacterPanelState =
  * the expected path and shows no invented values (D4).
  */
 export function CharacterPanel({ state }: { readonly state: CharacterPanelState }) {
+	const t = useT();
 	switch (state.kind) {
 		case 'found':
 			return <CharacterCard view={state.view} />;
 		case 'missing':
 			return (
-				<section className="dromos-card dromos-character-empty" aria-label="Personaje">
-					<h2 className="dromos-card-title">No se encontró el personaje</h2>
+				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
+					<h2 className="dromos-card-title">{t('character.missing.title')}</h2>
 					<p className="dromos-empty">
-						Dromos lee el personaje de <code>{state.path}</code>. Crea esa nota y selecciona Sincronizar o vuelve a
-						abrir esta pestaña.
+						{t('character.missing.before')}
+						<code>{state.path}</code>
+						{t('character.missing.after')}
 					</p>
 				</section>
 			);
 		case 'unreadable':
 			return (
-				<section className="dromos-card dromos-character-empty" aria-label="Personaje">
-					<p className="dromos-empty">No se pudo leer la nota del personaje.</p>
+				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
+					<p className="dromos-empty">{t('character.unreadable')}</p>
 				</section>
 			);
 		case 'loading':
 			return (
-				<section className="dromos-card dromos-character-empty" aria-label="Personaje" aria-busy="true">
-					<p className="dromos-empty">Cargando el personaje…</p>
+				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')} aria-busy="true">
+					<p className="dromos-empty">{t('character.loading')}</p>
 				</section>
 			);
 	}
