@@ -14,6 +14,8 @@ export interface TaskObservation {
 	readonly completed: boolean;
 	/** Local date as `YYYY-MM-DD` the transition is written under. */
 	readonly date: string;
+	/** Current streak of a daily, when the source knows it. */
+	readonly streak?: number | null;
 }
 
 /**
