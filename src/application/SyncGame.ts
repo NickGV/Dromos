@@ -159,7 +159,7 @@ export class SyncGame {
 			xpToNext: character.xpToNext,
 			stats: after.stats,
 			gameStart,
-			lastSync: today,
+			lastSync: clock.now().toISOString(),
 		});
 
 		state.recordSuccess({ character, skills: entries, events, invalidSkills: vault.skills.invalid, unreadable: vault.ledger.unreadable }, clock.now());

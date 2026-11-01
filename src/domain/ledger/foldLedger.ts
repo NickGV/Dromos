@@ -1,4 +1,5 @@
 import { STAT_IDS, type StatId } from '../character/Character';
+import { LevelCurve, SKILL_CURVE } from '../rules/LevelCurve';
 import type { LedgerRow } from './LedgerRow';
 
 /** What the fold needs to know about a skill. A `Skill` fits this shape. */
@@ -13,9 +14,13 @@ export interface GameTotals {
 	readonly characterXp: number;
 	/** XP per known skill; a locked skill is 0. */
 	readonly skillXp: Readonly<Record<string, number>>;
-	/** Stat value: the XP of the unlocked skills that feed it. */
+	/** XP behind each stat: the XP of the unlocked skills that feed it, plus the dailies without skill for `disciplina`. */
+	readonly statXp: Readonly<Record<StatId, number>>;
+	/** What a stat shows: the level that XP would have on the skill curve, 0 without XP. */
 	readonly stats: Readonly<Record<StatId, number>>;
 }
+
+const statCurve = new LevelCurve(SKILL_CURVE);
 
 /**
  * Turns the ledger into totals (S1, S3, S13).
@@ -24,26 +29,50 @@ export interface GameTotals {
  *   skill, and any earlier one, counted toward its requirements and the character.
  * - A `revert` is dated like the `complete` it cancels, so cancelling work done
  *   before the unlock never makes the skill negative.
+ * - A stat is fed by the XP of its unlocked skills, and `disciplina` also by the dailies
+ *   that carry no skill; it shows the level that XP has on the skill curve, so a stat of 3
+ *   and a skill of level 3 mean the same.
+ * - A line repeated exactly (same unique key) counts once, so a hand edit that copies a row
+ *   never doubles XP.
  * - No total goes below zero.
  */
 export function foldLedger(rows: readonly LedgerRow[], skills: readonly SkillXpSource[]): GameTotals {
+	const unique = uniqueRows(rows);
 	const skillXp = Object.fromEntries(skills.map((skill) => [skill.id, 0]));
 	const known = new Map(skills.map((skill) => [skill.id, skill]));
-	const completes = completeDatesByTask(rows);
+	const completes = completeDatesByTask(unique);
 
-	for (const row of rows) {
-		const skill = row.skill === null ? undefined : known.get(row.skill);
+	let unskilledDailyXp = 0;
+	for (const row of unique) {
+		if (row.skill === null) {
+			if (row.kind === 'daily') unskilledDailyXp += row.xp;
+			continue;
+		}
+		const skill = known.get(row.skill);
 		if (skill === undefined || skill.unlockedOn === null) continue;
 		if (effectiveDate(row, completes) > skill.unlockedOn) skillXp[skill.id] = (skillXp[skill.id] ?? 0) + row.xp;
 	}
 
-	const stats = Object.fromEntries(STAT_IDS.map((id) => [id, 0])) as Record<StatId, number>;
+	const statXp = Object.fromEntries(STAT_IDS.map((id) => [id, 0])) as Record<StatId, number>;
 	for (const skill of skills) {
 		skillXp[skill.id] = Math.max(0, skillXp[skill.id] ?? 0);
-		stats[skill.stat] += skillXp[skill.id] ?? 0;
+		statXp[skill.stat] += skillXp[skill.id] ?? 0;
 	}
+	statXp.disciplina += Math.max(0, unskilledDailyXp);
 
-	return { characterXp: Math.max(0, characterTotal(rows)), skillXp, stats };
+	const stats = Object.fromEntries(STAT_IDS.map((id) => [id, statXp[id] > 0 ? statCurve.levelFor(statXp[id]) : 0])) as Record<StatId, number>;
+	return { characterXp: Math.max(0, characterTotal(unique)), skillXp, statXp, stats };
+}
+
+/** The rows of the ledger without exact repeats of the same unique key. */
+function uniqueRows(rows: readonly LedgerRow[]): LedgerRow[] {
+	const seen = new Set<string>();
+	return rows.filter((row) => {
+		const key = `${row.habiticaId}|${row.source}|${row.n}|${row.skill ?? ''}|${row.date}`;
+		if (seen.has(key)) return false;
+		seen.add(key);
+		return true;
+	});
 }
 
 function characterTotal(rows: readonly LedgerRow[]): number {

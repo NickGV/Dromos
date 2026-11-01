@@ -99,15 +99,15 @@ describe('foldLedger: skill XP starts at the unlock (S3)', () => {
 	});
 });
 
-describe('foldLedger: stats are the XP of the skills that feed them (S1)', () => {
-	it('adds the skills of the same stat and keeps the others apart', () => {
+describe('foldLedger: stats feed on the skills and show their level (S1, 04-Game-Design)', () => {
+	it('adds the XP of the skills of the same stat and keeps the others apart', () => {
 		const rows = [
 			row({ date: '2026-11-03', skill: 'lector', xp: 10 }),
 			row({ date: '2026-11-03', habiticaId: 'b', skill: 'estudiante', xp: 15 }),
 			row({ date: '2026-11-03', habiticaId: 'c', skill: 'atleta', xp: 5 }),
 		];
 
-		expect(foldLedger(rows, [lector, estudiante, atleta]).stats).toEqual({
+		expect(foldLedger(rows, [lector, estudiante, atleta]).statXp).toEqual({
 			fuerza: 5,
 			vitalidad: 0,
 			inteligencia: 25,
@@ -117,9 +117,60 @@ describe('foldLedger: stats are the XP of the skills that feed them (S1)', () =>
 		});
 	});
 
+	it('shows a stat as the level its XP would have on the skill curve, and 0 without XP', () => {
+		const levels = (xp: number) => {
+			const rows = [row({ date: '2026-11-03', skill: 'atleta', xp })];
+			return foldLedger(rows, [atleta]).stats.fuerza;
+		};
+
+		expect(levels(0)).toBe(0);
+		expect(levels(5)).toBe(1);
+		expect(levels(99)).toBe(1);
+		expect(levels(100)).toBe(2);
+		expect(levels(346)).toBe(3);
+	});
+
 	it('a locked skill adds nothing to its stat', () => {
 		const rows = [row({ date: '2026-11-03' })];
 
 		expect(foldLedger(rows, [{ ...lector, unlockedOn: null }]).stats.inteligencia).toBe(0);
+	});
+
+	it('dailies without a skill feed disciplina, and their revert takes it back', () => {
+		const rows = [
+			row({ skill: null, kind: 'daily', habiticaId: 'd1', xp: 5, date: '2026-11-03' }),
+			row({ skill: null, kind: 'daily', habiticaId: 'd2', xp: 5, date: '2026-11-03' }),
+			row({ skill: null, kind: 'daily', habiticaId: 'd2', xp: -5, source: 'revert', date: '2026-11-03' }),
+			row({ skill: null, kind: 'todo', habiticaId: 't1', xp: 50, date: '2026-11-03' }),
+		];
+
+		const totals = foldLedger(rows, []);
+
+		expect(totals.statXp.disciplina).toBe(5);
+		expect(totals.stats.disciplina).toBe(1);
+	});
+
+	it('a daily with a skill does not also feed disciplina', () => {
+		const rows = [row({ skill: 'atleta', kind: 'daily', xp: 5, date: '2026-11-03' })];
+
+		expect(foldLedger(rows, [atleta]).statXp.disciplina).toBe(0);
+	});
+});
+
+describe('foldLedger: an exact duplicate ledger line counts once (unique key)', () => {
+	it('does not double the skill XP, the stat XP or the character XP', () => {
+		const line = row({ date: '2026-11-03', skill: 'lector', xp: 10 });
+
+		const totals = foldLedger([line, { ...line }], [lector]);
+
+		expect(totals.skillXp).toEqual({ lector: 10 });
+		expect(totals.statXp.inteligencia).toBe(10);
+		expect(totals.characterXp).toBe(10);
+	});
+
+	it('counts the same transition of two skills as two rows', () => {
+		const rows = [row({ date: '2026-11-03', skill: 'lector' }), row({ date: '2026-11-03', skill: 'estudiante' })];
+
+		expect(foldLedger(rows, [lector, estudiante]).skillXp).toEqual({ lector: 10, estudiante: 10 });
 	});
 });

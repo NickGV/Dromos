@@ -231,7 +231,7 @@ describe('SyncGame: XP, unlocks and the projection', () => {
 		const snapshot = await sync.execute();
 
 		expect(snapshot.skills?.[0]?.xp).toBe(15);
-		expect(characters.saved[0]?.stats).toMatchObject({ inteligencia: 15, fuerza: 0 });
+		expect(characters.saved[0]?.stats).toMatchObject({ inteligencia: 1, fuerza: 0 });
 	});
 
 	it('gives the full XP to each skill of a quest and counts the character once', async () => {
@@ -242,7 +242,7 @@ describe('SyncGame: XP, unlocks and the projection', () => {
 
 		expect(snapshot.skills?.map((entry) => entry.xp)).toEqual([10, 10]);
 		expect(snapshot.character?.totalXp).toBe(10);
-		expect(characters.saved[0]?.stats).toMatchObject({ inteligencia: 10, fuerza: 10 });
+		expect(characters.saved[0]?.stats).toMatchObject({ inteligencia: 1, fuerza: 1 });
 	});
 
 	it('syncing twice appends nothing the second time and repeats no event', async () => {
@@ -320,8 +320,17 @@ describe('SyncGame: XP, unlocks and the projection', () => {
 		await sync.execute();
 
 		expect(characters.saved).toEqual([
-			{ level: 1, totalXp: 10, xpToNext: 100, stats: { fuerza: 0, vitalidad: 0, inteligencia: 0, sabiduria: 0, espiritu: 0, disciplina: 0 }, gameStart: TODAY, lastSync: TODAY },
+			{ level: 1, totalXp: 10, xpToNext: 100, stats: { fuerza: 0, vitalidad: 0, inteligencia: 0, sabiduria: 0, espiritu: 0, disciplina: 0 }, gameStart: TODAY, lastSync: NOW.toISOString() },
 		]);
+	});
+
+	it('dailies without a skill feed disciplina', async () => {
+		const stretch = todo('d', { kind: 'daily', skills: [], priority: 2 });
+		const { sync, characters } = setup({ tasks: [stretch] });
+
+		await sync.execute();
+
+		expect(characters.saved[0]?.stats).toMatchObject({ disciplina: 1, inteligencia: 0 });
 	});
 
 	it('pays the streak bonus of a daily once', async () => {

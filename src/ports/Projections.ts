@@ -9,7 +9,7 @@ export interface CharacterProjection {
 	readonly stats: Readonly<Record<StatId, number>>;
 	/** Local date as `YYYY-MM-DD` the game started counting: the first sync. Completions before it never count. */
 	readonly gameStart: string;
-	/** Local date as `YYYY-MM-DD` of the sync that wrote this. */
+	/** ISO date-time of the sync that wrote this. */
 	readonly lastSync: string;
 }
 
