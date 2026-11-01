@@ -42,8 +42,8 @@ Assumptions to confirm: A1 delivery strategy; A2 unlock permanence; A3 tag conve
 
 ## Not verified
 
-- How Habitica reports an unchecked to-do over time, and the shape of a daily (`streak`, `history`). The user has no dailies yet; verifying needs a test daily and the user's authorization for that Habitica access.
-- `dateCompleted` as the source of the date of a completion.
+- How a daily reports an UNCHECK (does `streak` fall back, does `history` lose its entry): only the checked state was read (L8).
+- Whether `dateCompleted` of an open to-do stays `null` after an uncheck for good, and the time zone of `history[].date`: read once, not repeated.
 - The exact skill note schema (typed requirements); Esdras reviews it before writing the 16 notes.
 
 ## Log
@@ -67,3 +67,9 @@ Assumptions to confirm: A1 delivery strategy; A2 unlock permanence; A3 tag conve
   - A new ledger month gets `created: <today>` next to `type` and `month`, as the vault asks of system notes.
   - Bug caught by the tests: giving `isCampaignNote` a second parameter broke `.filter(isCampaignNote)`, which passes the index as the status; the call is now explicit.
   - For T6: appends are serialized inside the repository, but two overlapping syncs would still read the same history and derive the same rows; the sync use case must not run twice at once.
+- **L8** (2026-11-01): Habitica checked live, two authorized read-only passes (the user created "Prueba Domos" daily and "Prueba Domos 2" to-do; 3 GETs in the second pass, one of them `completedTodos`).
+  - A daily completed today: `completed: true`, `streak: 1`, `isDue`, `repeat`, `frequency`, `nextDue`, `priority`, `tags` (UUIDs). `history` already holds an entry from the moment of completion: `{date: <epoch ms>, value, isDue, completed: true}`. The earlier assumption that history fills only at the end of the day was wrong. A daily has no `dateCompleted`.
+  - A to-do that was checked and unchecked is back in `type=todos` with `completed: false` and `dateCompleted: null`; it does not appear in `completedTodos`. So a revert is seen as "in the open list, but the ledger holds an active complete".
+  - `completedTodos` is capped (32 rows came back here, not the 30 the docs suggest): a to-do completed and left unsynced behind many newer completions would be missed. Accepted: the sync runs on open and by button.
+  - Consequences for T5: `Quest` gains `priority` and, for dailies, `streak`; tag UUIDs map to names through `GET /tags` to find the `skill/<id>` ones; a to-do's completion date comes from `dateCompleted` (UTC) converted to the local date; the strict habit uses the daily's `streak` as is.
+  - The user still has to delete the two test tasks in Habitica.
