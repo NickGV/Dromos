@@ -1,4 +1,4 @@
-import { xpForTask, type XpKind } from '../rules/XpRules';
+import { XP_TABLE, xpForTask, type XpKind, type XpTable } from '../rules/XpRules';
 import type { LedgerRow } from './LedgerRow';
 import { lastComplete } from './questCounts';
 
@@ -25,19 +25,19 @@ export interface TaskObservation {
  * uncompleted one whose last transition is a `revert` (or that never had one).
  * Dailies keep one set of transitions per day; to-dos keep one set for good.
  */
-export function nextRows(history: readonly LedgerRow[], observation: TaskObservation): LedgerRow[] {
+export function nextRows(history: readonly LedgerRow[], observation: TaskObservation, table: XpTable = XP_TABLE): LedgerRow[] {
 	const own = history.filter(
 		(row) => row.habiticaId === observation.habiticaId && (observation.kind === 'todo' || row.date === observation.date),
 	);
 	const last = lastComplete(own);
 
-	if (observation.completed && !last.active) return completeRows(observation, last.n + 1);
+	if (observation.completed && !last.active) return completeRows(observation, last.n + 1, table);
 	if (!observation.completed && last.active) return revertRows(observation, own.filter((row) => row.source === 'complete' && row.n === last.n));
 	return [];
 }
 
-function completeRows(observation: TaskObservation, n: number): LedgerRow[] {
-	const xp = xpForTask(observation.kind, observation.priority);
+function completeRows(observation: TaskObservation, n: number, table: XpTable): LedgerRow[] {
+	const xp = xpForTask(observation.kind, observation.priority, table);
 	const skills = observation.skills.length > 0 ? [...new Set(observation.skills)] : [null];
 	return skills.map((skill) => ({
 		date: observation.date,

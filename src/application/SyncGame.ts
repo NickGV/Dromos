@@ -1,5 +1,4 @@
 import {
-	CHARACTER_CURVE,
 	LevelCurve,
 	completedCampaignCount,
 	completedQuestCount,
@@ -23,6 +22,8 @@ import type {
 	LedgerLoadResult,
 	LedgerRepository,
 	ObservedTask,
+	RulesLoadResult,
+	RulesRepository,
 	SkillLoadResult,
 	SkillRepository,
 } from '../ports';
@@ -35,6 +36,7 @@ export interface SyncGameDeps {
 	readonly ledger: LedgerRepository;
 	readonly characters: GameStateRepository;
 	readonly campaigns: CampaignRepository;
+	readonly rules: RulesRepository;
 	readonly source: GameTaskSource;
 	readonly clock: Clock;
 	readonly state: GameState;
@@ -47,9 +49,8 @@ interface VaultReads {
 	readonly skills: SkillLoadResult;
 	readonly ledger: LedgerLoadResult;
 	readonly completedCampaigns: readonly Campaign[];
+	readonly rules: RulesLoadResult;
 }
-
-const characterCurve = new LevelCurve(CHARACTER_CURVE);
 
 /**
  * The game sync (M3): reads the vault and Habitica, appends to the ledger what changed in
@@ -105,20 +106,22 @@ export class SyncGame {
 
 	/** `null` when `Character.md` is missing: the game has nowhere to keep its state, so nothing else is read. */
 	private async readVault(): Promise<VaultReads | null> {
-		const { characters, skills, ledger, campaigns } = this.deps;
+		const { characters, skills, ledger, campaigns, rules } = this.deps;
 		const loaded = await characters.loadCharacter();
 		if (loaded.kind === 'missing') return null;
-		const [skillLoad, ledgerLoad, completedCampaigns] = await Promise.all([skills.list(), ledger.readAll(), campaigns.listCompleted()]);
-		return { character: loaded.character, skills: skillLoad, ledger: ledgerLoad, completedCampaigns };
+		const [skillLoad, ledgerLoad, completedCampaigns, rulesLoad] = await Promise.all([skills.list(), ledger.readAll(), campaigns.listCompleted(), rules.load()]);
+		return { character: loaded.character, skills: skillLoad, ledger: ledgerLoad, completedCampaigns, rules: rulesLoad };
 	}
 
 	private async apply(vault: VaultReads, observations: readonly ObservedTask[]): Promise<void> {
 		const { ledger, skills, characters, clock, state } = this.deps;
+		const { rules } = vault.rules;
+		const characterCurve = new LevelCurve(rules.characterCurve);
 		const today = clock.today();
 		const history = vault.ledger.rows;
 		const gameStart = resolveGameStart(vault.character.gameStart, history, today);
 
-		const newRows = rowsToAppend(history, observations, gameStart);
+		const newRows = rowsToAppend(history, observations, gameStart, rules.xp);
 		const rows = [...history, ...newRows];
 
 		const streaks = longestStreakBySkill(observations);
@@ -131,20 +134,21 @@ export class SyncGame {
 			return { skill, evidence, unlock: resolveUnlock(skill, evidence, today) };
 		});
 
-		const before = foldLedger(history, vault.skills.skills);
+		const before = foldLedger(history, vault.skills.skills, rules);
 		const after = foldLedger(
 			rows,
 			decisions.map(({ skill, unlock }) => ({ id: skill.id, stat: skill.stat, unlockedOn: unlock.unlockedOn })),
+			rules,
 		);
 
 		const entries: SkillEntry[] = [];
 		const changes: SkillChange[] = [];
 		for (const { skill, evidence, unlock } of decisions) {
 			const xp = after.skillXp[skill.id] ?? 0;
-			const standing = skillStanding(unlock.unlocked, xp);
+			const standing = skillStanding(unlock.unlocked, xp, rules);
 			const current = { ...skill, unlocked: unlock.unlocked, unlockedOn: unlock.unlockedOn };
 			entries.push({ skill: current, xp, standing, rank: rankOf(current, standing.rankIndex), requirements: evaluateUnlock(skill.requirements, evidence).items });
-			changes.push({ skill: current, justUnlocked: unlock.justUnlocked, before: skillStanding(skill.unlocked, before.skillXp[skill.id] ?? 0), after: standing });
+			changes.push({ skill: current, justUnlocked: unlock.justUnlocked, before: skillStanding(skill.unlocked, before.skillXp[skill.id] ?? 0, rules), after: standing });
 		}
 
 		const character = { ...characterCurve.progressFor(after.characterXp), totalXp: after.characterXp };
@@ -166,6 +170,6 @@ export class SyncGame {
 			lastSync: clock.now().toISOString(),
 		});
 
-		state.recordSuccess({ character, skills: entries, events, invalidSkills: vault.skills.invalid, unreadable: vault.ledger.unreadable }, clock.now());
+		state.recordSuccess({ character, skills: entries, events, invalidSkills: vault.skills.invalid, unreadable: vault.ledger.unreadable, invalidRules: vault.rules.invalid }, clock.now());
 	}
 }

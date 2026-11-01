@@ -56,6 +56,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'skills.req.manual.pending': 'Pending',
 	'skills.req.manual.confirmed': 'Confirmed',
 	'skills.problem.note': '{path}: {reason}',
+	'skills.problem.rules': '{path}: could not use {fields}. The default values apply instead.',
 	'skills.problem.ledger': 'Unreadable ledger row ({path}, line {line})',
 	'skills.problem.ledgerMore.one': 'and 1 more unreadable ledger row',
 	'skills.problem.ledgerMore.other': 'and {count} more unreadable ledger rows',

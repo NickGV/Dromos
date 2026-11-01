@@ -5,6 +5,7 @@ export * from './GameStateRepository';
 export * from './GameTaskSource';
 export * from './LedgerRepository';
 export * from './Projections';
+export * from './RulesRepository';
 export * from './SettingsStore';
 export * from './SkillRepository';
 export * from './TagCatalog';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { characterNotePath, ledgerFolderPath, ledgerNotePath, normalizeVaultFolder, skillNotePath, skillsFolderPath } from '../../../src/adapters/vault/folderPath';
+import { characterNotePath, ledgerFolderPath, ledgerNotePath, normalizeVaultFolder, rulesNotePath, skillNotePath, skillsFolderPath } from '../../../src/adapters/vault/folderPath';
 
 describe('normalizeVaultFolder', () => {
 	it('keeps a clean folder as is', () => {
@@ -29,6 +29,13 @@ describe('characterNotePath', () => {
 		expect(characterNotePath('Dromos')).toBe('Dromos/Character.md');
 		expect(characterNotePath(' Notas/Dromos/ ')).toBe('Notas/Dromos/Character.md');
 		expect(characterNotePath('')).toBe('Dromos/Character.md');
+	});
+});
+
+describe('rulesNotePath', () => {
+	it('sits next to the character note, under the normalized folder', () => {
+		expect(rulesNotePath('Dromos')).toBe('Dromos/Rules.md');
+		expect(rulesNotePath(' Game/ ')).toBe('Game/Rules.md');
 	});
 });
 

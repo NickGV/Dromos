@@ -1,5 +1,5 @@
 import type { Skill, SkillRank, SkillStanding, RequirementProgress } from '../domain';
-import type { InvalidSkillNote, UnreadableLedgerEvent } from '../ports';
+import type { InvalidRules, InvalidSkillNote, UnreadableLedgerEvent } from '../ports';
 import type { GameEvent } from './gameEvents';
 import type { PendingOrFailedStatus, SyncStatus } from './QuestState';
 
@@ -31,6 +31,7 @@ export interface GameResult {
 	readonly events: readonly GameEvent[];
 	readonly invalidSkills: readonly InvalidSkillNote[];
 	readonly unreadable: readonly UnreadableLedgerEvent[];
+	readonly invalidRules: InvalidRules | null;
 }
 
 /** Immutable view of the game; every change produces a new object. */
@@ -44,9 +45,10 @@ export interface GameSnapshot {
 	readonly events: readonly GameEvent[];
 	readonly invalidSkills: readonly InvalidSkillNote[];
 	readonly unreadable: readonly UnreadableLedgerEvent[];
+	readonly invalidRules: InvalidRules | null;
 }
 
-const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [] };
+const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
 
 /** Session-scoped game state, held in memory only; the vault is the record. */
 export class GameState {
@@ -65,6 +67,7 @@ export class GameState {
 			events: [...this.current.events, ...result.events],
 			invalidSkills: [...result.invalidSkills],
 			unreadable: [...result.unreadable],
+			invalidRules: result.invalidRules,
 		};
 	}
 

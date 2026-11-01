@@ -1,5 +1,5 @@
 import { normalizePath, type App } from 'obsidian';
-import type { CharacterLoadResult, CharacterProjection, CharacterSaveResult, GameStateRepository } from '../../ports';
+import type { CharacterLoadResult, CharacterProjection, CharacterSaveResult, GameStateRepository, RulesRepository } from '../../ports';
 import { waitForCache } from './cacheWait';
 import { characterFromFrontmatter } from './characterMapper';
 import { characterNotePath } from './folderPath';
@@ -18,13 +18,16 @@ export class VaultGameStateRepository implements GameStateRepository {
 	constructor(
 		private readonly app: Pick<App, 'vault' | 'metadataCache' | 'fileManager'>,
 		private readonly vaultFolder: () => string,
+		/** The character curve decides the level the note shows. */
+		private readonly rules: RulesRepository,
 	) {}
 
 	async loadCharacter(): Promise<CharacterLoadResult> {
 		const path = normalizePath(characterNotePath(this.vaultFolder()));
 		const file = this.app.vault.getFileByPath(path);
 		if (!file) return { kind: 'missing', path };
-		return { kind: 'found', character: characterFromFrontmatter(await frontmatterOf(this.app, file)) };
+		const { rules } = await this.rules.load();
+		return { kind: 'found', character: characterFromFrontmatter(await frontmatterOf(this.app, file), rules.characterCurve) };
 	}
 
 	async saveCharacter(projection: CharacterProjection): Promise<CharacterSaveResult> {

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { GameState } from '../../src/application/GameState';
 import { SyncGame } from '../../src/application/SyncGame';
 import type { Campaign, Character, LedgerRow, Skill } from '../../src/domain';
-import type { CharacterLoadResult, ObservedTask } from '../../src/ports';
+import type { GameRules } from '../../src/domain/rules/GameRules';
+import type { CharacterLoadResult, ObservedTask, RulesLoadResult } from '../../src/ports';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { campaign } from '../domain/campaign/campaignFixtures';
 import { row } from '../domain/ledger/ledgerFixtures';
@@ -12,6 +13,7 @@ import { FixedClock } from '../fakes/FixedClock';
 import { InMemoryCampaignRepository } from '../fakes/InMemoryCampaignRepository';
 import { InMemoryGameStateRepository } from '../fakes/InMemoryGameStateRepository';
 import { InMemoryLedgerRepository } from '../fakes/InMemoryLedgerRepository';
+import { InMemoryRulesRepository } from '../fakes/InMemoryRulesRepository';
 import { InMemorySkillRepository } from '../fakes/InMemorySkillRepository';
 
 const NOW = new Date('2026-11-03T15:00:00.000Z');
@@ -54,6 +56,7 @@ interface Options {
 	tasks?: ObservedTask[];
 	credentials?: boolean;
 	day?: string;
+	rules?: RulesLoadResult;
 }
 
 function setup(options: Options = {}) {
@@ -67,6 +70,7 @@ function setup(options: Options = {}) {
 		ledger,
 		characters,
 		campaigns: new InMemoryCampaignRepository([], options.completed ?? []),
+		rules: new InMemoryRulesRepository(options.rules),
 		source,
 		clock: new FixedClock(NOW, options.day ?? TODAY),
 		state,
@@ -77,7 +81,7 @@ function setup(options: Options = {}) {
 
 describe('SyncGame: what stops it', () => {
 	it('starts idle with nothing', () => {
-		expect(setup().state.snapshot()).toEqual({ status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [] });
+		expect(setup().state.snapshot()).toEqual({ status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null });
 	});
 
 	it('does nothing without Habitica credentials', async () => {
@@ -159,6 +163,7 @@ describe('SyncGame: what stops it', () => {
 			ledger,
 			characters: new InMemoryGameStateRepository({ kind: 'found', character: NICO }),
 			campaigns: new InMemoryCampaignRepository(),
+			rules: new InMemoryRulesRepository(),
 			source,
 			clock: new FixedClock(NOW, '2026-11-04'),
 			state: new GameState(),
@@ -411,6 +416,7 @@ describe('SyncGame: what it shows', () => {
 			ledger: new InMemoryLedgerRepository([], [{ path: 'Dromos/Ledger/2026-11.md', line: 12, text: '| broken |' }]),
 			characters: new InMemoryGameStateRepository({ kind: 'found', character: NICO }),
 			campaigns: new InMemoryCampaignRepository(),
+			rules: new InMemoryRulesRepository(),
 			source: new FakeGameTaskSource(),
 			clock: new FixedClock(NOW, TODAY),
 			state,
@@ -423,5 +429,60 @@ describe('SyncGame: what it shows', () => {
 		expect(snapshot.unreadable).toEqual([{ path: 'Dromos/Ledger/2026-11.md', line: 12, text: '| broken |' }]);
 		expect(snapshot.status).toEqual({ kind: 'synced' });
 		expect(snapshot.lastSyncedAt).toEqual(NOW);
+	});
+});
+
+describe('SyncGame: Rules.md (S16)', () => {
+	const RULES: GameRules = {
+		xp: { todo: { trivial: 1, easy: 40, medium: 3, hard: 4 }, daily: { trivial: 6, easy: 7, medium: 8, hard: 9 }, streakBonus: { every: 3, xp: 50 } },
+		characterCurve: { base: 10, exponent: 1 },
+		skillCurve: { base: 20, exponent: 1 },
+		rankLevels: [1, 2, 3, 4, 5],
+	};
+	const withRules = { rules: RULES, invalid: null };
+
+	it('prices a new row by the rules', async () => {
+		const { sync, ledger } = setup({ skills: [owned()], tasks: [todo('a')], rules: withRules });
+
+		await sync.execute();
+
+		expect(ledger.appended.flat().map((paid) => paid.xp)).toEqual([40]);
+	});
+
+	it('keeps what a row already paid when the XP table changes', async () => {
+		const { sync, characters } = setup({ skills: [owned()], rows: [row({ xp: 10, date: '2026-11-02' })], tasks: [], rules: withRules });
+
+		await sync.execute();
+
+		expect(characters.saved[0]?.totalXp).toBe(10);
+	});
+
+	it('turns the ledger into levels with the curves and the rank levels of the rules', async () => {
+		const rows = [row({ xp: 40, date: '2026-11-02' })];
+		const { sync, characters, skills } = setup({ skills: [owned()], rows, tasks: [], rules: withRules });
+
+		const snapshot = await sync.execute();
+
+		// Character: 10 to level 2, 20 to level 3, then 30 asked. Skill: 20 to level 2, then 40 asked.
+		expect(characters.saved[0]).toMatchObject({ level: 3, totalXp: 40, xpToNext: 30, stats: { inteligencia: 2 } });
+		expect(skills.projections.get('lector')).toMatchObject({ level: 2, xp: 40, xpToNext: 40 });
+		expect(snapshot.skills?.[0]?.standing).toEqual({ level: 2, xpIntoLevel: 20, xpToNext: 40, rankIndex: 1 });
+	});
+
+	it('does not celebrate a level that only a changed curve moved', async () => {
+		const rows = [row({ xp: 40, date: '2026-11-02' })];
+		const { sync } = setup({ skills: [owned()], rows, tasks: [], rules: withRules });
+
+		expect((await sync.execute()).events).toEqual([]);
+	});
+
+	it('shows which fields of the note could not be used, and still syncs', async () => {
+		const invalid = { path: 'Dromos/Rules.md', fields: ['xp.todo.easy'] };
+		const { sync } = setup({ rules: { rules: RULES, invalid } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.invalidRules).toEqual(invalid);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
 	});
 });

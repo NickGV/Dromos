@@ -14,6 +14,11 @@ export function characterNotePath(folder: string): string {
 	return `${normalizeVaultFolder(folder)}/${CHARACTER_NOTE_NAME}`;
 }
 
+/** Vault path of the rules note under the given folder setting, for example `Dromos/Rules.md`. */
+export function rulesNotePath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Rules.md`;
+}
+
 export function skillsFolderPath(folder: string): string {
 	return `${normalizeVaultFolder(folder)}/Skills`;
 }

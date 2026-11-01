@@ -57,6 +57,7 @@ export const es = {
 	'skills.req.manual.pending': 'Pendiente',
 	'skills.req.manual.confirmed': 'Confirmado',
 	'skills.problem.note': '{path}: {reason}',
+	'skills.problem.rules': '{path}: no se pudo usar {fields}. Se aplican los valores por defecto.',
 	'skills.problem.ledger': 'Fila ilegible del registro ({path}, línea {line})',
 	'skills.problem.ledgerMore.one': 'y 1 fila ilegible más del registro',
 	'skills.problem.ledgerMore.other': 'y {count} filas ilegibles más del registro',

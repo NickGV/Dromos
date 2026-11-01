@@ -11,7 +11,7 @@ import {
 	type HabiticaCredentials,
 } from '../adapters/habitica';
 import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, SystemClock } from '../adapters/obsidian';
-import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultSkillRepository } from '../adapters/vault';
+import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 
@@ -43,7 +43,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const settingsListeners = new Set<() => void>();
 	const clock = new SystemClock();
 	const state = new QuestState();
-	const repository = new VaultGameStateRepository(plugin.app, () => settings.vaultFolder);
+	const rules = new VaultRulesRepository(plugin.app, () => settings.vaultFolder);
+	const repository = new VaultGameStateRepository(plugin.app, () => settings.vaultFolder, rules);
 	const habitica = new HabiticaClient(createObsidianHttp(), credentials);
 	const source = new HabiticaTaskSource(habitica, clock);
 	const campaignState = new CampaignState();
@@ -62,6 +63,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		ledger: new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today()),
 		characters: repository,
 		campaigns: campaignRepository,
+		rules,
 		source: new HabiticaGameTaskSource(habitica),
 		clock,
 		state: gameState,

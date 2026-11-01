@@ -1,7 +1,5 @@
-import { CHARACTER_CURVE, LevelCurve, STAT_IDS, type Character, type StatId } from '../../domain';
+import { CHARACTER_CURVE, LevelCurve, STAT_IDS, type Character, type CurveConfig, type StatId } from '../../domain';
 import { dateOrNull } from './frontmatterFields';
-
-const curve = new LevelCurve(CHARACTER_CURVE);
 
 /**
  * Maps the frontmatter of `Character.md` to a `Character` (S2). Reads `name`,
@@ -10,10 +8,10 @@ const curve = new LevelCurve(CHARACTER_CURVE);
  * ignored. A missing or wrongly typed text falls back to `''`; a missing,
  * non-numeric, negative or non-finite number falls back to `0`. Never `NaN`.
  */
-export function characterFromFrontmatter(frontmatter: unknown): Character {
+export function characterFromFrontmatter(frontmatter: unknown, curve: CurveConfig = CHARACTER_CURVE): Character {
 	const fields = asRecord(frontmatter);
 	const totalXp = countOrZero(fields.total_xp);
-	const { level, xpIntoLevel, xpToNext } = curve.progressFor(totalXp);
+	const { level, xpIntoLevel, xpToNext } = new LevelCurve(curve).progressFor(totalXp);
 	return {
 		name: textOrEmpty(fields.name),
 		title: textOrEmpty(fields.title),
