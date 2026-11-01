@@ -68,6 +68,12 @@ export const es = {
 	'event.skillLevelRank': '{name} llegó al nivel {level}: nuevo rango, {rank}.',
 	'event.dismiss': 'Cerrar',
 
+	'rebuild.done': 'Estado reconstruido desde el registro: nivel {level}, {xp} XP.',
+	'rebuild.created': 'Character.md se creó de nuevo: vuelve a poner tu nombre y tu título.',
+	'rebuild.unreadable.one': '1 fila del registro no se pudo leer y quedó fuera.',
+	'rebuild.unreadable.other': '{count} filas del registro no se pudieron leer y quedaron fuera.',
+	'rebuild.failed': 'No se pudo reconstruir el estado. El registro no cambió.',
+
 	'quests.title': 'Quests de hoy',
 	'quests.dailies': 'Diarias',
 	'quests.todos': 'Pendientes',

@@ -59,9 +59,22 @@ export class GameState {
 	}
 
 	recordSuccess(result: GameResult, syncedAt: Date): void {
+		this.record(result, { kind: 'synced' }, syncedAt);
+	}
+
+	/**
+	 * A rebuild read only the vault, so the time of the last sync stands, and a failure that sync
+	 * reported no longer describes the notes.
+	 */
+	recordRebuild(result: GameResult): void {
+		const { status, lastSyncedAt } = this.current;
+		this.record(result, status.kind === 'synced' ? status : { kind: 'idle' }, lastSyncedAt);
+	}
+
+	private record(result: GameResult, status: GameStatus, lastSyncedAt: Date | null): void {
 		this.current = {
-			status: { kind: 'synced' },
-			lastSyncedAt: syncedAt,
+			status,
+			lastSyncedAt,
 			character: result.character,
 			skills: [...result.skills],
 			events: [...this.current.events, ...result.events],

@@ -34,6 +34,8 @@ export interface HomeScreenDeps {
 	readonly translator: () => Translator;
 	/** Calls `onChange` whenever the settings change, so the open view re-renders (a language switch applies at once). Returns the unsubscribe function. */
 	readonly subscribeSettings: (onChange: () => void) => () => void;
+	/** Calls `onChange` when something other than this screen changed the game (the rebuild command). Returns the unsubscribe function. */
+	readonly subscribeGame: (onChange: () => void) => () => void;
 }
 
 type CharacterState = HomeSnapshot['character'] | { readonly kind: 'loading' } | { readonly kind: 'unreadable' };
@@ -89,6 +91,17 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			mounted.current = false;
 		};
 	}, [refresh]);
+
+	useEffect(
+		() =>
+			deps.subscribeGame(() => {
+				setGame(deps.gameSnapshot());
+				void loadHomeOrNull(deps.loadHome).then((updated) => {
+					if (mounted.current && updated) setCharacter(updated.character);
+				});
+			}),
+		[deps],
+	);
 
 	return (
 		<I18nProvider t={t}>

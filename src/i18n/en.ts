@@ -67,6 +67,12 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'event.skillLevelRank': '{name} reached level {level}: new rank, {rank}.',
 	'event.dismiss': 'Dismiss',
 
+	'rebuild.done': 'State rebuilt from the ledger: level {level}, {xp} XP.',
+	'rebuild.created': 'Character.md was created again: add your name and title back.',
+	'rebuild.unreadable.one': '1 ledger row could not be read and was left out.',
+	'rebuild.unreadable.other': '{count} ledger rows could not be read and were left out.',
+	'rebuild.failed': 'The state could not be rebuilt. The ledger was not changed.',
+
 	'quests.title': "Today's quests",
 	'quests.dailies': 'Dailies',
 	'quests.todos': 'To-dos',

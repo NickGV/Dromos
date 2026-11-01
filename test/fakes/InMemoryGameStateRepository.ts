@@ -5,6 +5,8 @@ export class InMemoryGameStateRepository implements GameStateRepository {
 	loads = 0;
 	/** Every projection saved, in order. */
 	readonly saved: CharacterProjection[] = [];
+	/** Every note created, in order. */
+	readonly created: { projection: CharacterProjection; created: string }[] = [];
 
 	constructor(private result: CharacterLoadResult) {}
 
@@ -27,5 +29,14 @@ export class InMemoryGameStateRepository implements GameStateRepository {
 			character: { ...character, level: projection.level, totalXp: projection.totalXp, xpToNext: projection.xpToNext, stats: projection.stats, gameStart: projection.gameStart },
 		};
 		return Promise.resolve('saved');
+	}
+
+	createCharacter(projection: CharacterProjection, created: string): Promise<void> {
+		this.created.push({ projection, created });
+		this.result = {
+			kind: 'found',
+			character: { name: '', title: '', level: projection.level, totalXp: projection.totalXp, xpIntoLevel: 0, xpToNext: projection.xpToNext, stats: projection.stats, gameStart: projection.gameStart },
+		};
+		return Promise.resolve();
 	}
 }

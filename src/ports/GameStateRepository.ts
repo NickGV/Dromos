@@ -23,4 +23,10 @@ export interface GameStateRepository {
 	 * note and never touches `name`, `title` or anything the user wrote.
 	 */
 	saveCharacter(projection: CharacterProjection): Promise<CharacterSaveResult>;
+
+	/**
+	 * Creates `Character.md` with `type`, `created`, an empty `name` and `title`, and the derived
+	 * fields. Only an explicit rebuild calls it; a sync never makes up a note that is missing.
+	 */
+	createCharacter(projection: CharacterProjection, created: string): Promise<void>;
 }

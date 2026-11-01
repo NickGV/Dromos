@@ -3,6 +3,7 @@ import {
 	applyCharacterProjection,
 	applySkillProjection,
 	characterProjectionChanged,
+	newCharacterNote,
 	skillProjectionChanged,
 } from '../../../src/adapters/vault/projections';
 import type { CharacterProjection, SkillProjection } from '../../../src/ports';
@@ -76,6 +77,57 @@ describe('applyCharacterProjection', () => {
 		applyCharacterProjection(twice, CHARACTER);
 
 		expect(twice).toEqual(once);
+	});
+});
+
+describe('a rebuild writing the character (S17)', () => {
+	const rebuild: CharacterProjection = { ...CHARACTER, gameStart: null, lastSync: null };
+
+	it('leaves last_sync as it is: a rebuild is not a sync', () => {
+		const note: Record<string, unknown> = { ...NOTE(), last_sync: '2026-11-08T10:00:00.000Z' };
+
+		applyCharacterProjection(note, rebuild);
+
+		expect(note.last_sync).toBe('2026-11-08T10:00:00.000Z');
+	});
+
+	it('a game that has not started is not a change', () => {
+		const note: Record<string, unknown> = NOTE();
+		applyCharacterProjection(note, rebuild);
+		delete note.game_start;
+
+		expect(characterProjectionChanged(note, rebuild)).toBe(false);
+	});
+
+	it('a note created again has type, created, empty name and title and the derived fields', () => {
+		expect(newCharacterNote({ ...CHARACTER, lastSync: null }, '2026-11-09')).toBe(
+			[
+				'---',
+				'type: dromos-character',
+				'created: 2026-11-09',
+				'name: ""',
+				'title: ""',
+				'level: 3',
+				'total_xp: 400',
+				'xp_to_next: 520',
+				'stats:',
+				'  fuerza: 5',
+				'  vitalidad: 0',
+				'  inteligencia: 25',
+				'  sabiduria: 0',
+				'  espiritu: 10',
+				'  disciplina: 0',
+				'game_start: 2026-11-01',
+				'last_sync: null',
+				'updated_by: dromos',
+				'---',
+				'',
+			].join('\n'),
+		);
+	});
+
+	it('a note created for a game that has not started says so', () => {
+		expect(newCharacterNote(rebuild, '2026-11-09')).toContain('game_start: null\n');
 	});
 });
 

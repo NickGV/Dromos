@@ -10,15 +10,18 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, SystemClock } from '../adapters/obsidian';
+import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClock } from '../adapters/obsidian';
 import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
+import { rebuildMessage } from '../ui/presenters/rebuildView';
 
 /** What the plugin registers, built once per plugin load. */
 export interface Dromos {
 	readonly home: HomeScreenDeps;
 	readonly settingTab: DromosSettingTab;
+	/** Recomputes the notes from the ledger and answers with a toast; the open view follows. */
+	readonly rebuildGame: () => Promise<void>;
 }
 
 /**
@@ -41,6 +44,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	};
 
 	const settingsListeners = new Set<() => void>();
+	const gameListeners = new Set<() => void>();
 	const clock = new SystemClock();
 	const state = new QuestState();
 	const rules = new VaultRulesRepository(plugin.app, () => settings.vaultFolder);
@@ -84,6 +88,10 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				settingsListeners.add(onChange);
 				return () => void settingsListeners.delete(onChange);
 			},
+			subscribeGame: (onChange) => {
+				gameListeners.add(onChange);
+				return () => void gameListeners.delete(onChange);
+			},
 			campaigns: {
 				syncCampaigns: new SyncCampaigns({
 					repository: campaignRepository,
@@ -102,6 +110,11 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				},
 				clock,
 			},
+		},
+		rebuildGame: async () => {
+			const outcome = await syncGame.rebuild();
+			showNotice(rebuildMessage(outcome, createTranslator(settings.language)));
+			gameListeners.forEach((listener) => listener());
 		},
 		settingTab: new DromosSettingTab(plugin.app, plugin, store, (next) => {
 			settings = next;
