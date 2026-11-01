@@ -1,10 +1,12 @@
 import { STAT_IDS, type Character, type StatId } from '../../domain';
 import type { MessageKey, Translator } from '../../i18n';
 
-/** Copy keys of the four stats; the ids themselves are the frontmatter keys of `Character.md` and never change. */
+/** Copy keys of the six stats; the ids themselves are the frontmatter keys of `Character.md` and never change. */
 const STAT_KEYS: Readonly<Record<StatId, MessageKey>> = {
 	fuerza: 'stat.fuerza',
+	vitalidad: 'stat.vitalidad',
 	inteligencia: 'stat.inteligencia',
+	sabiduria: 'stat.sabiduria',
 	espiritu: 'stat.espiritu',
 	disciplina: 'stat.disciplina',
 };
@@ -31,7 +33,7 @@ export interface CharacterCardView {
 	readonly title: string | null;
 	readonly levelText: string;
 	readonly xp: XpBarView;
-	/** Always the four stats, in `STAT_IDS` order. */
+	/** Always the six stats, in `STAT_IDS` order. */
 	readonly stats: readonly StatBadgeView[];
 }
 

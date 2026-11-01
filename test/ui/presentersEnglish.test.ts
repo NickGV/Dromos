@@ -75,10 +75,10 @@ describe('English: character card', () => {
 		totalXp: 900,
 		xpIntoLevel: 240,
 		xpToNext: 520,
-		stats: { fuerza: 2, inteligencia: 4, espiritu: 3, disciplina: 5 },
+		stats: { fuerza: 2, vitalidad: 6, inteligencia: 4, sabiduria: 1, espiritu: 3, disciplina: 5 },
 	};
 
-	it('words the level, the missing name and the four stats, keeping the data keys', () => {
+	it('words the level, the missing name and the six stats, keeping the data keys', () => {
 		const view = characterCardView(character, t);
 
 		expect(view.name).toBe('Unnamed');
@@ -86,7 +86,9 @@ describe('English: character card', () => {
 		expect(view.xp.text).toBe('240 / 520 XP');
 		expect(view.stats.map((stat) => [stat.id, stat.label])).toEqual([
 			['fuerza', 'Strength'],
+			['vitalidad', 'Vitality'],
 			['inteligencia', 'Intelligence'],
+			['sabiduria', 'Wisdom'],
 			['espiritu', 'Spirit'],
 			['disciplina', 'Discipline'],
 		]);

@@ -1,4 +1,5 @@
-export const STAT_IDS = ['fuerza', 'inteligencia', 'espiritu', 'disciplina'] as const;
+/** The six stats of ADR-014, in the display order of the `Character.md` schema. */
+export const STAT_IDS = ['fuerza', 'vitalidad', 'inteligencia', 'sabiduria', 'espiritu', 'disciplina'] as const;
 export type StatId = (typeof STAT_IDS)[number];
 
 export interface Character {

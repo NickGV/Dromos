@@ -9,7 +9,7 @@ const DEFAULT_CHARACTER: Character = {
 	totalXp: 0,
 	xpIntoLevel: 0,
 	xpToNext: 100,
-	stats: { fuerza: 0, inteligencia: 0, espiritu: 0, disciplina: 0 },
+	stats: { fuerza: 0, vitalidad: 0, inteligencia: 0, sabiduria: 0, espiritu: 0, disciplina: 0 },
 };
 
 // Shape of Dromos/Character.md in the Logos vault.
@@ -21,7 +21,7 @@ const FULL_NOTE = {
 	level: 1,
 	total_xp: 150,
 	xp_to_next: 100,
-	stats: { fuerza: 3, inteligencia: 5, espiritu: 1, disciplina: 8 },
+	stats: { fuerza: 3, vitalidad: 6, inteligencia: 5, sabiduria: 2, espiritu: 1, disciplina: 8 },
 	last_sync: null,
 	updated_by: 'manual',
 };
@@ -39,8 +39,14 @@ describe('characterFromFrontmatter: reading the note', () => {
 			totalXp: 150,
 			xpIntoLevel: 50,
 			xpToNext: 283,
-			stats: { fuerza: 3, inteligencia: 5, espiritu: 1, disciplina: 8 },
+			stats: { fuerza: 3, vitalidad: 6, inteligencia: 5, sabiduria: 2, espiritu: 1, disciplina: 8 },
 		});
+	});
+
+	it('reads a note written with the old four stats: the two new ones are 0 (ADR-014)', () => {
+		const character = characterFromFrontmatter({ ...FULL_NOTE, stats: { fuerza: 3, inteligencia: 5, espiritu: 1, disciplina: 8 } });
+
+		expect(character.stats).toEqual({ fuerza: 3, vitalidad: 0, inteligencia: 5, sabiduria: 0, espiritu: 1, disciplina: 8 });
 	});
 
 	it('derives level and progress from total_xp, ignoring the stored level and xp_to_next', () => {
@@ -76,7 +82,7 @@ describe('characterFromFrontmatter: defaults, never NaN', () => {
 			name: 42,
 			title: ['Corredor'],
 			total_xp: '150',
-			stats: { fuerza: '3', inteligencia: 'mucha', espiritu: true, disciplina: null },
+			stats: { fuerza: '3', vitalidad: [], inteligencia: 'mucha', sabiduria: {}, espiritu: true, disciplina: null },
 		});
 
 		expect(character).toEqual(DEFAULT_CHARACTER);
@@ -86,13 +92,13 @@ describe('characterFromFrontmatter: defaults, never NaN', () => {
 		const character = characterFromFrontmatter({ total_xp: -40, stats: { ...FULL_NOTE.stats, fuerza: -2 } });
 
 		expect(character).toMatchObject({ level: 1, totalXp: 0, xpIntoLevel: 0, xpToNext: 100 });
-		expect(character.stats).toEqual({ fuerza: 0, inteligencia: 5, espiritu: 1, disciplina: 8 });
+		expect(character.stats).toEqual({ fuerza: 0, vitalidad: 6, inteligencia: 5, sabiduria: 2, espiritu: 1, disciplina: 8 });
 	});
 
 	it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])('falls back for %s', (bad) => {
 		const character = characterFromFrontmatter({
 			total_xp: bad,
-			stats: { fuerza: bad, inteligencia: bad, espiritu: bad, disciplina: bad },
+			stats: { fuerza: bad, vitalidad: bad, inteligencia: bad, sabiduria: bad, espiritu: bad, disciplina: bad },
 		});
 
 		expect(character).toEqual(DEFAULT_CHARACTER);
@@ -102,7 +108,7 @@ describe('characterFromFrontmatter: defaults, never NaN', () => {
 	it('defaults missing stats keys and keeps the present ones', () => {
 		const character = characterFromFrontmatter({ ...FULL_NOTE, stats: { fuerza: 4, espiritu: 2 } });
 
-		expect(character.stats).toEqual({ fuerza: 4, inteligencia: 0, espiritu: 2, disciplina: 0 });
+		expect(character.stats).toEqual({ fuerza: 4, vitalidad: 0, inteligencia: 0, sabiduria: 0, espiritu: 2, disciplina: 0 });
 	});
 
 	it.each([

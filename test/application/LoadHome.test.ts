@@ -13,7 +13,7 @@ const CHARACTER: Character = {
 	totalXp: 250,
 	xpIntoLevel: 50,
 	xpToNext: 150,
-	stats: { fuerza: 2, inteligencia: 4, espiritu: 1, disciplina: 3 },
+	stats: { fuerza: 2, vitalidad: 5, inteligencia: 4, sabiduria: 0, espiritu: 1, disciplina: 3 },
 };
 const IDLE_QUESTS = { quests: null, lastSyncedAt: null, status: { kind: 'idle' } };
 

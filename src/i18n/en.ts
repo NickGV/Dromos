@@ -34,7 +34,9 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'character.unreadable': 'The character note could not be read.',
 	'character.loading': 'Loading the character…',
 	'stat.fuerza': 'Strength',
+	'stat.vitalidad': 'Vitality',
 	'stat.inteligencia': 'Intelligence',
+	'stat.sabiduria': 'Wisdom',
 	'stat.espiritu': 'Spirit',
 	'stat.disciplina': 'Discipline',
 

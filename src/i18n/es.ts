@@ -35,7 +35,9 @@ export const es = {
 	'character.unreadable': 'No se pudo leer la nota del personaje.',
 	'character.loading': 'Cargando el personaje…',
 	'stat.fuerza': 'Fuerza',
+	'stat.vitalidad': 'Vitalidad',
 	'stat.inteligencia': 'Inteligencia',
+	'stat.sabiduria': 'Sabiduría',
 	'stat.espiritu': 'Espíritu',
 	'stat.disciplina': 'Disciplina',
 
