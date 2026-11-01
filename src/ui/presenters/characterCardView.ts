@@ -11,6 +11,11 @@ const STAT_KEYS: Readonly<Record<StatId, MessageKey>> = {
 	disciplina: 'stat.disciplina',
 };
 
+/** The label of a stat in the interface language. */
+export function statLabel(id: StatId, t: Translator): string {
+	return t(STAT_KEYS[id]);
+}
+
 export interface StatBadgeView {
 	readonly id: StatId;
 	readonly label: string;
@@ -44,9 +49,14 @@ export function characterCardView(character: Character, t: Translator): Characte
 		name: character.name === '' ? t('character.unnamed') : character.name,
 		title: character.title === '' ? null : character.title,
 		levelText: t('character.level', { level: character.level }),
-		xp: { current: xpIntoLevel, total: xpToNext, percent: percentOf(xpIntoLevel, xpToNext), text: `${xpIntoLevel} / ${xpToNext} XP` },
+		xp: xpBarView(xpIntoLevel, xpToNext),
 		stats: STAT_IDS.map((id) => ({ id, label: t(STAT_KEYS[id]), value: character.stats[id] })),
 	};
+}
+
+/** XP into the current level against the XP it needs, as the bar shows it. */
+export function xpBarView(current: number, total: number): XpBarView {
+	return { current, total, percent: percentOf(current, total), text: `${current} / ${total} XP` };
 }
 
 function percentOf(part: number, whole: number): number {
