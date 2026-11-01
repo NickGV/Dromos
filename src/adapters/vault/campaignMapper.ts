@@ -7,6 +7,7 @@ import {
 	type Phase,
 	type Priority,
 } from '../../domain';
+import { asRecord, dateOrNull, fileName, nonEmpty, oneOf, positiveInteger } from './frontmatterFields';
 import { habiticaIdFrom } from './habiticaId';
 
 /** A markdown note as the mapper sees it: no `obsidian` types, so it is testable. */
@@ -28,7 +29,6 @@ export interface VaultNote {
 const STATUSES: readonly LifecycleStatus[] = ['planning', 'active', 'paused', 'completed', 'archived'];
 const PRIORITIES: readonly Priority[] = ['high', 'medium', 'low'];
 const DEFAULT_PRIORITY: Priority = 'low';
-const DATE = /^\d{4}-\d{2}-\d{2}/;
 /** `04-Game-Design`, Campaign: a project is the README of `02 - Projects/<Project>/`. */
 const PROJECT_README = /^02 - Projects\/[^/]+\/README\.md$/;
 /** `04-Game-Design`, Campaign: a research lives under `03 - Areas/<Area>/Estudio/`. */
@@ -169,28 +169,4 @@ function sessionTasks(researchPath: string, researchName: string, sessions: read
 		})
 		.sort((left, right) => left.order - right.order || left.task.title.localeCompare(right.task.title))
 		.map((entry) => entry.task);
-}
-
-function fileName(path: string): string {
-	return (path.split('/').pop() ?? path).replace(/\.md$/, '');
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
-function nonEmpty(value: unknown): string | null {
-	return typeof value === 'string' && value.trim() !== '' ? value : null;
-}
-
-function oneOf<T extends string>(allowed: readonly T[], value: unknown): T | null {
-	return allowed.find((candidate) => candidate === value) ?? null;
-}
-
-function dateOrNull(value: unknown): string | null {
-	return typeof value === 'string' && DATE.test(value) ? value.slice(0, 10) : null;
-}
-
-function positiveInteger(value: unknown): number | null {
-	return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
 }

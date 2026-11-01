@@ -5,3 +5,4 @@ export * from './characterMapper';
 export * from './folderPath';
 export * from './VaultGameStateRepository';
 export * from './VaultCampaignRepository';
+export * from './skillMapper';
