@@ -182,6 +182,7 @@ describe('campaignFromNote: projects', () => {
 			created: '2026-10-05',
 			phases: [],
 			tasks: [],
+			habits: [],
 		});
 	});
 
@@ -377,5 +378,42 @@ describe('completed campaigns (they count toward the campaigns requirement of a 
 
 	it('the active list never includes them, and an active campaign reads as active', () => {
 		expect(buildActiveCampaigns([KAIROS, CHESHBON, HISTORIA]).map((campaign) => [campaign.title, campaign.status])).toEqual([['Kairos', 'active']]);
+	});
+});
+
+describe('campaign habits (S8)', () => {
+	const withHabits = (habits: unknown, extra: Record<string, unknown> = {}) =>
+		campaignFromNote(note('02 - Projects/Salto/README.md', { type: 'index', status: 'active', skill: 'atleta', habits, ...extra }));
+
+	it('maps a habit with its target days, its skills and its Habitica id', () => {
+		const campaign = withHabits([
+			{ title: 'Estiramiento diario', days: 30, skill: ['atleta', 'cuidador'], habitica_id: '3f2a1c8e-0000-4000-8000-000000000009' },
+		]);
+
+		expect(campaign.habits).toEqual([
+			{ title: 'Estiramiento diario', days: 30, skills: ['atleta', 'cuidador'], habiticaId: '3f2a1c8e-0000-4000-8000-000000000009', streak: null },
+		]);
+	});
+
+	it('uses 21 days when the habit gives none or a bad number, and no skill of its own', () => {
+		const campaign = withHabits([{ title: 'A' }, { title: 'B', days: 0 }, { title: 'C', days: '10' }, { title: 'D', days: 2.5 }]);
+
+		expect(campaign.habits.map((habit) => [habit.title, habit.days, habit.skills, habit.habiticaId])).toEqual([
+			['A', 21, [], null],
+			['B', 21, [], null],
+			['C', 21, [], null],
+			['D', 21, [], null],
+		]);
+	});
+
+	it('skips habits without a title and reads anything that is not a list as no habits', () => {
+		expect(withHabits([{ days: 10 }, 'text', null, { title: '  ' }, { title: 'Ok' }]).habits.map((habit) => habit.title)).toEqual(['Ok']);
+		for (const habits of [undefined, null, 'x', 7, { title: 'A' }]) expect(withHabits(habits).habits).toEqual([]);
+	});
+
+	it('a research has no habits: Dromos never writes there', () => {
+		const research = campaignFromNote(note('03 - Areas/Bible/Estudio/Apocrifos/Estudio.md', { type: 'research', status: 'active', habits: [{ title: 'Read' }] }));
+
+		expect(research.habits).toEqual([]);
 	});
 });

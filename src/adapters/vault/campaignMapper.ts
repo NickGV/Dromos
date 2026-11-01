@@ -1,6 +1,8 @@
 import {
 	comparePriority,
 	type Campaign,
+	DEFAULT_HABIT_DAYS,
+	type CampaignHabit,
 	type CampaignKind,
 	type CampaignTask,
 	type LifecycleStatus,
@@ -89,6 +91,7 @@ export function campaignFromNote(note: VaultNote, sessions: readonly VaultNote[]
 		created: dateOrNull(fields.created) ?? note.createdOn,
 		phases: phasesFrom(fields.phases),
 		tasks: kind === 'research' ? sessionTasks(note.path, name, sessions) : projectTasks(fields.tasks),
+		habits: kind === 'research' ? [] : habitsFrom(fields.habits),
 	};
 }
 
@@ -112,6 +115,24 @@ export function buildCompletedCampaigns(notes: readonly VaultNote[]): Campaign[]
 		.filter((note) => isCampaignNote(note, 'completed'))
 		.map((note) => campaignFromNote(note, notes))
 		.sort((left, right) => left.title.localeCompare(right.title));
+}
+
+function habitsFrom(value: unknown): CampaignHabit[] {
+	if (!Array.isArray(value)) return [];
+	return value.flatMap((entry: unknown) => {
+		const fields = asRecord(entry);
+		const title = nonEmpty(fields.title);
+		if (title === null) return [];
+		return [
+			{
+				title: title.trim(),
+				days: positiveInteger(fields.days) ?? DEFAULT_HABIT_DAYS,
+				skills: skillsFrom(fields.skill),
+				habiticaId: habiticaIdFrom(fields.habitica_id),
+				streak: null,
+			},
+		];
+	});
 }
 
 function phasesFrom(value: unknown): Phase[] {

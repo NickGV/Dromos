@@ -31,6 +31,22 @@ export interface CampaignTask {
 	readonly completedOn: string | null;
 }
 
+/**
+ * A habit a campaign asks to build (S8): a daily Habitica tracks, with a target number of days.
+ * Strict: its progress is Habitica's streak, which one missed day sends back to zero.
+ */
+export interface CampaignHabit {
+	readonly title: string;
+	/** Days of streak that build the habit. */
+	readonly days: number;
+	/** Skill ids of the habit; empty means the campaign's. */
+	readonly skills: readonly string[];
+	/** Habitica daily id; `null` while the habit has not been sent to Habitica. */
+	readonly habiticaId: string | null;
+	/** Current streak of its daily once Habitica has answered; `null` until then or while unsent. */
+	readonly streak: number | null;
+}
+
 export interface Campaign {
 	readonly kind: CampaignKind;
 	/** Vault path of the note, used to open it. */
@@ -50,6 +66,8 @@ export interface Campaign {
 	readonly created: string;
 	readonly phases: readonly Phase[];
 	readonly tasks: readonly CampaignTask[];
+	/** Projects only; a research has none. */
+	readonly habits: readonly CampaignHabit[];
 }
 
 /** Progress as a count plus a ratio in `[0, 1]`, never `NaN`. */
