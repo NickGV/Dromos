@@ -1,5 +1,6 @@
 import { xpForTask, type XpKind } from '../rules/XpRules';
 import type { LedgerRow } from './LedgerRow';
+import { lastComplete } from './questCounts';
 
 /** A Habitica task as seen at one sync. */
 export interface TaskObservation {
@@ -26,13 +27,10 @@ export function nextRows(history: readonly LedgerRow[], observation: TaskObserva
 	const own = history.filter(
 		(row) => row.habiticaId === observation.habiticaId && (observation.kind === 'todo' || row.date === observation.date),
 	);
-	const completes = own.filter((row) => row.source === 'complete');
-	const reverted = new Set(own.filter((row) => row.source === 'revert').map((row) => row.n));
-	const lastComplete = completes.reduce((highest, row) => Math.max(highest, row.n), 0);
-	const active = lastComplete > 0 && !reverted.has(lastComplete);
+	const last = lastComplete(own);
 
-	if (observation.completed && !active) return completeRows(observation, lastComplete + 1);
-	if (!observation.completed && active) return revertRows(observation, completes.filter((row) => row.n === lastComplete));
+	if (observation.completed && !last.active) return completeRows(observation, last.n + 1);
+	if (!observation.completed && last.active) return revertRows(observation, own.filter((row) => row.source === 'complete' && row.n === last.n));
 	return [];
 }
 

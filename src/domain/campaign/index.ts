@@ -3,3 +3,5 @@ export * from './Campaign';
 export * from './campaignProgress';
 export * from './nextAction';
 export * from './staleness';
+export * from './habitProgress';
+export * from './skillEvidence';
