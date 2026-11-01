@@ -73,6 +73,12 @@ describe('formatLedgerRow', () => {
 		);
 	});
 
+	it('escapes a pipe in the skill and in the id too', () => {
+		const line = formatLedgerRow(row({ skill: 'a|b', habiticaId: 'x|y' }));
+
+		expect(parseLedgerNote(`${line}\n`).rows[0]).toMatchObject({ skill: 'a|b', habiticaId: 'x|y' });
+	});
+
 	it('keeps a title on one line', () => {
 		expect(formatLedgerRow(row({ task: 'line one\nline two' }))).toContain('| line one line two |');
 	});
@@ -111,6 +117,17 @@ month: 2026-11
 		expect(added).toBe(12);
 		expect(lines[added - 1]).toContain('Rutina de la mañana');
 		expect(result.endsWith('Some note the user wrote below.\n')).toBe(true);
+		expect(parseLedgerNote(result).rows).toHaveLength(4);
+	});
+
+	it('appends under the ledger table, not under another table or pipe line lower in the note', () => {
+		const text = `${NOTE}\nMy own notes:\n\n| thing | value |\n|---|---|\n| a | b |\n`;
+
+		const result = appendLedgerRows(text, [row({ habiticaId: 'new' })]);
+
+		const lines = result.split('\n');
+		expect(lines.indexOf('| 2026-11-03 | new | Read chapter 3 | todo | lector | 10 | complete | 1 |')).toBe(12);
+		expect(lines).toContain('| a | b |');
 		expect(parseLedgerNote(result).rows).toHaveLength(4);
 	});
 

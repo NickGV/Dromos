@@ -56,8 +56,9 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'skills.req.manual.pending': 'Pending',
 	'skills.req.manual.confirmed': 'Confirmed',
 	'skills.problem.note': '{path}: {reason}',
-	'skills.problem.ledger.one': '{count} unreadable ledger row ({path}, line {line})',
-	'skills.problem.ledger.other': '{count} unreadable ledger rows ({path}, line {line})',
+	'skills.problem.ledger': 'Unreadable ledger row ({path}, line {line})',
+	'skills.problem.ledgerMore.one': 'and 1 more unreadable ledger row',
+	'skills.problem.ledgerMore.other': 'and {count} more unreadable ledger rows',
 
 	'event.characterLevel': 'You reached level {level}.',
 	'event.skillUnlocked': 'Skill unlocked: {name}.',

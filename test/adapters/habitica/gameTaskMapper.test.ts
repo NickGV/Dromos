@@ -31,9 +31,9 @@ describe('observedTaskFromHabiticaTask: to-dos', () => {
 		expect(observedTaskFromHabiticaTask(dto, TAGS, TODAY)).toMatchObject({ completed: true, date: '2026-10-30' });
 	});
 
-	it('falls back to today when a completed to-do has no usable date', () => {
+	it('ignores a completed to-do that has no usable date: an old completion must never look new', () => {
 		for (const dateCompleted of [undefined, null, '', 'not a date']) {
-			expect(observedTaskFromHabiticaTask(todo({ completed: true, dateCompleted }), TAGS, TODAY)?.date).toBe(TODAY);
+			expect(observedTaskFromHabiticaTask(todo({ completed: true, dateCompleted }), TAGS, TODAY)).toBeNull();
 		}
 	});
 

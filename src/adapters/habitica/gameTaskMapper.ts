@@ -15,8 +15,8 @@ export function skillTagIds(tags: readonly HabiticaTagDto[]): Map<string, string
 
 /**
  * Maps a Habitica daily or to-do to what the game needs; `null` for habits and rewards (S12).
- * A completed to-do is dated with the local day it was completed; a daily is dated `today`,
- * because Habitica only says whether it is done now. A missing priority is Habitica's default, 1.
+ * A completed to-do is dated with the local day it was completed (and ignored when Habitica
+ * sends no usable date); a daily is dated `today`, because Habitica only says whether it is done now. A missing priority is Habitica's default, 1.
  */
 export function observedTaskFromHabiticaTask(task: HabiticaTaskDto, skillTags: ReadonlyMap<string, string>, today: string): ObservedTask | null {
 	if (task.type !== 'daily' && task.type !== 'todo') return null;
@@ -33,5 +33,8 @@ export function observedTaskFromHabiticaTask(task: HabiticaTaskDto, skillTags: R
 		const streak = typeof task.streak === 'number' && Number.isFinite(task.streak) && task.streak > 0 ? Math.floor(task.streak) : 0;
 		return { ...base, kind: 'daily', date: today, streak };
 	}
-	return { ...base, kind: 'todo', date: completed ? (localDate(task.dateCompleted) ?? today) : today, streak: null };
+	if (!completed) return { ...base, kind: 'todo', date: today, streak: null };
+	const date = localDate(task.dateCompleted);
+	// A completed to-do whose date is unknown is left out, so an old completion never looks new.
+	return date === null ? null : { ...base, kind: 'todo', date, streak: null };
 }

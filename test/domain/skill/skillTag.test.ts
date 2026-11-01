@@ -15,7 +15,7 @@ describe('skill tags: skill/<id> (S14)', () => {
 		expect(skillIdFromTag(tag)).toBe(id);
 	});
 
-	it.each(['', 'skill/', 'skill', 'lector', 'area/lector', 'skill/a/b', 'skill/ '])('%j is not a skill tag', (tag) => {
+	it.each(['', 'skill/', 'skill', 'lector', 'area/lector', 'skill/a/b', 'skill/ ', 'skill/a|b', 'skill/a b', 'skill/a\\b'])('%j is not a skill tag', (tag) => {
 		expect(skillIdFromTag(tag)).toBeNull();
 	});
 });

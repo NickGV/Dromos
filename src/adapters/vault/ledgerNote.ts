@@ -60,8 +60,13 @@ export function parseLedgerNote(text: string): ParsedLedger {
 
 /** One table line for a row; a pipe in the title is escaped and a title stays on one line. */
 export function formatLedgerRow(row: LedgerRow): string {
-	const task = row.task.replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|').trim();
-	return `| ${row.date} | ${row.habiticaId} | ${task} | ${row.kind} | ${row.skill ?? ''} | ${row.xp} | ${row.source} | ${row.n} |`;
+	const task = cell(row.task);
+	return `| ${row.date} | ${cell(row.habiticaId)} | ${task} | ${row.kind} | ${cell(row.skill ?? '')} | ${row.xp} | ${row.source} | ${row.n} |`;
+}
+
+/** One cell on one line, with its pipes escaped. */
+function cell(value: string): string {
+	return value.replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|').trim();
 }
 
 /** The note of one month: frontmatter and an empty table. */
@@ -78,11 +83,24 @@ export function appendLedgerRows(text: string, rows: readonly LedgerRow[]): stri
 	const added = rows.map(formatLedgerRow);
 	const lines = text.split('\n');
 	const start = frontmatterEnd(lines);
-	const lastTableLine = lines.reduce((last, line, index) => (index >= start && line.trim().startsWith('|') ? index : last), -1);
+	const lastTableLine = ledgerTableEnd(lines, start);
 	if (lastTableLine === -1) return `${text.replace(/\n*$/, '\n')}\n${HEADER}\n${SEPARATOR}\n${added.join('\n')}\n`;
 	const before = lines.slice(0, lastTableLine + 1).join('\n');
 	const after = lines.slice(lastTableLine + 1).join('\n');
 	return `${before}\n${added.join('\n')}\n${after}`;
+}
+
+/**
+ * Index of the last line of the ledger table: the run of `|` lines that starts at the ledger
+ * header. Any other table or pipe line lower in the note is the user's and is not touched.
+ * `-1` when the note has no ledger header.
+ */
+function ledgerTableEnd(lines: readonly string[], start: number): number {
+	const header = lines.findIndex((line, index) => index >= start && line.trim().startsWith('|') && isHeader(line.trim()));
+	if (header === -1) return -1;
+	let end = header;
+	while (end + 1 < lines.length && (lines[end + 1] ?? '').trim().startsWith('|')) end += 1;
+	return end;
 }
 
 /** Index of the first line after the frontmatter, or 0 when there is none. */

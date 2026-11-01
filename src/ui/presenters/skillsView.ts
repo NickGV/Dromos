@@ -46,6 +46,9 @@ export interface SkillsPageView {
 	readonly problems: readonly string[];
 }
 
+/** Unreadable ledger rows listed one by one; the rest are counted. */
+const MAX_LISTED_ROWS = 5;
+
 export function skillsPageView(snapshot: GameSnapshot, t: Translator): SkillsPageView {
 	const entries = snapshot.skills ?? [];
 	const earned = entries
@@ -120,7 +123,8 @@ function meanPercent(requirements: readonly RequirementRowView[]): number {
 
 function problemsOf(snapshot: GameSnapshot, t: Translator): string[] {
 	const problems = snapshot.invalidSkills.map((note) => t('skills.problem.note', { path: note.path, reason: note.reason }));
-	const first = snapshot.unreadable[0];
-	if (first) problems.push(plural(t, 'skills.problem.ledger', snapshot.unreadable.length, { path: first.path, line: first.line }));
+	for (const event of snapshot.unreadable.slice(0, MAX_LISTED_ROWS)) problems.push(t('skills.problem.ledger', { path: event.path, line: event.line }));
+	const more = snapshot.unreadable.length - MAX_LISTED_ROWS;
+	if (more > 0) problems.push(plural(t, 'skills.problem.ledgerMore', more));
 	return problems;
 }

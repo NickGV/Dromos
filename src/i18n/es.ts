@@ -57,8 +57,9 @@ export const es = {
 	'skills.req.manual.pending': 'Pendiente',
 	'skills.req.manual.confirmed': 'Confirmado',
 	'skills.problem.note': '{path}: {reason}',
-	'skills.problem.ledger.one': '{count} fila ilegible del registro ({path}, línea {line})',
-	'skills.problem.ledger.other': '{count} filas ilegibles del registro ({path}, línea {line})',
+	'skills.problem.ledger': 'Fila ilegible del registro ({path}, línea {line})',
+	'skills.problem.ledgerMore.one': 'y 1 fila ilegible más del registro',
+	'skills.problem.ledgerMore.other': 'y {count} filas ilegibles más del registro',
 
 	'event.characterLevel': 'Llegaste al nivel {level}.',
 	'event.skillUnlocked': 'Skill desbloqueada: {name}.',

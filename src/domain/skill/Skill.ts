@@ -42,10 +42,10 @@ export function skillTag(id: string): string {
 	return `${TAG_PREFIX}${id}`;
 }
 
-/** The skill id of a `skill/<id>` tag, or `null` when the tag is not one. */
+/** The skill id of a `skill/<id>` tag, or `null` when the tag is not one or the id has spaces, slashes or pipes (it is a file name and a ledger cell). */
 export function skillIdFromTag(tag: string): string | null {
 	const trimmed = tag.trim().toLowerCase();
 	if (!trimmed.startsWith(TAG_PREFIX)) return null;
 	const id = trimmed.slice(TAG_PREFIX.length).trim();
-	return id === '' || id.includes('/') ? null : id;
+	return id === '' || /[\s/|\\]/.test(id) ? null : id;
 }

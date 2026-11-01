@@ -191,15 +191,22 @@ describe('skillsPageView: titles, notices and problems', () => {
 			en,
 		);
 
-		expect(view.problems).toEqual(['Dromos/Skills/bad.md: Unknown stat "x".', '1 unreadable ledger row (Dromos/Ledger/2026-11.md, line 12)']);
+		expect(view.problems).toEqual(['Dromos/Skills/bad.md: Unknown stat "x".', 'Unreadable ledger row (Dromos/Ledger/2026-11.md, line 12)']);
 	});
 
-	it('pluralizes the unreadable ledger rows', () => {
-		const unreadable = [
-			{ path: 'a.md', line: 3, text: '' },
-			{ path: 'a.md', line: 4, text: '' },
-		];
+	it('lists each unreadable ledger row with its line, up to five, and counts the rest', () => {
+		const unreadable = Array.from({ length: 7 }, (_, index) => ({ path: 'a.md', line: index + 3, text: '' }));
 
-		expect(skillsPageView(snapshot({ skills: [earned()], unreadable }), en).problems).toEqual(['2 unreadable ledger rows (a.md, line 3)']);
+		const problems = skillsPageView(snapshot({ skills: [earned()], unreadable }), en).problems;
+
+		expect(problems).toEqual([
+			'Unreadable ledger row (a.md, line 3)',
+			'Unreadable ledger row (a.md, line 4)',
+			'Unreadable ledger row (a.md, line 5)',
+			'Unreadable ledger row (a.md, line 6)',
+			'Unreadable ledger row (a.md, line 7)',
+			'and 2 more unreadable ledger rows',
+		]);
+		expect(skillsPageView(snapshot({ skills: [earned()], unreadable: unreadable.slice(0, 6) }), en).problems.at(-1)).toBe('and 1 more unreadable ledger row');
 	});
 });
