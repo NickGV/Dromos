@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mergeTaskStatuses } from '../../src/application/mergeTaskStatuses';
 import type { TaskStatus } from '../../src/ports/TaskStatusSource';
-import { campaign, phase, task } from '../domain/campaign/campaignFixtures';
+import { campaign, habit, phase, task } from '../domain/campaign/campaignFixtures';
 
 const statuses = (entries: Record<string, TaskStatus>): Map<string, TaskStatus> => new Map(Object.entries(entries));
 
@@ -57,5 +57,39 @@ describe('mergeTaskStatuses', () => {
 		mergeTaskStatuses([kairos], statuses({ h1: { kind: 'completed', completedOn: '2026-10-20' } }));
 
 		expect(kairos.tasks[0]?.completed).toBe(false);
+	});
+});
+
+describe('mergeTaskStatuses: habits (S8)', () => {
+	it('puts the streak of the daily on the habit', () => {
+		const salto = campaign({ habits: [habit('Stretch', { habiticaId: 'd1' }), habit('Sleep', { habiticaId: 'd2', streak: 9 })] });
+
+		const merged = mergeTaskStatuses([salto], statuses({ d1: { kind: 'daily', streak: 12 }, d2: { kind: 'daily', streak: 0 } }));
+
+		expect(merged.campaigns[0]?.habits.map((item) => item.streak)).toEqual([12, 0]);
+		expect(merged.issues).toEqual([]);
+	});
+
+	it('flags a habit whose daily is gone and clears its streak', () => {
+		const salto = campaign({ path: 'P/Salto/README.md', habits: [habit('Stretch', { habiticaId: 'd1', streak: 5 })] });
+
+		const merged = mergeTaskStatuses([salto], statuses({ d1: { kind: 'missing' } }));
+
+		expect(merged.campaigns[0]?.habits[0]?.streak).toBeNull();
+		expect(merged.issues).toEqual([{ campaignPath: 'P/Salto/README.md', taskTitle: 'Stretch', kind: 'habitica-task-missing' }]);
+	});
+
+	it('leaves a habit as it was when its id has no answer, and an unsent habit untouched', () => {
+		const salto = campaign({ habits: [habit('Stretch', { habiticaId: 'd1', streak: 5 }), habit('Unsent')] });
+
+		const merged = mergeTaskStatuses([salto], statuses({}));
+
+		expect(merged.campaigns[0]?.habits.map((item) => item.streak)).toEqual([5, null]);
+	});
+
+	it('ignores an answer that is not a daily', () => {
+		const salto = campaign({ habits: [habit('Stretch', { habiticaId: 'd1', streak: 5 })] });
+
+		expect(mergeTaskStatuses([salto], statuses({ d1: { kind: 'open' } })).campaigns[0]?.habits[0]?.streak).toBe(5);
 	});
 });

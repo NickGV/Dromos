@@ -3,7 +3,7 @@ import { CampaignState } from '../../src/application/CampaignState';
 import { SyncCampaigns } from '../../src/application/SyncCampaigns';
 import type { Campaign } from '../../src/domain';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
-import { campaign, phase, task } from '../domain/campaign/campaignFixtures';
+import { campaign, habit, phase, task } from '../domain/campaign/campaignFixtures';
 import { FakeTaskStatusSource } from '../fakes/FakeTaskStatusSource';
 import { FixedClock } from '../fakes/FixedClock';
 import { InMemoryCampaignRepository } from '../fakes/InMemoryCampaignRepository';
@@ -57,6 +57,26 @@ describe('SyncCampaigns', () => {
 
 		expect(snapshot.issues).toEqual([{ campaignPath: 'P/Kairos/README.md', taskTitle: 'a', kind: 'habitica-task-missing' }]);
 		expect(snapshot.campaigns).toHaveLength(1);
+	});
+
+	it('asks for the linked habits too and puts the streak on them', async () => {
+		const salto = campaign({ tasks: [task('a', null, { habiticaId: H1 })], habits: [habit('Stretch', { habiticaId: H2 }), habit('Unsent')] });
+		const { sync, source } = setup({ campaigns: [salto] });
+		source.resolves({ [H1]: { kind: 'open' }, [H2]: { kind: 'daily', streak: 12 } });
+
+		const snapshot = await sync.execute();
+
+		expect(source.askedFor).toEqual([[H1, H2]]);
+		expect(snapshot.campaigns?.[0]?.habits.map((item) => item.streak)).toEqual([12, null]);
+	});
+
+	it('makes a request for a project that only has linked habits', async () => {
+		const { sync, source } = setup({ campaigns: [campaign({ habits: [habit('Stretch', { habiticaId: H1 })] })] });
+		source.resolves({ [H1]: { kind: 'daily', streak: 3 } });
+
+		await sync.execute();
+
+		expect(source.calls).toBe(1);
 	});
 
 	it('makes no request when no task is linked, and still syncs', async () => {

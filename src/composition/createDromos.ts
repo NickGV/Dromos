@@ -3,14 +3,16 @@ import { createTranslator } from '../i18n';
 import {
 	createObsidianHttp,
 	HabiticaClient,
+	HabiticaGameTaskSource,
+	HabiticaTagCatalog,
 	HabiticaTaskCreator,
 	HabiticaTaskSource,
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
 import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, SystemClock } from '../adapters/obsidian';
-import { VaultCampaignRepository, VaultGameStateRepository } from '../adapters/vault';
-import { CampaignState, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncQuests } from '../application';
+import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultSkillRepository } from '../adapters/vault';
+import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 
 /** What the plugin registers, built once per plugin load. */
@@ -46,11 +48,33 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const source = new HabiticaTaskSource(habitica, clock);
 	const campaignState = new CampaignState();
 	const campaignRepository = new VaultCampaignRepository(plugin.app);
+	const vaultFolder = (): string => settings.vaultFolder;
+	const sendDeps = {
+		repository: campaignRepository,
+		creator: new HabiticaTaskCreator(habitica),
+		tags: new HabiticaTagCatalog(habitica),
+		// Sent to the user's own Habitica account inside the task's notes.
+		noteLink: (path: string) => obsidianNoteUri(plugin.app.vault.getName(), path),
+	};
+	const gameState = new GameState();
+	const syncGame = new SyncGame({
+		skills: new VaultSkillRepository(plugin.app, vaultFolder),
+		ledger: new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today()),
+		characters: repository,
+		campaigns: campaignRepository,
+		source: new HabiticaGameTaskSource(habitica),
+		clock,
+		state: gameState,
+		hasCredentials,
+	});
 
 	return {
 		home: {
 			loadHome: new LoadHome({ repository, state }),
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
+			syncGame,
+			gameSnapshot: () => gameState.snapshot(),
+			dismissGameEvents: () => gameState.dismissEvents(),
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),
@@ -66,12 +90,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 					state: campaignState,
 					hasCredentials,
 				}),
-				linkTask: new LinkTaskToCampaign({
-					repository: campaignRepository,
-					creator: new HabiticaTaskCreator(habitica),
-					// Sent to the user's own Habitica account inside the to-do's notes.
-					noteLink: (path) => obsidianNoteUri(plugin.app.vault.getName(), path),
-				}),
+				linkTask: new LinkTaskToCampaign(sendDeps),
+				linkHabit: new LinkHabitToCampaign(sendDeps),
 				campaignSnapshot: () => campaignState.snapshot(),
 				staleAfterDays: () => settings.staleAfterDays,
 				openNote: (path) => {

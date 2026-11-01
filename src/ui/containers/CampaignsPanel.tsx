@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CampaignSnapshot, LinkTaskToCampaign, SyncCampaigns } from '../../application';
+import type { CampaignSnapshot, LinkHabitToCampaign, LinkTaskToCampaign, SyncCampaigns } from '../../application';
 import type { Clock } from '../../ports';
 import { useT } from '../i18n';
+import type { Sending } from '../organisms/CampaignCard';
 import { CampaignList } from '../organisms/CampaignList';
 import { campaignListView } from '../presenters/campaignView';
 import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcomeView';
@@ -10,6 +11,7 @@ import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcome
 export interface CampaignsDeps {
 	readonly syncCampaigns: Pick<SyncCampaigns, 'execute' | 'reload'>;
 	readonly linkTask: Pick<LinkTaskToCampaign, 'execute'>;
+	readonly linkHabit: Pick<LinkHabitToCampaign, 'execute'>;
 	/** The session's campaigns right now; reads `syncing` as soon as `syncCampaigns.execute()` returns. */
 	readonly campaignSnapshot: () => CampaignSnapshot;
 	/** The `staleAfterDays` setting, read on every render so a change applies at once. */
@@ -25,7 +27,7 @@ export interface CampaignsDeps {
  */
 export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps; readonly syncKey: number }) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
-	const [sendingTitle, setSendingTitle] = useState<string | null>(null);
+	const [sending, setSending] = useState<Sending | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
 	const mounted = useRef(false);
 	const t = useT();
@@ -51,17 +53,17 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 	}, [sync, syncKey]);
 
 	const send = useCallback(
-		async (path: string, taskTitle: string): Promise<void> => {
-			setSendingTitle(taskTitle);
+		async (path: string, kind: Sending['kind'], title: string): Promise<void> => {
+			setSending({ kind, title });
 			setMessage(null);
-			const outcome = await deps.linkTask.execute(path, taskTitle);
+			const outcome = await (kind === 'habit' ? deps.linkHabit.execute(path, title) : deps.linkTask.execute(path, title));
 			if (!mounted.current) return;
 			setMessage({ ...linkOutcomeView(outcome, t), path });
 			// Keep "Enviando…" until the list is refreshed, so the button never flashes back. Only
 			// the note changed, so re-read the vault: it spends no Habitica request.
 			const reloaded = await deps.syncCampaigns.reload();
 			if (mounted.current) setSnapshot(reloaded);
-			if (mounted.current) setSendingTitle(null);
+			if (mounted.current) setSending(null);
 		},
 		[deps, sync, t],
 	);
@@ -70,10 +72,11 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 	return (
 		<CampaignList
 			view={view}
-			sendingTitle={sendingTitle}
+			sending={sending}
 			message={message}
 			onOpen={deps.openNote}
-			onSend={(path, taskTitle) => void send(path, taskTitle)}
+			onSend={(path, taskTitle) => void send(path, 'task', taskTitle)}
+			onSendHabit={(path, habitTitle) => void send(path, 'habit', habitTitle)}
 		/>
 	);
 }

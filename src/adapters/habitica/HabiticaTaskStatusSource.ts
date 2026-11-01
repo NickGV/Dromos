@@ -13,7 +13,8 @@ const DEFAULT_MAX_LOOKUPS = 10;
 /**
  * Status of linked Habitica tasks (S4). Reads the open and the recently completed
  * to-dos, then looks up one by one the ids neither list answered, because
- * `completedTodos` forgets everything past the 30 most recent. Rejects only with
+ * `completedTodos` forgets everything past the 30 most recent. A habit's daily is on neither
+ * list, so it is always looked up (its streak is the status). Rejects only with
  * `TaskSourceError`.
  */
 export class HabiticaTaskStatusSource implements TaskStatusSource {
@@ -51,5 +52,6 @@ export class HabiticaTaskStatusSource implements TaskStatusSource {
 }
 
 function statusOf(dto: HabiticaTaskDto): TaskStatus {
+	if (dto.type === 'daily') return { kind: 'daily', streak: typeof dto.streak === 'number' && Number.isFinite(dto.streak) && dto.streak > 0 ? Math.floor(dto.streak) : 0 };
 	return dto.completed === true ? { kind: 'completed', completedOn: localDate(dto.dateCompleted) } : { kind: 'open' };
 }

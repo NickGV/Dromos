@@ -10,13 +10,14 @@ const CHARACTER: Character = {
 	totalXp: 333,
 	xpIntoLevel: 50,
 	xpToNext: 150,
-	stats: { fuerza: 2, inteligencia: 4, espiritu: 3, disciplina: 5 },
+	stats: { fuerza: 2, vitalidad: 6, inteligencia: 4, sabiduria: 1, espiritu: 3, disciplina: 5 },
+	gameStart: null,
 };
 
 const t = createTranslator('es');
 
 describe('characterCardView', () => {
-	it('shows the name, the title, the level, the XP into the level and the four stats', () => {
+	it('shows the name, the title, the level, the XP into the level and the six stats', () => {
 		expect(characterCardView(CHARACTER, t)).toEqual({
 			name: 'Nicolás',
 			title: 'Corredor',
@@ -24,19 +25,21 @@ describe('characterCardView', () => {
 			xp: { current: 50, total: 150, percent: 33, text: '50 / 150 XP' },
 			stats: [
 				{ id: 'fuerza', label: 'Fuerza', value: 2 },
+				{ id: 'vitalidad', label: 'Vitalidad', value: 6 },
 				{ id: 'inteligencia', label: 'Inteligencia', value: 4 },
+				{ id: 'sabiduria', label: 'Sabiduría', value: 1 },
 				{ id: 'espiritu', label: 'Espíritu', value: 3 },
 				{ id: 'disciplina', label: 'Disciplina', value: 5 },
 			],
 		});
 	});
 
-	it('orders the stats as fuerza, inteligencia, espiritu, disciplina whatever the stored order', () => {
-		const stats = { disciplina: 1, espiritu: 2, inteligencia: 3, fuerza: 4 };
+	it('orders the stats as the ADR-014 schema does whatever the stored order', () => {
+		const stats = { disciplina: 1, espiritu: 2, sabiduria: 3, inteligencia: 4, vitalidad: 5, fuerza: 6 };
 
 		const view = characterCardView({ ...CHARACTER, stats }, t);
 
-		expect(view.stats.map((stat) => stat.id)).toEqual(['fuerza', 'inteligencia', 'espiritu', 'disciplina']);
+		expect(view.stats.map((stat) => stat.id)).toEqual(['fuerza', 'vitalidad', 'inteligencia', 'sabiduria', 'espiritu', 'disciplina']);
 	});
 
 	it('hides an empty title and shows a placeholder for an empty name', () => {

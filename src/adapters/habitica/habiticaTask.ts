@@ -45,3 +45,20 @@ function isHabiticaTask(value: unknown): value is HabiticaTaskDto {
 	const completedDateOk = task.dateCompleted === undefined || task.dateCompleted === null || typeof task.dateCompleted === 'string';
 	return hasId && typeof task.text === 'string' && typeof task.type === 'string' && tagsOk && dateOk && completedDateOk;
 }
+
+/** A Habitica tag: only its id and name matter. */
+export interface HabiticaTagDto {
+	readonly id: string;
+	readonly name: string;
+}
+
+/** Checks that an envelope's `data` is a tag list; rejects anything else as `Unknown`. */
+export function readHabiticaTags(data: unknown): HabiticaTagDto[] {
+	if (!Array.isArray(data)) throw new TaskSourceError('Unknown', null, 'Habitica sent an unexpected tag list');
+	return data.map((entry: unknown) => {
+		const tag = typeof entry === 'object' && entry !== null ? (entry as Record<string, unknown>) : {};
+		const id = typeof tag.id === 'string' ? tag.id : tag._id;
+		if (typeof id !== 'string' || typeof tag.name !== 'string') throw new TaskSourceError('Unknown', null, 'Habitica sent an unexpected tag list');
+		return { id, name: tag.name };
+	});
+}

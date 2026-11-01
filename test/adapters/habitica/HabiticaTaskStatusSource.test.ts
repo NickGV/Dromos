@@ -88,6 +88,17 @@ describe('HabiticaTaskStatusSource.fetchStatuses: ids missing from both lists', 
 		expect(statuses.get(id(3))).toEqual({ kind: 'missing' });
 	});
 
+	it('reads the streak of a daily that is not on the to-do lists, by looking it up', async () => {
+		const { source, http } = setup();
+		http.on(`${BASE}/tasks/${id(1)}`, envelope({ id: id(1), text: 'Stretch', type: 'daily', completed: true, streak: 12 }));
+		http.on(`${BASE}/tasks/${id(2)}`, envelope({ id: id(2), text: 'Sleep', type: 'daily', completed: false }));
+
+		const statuses = await source.fetchStatuses([id(1), id(2)]);
+
+		expect(statuses.get(id(1))).toEqual({ kind: 'daily', streak: 12 });
+		expect(statuses.get(id(2))).toEqual({ kind: 'daily', streak: 0 });
+	});
+
 	it('does not look up ids that a list already answered', async () => {
 		const { source, http } = setup(envelope([todo(id(1))]));
 

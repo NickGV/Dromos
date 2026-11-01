@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	buildActiveCampaigns,
+	buildCompletedCampaigns,
 	campaignFromNote,
 	isCampaignNote,
 	linkPath,
@@ -142,7 +143,7 @@ describe('campaignFromNote: projects', () => {
 			status: 'active',
 			priority: 'high',
 			area: 'Archeion - Programming',
-			skill: 'desarrollador',
+			skills: ['desarrollador'],
 			deadline: '2026-12-15',
 			staleAfterDays: 7,
 			created: '2026-08-01',
@@ -156,12 +157,12 @@ describe('campaignFromNote: projects', () => {
 				title: 'Pantalla de registro de tiempo',
 				phase: 'mvp',
 				habiticaId: '3f2a1c8e-0000-4000-8000-000000000001',
-				skill: 'diseñador',
+				skills: ['diseñador'],
 				resources: ['[[Jetpack Compose - Navigation]]'],
 				completed: false,
 				completedOn: null,
 			},
-			{ title: 'Integrar oro de Habitica', phase: 'mvp', habiticaId: null, skill: null, resources: [], completed: false, completedOn: null },
+			{ title: 'Integrar oro de Habitica', phase: 'mvp', habiticaId: null, skills: [], resources: [], completed: false, completedOn: null },
 		]);
 	});
 
@@ -175,12 +176,13 @@ describe('campaignFromNote: projects', () => {
 			status: 'active',
 			priority: 'low',
 			area: null,
-			skill: null,
+			skills: [],
 			deadline: null,
 			staleAfterDays: null,
 			created: '2026-10-05',
 			phases: [],
 			tasks: [],
+			habits: [],
 		});
 	});
 
@@ -205,7 +207,7 @@ describe('campaignFromNote: projects', () => {
 		const campaign = campaignFromNote(messy);
 
 		expect(campaign).toMatchObject({ priority: 'low', created: '2026-10-02', deadline: null, staleAfterDays: null, phases: [] });
-		expect(campaign.tasks).toEqual([{ title: 'ok', phase: null, habiticaId: '3', skill: null, resources: [], completed: false, completedOn: null }]);
+		expect(campaign.tasks).toEqual([{ title: 'ok', phase: null, habiticaId: '3', skills: [], resources: [], completed: false, completedOn: null }]);
 	});
 
 	it('skips phases without an id, defaults the name to the id and a bad status to planning', () => {
@@ -252,10 +254,10 @@ describe('campaignFromNote: research', () => {
 
 		const campaign = campaignFromNote(APOCRIFOS, [open, done]);
 
-		expect(campaign).toMatchObject({ kind: 'research', title: 'Estudio - Libros Apócrifos', priority: 'high', area: 'Archeion - Bible', skill: null, created: '2026-09-12' });
+		expect(campaign).toMatchObject({ kind: 'research', title: 'Estudio - Libros Apócrifos', priority: 'high', area: 'Archeion - Bible', skills: [], created: '2026-09-12' });
 		expect(campaign.tasks).toEqual([
-			{ title: 'Sesión 1 - Panorama', phase: 's1', habiticaId: null, skill: null, resources: [], completed: true, completedOn: '2026-09-14' },
-			{ title: 'Sesión 2 - Deuterocanónicos', phase: 's2', habiticaId: 'c48095e9-0000-4000-8000-000000000002', skill: null, resources: [], completed: false, completedOn: null },
+			{ title: 'Sesión 1 - Panorama', phase: 's1', habiticaId: null, skills: [], resources: [], completed: true, completedOn: '2026-09-14' },
+			{ title: 'Sesión 2 - Deuterocanónicos', phase: 's2', habiticaId: 'c48095e9-0000-4000-8000-000000000002', skills: [], resources: [], completed: false, completedOn: null },
 		]);
 	});
 
@@ -299,7 +301,23 @@ describe('campaignFromNote: research', () => {
 	});
 
 	it('does not assume a skill when the research skill is empty', () => {
-		expect(campaignFromNote(APOCRIFOS).skill).toBeNull();
+		expect(campaignFromNote(APOCRIFOS).skills).toEqual([]);
+	});
+
+	it.each([
+		['a single id', 'exegeta', ['exegeta']],
+		['a list', ['exegeta', 'estudiante'], ['exegeta', 'estudiante']],
+		['a list with blanks, junk and repeats', ['exegeta', '', '  ', 3, null, 'exegeta', ' estudiante '], ['exegeta', 'estudiante']],
+		['an empty text', '', []],
+		['an empty list', [], []],
+		['null', null, []],
+		['a number', 7, []],
+		['a map', { id: 'exegeta' }, []],
+	])('reads the skill of a campaign given as %s', (_label, skill, expected) => {
+		const campaign = campaignFromNote(note('a/README.md', { type: 'index', status: 'active', skill, tasks: [{ title: 'T', skill }] }));
+
+		expect(campaign.skills).toEqual(expected);
+		expect(campaign.tasks[0]?.skills).toEqual(expected);
 	});
 });
 
@@ -335,5 +353,75 @@ describe('buildActiveCampaigns', () => {
 
 	it('returns an empty list when nothing qualifies', () => {
 		expect(buildActiveCampaigns([])).toEqual([]);
+	});
+});
+
+describe('completed campaigns (they count toward the campaigns requirement of a skill)', () => {
+	const CHESHBON = note('02 - Projects/Cheshbon/README.md', { type: 'index', status: 'completed', title: 'Cheshbon', skill: ['desarrollador'], created: '2026-03-01' });
+	const HISTORIA = note('03 - Areas/Bible/Estudio/Historia de la Biblia/Estudio - Historia.md', { type: 'research', status: 'completed', skill: 'exegeta' });
+
+	it('isCampaignNote can ask for a status and keeps the path rules', () => {
+		expect(isCampaignNote(CHESHBON, 'completed')).toBe(true);
+		expect(isCampaignNote(CHESHBON)).toBe(false);
+		expect(isCampaignNote(KAIROS, 'completed')).toBe(false);
+		expect(isCampaignNote(note('a.md', { type: 'index', status: 'completed' }), 'completed')).toBe(false);
+	});
+
+	it('lists the completed projects and researches with their status and skills', () => {
+		const campaigns = buildCompletedCampaigns([KAIROS, CHESHBON, HISTORIA]);
+
+		expect(campaigns.map((campaign) => [campaign.title, campaign.status, campaign.skills])).toEqual([
+			['Cheshbon', 'completed', ['desarrollador']],
+			['Estudio - Historia', 'completed', ['exegeta']],
+		]);
+	});
+
+	it('the active list never includes them, and an active campaign reads as active', () => {
+		expect(buildActiveCampaigns([KAIROS, CHESHBON, HISTORIA]).map((campaign) => [campaign.title, campaign.status])).toEqual([['Kairos', 'active']]);
+	});
+});
+
+describe('campaign habits (S8)', () => {
+	const withHabits = (habits: unknown, extra: Record<string, unknown> = {}) =>
+		campaignFromNote(note('02 - Projects/Salto/README.md', { type: 'index', status: 'active', skill: 'atleta', habits, ...extra }));
+
+	it('maps a habit with its target days, its skills and its Habitica id', () => {
+		const campaign = withHabits([
+			{ title: 'Estiramiento diario', days: 30, skill: ['atleta', 'cuidador'], habitica_id: '3f2a1c8e-0000-4000-8000-000000000009' },
+		]);
+
+		expect(campaign.habits).toEqual([
+			{ title: 'Estiramiento diario', days: 30, skills: ['atleta', 'cuidador'], habiticaId: '3f2a1c8e-0000-4000-8000-000000000009', streak: null },
+		]);
+	});
+
+	it('uses 21 days when the habit gives none or a bad number, reads digits in a text as a number, and has no skill of its own', () => {
+		const campaign = withHabits([{ title: 'A' }, { title: 'B', days: 0 }, { title: 'C', days: '10' }, { title: 'D', days: 2.5 }, { title: 'E', days: 'ten' }]);
+
+		expect(campaign.habits.map((habit) => [habit.title, habit.days, habit.skills, habit.habiticaId])).toEqual([
+			['A', 21, [], null],
+			['B', 21, [], null],
+			['C', 10, [], null],
+			['D', 21, [], null],
+			['E', 21, [], null],
+		]);
+	});
+
+	it('lowercases skill ids, as the skill tags are, so a campaign and a tag always agree', () => {
+		const campaign = withHabits([{ title: 'A', skill: ['Atleta', ' CUIDADOR '] }], { skill: 'Exegeta' });
+
+		expect(campaign.skills).toEqual(['exegeta']);
+		expect(campaign.habits[0]?.skills).toEqual(['atleta', 'cuidador']);
+	});
+
+	it('skips habits without a title and reads anything that is not a list as no habits', () => {
+		expect(withHabits([{ days: 10 }, 'text', null, { title: '  ' }, { title: 'Ok' }]).habits.map((habit) => habit.title)).toEqual(['Ok']);
+		for (const habits of [undefined, null, 'x', 7, { title: 'A' }]) expect(withHabits(habits).habits).toEqual([]);
+	});
+
+	it('a research has no habits: Dromos never writes there', () => {
+		const research = campaignFromNote(note('03 - Areas/Bible/Estudio/Apocrifos/Estudio.md', { type: 'research', status: 'active', habits: [{ title: 'Read' }] }));
+
+		expect(research.habits).toEqual([]);
 	});
 });

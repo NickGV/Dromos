@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { linkHabiticaIdInFrontmatter } from '../../../src/adapters/vault/campaignLink';
+import { linkHabiticaIdInFrontmatter, linkHabitHabiticaIdInFrontmatter } from '../../../src/adapters/vault/campaignLink';
 
 const ID = '3f2a1c8e-0000-4000-8000-000000000001';
 
@@ -78,5 +78,40 @@ describe('linkHabiticaIdInFrontmatter', () => {
 
 		expect({ ...frontmatter, tasks: undefined }).toEqual({ ...before, tasks: undefined });
 		expect(frontmatter.tasks).toEqual([{ title: 'A', phase: 'mvp', skill: 'dev', resources: ['[[R]]'], habitica_id: ID }]);
+	});
+});
+
+describe('linkHabitHabiticaIdInFrontmatter', () => {
+	it('writes the id into the first habit with that title that has none, and touches nothing else', () => {
+		const frontmatter = project([{ title: 'Task', habitica_id: null }], {
+			habits: [{ title: 'Stretch', days: 21, habitica_id: null }, { title: 'Sleep', days: 30 }],
+		});
+
+		expect(linkHabitHabiticaIdInFrontmatter(frontmatter, 'Sleep', ID)).toBe('linked');
+		expect(frontmatter.habits).toEqual([{ title: 'Stretch', days: 21, habitica_id: null }, { title: 'Sleep', days: 30, habitica_id: ID }]);
+		expect(frontmatter.tasks).toEqual([{ title: 'Task', habitica_id: null }]);
+	});
+
+	it('never overwrites an id that is already there', () => {
+		const frontmatter = project([], { habits: [{ title: 'Stretch', habitica_id: 'existing-id' }] });
+
+		expect(linkHabitHabiticaIdInFrontmatter(frontmatter, 'Stretch', ID)).toBe('already-linked');
+		expect(frontmatter.habits).toEqual([{ title: 'Stretch', habitica_id: 'existing-id' }]);
+	});
+
+	it('answers not-found for an unknown habit, missing habits, or a note that is not a project index', () => {
+		expect(linkHabitHabiticaIdInFrontmatter(project([], { habits: [{ title: 'A' }] }), 'Z', ID)).toBe('not-found');
+		expect(linkHabitHabiticaIdInFrontmatter(project([]), 'A', ID)).toBe('not-found');
+		expect(linkHabitHabiticaIdInFrontmatter(project([], { habits: 'text' }), 'A', ID)).toBe('not-found');
+		expect(linkHabitHabiticaIdInFrontmatter(project([], { type: 'research', habits: [{ title: 'A' }] }), 'A', ID)).toBe('not-found');
+	});
+
+	it('does not link a task through the habit function, nor a habit through the task one', () => {
+		const frontmatter = project([{ title: 'Same', habitica_id: null }], { habits: [{ title: 'Same', habitica_id: null }] });
+
+		expect(linkHabitHabiticaIdInFrontmatter(frontmatter, 'Same', ID)).toBe('linked');
+		expect(frontmatter.tasks).toEqual([{ title: 'Same', habitica_id: null }]);
+		expect(linkHabiticaIdInFrontmatter(frontmatter, 'Same', 'task-id')).toBe('linked');
+		expect(frontmatter.habits).toEqual([{ title: 'Same', habitica_id: ID }]);
 	});
 });

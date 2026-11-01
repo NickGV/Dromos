@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { HomeSnapshot, LoadHome, QuestSnapshot, SyncQuests } from '../../application';
+import type { GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
 import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
+import { LevelUpBanner } from '../molecules/LevelUpBanner';
 import { StatusBanner } from '../molecules/StatusBanner';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { QuestList } from '../organisms/QuestList';
+import { SkillsPanel } from '../organisms/SkillsPanel';
 import { characterCardView } from '../presenters/characterCardView';
+import { levelUpBannerView } from '../presenters/levelUpView';
 import { questListView } from '../presenters/questListView';
+import { skillsPageView } from '../presenters/skillsView';
 import { syncBannerView } from '../presenters/syncBanner';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 
@@ -16,6 +20,12 @@ import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 export interface HomeScreenDeps {
 	readonly loadHome: Pick<LoadHome, 'execute'>;
 	readonly syncQuests: Pick<SyncQuests, 'execute'>;
+	/** The game sync: ledger, unlocks and the derived fields of the notes. Never rejects. */
+	readonly syncGame: Pick<SyncGame, 'execute'>;
+	/** The session's game state right now; reads `syncing` as soon as `syncGame.execute()` returns. */
+	readonly gameSnapshot: () => GameSnapshot;
+	/** The level-up banner was closed. */
+	readonly dismissGameEvents: () => void;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
@@ -35,17 +45,24 @@ const CLOCK_TICK_MS = 30_000;
  * The only UI component that calls `application/` (S8). On mount and on
  * "Sincronizar" it reads the character (LoadHome, no network), renders it with
  * the session's quests, then runs one SyncQuests: it renders the `syncing`
- * snapshot first and the outcome when the sync settles. Each run also bumps `syncKey`,
- * which makes the campaigns panel sync too. No polling (S7).
+ * snapshot first and the outcome when the sync settles. The game sync runs next to it and,
+ * when it finishes, the character is read again because the sync rewrites its note. Each run
+ * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  */
 export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [character, setCharacter] = useState<CharacterState>({ kind: 'loading' });
 	const [quests, setQuests] = useState<QuestSnapshot>(deps.questSnapshot);
+	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
 	const mounted = useRef(false);
 	useClockTick();
 	useSettingsChange(deps.subscribeSettings);
 	const t = deps.translator();
+	const dismissEvents = useCallback((): void => {
+		deps.dismissGameEvents();
+		setGame(deps.gameSnapshot());
+	}, [deps]);
+	const levelUp = levelUpBannerView(game.events, t);
 
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await loadHomeOrNull(deps.loadHome);
@@ -54,9 +71,15 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
+		const gamePending = deps.syncGame.execute();
 		setQuests(deps.questSnapshot());
+		setGame(deps.gameSnapshot());
 		const synced = await pending;
 		if (mounted.current) setQuests(synced);
+		const played = await gamePending;
+		if (mounted.current) setGame(played);
+		const updated = await loadHomeOrNull(deps.loadHome);
+		if (mounted.current && updated) setCharacter(updated.character);
 	}, [deps]);
 
 	useEffect(() => {
@@ -74,9 +97,11 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 				<StatusBanner {...syncBannerView(quests, deps.clock.now(), t)} />
 				<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
 			</div>
+			{levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
 			<CharacterPanel state={panelState(character, t)} />
 			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
 			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
+			<SkillsPanel view={skillsPageView(game, t)} />
 		</main>
 		</I18nProvider>
 	);

@@ -135,7 +135,7 @@
 
 .dromos-root .dromos-stats {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 8px;
 }
 
@@ -435,3 +435,154 @@
 @media (prefers-reduced-motion: reduce) {
 	.dromos-root .dromos-spinner { animation-duration: 3s; }
 }
+
+/* Level-up banner and Skills (M3) */
+.dromos-root .dromos-levelup {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 8px 12px;
+	border: 1px solid var(--interactive-accent);
+	border-left-width: 3px;
+	border-radius: var(--radius-m);
+	background: var(--background-secondary);
+}
+
+.dromos-root .dromos-levelup-list {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-levelup-list li + li { margin-top: 2px; }
+.dromos-root .dromos-levelup-dismiss { flex: 0 0 auto; }
+
+.dromos-root .dromos-skills-notice {
+	margin: 0 0 8px;
+	padding: 6px 12px;
+	border-left: 3px solid var(--text-warning);
+	border-radius: var(--radius-s);
+	background: var(--background-primary);
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-skills-subtitle {
+	margin: 12px 0 8px;
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-skills-locked summary { cursor: pointer; }
+.dromos-root .dromos-skills-locked summary.dromos-skills-subtitle { display: list-item; }
+
+.dromos-root .dromos-skill-items {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.dromos-root .dromos-skill {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-primary);
+}
+
+.dromos-root .dromos-skill.is-locked { opacity: 0.8; }
+
+.dromos-root .dromos-skill-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 8px;
+}
+
+.dromos-root .dromos-skill-name {
+	margin: 0;
+	min-width: 0;
+	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+	font-size: 1.25em;
+	font-weight: 600;
+	line-height: 1.2;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-skill-rank,
+.dromos-root .dromos-skill-description,
+.dromos-root .dromos-skill-earned {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-skill-rank-name { font-weight: var(--font-semibold); }
+.dromos-root .dromos-skill-rank-text,
+.dromos-root .dromos-skill-description,
+.dromos-root .dromos-skill-earned { color: var(--text-muted); font-size: var(--font-ui-small); }
+
+.dromos-root .dromos-skill-requirements {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.dromos-root .dromos-skill-requirements li {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.dromos-root .dromos-skill-requirement-text { font-size: var(--font-ui-small); overflow-wrap: anywhere; }
+.dromos-root .dromos-skill-requirements li.is-met .dromos-skill-requirement-text { color: var(--text-faint); text-decoration: line-through; }
+.dromos-root .dromos-skill-requirements li.is-met .dromos-progress-fill { background: var(--text-faint); }
+
+.dromos-root .dromos-skills-problems {
+	margin: 12px 0 0;
+	padding: 0 0 0 18px;
+	color: var(--text-warning);
+	font-size: var(--font-ui-small);
+	overflow-wrap: anywhere;
+}
+
+/* Campaign habits (M3) */
+.dromos-root .dromos-campaign-habits-title {
+	margin: 0 0 4px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.dromos-root .dromos-habit-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.dromos-root .dromos-habit {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.dromos-root .dromos-habit-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+}
+
+.dromos-root .dromos-habit-title { flex: 1 1 8em; min-width: 0; overflow-wrap: anywhere; }
+.dromos-root .dromos-habit-text { color: var(--text-muted); font-size: var(--font-ui-small); }
+.dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--text-success); }

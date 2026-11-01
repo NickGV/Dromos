@@ -5,3 +5,6 @@ export * from './HabiticaClient';
 export * from './HabiticaTaskCreator';
 export * from './HabiticaTaskSource';
 export * from './HabiticaTaskStatusSource';
+export * from './gameTaskMapper';
+export * from './HabiticaGameTaskSource';
+export * from './HabiticaTagCatalog';

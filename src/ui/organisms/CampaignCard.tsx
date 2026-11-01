@@ -2,24 +2,32 @@ import { plural } from '../../i18n';
 import { PhaseProgress } from '../atoms/PhaseProgress';
 import { useT } from '../i18n';
 import { CampaignTaskRow } from '../molecules/CampaignTaskRow';
+import { HabitRow } from '../molecules/HabitRow';
 import type { CampaignCardView } from '../presenters/campaignView';
 import type { LinkOutcomeView } from '../presenters/linkOutcomeView';
 
 export interface CampaignCardProps {
 	readonly view: CampaignCardView;
-	/** Title of the task being sent right now, or `null`. */
-	readonly sendingTitle: string | null;
+	/** What is being sent right now, or `null`. */
+	readonly sending: Sending | null;
 	/** Result of the last "Enviar a Habitica" on this campaign, or `null`. */
 	readonly message: LinkOutcomeView | null;
 	readonly onOpen: () => void;
 	readonly onSend: (taskTitle: string) => void;
+	readonly onSendHabit: (habitTitle: string) => void;
+}
+
+/** A task or a habit on its way to Habitica; their titles are told apart by the kind. */
+export interface Sending {
+	readonly kind: 'task' | 'habit';
+	readonly title: string;
 }
 
 /**
  * One campaign (S5): name and kind, the "detenida" stamp when stale, the open phase with
  * its bar, the next step and, folded, its tasks. The name opens the note.
  */
-export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: CampaignCardProps) {
+export function CampaignCard({ view, sending, message, onOpen, onSend, onSendHabit }: CampaignCardProps) {
 	const t = useT();
 	return (
 		<article className={view.stale ? 'dromos-campaign is-stale' : 'dromos-campaign'}>
@@ -49,6 +57,21 @@ export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: Ca
 					{warning}
 				</p>
 			))}
+			{view.habits.length > 0 ? (
+				<div className="dromos-campaign-habits">
+					<p className="dromos-campaign-habits-title">{plural(t, 'campaign.habits', view.habits.length)}</p>
+					<ul className="dromos-habit-list">
+						{view.habits.map((row, index) => (
+							<HabitRow
+								key={`${row.title}-${index}`}
+								row={row}
+								sending={sending?.kind === 'habit' && sending.title === row.title}
+								onSend={() => onSendHabit(row.title)}
+							/>
+						))}
+					</ul>
+				</div>
+			) : null}
 			{view.tasks.length > 0 ? (
 				<details className="dromos-campaign-tasks">
 					<summary>{plural(t, 'campaign.tasks', view.tasks.length)}</summary>
@@ -57,7 +80,7 @@ export function CampaignCard({ view, sendingTitle, message, onOpen, onSend }: Ca
 							<CampaignTaskRow
 								key={`${row.title}-${index}`}
 								row={row}
-								sending={sendingTitle === row.title}
+								sending={sending?.kind === 'task' && sending.title === row.title}
 								onSend={() => onSend(row.title)}
 							/>
 						))}

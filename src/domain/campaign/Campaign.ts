@@ -23,12 +23,28 @@ export interface CampaignTask {
 	readonly phase: string | null;
 	/** Habitica task id; `null` while the task has not been sent to Habitica. */
 	readonly habiticaId: string | null;
-	/** Overrides the campaign skill when set. */
-	readonly skill: string | null;
+	/** Skill ids that override the campaign skills when not empty. */
+	readonly skills: readonly string[];
 	readonly resources: readonly string[];
 	readonly completed: boolean;
 	/** Local completion date as `YYYY-MM-DD`, or `null` when unknown. */
 	readonly completedOn: string | null;
+}
+
+/**
+ * A habit a campaign asks to build (S8): a daily Habitica tracks, with a target number of days.
+ * Strict: its progress is Habitica's streak, which one missed day sends back to zero.
+ */
+export interface CampaignHabit {
+	readonly title: string;
+	/** Days of streak that build the habit. */
+	readonly days: number;
+	/** Skill ids of the habit; empty means the campaign's. */
+	readonly skills: readonly string[];
+	/** Habitica daily id; `null` while the habit has not been sent to Habitica. */
+	readonly habiticaId: string | null;
+	/** Current streak of its daily once Habitica has answered; `null` until then or while unsent. */
+	readonly streak: number | null;
 }
 
 export interface Campaign {
@@ -40,8 +56,8 @@ export interface Campaign {
 	readonly priority: Priority;
 	/** Wikilink text of the area, or `null`. */
 	readonly area: string | null;
-	/** Default skill of the tasks (projects), or `null`. */
-	readonly skill: string | null;
+	/** Skill ids the campaign trains; the default of the tasks that declare none. Empty when it has none. */
+	readonly skills: readonly string[];
 	/** Local date as `YYYY-MM-DD`, or `null`. */
 	readonly deadline: string | null;
 	/** Per-campaign stale threshold in days, or `null` to use the plugin setting. */
@@ -50,6 +66,8 @@ export interface Campaign {
 	readonly created: string;
 	readonly phases: readonly Phase[];
 	readonly tasks: readonly CampaignTask[];
+	/** Projects only; a research has none. */
+	readonly habits: readonly CampaignHabit[];
 }
 
 /** Progress as a count plus a ratio in `[0, 1]`, never `NaN`. */

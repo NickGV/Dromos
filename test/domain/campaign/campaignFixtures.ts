@@ -1,4 +1,4 @@
-import type { Campaign, CampaignTask, Phase } from '../../../src/domain/campaign/Campaign';
+import type { Campaign, CampaignHabit, CampaignTask, Phase } from '../../../src/domain/campaign/Campaign';
 
 export function phase(id: string, status: Phase['status'] = 'planning'): Phase {
 	return { id, name: `Phase ${id}`, status };
@@ -9,12 +9,16 @@ export function task(title: string, phaseId: string | null, overrides: Partial<C
 		title,
 		phase: phaseId,
 		habiticaId: null,
-		skill: null,
+		skills: [],
 		resources: [],
 		completed: false,
 		completedOn: null,
 		...overrides,
 	};
+}
+
+export function habit(title: string, overrides: Partial<CampaignHabit> = {}): CampaignHabit {
+	return { title, days: 21, skills: [], habiticaId: null, streak: null, ...overrides };
 }
 
 export function campaign(overrides: Partial<Campaign> = {}): Campaign {
@@ -25,12 +29,13 @@ export function campaign(overrides: Partial<Campaign> = {}): Campaign {
 		status: 'active',
 		priority: 'medium',
 		area: null,
-		skill: null,
+		skills: [],
 		deadline: null,
 		staleAfterDays: null,
 		created: '2026-08-01',
 		phases: [],
 		tasks: [],
+		habits: [],
 		...overrides,
 	};
 }

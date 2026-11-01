@@ -1,12 +1,15 @@
 import {
 	comparePriority,
 	type Campaign,
+	DEFAULT_HABIT_DAYS,
+	type CampaignHabit,
 	type CampaignKind,
 	type CampaignTask,
 	type LifecycleStatus,
 	type Phase,
 	type Priority,
 } from '../../domain';
+import { asRecord, dateOrNull, fileName, nonEmpty, oneOf, positiveInteger } from './frontmatterFields';
 import { habiticaIdFrom } from './habiticaId';
 
 /** A markdown note as the mapper sees it: no `obsidian` types, so it is testable. */
@@ -28,7 +31,6 @@ export interface VaultNote {
 const STATUSES: readonly LifecycleStatus[] = ['planning', 'active', 'paused', 'completed', 'archived'];
 const PRIORITIES: readonly Priority[] = ['high', 'medium', 'low'];
 const DEFAULT_PRIORITY: Priority = 'low';
-const DATE = /^\d{4}-\d{2}-\d{2}/;
 /** `04-Game-Design`, Campaign: a project is the README of `02 - Projects/<Project>/`. */
 const PROJECT_README = /^02 - Projects\/[^/]+\/README\.md$/;
 /** `04-Game-Design`, Campaign: a research lives under `03 - Areas/<Area>/Estudio/`. */
@@ -39,9 +41,9 @@ const RESEARCH_FOLDER = /^03 - Areas\/[^/]+\/Estudio\//;
  * project folder, or a `research` under an area's `Estudio` folder. The path rule
  * keeps other active `index` or `research` notes (maps, audits, templates) out.
  */
-export function isCampaignNote(note: VaultNote): boolean {
+export function isCampaignNote(note: VaultNote, status: LifecycleStatus = 'active'): boolean {
 	const fields = asRecord(note.frontmatter);
-	if (fields.status !== 'active') return false;
+	if (fields.status !== status) return false;
 	if (fields.type === 'index') return PROJECT_README.test(note.path);
 	if (fields.type === 'research') return RESEARCH_FOLDER.test(note.path);
 	return false;
@@ -80,24 +82,57 @@ export function campaignFromNote(note: VaultNote, sessions: readonly VaultNote[]
 		kind,
 		path: note.path,
 		title: nonEmpty(fields.title) ?? name,
-		status: 'active',
+		status: oneOf(STATUSES, fields.status) ?? 'active',
 		priority: oneOf(PRIORITIES, fields.priority) ?? DEFAULT_PRIORITY,
 		area: linkTarget(fields.area) ?? nonEmpty(fields.area),
-		skill: nonEmpty(fields.skill),
+		skills: skillsFrom(fields.skill),
 		deadline: dateOrNull(fields.deadline),
 		staleAfterDays: positiveInteger(fields.stale_after_days),
 		created: dateOrNull(fields.created) ?? note.createdOn,
 		phases: phasesFrom(fields.phases),
 		tasks: kind === 'research' ? sessionTasks(note.path, name, sessions) : projectTasks(fields.tasks),
+		habits: kind === 'research' ? [] : habitsFrom(fields.habits),
 	};
 }
 
 /** The pure core of `listActive`: active campaigns of `notes`, sorted by priority then title. */
 export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 	return notes
-		.filter(isCampaignNote)
+		.filter((note) => isCampaignNote(note))
 		.map((note) => campaignFromNote(note, notes))
 		.sort((left, right) => comparePriority(left.priority, right.priority) || left.title.localeCompare(right.title));
+}
+
+/** `skill` is a single id or a list of ids; both read as a list of lowercase ids (like the tags), and an empty text or `null` is no skill. */
+function skillsFrom(value: unknown): string[] {
+	const items = Array.isArray(value) ? value : [value];
+	return [...new Set(items.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim().toLowerCase()] : [])))];
+}
+
+/** The completed campaigns of `notes`: the ones that count toward the `campaigns` requirement of a skill. */
+export function buildCompletedCampaigns(notes: readonly VaultNote[]): Campaign[] {
+	return notes
+		.filter((note) => isCampaignNote(note, 'completed'))
+		.map((note) => campaignFromNote(note, notes))
+		.sort((left, right) => left.title.localeCompare(right.title));
+}
+
+function habitsFrom(value: unknown): CampaignHabit[] {
+	if (!Array.isArray(value)) return [];
+	return value.flatMap((entry: unknown) => {
+		const fields = asRecord(entry);
+		const title = nonEmpty(fields.title);
+		if (title === null) return [];
+		return [
+			{
+				title: title.trim(),
+				days: positiveInteger(fields.days) ?? DEFAULT_HABIT_DAYS,
+				skills: skillsFrom(fields.skill),
+				habiticaId: habiticaIdFrom(fields.habitica_id),
+				streak: null,
+			},
+		];
+	});
 }
 
 function phasesFrom(value: unknown): Phase[] {
@@ -121,7 +156,7 @@ function projectTasks(value: unknown): CampaignTask[] {
 				title,
 				phase: nonEmpty(fields.phase),
 				habiticaId: habiticaIdFrom(fields.habitica_id),
-				skill: nonEmpty(fields.skill),
+				skills: skillsFrom(fields.skill),
 				resources: Array.isArray(fields.resources) ? fields.resources.filter((item): item is string => typeof item === 'string') : [],
 				completed: false,
 				completedOn: null,
@@ -153,7 +188,7 @@ function sessionTasks(researchPath: string, researchName: string, sessions: read
 					title: fileName(note.path),
 					phase: nonEmpty(fields.phase),
 					habiticaId: habiticaIdFrom(fields.habitica_id),
-					skill: null,
+					skills: [],
 					resources: [],
 					completed,
 					// Sessions have no closing date (Esdras): `created` is the only one.
@@ -163,28 +198,4 @@ function sessionTasks(researchPath: string, researchName: string, sessions: read
 		})
 		.sort((left, right) => left.order - right.order || left.task.title.localeCompare(right.task.title))
 		.map((entry) => entry.task);
-}
-
-function fileName(path: string): string {
-	return (path.split('/').pop() ?? path).replace(/\.md$/, '');
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
-function nonEmpty(value: unknown): string | null {
-	return typeof value === 'string' && value.trim() !== '' ? value : null;
-}
-
-function oneOf<T extends string>(allowed: readonly T[], value: unknown): T | null {
-	return allowed.find((candidate) => candidate === value) ?? null;
-}
-
-function dateOrNull(value: unknown): string | null {
-	return typeof value === 'string' && DATE.test(value) ? value.slice(0, 10) : null;
-}
-
-function positiveInteger(value: unknown): number | null {
-	return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
 }

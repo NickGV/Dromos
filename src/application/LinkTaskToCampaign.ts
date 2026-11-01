@@ -1,23 +1,15 @@
-import { TaskSourceError, type CampaignRepository, type TaskCreator, type TaskSourceErrorKind } from '../ports';
+import { effectiveSkills } from '../domain';
+import type { CampaignRepository, TagCatalog, TaskCreator } from '../ports';
+import { sendAndLink, type LinkOutcome } from './sendAndLink';
 
 export interface LinkTaskToCampaignDeps {
 	readonly repository: CampaignRepository;
 	readonly creator: TaskCreator;
 	/** A link that opens the campaign note, put in the to-do's notes. Built by the composition root. */
 	readonly noteLink: (campaignPath: string) => string;
+	/** Where the `skill/<id>` tags of the to-do are found or created. */
+	readonly tags: TagCatalog;
 }
-
-export type LinkOutcome =
-	| { readonly kind: 'linked'; readonly habiticaId: string }
-	/** The task already has a Habitica id: nothing was created. */
-	| { readonly kind: 'already-linked' }
-	| { readonly kind: 'not-found' }
-	| { readonly kind: 'not-a-project' }
-	| { readonly kind: 'habitica-failed'; readonly error: TaskSourceErrorKind }
-	/** The to-do exists in Habitica but its id could not be written into the note. */
-	| { readonly kind: 'write-failed'; readonly habiticaId: string }
-	/** The note was linked meanwhile, so the to-do just created is a duplicate the user has to delete. */
-	| { readonly kind: 'duplicate'; readonly habiticaId: string };
 
 /**
  * "Enviar a Habitica" (S6): creates the to-do of a project task and writes its id back
@@ -41,7 +33,7 @@ export class LinkTaskToCampaign {
 	}
 
 	private async run(campaignPath: string, taskTitle: string): Promise<LinkOutcome> {
-		const { repository, creator, noteLink } = this.deps;
+		const { repository, creator, noteLink, tags } = this.deps;
 		const campaign = (await repository.listActive()).find((candidate) => candidate.path === campaignPath);
 		if (!campaign) return { kind: 'not-found' };
 		if (campaign.kind !== 'project') return { kind: 'not-a-project' };
@@ -50,20 +42,21 @@ export class LinkTaskToCampaign {
 		if (tasks.length === 0) return { kind: 'not-found' };
 		if (tasks.every((task) => task.habiticaId !== null)) return { kind: 'already-linked' };
 
-		let habiticaId: string;
-		try {
-			habiticaId = await creator.createTodo({ title: taskTitle, notes: `Dromos · ${campaign.title}\n${noteLink(campaignPath)}` });
-		} catch (error) {
-			return { kind: 'habitica-failed', error: error instanceof TaskSourceError ? error.kind : 'Unknown' };
-		}
+		// The task `linkHabiticaId` will link: the first one with that title and no id yet.
+		const target = tasks.find((task) => task.habiticaId === null);
+		const skills = target ? effectiveSkills(campaign, target) : [];
 
-		try {
-			const result = await repository.linkHabiticaId(campaignPath, taskTitle, habiticaId);
-			if (result === 'linked') return { kind: 'linked', habiticaId };
-			if (result === 'already-linked') return { kind: 'duplicate', habiticaId };
-		} catch {
-			// Fall through: the to-do exists, so the id must reach the user.
-		}
-		return { kind: 'write-failed', habiticaId };
+		return sendAndLink(
+			async () => {
+				// Tags first: if they fail nothing is created, so a retry cannot leave a duplicate to-do.
+				const tagIds = skills.length > 0 ? await tags.ensureSkillTags(skills) : [];
+				return creator.createTodo({
+					title: taskTitle,
+					notes: `Dromos · ${campaign.title}\n${noteLink(campaignPath)}`,
+					...(tagIds.length > 0 ? { tags: tagIds } : {}),
+				});
+			},
+			(habiticaId) => repository.linkHabiticaId(campaignPath, taskTitle, habiticaId),
+		);
 	}
 }

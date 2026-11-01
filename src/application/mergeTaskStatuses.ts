@@ -14,14 +14,23 @@ export interface MergedCampaigns {
 }
 
 /**
- * Applies Habitica's answer to the tasks of projects that carry a `habiticaId`.
- * A missing task stays pending and raises an issue; an id with no answer is left
- * as it was. Research sessions and unsent tasks are never touched. Pure.
+ * Applies Habitica's answer to the tasks and habits of projects that carry a `habiticaId`.
+ * A missing task stays pending and raises an issue, and a missing habit loses its streak
+ * and raises one too; an id with no answer is left as it was. Research sessions and unsent tasks are never touched. Pure.
  */
 export function mergeTaskStatuses(campaigns: readonly Campaign[], statuses: ReadonlyMap<string, TaskStatus>): MergedCampaigns {
 	const issues: CampaignIssue[] = [];
 	const merged = campaigns.map((campaign): Campaign => {
 		if (campaign.kind !== 'project') return campaign;
+		const habits = campaign.habits.map((habit) => {
+			const status = habit.habiticaId === null ? undefined : statuses.get(habit.habiticaId);
+			if (status?.kind === 'daily') return { ...habit, streak: status.streak };
+			if (status?.kind === 'missing') {
+				issues.push({ campaignPath: campaign.path, taskTitle: habit.title, kind: 'habitica-task-missing' });
+				return { ...habit, streak: null };
+			}
+			return habit;
+		});
 		const tasks = campaign.tasks.map((task) => {
 			const status = task.habiticaId === null ? undefined : statuses.get(task.habiticaId);
 			if (!status) return task;
@@ -29,7 +38,7 @@ export function mergeTaskStatuses(campaigns: readonly Campaign[], statuses: Read
 			if (status.kind === 'missing') issues.push({ campaignPath: campaign.path, taskTitle: task.title, kind: 'habitica-task-missing' });
 			return { ...task, completed: false, completedOn: null };
 		});
-		return { ...campaign, tasks };
+		return { ...campaign, tasks, habits };
 	});
 	return { campaigns: merged, issues };
 }

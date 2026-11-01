@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CHARACTER_CURVE, LevelCurve } from '../../../src/domain/rules/LevelCurve';
+import { CHARACTER_CURVE, LevelCurve, SKILL_CURVE } from '../../../src/domain/rules/LevelCurve';
 
 describe('LevelCurve (character curve: round(100 * level^1.5))', () => {
 	const curve = new LevelCurve(CHARACTER_CURVE);
@@ -39,5 +39,29 @@ describe('LevelCurve (character curve: round(100 * level^1.5))', () => {
 		const progress = curve.progressFor(1e300);
 		expect(progress).toEqual(curve.progressFor(Number.MAX_SAFE_INTEGER));
 		expect(Number.isFinite(progress.level)).toBe(true);
+	});
+});
+
+describe('LevelCurve (skill curve: round(100 * level^1.3))', () => {
+	const curve = new LevelCurve(SKILL_CURVE);
+
+	it.each([
+		[1, 100],
+		[2, 246],
+		[3, 417],
+		[5, 810],
+		[10, 1995],
+	])('needs %i -> %i XP to leave level %i', (level, xp) => {
+		expect(curve.xpToNext(level)).toBe(xp);
+	});
+
+	it.each([
+		[0, 1],
+		[99, 1],
+		[100, 2],
+		[345, 2],
+		[346, 3],
+	])('total XP %i is level %i', (totalXp, level) => {
+		expect(curve.levelFor(totalXp)).toBe(level);
 	});
 });
