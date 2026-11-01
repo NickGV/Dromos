@@ -1,0 +1,54 @@
+# M3 Skills and XP: earned skills, ranks, ledger, Skills page
+
+Objective: a game layer over Habitica: 6 stats, 16 skills that start locked and are earned, their own levels and ranks, an append-only XP ledger, a Skills page and a level-up banner.
+Branch: `feat/m3-skills-xp` · Delivery: `feature-branch-chain` (assumption A1, as in M2 and i18n; units on the branch, one merge to `main` at the end) · Runner: `npm test` (Vitest), plus `npm run lint` and `npm run build`.
+Vault contracts (written by Esdras, 2026-10-31): `02 - Projects/Dromos/04-Game-Design.md` (ADR-014, Skills, Ranks, XP rules, Ledger) and `05-Open-Questions.md` (Q006-Q010, Q022).
+
+## Specs
+
+User's words are quoted verbatim, in Spanish.
+
+- **S1** — Stats: "sí, quedemos con 6 stats". Ids: `fuerza`, `vitalidad`, `inteligencia`, `sabiduria`, `espiritu`, `disciplina` (ADR-014, display order of the schema). Carisma is deferred. A missing key in `Character.md` reads as 0.
+- **S2** — Skills are earned: "dejemos por el momento sin skills y se vayan obteniendo poco a poco como lo hemos estado hablando por medio de misiones que las desbloqueen, no tiene que ser una sola mision o una sola quest, debe ser complicado conseguir una skill, dado que son muy preciadas y demuestran que logre algo de verdad". And: "todas empiezan bloqueadas, las voy ganando". The 16 skills: `lector`, `desarrollador`, `estudiante`, `atleta`, `arbitro`, `ujier`, `exegeta`, `maestro`, `escriba`, `centinela`, `cuidador`, `reposo`, `cronista`, `mayordomo`, `mnemonista`, `labiolector` ("sí, acepto las 3 y dejamos observador para la Fase 4"). An unlock is permanent (assumption A2, the user did not object).
+- **S3** — XP of a skill starts at the unlock: "desde el desbloqueo, como dices es mejor de esta manera, primero debo desbloquearla para que pueda subir de nivel dicha skill y como tu dices la skill prueba que lo logre". At the unlock the skill is at level 1 with 0 XP. Quests tagged with a locked skill count toward its requirements and toward character XP, not toward skill XP.
+- **S4** — Description and ranks: "cada skill deberia tener su descripcion y cuando van subiendo de nivel deberian como por asi decirse mejorarse"; "exacto asi tal cual me dices, al rango de esa habilidad" (rank name and description change, no mechanical effects); "sí, esos 5 rangos me sirven": five ranks at levels 1, 5, 10, 15 and 20, shared thresholds in one rule, names and descriptions per skill written by Esdras.
+- **S5** — Skills page: "en la pagina de skills aparezca las que tengo y las que puedo desbloquear, la habilidad con su descripcion y yo creo que podriamos ponerle tambien el requisito o los multiples requisitos a cumplir para desbloquear esa actividad". Locked skills show their requirements and progress ("3 de 5").
+- **S6** — Metadata for the agent: "podria tener algo asi como una metadata para que esdras(agente de IA) sea con que tipo de campanas o quests se desbloquea esa skill o que debo lograr yo para desbloquearlo". The skill note carries typed requirements that a person and Esdras can read.
+- **S7** — Requirements: "sí, esa mezcla me sirve". Countable requirements (quests with the skill tag, campaigns completed with the skill, habit streaks) are computed by the plugin; manual requirements are confirmed by Nick or Esdras. A skill unlocks when every requirement is met.
+- **S8** — Habits in campaigns: "cuando una camapna tambien haya un apartado de algo parecido de un habito se cree dicho habito por ese tiempo y se traquee". A campaign declares habits (daily, target days, default 21, configurable per habit). Strict: "o si dejemos que se reinicie con solo un fallo, debo acostumbrame a ser mas disciplinado". Progress comes from the streak of the daily, shown like "12/21".
+- **S9** — Uncheck reverts XP: "sí, revertimos la XP al desmarcar". Re-checking restores it; one event per task (Q007).
+- **S10** — Level-up banner: "sí, banner al abrir". A dismissible banner the next time the view opens, for a character level, a skill level or a rank change.
+- **S11** — Curves and table: "me parece que asi esta bien, dado que las skills realmente representan lo que se entonces como estabamos diciendo debe ser dificil conseguirlas y por ende dificil subirlas de nivel, que de verdad deba trabajar por ellas": skill `round(100 * n^1.3)`. "si yo creo que es mejor tener nuestro propio sistema de nivel, que utilizar el de habitica, me parece correcto la verdad": character `round(100 * n^1.5)`. XP table: "sí, déjala como está" (to-do 5/10/15/25 by priority, daily 3/5/8/12, streak bonus 10 every 7 days).
+- **S12** — Sources of XP: "sí, déjalas como están": habits (+/- buttons) give no XP in v1 (Q006); tasks that exist only in Obsidian give no XP, Habitica is the single source (Q010). The user said "sí, voy a usar dailies en Habitica".
+- **S13** — A quest with several unlocked skills: "me parece bien la completa". Each skill gets the full XP; character XP counts the quest once.
+- **S14** — Tags: `skill/<id>` (for example `skill/lector`), created by the plugin when needed and set by "Enviar a Habitica"; manual tasks in Habitica are tagged by hand. Assumption A3: agreed during M2 (see `odd/tasks/m2-campaigns.md`), not re-quoted here.
+- **S15** — Ledger (design by the agent, accepted into the vault by Esdras): append-only; rows are state transitions per Habitica task with `source` in `complete`, `revert`, `streak` and a sequence `n`; unique key `habitica_id + source + n` (plus `date` for dailies); a revert row carries the negative XP of the complete it cancels; the next row is derived from the last row of that task, so syncing twice adds nothing. Unreadable rows are listed in the UI with their line number.
+
+Assumptions to confirm: A1 delivery strategy; A2 unlock permanence; A3 tag convention.
+
+## Tasks
+
+| ID | Specs | Scope | Route | Status | Commit |
+|---|---|---|---|---|---|
+| T1 | S1, S11 | Domain: six stat ids, `Character` and mapper with 6 keys (absent = 0), skill and character curves, rank thresholds, XP table, level and rank from XP; tests | inline | pending (Risk item 1: `Character.md` gains keys, additive) | |
+| T2 | S3, S9, S13, S15 | Domain ledger: row model, parse and append rules, next-row derivation from the last row, fold into character XP, skill XP (locked skills excluded), stats; tests incl. idempotence and revert | inline | pending (Risk item 1 and 4: new persisted format, ordering) | |
+| T3 | S2, S6, S7, S8 | Domain skill: `Skill` model, typed requirements (countable and manual), unlock evaluation, permanence; habit progress from a streak; tests | inline | pending | |
+| T4 | S4, S6, S14 | Vault adapters: read `Rules.md` and `Dromos/Skills/*.md`, read and append `Dromos/Ledger/YYYY-MM.md`, write projections (`Character.md`, skill state); skill note schema agreed with Esdras | inline | pending (Risk item 1: writes to vault notes) | |
+| T5 | S8, S12, S14 | Habitica adapter: ensure `skill/<id>` tags and send them with "Enviar a Habitica", read dailies with streak, detect an unchecked to-do; fixtures first | inline | pending (blocked on the checks under "Not verified") | |
+| T6 | S3, S9, S10 | Application: sync that turns Habitica state into ledger rows, evaluates unlocks, detects level-ups against a last-seen marker | inline | pending | |
+| T7 | S5, S10 | UI: Skills page (owned and locked, rank, description, requirements, progress), level-up banner, six stat badges in 3 x 2, English and Spanish copy | inline | pending | |
+| T8 | S8 | Campaign habits: frontmatter field, create the daily with the campaign tag, progress in the campaign view | inline | pending (Risk item 1: campaign frontmatter format, additive) | |
+| T9 | all | README and CHANGELOG, version bump, release | inline | pending (Risk item 5 at the release) | |
+
+## Not verified
+
+- How Habitica reports an unchecked to-do over time, and the shape of a daily (`streak`, `history`). The user has no dailies yet; verifying needs a test daily and the user's authorization for that Habitica access.
+- `dateCompleted` as the source of the date of a completion.
+- The exact skill note schema (typed requirements); Esdras reviews it before writing the 16 notes.
+
+## Log
+
+- **L1** (2026-10-31, user): "sigamos con M3 Skills y XP" and "el teme de las skills quiero que lo conversemos bastante entre estras tu y yo, para saber exactamente como lo vamos a realizar, ya esdras esta disponible, esta parte de las skills es algo que hara que se sienta de verdad como un videojuego y como sabes que las skills tienen sus propios niveles por lo cual sera algo genial de ver la verdad". No code before the design is confirmed.
+- **L2** (2026-10-31, user): "sí, voy a usar dailies en Habitica, con el tema de las atributos o las estadistica (strenght, intelligence, spirit, discipline) deberiamos hablar de eso para dejarlos claros, porque si bien estos estan bien no se si son todos los que vamos a utilizar en nuestro sistema de juego, que otros que utilizan los juegos y que claro tenga que ver con lo que yo busco y estoy construyendo en mi vida podriamos utilizar?"
+- **L3** (2026-10-31): Design session with the user and Esdras (the vault agent). Decisions S1-S15 above, each confirmed by the user in the words quoted. Esdras wrote ADR-014 and the vault sections; the plugin reads them. The vault said "no" to reverting XP (Q007) and "narrative title" for level-ups (Q008); both were superseded by the user's decisions and recorded by Esdras.
+- **L4** (2026-10-31): Consequences noted to the user: stats grow only through unlocked skills, so Vitalidad stays at 0 until Cuidador or Reposo is earned; until the first unlock quests give only character XP, so the first unlocks should be reachable early. The 21 days of a habit is configurable because the figure is folk wisdom (about 66 days on average in the best known study).
