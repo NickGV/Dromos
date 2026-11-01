@@ -31,14 +31,23 @@ describe('rulesFromFrontmatter: reading the note (S16)', () => {
 		expect(rulesFromFrontmatter(FULL_NOTE)).toEqual({ rules: FULL_RULES, invalidFields: [] });
 	});
 
+	it('an empty frontmatter is every default, and no mistake', () => {
+		expect(rulesFromFrontmatter({})).toEqual({ rules: DEFAULT_RULES, invalidFields: [] });
+	});
+
 	it.each([
-		['an empty object', {}],
-		['undefined', undefined],
+		['undefined, as broken YAML reads', undefined],
 		['null', null],
 		['a string', 'xp: 5'],
 		['an array', [1, 2]],
-	])('falls back to every default for %s, without calling it a mistake', (_label, frontmatter) => {
-		expect(rulesFromFrontmatter(frontmatter)).toEqual({ rules: DEFAULT_RULES, invalidFields: [] });
+	])('a note whose frontmatter is %s plays by the defaults and says so', (_label, frontmatter) => {
+		expect(rulesFromFrontmatter(frontmatter)).toEqual({ rules: DEFAULT_RULES, invalidFields: ['frontmatter'] });
+	});
+
+	it('the fields every note may carry are not mistakes', () => {
+		const frontmatter = { type: 'dromos-rules', created: '2026-11-01', updated: '2026-11-02', tags: ['system'], aliases: [], cssclasses: [], position: {} };
+
+		expect(rulesFromFrontmatter(frontmatter).invalidFields).toEqual([]);
 	});
 
 	it('a missing field takes its default on its own and is not a mistake', () => {
@@ -69,6 +78,7 @@ describe('rulesFromFrontmatter: a wrong value never reaches the game (S16)', () 
 		['zero', 0],
 		['negative', -5],
 		['a fraction, which the ledger could not read back', 2.5],
+		['too big for the ledger to read back', 1e21],
 		['text', 'mucho'],
 		['a list', [5]],
 		['not a number', Number.NaN],
@@ -119,6 +129,7 @@ describe('rulesFromFrontmatter: a wrong value never reaches the game (S16)', () 
 		['out of order', [1, 10, 5, 15, 20]],
 		['repeated', [1, 5, 5, 15, 20]],
 		['with a zero', [0, 5, 10, 15, 20]],
+		['not starting at level 1, which would leave a new skill with no rank', [2, 4, 6, 8, 10]],
 		['with a text', [1, 5, 'ten', 15, 20]],
 		['not a list', 5],
 	])('rank levels %s keep the default', (_label, rank_levels) => {
@@ -134,6 +145,19 @@ describe('rulesFromFrontmatter: a wrong value never reaches the game (S16)', () 
 		['xp.streak_bonus', { xp: { streak_bonus: [1] } }],
 		['skill_curve', { skill_curve: 2 }],
 	])('a section that is not a section is named: %s', (name, frontmatter) => {
+		const { rules, invalidFields } = rulesFromFrontmatter(frontmatter);
+
+		expect(rules).toEqual(DEFAULT_RULES);
+		expect(invalidFields).toEqual([name]);
+	});
+
+	it.each([
+		['level_curves', { level_curves: { base: 50 } }],
+		['xp.dailies', { xp: { dailies: { easy: 1 } } }],
+		['xp.todo.Easy', { xp: { todo: { Easy: 1 } } }],
+		['xp.streak_bonus.days', { xp: { streak_bonus: { days: 3 } } }],
+		['skill_curve.bases', { skill_curve: { bases: 3 } }],
+	])('a field it does not know is named, since a typo must not quietly play by the defaults: %s', (name, frontmatter) => {
 		const { rules, invalidFields } = rulesFromFrontmatter(frontmatter);
 
 		expect(rules).toEqual(DEFAULT_RULES);
