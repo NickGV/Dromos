@@ -24,6 +24,16 @@ describe('HabiticaTaskCreator.createTodo', () => {
 		expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({ text: 'Task', type: 'todo', notes: 'Dromos · Kairos' });
 	});
 
+	it('sends the tag ids when the to-do has them, and no tags key when it has none', async () => {
+		const tagged = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Task', type: 'todo' } }));
+		await tagged.creator.createTodo({ title: 'Task', notes: '', tags: ['t-lector', 't-atleta'] });
+		expect(JSON.parse(tagged.http.requests[0]?.body ?? '{}')).toEqual({ text: 'Task', type: 'todo', notes: '', tags: ['t-lector', 't-atleta'] });
+
+		const plain = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Task', type: 'todo' } }));
+		await plain.creator.createTodo({ title: 'Task', notes: '', tags: [] });
+		expect(JSON.parse(plain.http.requests[0]?.body ?? '{}')).toEqual({ text: 'Task', type: 'todo', notes: '' });
+	});
+
 	it('reads the id from _id when id is missing', async () => {
 		const { creator } = creatorWith(respond(201, { success: true, data: { _id: ID, text: 'Task', type: 'todo' } }));
 

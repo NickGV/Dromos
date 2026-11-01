@@ -3,6 +3,7 @@ import { createTranslator } from '../i18n';
 import {
 	createObsidianHttp,
 	HabiticaClient,
+	HabiticaTagCatalog,
 	HabiticaTaskCreator,
 	HabiticaTaskSource,
 	HabiticaTaskStatusSource,
@@ -69,6 +70,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				linkTask: new LinkTaskToCampaign({
 					repository: campaignRepository,
 					creator: new HabiticaTaskCreator(habitica),
+					tags: new HabiticaTagCatalog(habitica),
 					// Sent to the user's own Habitica account inside the to-do's notes.
 					noteLink: (path) => obsidianNoteUri(plugin.app.vault.getName(), path),
 				}),

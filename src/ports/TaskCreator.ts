@@ -2,6 +2,8 @@
 export interface NewTodo {
 	readonly title: string;
 	readonly notes: string;
+	/** Habitica tag ids to put on the to-do; none when absent or empty. */
+	readonly tags?: readonly string[];
 }
 
 /** Where tasks are created (Habitica in M2). */

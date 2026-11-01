@@ -1,10 +1,13 @@
-import { TaskSourceError, type CampaignRepository, type TaskCreator, type TaskSourceErrorKind } from '../ports';
+import { effectiveSkills } from '../domain';
+import { TaskSourceError, type CampaignRepository, type TagCatalog, type TaskCreator, type TaskSourceErrorKind } from '../ports';
 
 export interface LinkTaskToCampaignDeps {
 	readonly repository: CampaignRepository;
 	readonly creator: TaskCreator;
 	/** A link that opens the campaign note, put in the to-do's notes. Built by the composition root. */
 	readonly noteLink: (campaignPath: string) => string;
+	/** Where the `skill/<id>` tags of the to-do are found or created. */
+	readonly tags: TagCatalog;
 }
 
 export type LinkOutcome =
@@ -41,7 +44,7 @@ export class LinkTaskToCampaign {
 	}
 
 	private async run(campaignPath: string, taskTitle: string): Promise<LinkOutcome> {
-		const { repository, creator, noteLink } = this.deps;
+		const { repository, creator, noteLink, tags } = this.deps;
 		const campaign = (await repository.listActive()).find((candidate) => candidate.path === campaignPath);
 		if (!campaign) return { kind: 'not-found' };
 		if (campaign.kind !== 'project') return { kind: 'not-a-project' };
@@ -50,9 +53,19 @@ export class LinkTaskToCampaign {
 		if (tasks.length === 0) return { kind: 'not-found' };
 		if (tasks.every((task) => task.habiticaId !== null)) return { kind: 'already-linked' };
 
+		// The task `linkHabiticaId` will link: the first one with that title and no id yet.
+		const target = tasks.find((task) => task.habiticaId === null);
+		const skills = target ? effectiveSkills(campaign, target) : [];
+
 		let habiticaId: string;
 		try {
-			habiticaId = await creator.createTodo({ title: taskTitle, notes: `Dromos · ${campaign.title}\n${noteLink(campaignPath)}` });
+			// Tags first: if they fail nothing is created, so a retry cannot leave a duplicate to-do.
+			const tagIds = skills.length > 0 ? await tags.ensureSkillTags(skills) : [];
+			habiticaId = await creator.createTodo({
+				title: taskTitle,
+				notes: `Dromos · ${campaign.title}\n${noteLink(campaignPath)}`,
+				...(tagIds.length > 0 ? { tags: tagIds } : {}),
+			});
 		} catch (error) {
 			return { kind: 'habitica-failed', error: error instanceof TaskSourceError ? error.kind : 'Unknown' };
 		}

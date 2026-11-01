@@ -8,6 +8,7 @@ export type FakeOutcome = HttpResponse | Error;
 export class FakeHttp {
 	readonly requests: HttpRequest[] = [];
 	private readonly outcomes = new Map<string, FakeOutcome>();
+	private readonly postOutcomes = new Map<string, FakeOutcome>();
 
 	/** Scripts the outcome for an exact URL. Unscripted URLs answer 404. */
 	on(url: string, outcome: FakeOutcome): this {
@@ -15,9 +16,16 @@ export class FakeHttp {
 		return this;
 	}
 
+	/** Scripts the outcome of a `POST` to an exact URL, which wins over `on` for that method. */
+	onPost(url: string, outcome: FakeOutcome): this {
+		this.postOutcomes.set(url, outcome);
+		return this;
+	}
+
 	readonly send: HttpFunction = (request) => {
 		this.requests.push(request);
-		const outcome = this.outcomes.get(request.url) ?? respond(404, { success: false, error: 'NotFound' });
+		const scripted = request.method === 'POST' ? this.postOutcomes.get(request.url) : undefined;
+		const outcome = scripted ?? this.outcomes.get(request.url) ?? respond(404, { success: false, error: 'NotFound' });
 		return outcome instanceof Error ? Promise.reject(outcome) : Promise.resolve(outcome);
 	};
 }

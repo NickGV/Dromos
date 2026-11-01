@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LinkTaskToCampaign } from '../../src/application/LinkTaskToCampaign';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { campaign, task } from '../domain/campaign/campaignFixtures';
+import { FakeTagCatalog } from '../fakes/FakeTagCatalog';
 import { FakeTaskCreator } from '../fakes/FakeTaskCreator';
 import { InMemoryCampaignRepository } from '../fakes/InMemoryCampaignRepository';
 
@@ -11,8 +12,9 @@ const noteLink = (path: string): string => `link:${path}`;
 function setup(tasks = [task('Write tests', null), task('Ship', null)], overrides = {}) {
 	const repository = new InMemoryCampaignRepository([campaign({ path: PATH, title: 'Kairos', tasks, ...overrides })]);
 	const creator = new FakeTaskCreator();
-	const link = new LinkTaskToCampaign({ repository, creator, noteLink });
-	return { repository, creator, link };
+	const tags = new FakeTagCatalog();
+	const link = new LinkTaskToCampaign({ repository, creator, noteLink, tags });
+	return { repository, creator, tags, link };
 }
 
 const habiticaIds = async (repository: InMemoryCampaignRepository): Promise<(string | null)[]> =>
@@ -101,5 +103,41 @@ describe('LinkTaskToCampaign', () => {
 		creator.failWith = null;
 
 		expect((await link.execute(PATH, 'Write tests')).kind).toBe('linked');
+	});
+});
+
+describe('LinkTaskToCampaign: skill tags (S14)', () => {
+	it('puts the skill tags of the campaign on the to-do it creates', async () => {
+		const { creator, tags, link } = setup([task('Write tests', null)], { skills: ['desarrollador', 'estudiante'] });
+
+		await link.execute(PATH, 'Write tests');
+
+		expect(tags.asked).toEqual([['desarrollador', 'estudiante']]);
+		expect(creator.created[0]?.tags).toEqual(['tag-desarrollador', 'tag-estudiante']);
+	});
+
+	it('uses the skills of the task when it declares its own', async () => {
+		const { creator, link } = setup([task('Design', null, { skills: ['diseñador'] })], { skills: ['desarrollador'] });
+
+		await link.execute(PATH, 'Design');
+
+		expect(creator.created[0]?.tags).toEqual(['tag-diseñador']);
+	});
+
+	it('asks for no tags when neither the task nor the campaign has a skill', async () => {
+		const { creator, tags, link } = setup();
+
+		await link.execute(PATH, 'Write tests');
+
+		expect(tags.asked).toEqual([]);
+		expect(creator.created[0]?.tags).toBeUndefined();
+	});
+
+	it('creates nothing when the tags cannot be ensured, so a retry cannot duplicate the to-do', async () => {
+		const { creator, tags, link } = setup([task('Write tests', null)], { skills: ['desarrollador'] });
+		tags.failWith = new TaskSourceError('Offline', null, 'down');
+
+		expect(await link.execute(PATH, 'Write tests')).toEqual({ kind: 'habitica-failed', error: 'Offline' });
+		expect(creator.created).toHaveLength(0);
 	});
 });
