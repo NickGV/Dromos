@@ -10,7 +10,7 @@ export interface SkillRank {
  * plugin; `manual` is confirmed by the user or by Esdras.
  * - `quests`: distinct completed to-dos with the skill tag (dailies never count).
  * - `campaigns`: completed campaigns whose skills include this one.
- * - `habit`: a campaign habit of this skill reached its target days (strict streak).
+ * - `habit`: a daily tagged with the skill (a campaign habit is one) reached that many days of streak (strict).
  */
 export type Requirement =
 	| { readonly kind: 'quests'; readonly count: number }

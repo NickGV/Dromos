@@ -5,6 +5,7 @@ import {
 	completedQuestCount,
 	evaluateUnlock,
 	foldLedger,
+	longestStreakBySkill,
 	rankOf,
 	resolveGameStart,
 	resolveUnlock,
@@ -14,7 +15,17 @@ import {
 	type Character,
 	type UnlockEvidence,
 } from '../domain';
-import type { CampaignRepository, Clock, GameStateRepository, GameTaskSource, LedgerLoadResult, LedgerRepository, SkillLoadResult, SkillRepository } from '../ports';
+import type {
+	CampaignRepository,
+	Clock,
+	GameStateRepository,
+	GameTaskSource,
+	LedgerLoadResult,
+	LedgerRepository,
+	ObservedTask,
+	SkillLoadResult,
+	SkillRepository,
+} from '../ports';
 import { detectEvents, type SkillChange } from './gameEvents';
 import type { GameSnapshot, GameState, SkillEntry } from './GameState';
 import { statusForFailure } from './statusForFailure';
@@ -100,7 +111,7 @@ export class SyncGame {
 		return { character: loaded.character, skills: skillLoad, ledger: ledgerLoad, completedCampaigns };
 	}
 
-	private async apply(vault: VaultReads, observations: Parameters<typeof rowsToAppend>[1]): Promise<void> {
+	private async apply(vault: VaultReads, observations: readonly ObservedTask[]): Promise<void> {
 		const { ledger, skills, characters, clock, state } = this.deps;
 		const today = clock.today();
 		const history = vault.ledger.rows;
@@ -110,12 +121,12 @@ export class SyncGame {
 		if (newRows.length > 0) await ledger.append(newRows);
 		const rows = [...history, ...newRows];
 
+		const streaks = longestStreakBySkill(observations);
 		const decisions = vault.skills.skills.map((skill) => {
 			const evidence: UnlockEvidence = {
 				quests: completedQuestCount(rows, skill.id),
 				campaigns: completedCampaignCount(vault.completedCampaigns, skill.id),
-				// Campaign habits arrive with their own task; until then a habit requirement stays unmet.
-				habitStreak: 0,
+				habitStreak: streaks.get(skill.id) ?? 0,
 			};
 			return { skill, evidence, unlock: resolveUnlock(skill, evidence, today) };
 		});

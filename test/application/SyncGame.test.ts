@@ -299,11 +299,19 @@ describe('SyncGame: XP, unlocks and the projection', () => {
 		expect((await sync.execute()).skills?.[0]?.skill.unlocked).toBe(true);
 	});
 
-	it('a habit requirement stays unmet until campaign habits exist, and a manual one waits for its confirmation', async () => {
-		const waiting = lector({ requirements: [{ kind: 'habit', days: 21 }, { kind: 'manual', id: 'x', text: 'Done', confirmed: false, confirmedOn: null }] });
-		const { sync } = setup({ skills: [waiting] });
+	it('a habit requirement is met by the streak of a daily tagged with the skill, and a manual one waits for its confirmation', async () => {
+		const habit = lector({ requirements: [{ kind: 'habit', days: 21 }] });
+		const tagged = (streak: number) => todo('sleep', { kind: 'daily', completed: false, streak });
 
-		expect((await sync.execute()).skills?.[0]?.skill.unlocked).toBe(false);
+		const short = setup({ skills: [habit], tasks: [tagged(20)] });
+		expect((await short.sync.execute()).skills?.[0]).toMatchObject({ skill: { unlocked: false }, requirements: [{ done: 20, total: 21, met: false }] });
+
+		const long = setup({ skills: [habit], tasks: [tagged(21)] });
+		expect((await long.sync.execute()).skills?.[0]?.skill.unlocked).toBe(true);
+
+		const waiting = lector({ requirements: [{ kind: 'habit', days: 21 }, { kind: 'manual', id: 'x', text: 'Done', confirmed: false, confirmedOn: null }] });
+		const both = setup({ skills: [waiting], tasks: [tagged(30)] });
+		expect((await both.sync.execute()).skills?.[0]?.skill.unlocked).toBe(false);
 	});
 
 	it('saves the character with the level, the XP and the stats of the ledger, and the day of the sync', async () => {
