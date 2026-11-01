@@ -66,11 +66,11 @@ export class GameState {
 
 	/**
 	 * A rebuild read only the vault, so the time of the last sync stands, and a failure that sync
-	 * reported no longer describes the notes.
+	 * reported no longer describes the notes. A sync waiting its turn still reads `syncing`.
 	 */
 	recordRebuild(result: GameResult): void {
 		const { status, lastSyncedAt } = this.current;
-		this.record(result, status.kind === 'synced' ? status : { kind: 'idle' }, lastSyncedAt);
+		this.record(result, status.kind === 'synced' || status.kind === 'syncing' ? status : { kind: 'idle' }, lastSyncedAt);
 	}
 
 	private record(result: GameResult, status: GameStatus, lastSyncedAt: Date | null): void {
@@ -90,6 +90,12 @@ export class GameState {
 	/** Changes only the status; everything else stays as the last sync left it. */
 	setStatus(status: GamePendingOrFailedStatus): void {
 		this.current = { ...this.current, status };
+	}
+
+	/** Events worth showing although the run that produced them failed. */
+	addEvents(events: readonly GameEvent[]): void {
+		this.unannounced = [...this.unannounced, ...events];
+		this.current = { ...this.current, events: [...this.current.events, ...events] };
 	}
 
 	/** The events not handed over yet. Each comes out once, so a toast is never repeated. */

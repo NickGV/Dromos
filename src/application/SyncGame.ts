@@ -169,9 +169,10 @@ export class SyncGame {
 		// The skill notes go first: they are the only place the day of an unlock is kept, and the
 		// ledger rows can be planned again by the next sync, so a failure between the two writes
 		// loses nothing that matters.
-		await this.writeSkills(game.entries);
-		if (newRows.length > 0) await ledger.append(newRows);
-		await characters.saveCharacter(characterProjection(game, gameStart, clock.now().toISOString()));
+		await this.writeNotes(game, async () => {
+			if (newRows.length > 0) await ledger.append(newRows);
+			await characters.saveCharacter(characterProjection(game, gameStart, clock.now().toISOString()));
+		});
 
 		this.lastStreaks = streaks;
 		state.recordSuccess(gameResult(vault, game), clock.now());
@@ -187,10 +188,11 @@ export class SyncGame {
 			const gameStart = rows.length > 0 ? resolveGameStart(current, rows, clock.today()) : current;
 			const game = this.project(vault, rows, this.lastStreaks);
 
-			await this.writeSkills(game.entries);
 			const projection = characterProjection(game, gameStart, null);
-			if (loaded.kind === 'missing') await characters.createCharacter(projection, clock.today());
-			else if ((await characters.saveCharacter(projection)) === 'missing') return { kind: 'failed' };
+			await this.writeNotes(game, async () => {
+				if (loaded.kind === 'missing') await characters.createCharacter(projection, clock.today());
+				else if ((await characters.saveCharacter(projection)) === 'missing') throw new Error('Character.md disappeared during the rebuild');
+			});
 
 			state.recordRebuild(gameResult(vault, game));
 			return { kind: 'rebuilt', level: game.character.level, totalXp: game.character.totalXp, createdCharacter: loaded.kind === 'missing', unreadableRows: vault.ledger.unreadable.length };
@@ -236,9 +238,22 @@ export class SyncGame {
 		return { character, stats: after.stats, entries, events };
 	}
 
-	private async writeSkills(entries: readonly SkillEntry[]): Promise<void> {
-		for (const { skill, standing, xp } of entries) {
-			await this.deps.skills.writeProjection(skill.id, { unlocked: skill.unlocked, unlockedOn: skill.unlockedOn, level: standing.level, xp, xpToNext: standing.xpToNext });
+	/**
+	 * Writes the skill notes, then `rest`. A note already written will never report its unlock
+	 * again, so when anything after it fails the announcement is kept here; a level-up needs no
+	 * such care, because the next run plans the same rows and reports it.
+	 */
+	private async writeNotes(game: GameProjection, rest: () => Promise<void>): Promise<void> {
+		const written = new Set<string>();
+		try {
+			for (const { skill, standing, xp } of game.entries) {
+				await this.deps.skills.writeProjection(skill.id, { unlocked: skill.unlocked, unlockedOn: skill.unlockedOn, level: standing.level, xp, xpToNext: standing.xpToNext });
+				written.add(skill.id);
+			}
+			await rest();
+		} catch (error) {
+			this.deps.state.addEvents(game.events.filter((event) => event.kind === 'skill-unlocked' && written.has(event.skillId)));
+			throw error;
 		}
 	}
 }

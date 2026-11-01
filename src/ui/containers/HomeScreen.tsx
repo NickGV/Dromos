@@ -85,9 +85,10 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		setGame(deps.gameSnapshot());
 		const synced = await pending;
 		if (mounted.current) setQuests(synced);
-		const played = await gamePending;
+		await gamePending;
+		// The state as it is now: a rebuild or a closed banner may have changed it since the sync ended.
 		if (mounted.current) {
-			setGame(played);
+			setGame(deps.gameSnapshot());
 			announce();
 		}
 		const updated = await loadHomeOrNull(deps.loadHome);

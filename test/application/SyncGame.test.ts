@@ -685,6 +685,19 @@ describe('SyncGame: rebuild (S17)', () => {
 		expect(characters.saved.map((saved) => saved.lastSync)).toEqual([null, NOW.toISOString()]);
 	});
 
+	it('keeps reading syncing while a sync waits behind several rebuilds', async () => {
+		const { sync, state } = setup({ skills: [owned()] });
+
+		const first = sync.rebuild();
+		const second = sync.rebuild();
+		const syncing = sync.execute();
+		await first;
+
+		expect(state.snapshot().status).toEqual({ kind: 'syncing' });
+		await Promise.all([second, syncing]);
+		expect(state.snapshot().status).toEqual({ kind: 'synced' });
+	});
+
 	it('still reads syncing at once when a sync has to wait for a rebuild', async () => {
 		const { sync, state } = setup({ skills: [owned()] });
 
@@ -743,6 +756,43 @@ describe('SyncGame: what is still to announce (S18)', () => {
 
 		await sync.rebuild();
 
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('keeps an unlock whose note was written when a later write fails, since no later sync would report it', async () => {
+		const { sync, ledger, state } = setup(unlocks);
+		ledger.failAppendWith = new Error('disk');
+
+		expect((await sync.execute()).status).toEqual({ kind: 'error' });
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+		expect(state.snapshot().events).toEqual([unlocked]);
+
+		ledger.failAppendWith = null;
+		await sync.execute();
+
+		expect(state.takeAnnouncements()).toEqual([]);
+		expect(state.snapshot().events).toEqual([unlocked]);
+	});
+
+	it('reports nothing for a note it could not write: the next sync will', async () => {
+		const { sync, skills, state } = setup(unlocks);
+		const write = skills.writeProjection.bind(skills);
+		skills.writeProjection = () => Promise.reject(new Error('disk'));
+
+		await sync.execute();
+		expect(state.takeAnnouncements()).toEqual([]);
+
+		skills.writeProjection = write;
+		await sync.execute();
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('keeps the unlock of a rebuild that fails on the character note', async () => {
+		const quests = [row({ habiticaId: 'a', date: '2026-11-02' }), row({ habiticaId: 'b', date: '2026-11-02' })];
+		const { sync, characters, state } = setup({ skills: [lector()], rows: quests });
+		characters.saveCharacter = () => Promise.resolve('missing');
+
+		expect(await sync.rebuild()).toEqual({ kind: 'failed' });
 		expect(state.takeAnnouncements()).toEqual([unlocked]);
 	});
 
