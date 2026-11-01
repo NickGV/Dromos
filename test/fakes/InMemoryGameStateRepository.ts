@@ -21,6 +21,11 @@ export class InMemoryGameStateRepository implements GameStateRepository {
 	saveCharacter(projection: CharacterProjection): Promise<CharacterSaveResult> {
 		if (this.result.kind === 'missing') return Promise.resolve('missing');
 		this.saved.push(projection);
+		const { character } = this.result;
+		this.result = {
+			kind: 'found',
+			character: { ...character, level: projection.level, totalXp: projection.totalXp, xpToNext: projection.xpToNext, stats: projection.stats, gameStart: projection.gameStart },
+		};
 		return Promise.resolve('saved');
 	}
 }
