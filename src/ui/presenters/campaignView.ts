@@ -1,6 +1,6 @@
 import type { CampaignSnapshot, CampaignIssue } from '../../application';
 import { plural, type Translator } from '../../i18n';
-import { campaignProgress, daysSince, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type Progress } from '../../domain';
+import { campaignProgress, daysSince, habitProgress, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignHabit, type Progress } from '../../domain';
 
 /** How one task is shown in a campaign card. */
 export type TaskRowState = 'completed' | 'pending' | 'unsent' | 'missing';
@@ -10,6 +10,19 @@ export interface TaskRowView {
 	readonly state: TaskRowState;
 	/** Only a project task that was never sent to Habitica can be sent. */
 	readonly canSend: boolean;
+}
+
+/** How one habit is shown in a campaign card (S8). */
+export type HabitRowState = 'unsent' | 'missing' | 'tracking' | 'built';
+
+export interface HabitRowView {
+	readonly title: string;
+	readonly state: HabitRowState;
+	/** Only a habit that was never sent to Habitica can be sent. */
+	readonly canSend: boolean;
+	/** Streak over target days; whole percent. */
+	readonly progress: { readonly done: number; readonly total: number; readonly percent: number };
+	readonly text: string;
 }
 
 /** One campaign as `CampaignCard` renders it (S5). */
@@ -25,6 +38,7 @@ export interface CampaignCardView {
 	readonly next: string | null;
 	readonly progress: { readonly ratio: number; readonly percent: number };
 	readonly tasks: readonly TaskRowView[];
+	readonly habits: readonly HabitRowView[];
 	readonly warnings: readonly string[];
 }
 
@@ -76,8 +90,20 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 						: 'pending';
 			return { title: task.title, state, canSend: state === 'unsent' && context.canSend };
 		}),
+		habits: campaign.habits.map((habit) => habitRow(habit, missing.has(habit.title), context)),
 		warnings: [...missing].map((title) => t('campaign.warning.missing', { title })),
 	};
+}
+
+function habitRow(habit: CampaignHabit, missing: boolean, { canSend, t }: CampaignViewContext): HabitRowView {
+	const progress = habitProgress(missing ? 0 : (habit.streak ?? 0), habit.days);
+	const view = { done: progress.done, total: progress.total, percent: Math.round(progress.ratio * 100) };
+	const target = t('habit.target', { days: habit.days });
+	if (missing) return { title: habit.title, state: 'missing', canSend: false, progress: view, text: target };
+	if (habit.habiticaId === null) return { title: habit.title, state: 'unsent', canSend, progress: view, text: target };
+	if (habit.streak === null) return { title: habit.title, state: 'tracking', canSend: false, progress: view, text: target };
+	if (progress.done >= progress.total) return { title: habit.title, state: 'built', canSend: false, progress: view, text: t('habit.built', { days: habit.days }) };
+	return { title: habit.title, state: 'tracking', canSend: false, progress: view, text: t('habit.progress', { done: progress.done, total: progress.total }) };
 }
 
 export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues' | 'canSend' | 'habiticaKnown'>): CampaignListView {

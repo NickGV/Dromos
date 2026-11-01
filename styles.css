@@ -553,3 +553,36 @@
 	font-size: var(--font-ui-small);
 	overflow-wrap: anywhere;
 }
+
+/* Campaign habits (M3) */
+.dromos-root .dromos-campaign-habits-title {
+	margin: 0 0 4px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.dromos-root .dromos-habit-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.dromos-root .dromos-habit {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.dromos-root .dromos-habit-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+}
+
+.dromos-root .dromos-habit-title { flex: 1 1 8em; min-width: 0; overflow-wrap: anywhere; }
+.dromos-root .dromos-habit-text { color: var(--text-muted); font-size: var(--font-ui-small); }
+.dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--text-success); }

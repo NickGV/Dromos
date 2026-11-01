@@ -12,7 +12,7 @@ import {
 } from '../adapters/habitica';
 import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, SystemClock } from '../adapters/obsidian';
 import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, GameState, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 
 /** What the plugin registers, built once per plugin load. */
@@ -49,6 +49,13 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const campaignState = new CampaignState();
 	const campaignRepository = new VaultCampaignRepository(plugin.app);
 	const vaultFolder = (): string => settings.vaultFolder;
+	const sendDeps = {
+		repository: campaignRepository,
+		creator: new HabiticaTaskCreator(habitica),
+		tags: new HabiticaTagCatalog(habitica),
+		// Sent to the user's own Habitica account inside the task's notes.
+		noteLink: (path: string) => obsidianNoteUri(plugin.app.vault.getName(), path),
+	};
 	const gameState = new GameState();
 	const syncGame = new SyncGame({
 		skills: new VaultSkillRepository(plugin.app, vaultFolder),
@@ -83,13 +90,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 					state: campaignState,
 					hasCredentials,
 				}),
-				linkTask: new LinkTaskToCampaign({
-					repository: campaignRepository,
-					creator: new HabiticaTaskCreator(habitica),
-					tags: new HabiticaTagCatalog(habitica),
-					// Sent to the user's own Habitica account inside the to-do's notes.
-					noteLink: (path) => obsidianNoteUri(plugin.app.vault.getName(), path),
-				}),
+				linkTask: new LinkTaskToCampaign(sendDeps),
+				linkHabit: new LinkHabitToCampaign(sendDeps),
 				campaignSnapshot: () => campaignState.snapshot(),
 				staleAfterDays: () => settings.staleAfterDays,
 				openNote: (path) => {

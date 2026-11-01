@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CampaignSnapshot } from '../../src/application';
 import { createTranslator } from '../../src/i18n';
 import { campaignCardView, campaignListView } from '../../src/ui/presenters/campaignView';
-import { campaign, phase, task } from '../domain/campaign/campaignFixtures';
+import { campaign, habit, phase, task } from '../domain/campaign/campaignFixtures';
 
 const t = createTranslator('es');
 const TODAY = '2026-10-31';
@@ -105,6 +105,69 @@ describe('campaignCardView: sending', () => {
 		const rows = campaignCardView(kairos, { ...ctx, canSend: false }).tasks;
 
 		expect(rows.find((row) => row.title === 'Send gold')).toMatchObject({ state: 'unsent', canSend: false });
+	});
+});
+
+describe('campaignCardView: habits (S8)', () => {
+	const salto = campaign({
+		path: 'P/Salto/README.md',
+		title: 'Salto',
+		habits: [
+			habit('Estiramiento', { habiticaId: 'd1', days: 21, streak: 12 }),
+			habit('Dormir', { habiticaId: 'd2', days: 30, streak: 30 }),
+			habit('Sin enviar', { days: 14 }),
+			habit('Perdido', { habiticaId: 'd3', streak: 4 }),
+			habit('Aún sin leer', { habiticaId: 'd4' }),
+			habit('Empezando', { habiticaId: 'd5', streak: 0 }),
+		],
+	});
+	const issues = [{ campaignPath: 'P/Salto/README.md', taskTitle: 'Perdido', kind: 'habitica-task-missing' as const }];
+
+	it('rows each habit with its streak over its target days', () => {
+		const rows = campaignCardView(salto, { ...ctx, issues }).habits;
+
+		expect(rows[0]).toEqual({ title: 'Estiramiento', state: 'tracking', canSend: false, progress: { done: 12, total: 21, percent: 57 }, text: 'Racha: 12 de 21 días' });
+		expect(rows[5]).toEqual({ title: 'Empezando', state: 'tracking', canSend: false, progress: { done: 0, total: 21, percent: 0 }, text: 'Racha: 0 de 21 días' });
+	});
+
+	it('says a habit is built once the streak reaches its target', () => {
+		expect(campaignCardView(salto, ctx).habits[1]).toEqual({
+			title: 'Dormir',
+			state: 'built',
+			canSend: false,
+			progress: { done: 30, total: 30, percent: 100 },
+			text: 'Hábito formado: 30 días',
+		});
+	});
+
+	it('offers to send a habit never sent, and shows its target', () => {
+		expect(campaignCardView(salto, ctx).habits[2]).toEqual({
+			title: 'Sin enviar',
+			state: 'unsent',
+			canSend: true,
+			progress: { done: 0, total: 14, percent: 0 },
+			text: 'Meta: 14 días',
+		});
+	});
+
+	it('offers no send button when Habitica is not set up', () => {
+		expect(campaignCardView(salto, { ...ctx, canSend: false }).habits[2]).toMatchObject({ state: 'unsent', canSend: false });
+	});
+
+	it('marks a habit whose daily is gone, and warns about it', () => {
+		const card = campaignCardView(salto, { ...ctx, issues });
+
+		expect(card.habits[3]).toMatchObject({ title: 'Perdido', state: 'missing', canSend: false, progress: { done: 0, total: 21, percent: 0 } });
+		expect(card.warnings).toEqual(['"Perdido" no se encontró en Habitica.']);
+	});
+
+	it('shows only the target of a linked habit whose streak Habitica has not told yet', () => {
+		expect(campaignCardView(salto, ctx).habits[4]).toMatchObject({ state: 'tracking', progress: { done: 0, total: 21, percent: 0 }, text: 'Meta: 21 días' });
+	});
+
+	it('has no habits for a campaign without them, and says so in English too', () => {
+		expect(campaignCardView(kairos, ctx).habits).toEqual([]);
+		expect(campaignCardView(salto, { ...ctx, t: createTranslator('en') }).habits[0]?.text).toBe('Streak: 12 of 21 days');
 	});
 });
 
