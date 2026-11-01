@@ -23,8 +23,8 @@ export interface CampaignTask {
 	readonly phase: string | null;
 	/** Habitica task id; `null` while the task has not been sent to Habitica. */
 	readonly habiticaId: string | null;
-	/** Overrides the campaign skill when set. */
-	readonly skill: string | null;
+	/** Skill ids that override the campaign skills when not empty. */
+	readonly skills: readonly string[];
 	readonly resources: readonly string[];
 	readonly completed: boolean;
 	/** Local completion date as `YYYY-MM-DD`, or `null` when unknown. */
@@ -40,8 +40,8 @@ export interface Campaign {
 	readonly priority: Priority;
 	/** Wikilink text of the area, or `null`. */
 	readonly area: string | null;
-	/** Default skill of the tasks (projects), or `null`. */
-	readonly skill: string | null;
+	/** Skill ids the campaign trains; the default of the tasks that declare none. Empty when it has none. */
+	readonly skills: readonly string[];
 	/** Local date as `YYYY-MM-DD`, or `null`. */
 	readonly deadline: string | null;
 	/** Per-campaign stale threshold in days, or `null` to use the plugin setting. */

@@ -83,7 +83,7 @@ export function campaignFromNote(note: VaultNote, sessions: readonly VaultNote[]
 		status: 'active',
 		priority: oneOf(PRIORITIES, fields.priority) ?? DEFAULT_PRIORITY,
 		area: linkTarget(fields.area) ?? nonEmpty(fields.area),
-		skill: nonEmpty(fields.skill),
+		skills: skillsFrom(fields.skill),
 		deadline: dateOrNull(fields.deadline),
 		staleAfterDays: positiveInteger(fields.stale_after_days),
 		created: dateOrNull(fields.created) ?? note.createdOn,
@@ -98,6 +98,12 @@ export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 		.filter(isCampaignNote)
 		.map((note) => campaignFromNote(note, notes))
 		.sort((left, right) => comparePriority(left.priority, right.priority) || left.title.localeCompare(right.title));
+}
+
+/** `skill` is a single id or a list of ids; both read as a list, and an empty text or `null` is no skill. */
+function skillsFrom(value: unknown): string[] {
+	const items = Array.isArray(value) ? value : [value];
+	return [...new Set(items.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim()] : [])))];
 }
 
 function phasesFrom(value: unknown): Phase[] {
@@ -121,7 +127,7 @@ function projectTasks(value: unknown): CampaignTask[] {
 				title,
 				phase: nonEmpty(fields.phase),
 				habiticaId: habiticaIdFrom(fields.habitica_id),
-				skill: nonEmpty(fields.skill),
+				skills: skillsFrom(fields.skill),
 				resources: Array.isArray(fields.resources) ? fields.resources.filter((item): item is string => typeof item === 'string') : [],
 				completed: false,
 				completedOn: null,
@@ -153,7 +159,7 @@ function sessionTasks(researchPath: string, researchName: string, sessions: read
 					title: fileName(note.path),
 					phase: nonEmpty(fields.phase),
 					habiticaId: habiticaIdFrom(fields.habitica_id),
-					skill: null,
+					skills: [],
 					resources: [],
 					completed,
 					// Sessions have no closing date (Esdras): `created` is the only one.

@@ -142,7 +142,7 @@ describe('campaignFromNote: projects', () => {
 			status: 'active',
 			priority: 'high',
 			area: 'Archeion - Programming',
-			skill: 'desarrollador',
+			skills: ['desarrollador'],
 			deadline: '2026-12-15',
 			staleAfterDays: 7,
 			created: '2026-08-01',
@@ -156,12 +156,12 @@ describe('campaignFromNote: projects', () => {
 				title: 'Pantalla de registro de tiempo',
 				phase: 'mvp',
 				habiticaId: '3f2a1c8e-0000-4000-8000-000000000001',
-				skill: 'diseñador',
+				skills: ['diseñador'],
 				resources: ['[[Jetpack Compose - Navigation]]'],
 				completed: false,
 				completedOn: null,
 			},
-			{ title: 'Integrar oro de Habitica', phase: 'mvp', habiticaId: null, skill: null, resources: [], completed: false, completedOn: null },
+			{ title: 'Integrar oro de Habitica', phase: 'mvp', habiticaId: null, skills: [], resources: [], completed: false, completedOn: null },
 		]);
 	});
 
@@ -175,7 +175,7 @@ describe('campaignFromNote: projects', () => {
 			status: 'active',
 			priority: 'low',
 			area: null,
-			skill: null,
+			skills: [],
 			deadline: null,
 			staleAfterDays: null,
 			created: '2026-10-05',
@@ -205,7 +205,7 @@ describe('campaignFromNote: projects', () => {
 		const campaign = campaignFromNote(messy);
 
 		expect(campaign).toMatchObject({ priority: 'low', created: '2026-10-02', deadline: null, staleAfterDays: null, phases: [] });
-		expect(campaign.tasks).toEqual([{ title: 'ok', phase: null, habiticaId: '3', skill: null, resources: [], completed: false, completedOn: null }]);
+		expect(campaign.tasks).toEqual([{ title: 'ok', phase: null, habiticaId: '3', skills: [], resources: [], completed: false, completedOn: null }]);
 	});
 
 	it('skips phases without an id, defaults the name to the id and a bad status to planning', () => {
@@ -252,10 +252,10 @@ describe('campaignFromNote: research', () => {
 
 		const campaign = campaignFromNote(APOCRIFOS, [open, done]);
 
-		expect(campaign).toMatchObject({ kind: 'research', title: 'Estudio - Libros Apócrifos', priority: 'high', area: 'Archeion - Bible', skill: null, created: '2026-09-12' });
+		expect(campaign).toMatchObject({ kind: 'research', title: 'Estudio - Libros Apócrifos', priority: 'high', area: 'Archeion - Bible', skills: [], created: '2026-09-12' });
 		expect(campaign.tasks).toEqual([
-			{ title: 'Sesión 1 - Panorama', phase: 's1', habiticaId: null, skill: null, resources: [], completed: true, completedOn: '2026-09-14' },
-			{ title: 'Sesión 2 - Deuterocanónicos', phase: 's2', habiticaId: 'c48095e9-0000-4000-8000-000000000002', skill: null, resources: [], completed: false, completedOn: null },
+			{ title: 'Sesión 1 - Panorama', phase: 's1', habiticaId: null, skills: [], resources: [], completed: true, completedOn: '2026-09-14' },
+			{ title: 'Sesión 2 - Deuterocanónicos', phase: 's2', habiticaId: 'c48095e9-0000-4000-8000-000000000002', skills: [], resources: [], completed: false, completedOn: null },
 		]);
 	});
 
@@ -299,7 +299,23 @@ describe('campaignFromNote: research', () => {
 	});
 
 	it('does not assume a skill when the research skill is empty', () => {
-		expect(campaignFromNote(APOCRIFOS).skill).toBeNull();
+		expect(campaignFromNote(APOCRIFOS).skills).toEqual([]);
+	});
+
+	it.each([
+		['a single id', 'exegeta', ['exegeta']],
+		['a list', ['exegeta', 'estudiante'], ['exegeta', 'estudiante']],
+		['a list with blanks, junk and repeats', ['exegeta', '', '  ', 3, null, 'exegeta', ' estudiante '], ['exegeta', 'estudiante']],
+		['an empty text', '', []],
+		['an empty list', [], []],
+		['null', null, []],
+		['a number', 7, []],
+		['a map', { id: 'exegeta' }, []],
+	])('reads the skill of a campaign given as %s', (_label, skill, expected) => {
+		const campaign = campaignFromNote(note('a/README.md', { type: 'index', status: 'active', skill, tasks: [{ title: 'T', skill }] }));
+
+		expect(campaign.skills).toEqual(expected);
+		expect(campaign.tasks[0]?.skills).toEqual(expected);
 	});
 });
 
