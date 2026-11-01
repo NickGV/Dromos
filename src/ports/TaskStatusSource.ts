@@ -3,6 +3,8 @@ export type TaskStatus =
 	| { readonly kind: 'open' }
 	/** `completedOn` is the local day (`YYYY-MM-DD`), or `null` when Habitica sent no date. */
 	| { readonly kind: 'completed'; readonly completedOn: string | null }
+	/** A daily, the one a campaign habit builds: its current streak, which one missed day sends back to zero. */
+	| { readonly kind: 'daily'; readonly streak: number }
 	/** The task no longer exists, or its id is not a Habitica id. */
 	| { readonly kind: 'missing' };
 

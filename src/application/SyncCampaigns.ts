@@ -63,7 +63,9 @@ export class SyncCampaigns {
 		}
 
 		let failure: PendingOrFailedStatus | null = null;
-		const ids = campaigns.flatMap((campaign) => (campaign.kind === 'project' ? campaign.tasks.flatMap((task) => (task.habiticaId ? [task.habiticaId] : [])) : []));
+		const ids = campaigns.flatMap((campaign) =>
+			campaign.kind === 'project' ? [...campaign.tasks, ...campaign.habits].flatMap((item) => (item.habiticaId ? [item.habiticaId] : [])) : [],
+		);
 		if (!hasCredentials()) {
 			failure = { kind: 'not-configured' };
 		} else if (ids.length > 0) {
