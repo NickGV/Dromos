@@ -12,6 +12,7 @@ const CHARACTER: CharacterProjection = {
 	totalXp: 400,
 	xpToNext: 520,
 	stats: { fuerza: 5, vitalidad: 0, inteligencia: 25, sabiduria: 0, espiritu: 10, disciplina: 0 },
+	gameStart: '2026-11-01',
 	lastSync: '2026-11-09',
 };
 
@@ -43,6 +44,7 @@ describe('applyCharacterProjection', () => {
 			total_xp: 400,
 			xp_to_next: 520,
 			stats: { fuerza: 5, inteligencia: 25, espiritu: 10, disciplina: 0, vitalidad: 0, sabiduria: 0 },
+			game_start: '2026-11-01',
 			last_sync: '2026-11-09',
 			updated_by: 'dromos',
 		});
@@ -95,6 +97,14 @@ describe('characterProjectionChanged', () => {
 		applyCharacterProjection(frontmatter, CHARACTER);
 
 		expect(characterProjectionChanged(frontmatter, { ...CHARACTER, stats: { ...CHARACTER.stats, sabiduria: 1 } })).toBe(true);
+	});
+
+	it('is true when game_start differs or is missing', () => {
+		const frontmatter: Record<string, unknown> = NOTE();
+		applyCharacterProjection(frontmatter, CHARACTER);
+
+		expect(characterProjectionChanged(frontmatter, { ...CHARACTER, gameStart: '2026-11-02' })).toBe(true);
+		expect(characterProjectionChanged({ ...frontmatter, game_start: undefined }, CHARACTER)).toBe(true);
 	});
 
 	it('is true for a note without frontmatter', () => {

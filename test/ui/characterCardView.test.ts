@@ -11,6 +11,7 @@ const CHARACTER: Character = {
 	xpIntoLevel: 50,
 	xpToNext: 150,
 	stats: { fuerza: 2, vitalidad: 6, inteligencia: 4, sabiduria: 1, espiritu: 3, disciplina: 5 },
+	gameStart: null,
 };
 
 const t = createTranslator('es');

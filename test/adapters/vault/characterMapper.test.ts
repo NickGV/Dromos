@@ -10,6 +10,7 @@ const DEFAULT_CHARACTER: Character = {
 	xpIntoLevel: 0,
 	xpToNext: 100,
 	stats: { fuerza: 0, vitalidad: 0, inteligencia: 0, sabiduria: 0, espiritu: 0, disciplina: 0 },
+	gameStart: null,
 };
 
 // Shape of Dromos/Character.md in the Logos vault.
@@ -22,6 +23,7 @@ const FULL_NOTE = {
 	total_xp: 150,
 	xp_to_next: 100,
 	stats: { fuerza: 3, vitalidad: 6, inteligencia: 5, sabiduria: 2, espiritu: 1, disciplina: 8 },
+	game_start: '2026-11-01',
 	last_sync: null,
 	updated_by: 'manual',
 };
@@ -40,7 +42,21 @@ describe('characterFromFrontmatter: reading the note', () => {
 			xpIntoLevel: 50,
 			xpToNext: 283,
 			stats: { fuerza: 3, vitalidad: 6, inteligencia: 5, sabiduria: 2, espiritu: 1, disciplina: 8 },
+			gameStart: '2026-11-01',
 		});
+	});
+
+	it.each([
+		['a missing date', undefined],
+		['a text that is not a date', 'soon'],
+		['a number', 20261101],
+		['null', null],
+	])('reads game_start as null for %s', (_label, gameStart) => {
+		expect(characterFromFrontmatter({ ...FULL_NOTE, game_start: gameStart }).gameStart).toBeNull();
+	});
+
+	it('reads game_start from a date-time too, keeping the day', () => {
+		expect(characterFromFrontmatter({ ...FULL_NOTE, game_start: '2026-11-01T08:30:00' }).gameStart).toBe('2026-11-01');
 	});
 
 	it('reads a note written with the old four stats: the two new ones are 0 (ADR-014)', () => {

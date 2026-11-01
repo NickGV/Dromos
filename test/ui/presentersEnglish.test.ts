@@ -76,6 +76,7 @@ describe('English: character card', () => {
 		xpIntoLevel: 240,
 		xpToNext: 520,
 		stats: { fuerza: 2, vitalidad: 6, inteligencia: 4, sabiduria: 1, espiritu: 3, disciplina: 5 },
+		gameStart: null,
 	};
 
 	it('words the level, the missing name and the six stats, keeping the data keys', () => {

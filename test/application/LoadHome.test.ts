@@ -14,7 +14,9 @@ const CHARACTER: Character = {
 	xpIntoLevel: 50,
 	xpToNext: 150,
 	stats: { fuerza: 2, vitalidad: 5, inteligencia: 4, sabiduria: 0, espiritu: 1, disciplina: 3 },
+	gameStart: null,
 };
+
 const IDLE_QUESTS = { quests: null, lastSyncedAt: null, status: { kind: 'idle' } };
 
 describe('LoadHome', () => {

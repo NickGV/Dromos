@@ -1,4 +1,5 @@
 import { CHARACTER_CURVE, LevelCurve, STAT_IDS, type Character, type StatId } from '../../domain';
+import { dateOrNull } from './frontmatterFields';
 
 const curve = new LevelCurve(CHARACTER_CURVE);
 
@@ -21,6 +22,7 @@ export function characterFromFrontmatter(frontmatter: unknown): Character {
 		xpIntoLevel,
 		xpToNext,
 		stats: statsFrom(fields.stats),
+		gameStart: dateOrNull(fields.game_start),
 	};
 }
 

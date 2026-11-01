@@ -7,6 +7,8 @@ export interface CharacterProjection {
 	/** XP the current level asks for, as the note has always shown it. */
 	readonly xpToNext: number;
 	readonly stats: Readonly<Record<StatId, number>>;
+	/** Local date as `YYYY-MM-DD` the game started counting: the first sync. Completions before it never count. */
+	readonly gameStart: string;
 	/** Local date as `YYYY-MM-DD` of the sync that wrote this. */
 	readonly lastSync: string;
 }

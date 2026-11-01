@@ -10,4 +10,6 @@ export interface Character {
 	readonly xpIntoLevel: number;
 	readonly xpToNext: number;
 	readonly stats: Readonly<Record<StatId, number>>;
+	/** Local date as `YYYY-MM-DD` the game started counting, or `null` before the first game sync. */
+	readonly gameStart: string | null;
 }

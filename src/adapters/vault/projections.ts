@@ -10,6 +10,7 @@ export function applyCharacterProjection(frontmatter: Record<string, unknown>, p
 	frontmatter.total_xp = projection.totalXp;
 	frontmatter.xp_to_next = projection.xpToNext;
 	frontmatter.stats = stats;
+	frontmatter.game_start = projection.gameStart;
 	frontmatter.last_sync = projection.lastSync;
 	frontmatter.updated_by = 'dromos';
 }
@@ -25,6 +26,7 @@ export function characterProjectionChanged(frontmatter: unknown, projection: Cha
 		fields.level !== projection.level ||
 		fields.total_xp !== projection.totalXp ||
 		fields.xp_to_next !== projection.xpToNext ||
+		fields.game_start !== projection.gameStart ||
 		STAT_IDS.some((id) => stats[id] !== projection.stats[id])
 	);
 }
