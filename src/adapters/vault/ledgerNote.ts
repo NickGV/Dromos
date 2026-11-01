@@ -1,0 +1,116 @@
+import type { LedgerRow, LedgerSource, XpKind } from '../../domain';
+import { oneOf } from './frontmatterFields';
+
+/** A row of the table that could not be read: shown in the UI as an unreadable event. */
+export interface UnreadableLedgerLine {
+	/** 1-based line of the note. */
+	readonly line: number;
+	readonly text: string;
+}
+
+export interface ParsedLedger {
+	readonly rows: readonly LedgerRow[];
+	readonly unreadable: readonly UnreadableLedgerLine[];
+}
+
+const COLUMNS = ['date', 'habitica_id', 'task', 'kind', 'skill', 'xp', 'source', 'n'] as const;
+const HEADER = `| ${COLUMNS.join(' | ')} |`;
+const SEPARATOR = `|${COLUMNS.map(() => '---').join('|')}|`;
+const KINDS: readonly XpKind[] = ['todo', 'daily'];
+const SOURCES: readonly LedgerSource[] = ['complete', 'revert', 'streak'];
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const INTEGER = /^-?\d+$/;
+const POSITIVE = /^[1-9]\d*$/;
+const UNESCAPED_PIPE = /(?<!\\)\|/;
+
+/** `YYYY-MM` of a `YYYY-MM-DD` date: the ledger keeps one note per month. */
+export function ledgerMonthOf(date: string): string {
+	return date.slice(0, 7);
+}
+
+/** Rows grouped by the month of their date, in order of first appearance. */
+export function rowsByMonth(rows: readonly LedgerRow[]): Map<string, LedgerRow[]> {
+	const groups = new Map<string, LedgerRow[]>();
+	for (const row of rows) {
+		const month = ledgerMonthOf(row.date);
+		groups.set(month, [...(groups.get(month) ?? []), row]);
+	}
+	return groups;
+}
+
+/**
+ * Reads the table of a ledger note. Header, separator, frontmatter and prose are
+ * skipped; a row that does not parse is reported with its line and the rest keep
+ * being read, so one bad line never hides the others.
+ */
+export function parseLedgerNote(text: string): ParsedLedger {
+	const rows: LedgerRow[] = [];
+	const unreadable: UnreadableLedgerLine[] = [];
+	const lines = text.split('\n');
+	let index = frontmatterEnd(lines);
+	for (; index < lines.length; index += 1) {
+		const line = (lines[index] ?? '').trim();
+		if (!line.startsWith('|') || isHeader(line) || isSeparator(line)) continue;
+		const row = rowFrom(cells(line));
+		if (row === null) unreadable.push({ line: index + 1, text: line });
+		else rows.push(row);
+	}
+	return { rows, unreadable };
+}
+
+/** One table line for a row; a pipe in the title is escaped and a title stays on one line. */
+export function formatLedgerRow(row: LedgerRow): string {
+	const task = row.task.replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|').trim();
+	return `| ${row.date} | ${row.habiticaId} | ${task} | ${row.kind} | ${row.skill ?? ''} | ${row.xp} | ${row.source} | ${row.n} |`;
+}
+
+/** The note of one month: frontmatter and an empty table. */
+export function newLedgerNote(month: string, created: string): string {
+	return `---\ntype: dromos-ledger\ncreated: ${created}\nmonth: ${month}\n---\n\n# Ledger ${month}\n\n${HEADER}\n${SEPARATOR}\n`;
+}
+
+/**
+ * The note with `rows` added under the last row of its table; everything else is
+ * kept as it was. A note that lost its table gets the header again at the end.
+ */
+export function appendLedgerRows(text: string, rows: readonly LedgerRow[]): string {
+	if (rows.length === 0) return text;
+	const added = rows.map(formatLedgerRow);
+	const lines = text.split('\n');
+	const start = frontmatterEnd(lines);
+	const lastTableLine = lines.reduce((last, line, index) => (index >= start && line.trim().startsWith('|') ? index : last), -1);
+	if (lastTableLine === -1) return `${text.replace(/\n*$/, '\n')}\n${HEADER}\n${SEPARATOR}\n${added.join('\n')}\n`;
+	const before = lines.slice(0, lastTableLine + 1).join('\n');
+	const after = lines.slice(lastTableLine + 1).join('\n');
+	return `${before}\n${added.join('\n')}\n${after}`;
+}
+
+/** Index of the first line after the frontmatter, or 0 when there is none. */
+function frontmatterEnd(lines: readonly string[]): number {
+	if (lines[0]?.trim() !== '---') return 0;
+	const close = lines.findIndex((line, index) => index > 0 && line.trim() === '---');
+	return close === -1 ? 0 : close + 1;
+}
+
+function cells(line: string): string[] {
+	const inner = line.replace(/^\|/, '').replace(/\|$/, '');
+	return inner.split(UNESCAPED_PIPE).map((cell) => cell.trim().replace(/\\\|/g, '|'));
+}
+
+function isHeader(line: string): boolean {
+	return cells(line)[0]?.toLowerCase() === 'date';
+}
+
+function isSeparator(line: string): boolean {
+	return cells(line).every((cell) => /^:?-+:?$/.test(cell));
+}
+
+function rowFrom(values: readonly string[]): LedgerRow | null {
+	if (values.length !== COLUMNS.length) return null;
+	const [date, habiticaId, task, kind, skill, xp, source, n] = values as [string, string, string, string, string, string, string, string];
+	const parsedKind = oneOf(KINDS, kind);
+	const parsedSource = oneOf(SOURCES, source);
+	if (!DATE.test(date) || habiticaId === '' || parsedKind === null || parsedSource === null) return null;
+	if (!INTEGER.test(xp) || !POSITIVE.test(n)) return null;
+	return { date, habiticaId, task, kind: parsedKind, skill: skill === '' ? null : skill, xp: Number(xp), source: parsedSource, n: Number(n) };
+}
