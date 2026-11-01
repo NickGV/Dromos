@@ -395,15 +395,23 @@ describe('campaign habits (S8)', () => {
 		]);
 	});
 
-	it('uses 21 days when the habit gives none or a bad number, and no skill of its own', () => {
-		const campaign = withHabits([{ title: 'A' }, { title: 'B', days: 0 }, { title: 'C', days: '10' }, { title: 'D', days: 2.5 }]);
+	it('uses 21 days when the habit gives none or a bad number, reads digits in a text as a number, and has no skill of its own', () => {
+		const campaign = withHabits([{ title: 'A' }, { title: 'B', days: 0 }, { title: 'C', days: '10' }, { title: 'D', days: 2.5 }, { title: 'E', days: 'ten' }]);
 
 		expect(campaign.habits.map((habit) => [habit.title, habit.days, habit.skills, habit.habiticaId])).toEqual([
 			['A', 21, [], null],
 			['B', 21, [], null],
-			['C', 21, [], null],
+			['C', 10, [], null],
 			['D', 21, [], null],
+			['E', 21, [], null],
 		]);
+	});
+
+	it('lowercases skill ids, as the skill tags are, so a campaign and a tag always agree', () => {
+		const campaign = withHabits([{ title: 'A', skill: ['Atleta', ' CUIDADOR '] }], { skill: 'Exegeta' });
+
+		expect(campaign.skills).toEqual(['exegeta']);
+		expect(campaign.habits[0]?.skills).toEqual(['atleta', 'cuidador']);
 	});
 
 	it('skips habits without a title and reads anything that is not a list as no habits', () => {

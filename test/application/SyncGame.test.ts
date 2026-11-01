@@ -139,11 +139,36 @@ describe('SyncGame: what stops it', () => {
 
 	it('reports a failed ledger write as an error and writes no projection', async () => {
 		const { sync, ledger, skills, characters } = setup({ tasks: [todo('a')] });
-		ledger.failWith = new Error('disk');
+		ledger.failAppendWith = new Error('disk');
 
 		expect((await sync.execute()).status).toEqual({ kind: 'error' });
 		expect(skills.written).toEqual([]);
 		expect(characters.saved).toEqual([]);
+	});
+
+	it('keeps the day of an unlock even if the ledger could not be written: the skill note goes first', async () => {
+		const { sync, skills, ledger, source } = setup({ tasks: [todo('a'), todo('b')] });
+		ledger.failAppendWith = new Error('disk');
+		expect((await sync.execute()).status).toEqual({ kind: 'error' });
+		expect(skills.written).toEqual([{ skillId: 'lector', projection: { unlocked: true, unlockedOn: TODAY, level: 1, xp: 0, xpToNext: 100 } }]);
+
+		ledger.failAppendWith = null;
+		source.tasks = [todo('a'), todo('b'), todo('c')];
+		const next = new SyncGame({
+			skills,
+			ledger,
+			characters: new InMemoryGameStateRepository({ kind: 'found', character: NICO }),
+			campaigns: new InMemoryCampaignRepository(),
+			source,
+			clock: new FixedClock(NOW, '2026-11-04'),
+			state: new GameState(),
+			hasCredentials: () => true,
+		});
+
+		const snapshot = await next.execute();
+
+		expect(snapshot.skills?.[0]?.skill).toMatchObject({ unlocked: true, unlockedOn: TODAY });
+		expect(snapshot.events).toEqual([]);
 	});
 
 	it('shares one sync between two calls that arrive together', async () => {

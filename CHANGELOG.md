@@ -8,7 +8,7 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 - **Skills.** Sixteen skills, all locked at the start and earned through quests, campaigns, habit streaks and, for some, something you confirm by hand. Each has a description, five ranks (levels 1, 5, 10, 15 and 20), its own level and XP bar, and shows what it still asks for. They live as notes in `<folder>/Skills/`; an unlock is permanent and a skill earns XP from the day after it unlocks.
 - **XP and the ledger.** Completed Habitica to-dos and dailies earn XP by priority (a daily streak earns a bonus every 7 days); unchecking a task takes it back. Every change is a row in `<folder>/Ledger/YYYY-MM.md`, which is only ever appended to. Dromos counts only from the day of its first sync, so past completions never become progress.
-- **Six stats.** The character now has fuerza, vitalidad, inteligencia, sabiduría, espíritu and disciplina, each the sum of the XP of the unlocked skills that feed it. A `Character.md` written with the old four stats still reads.
+- **Six stats.** The character now has fuerza, vitalidad, inteligencia, sabiduría, espíritu and disciplina, each showing the level that the XP of the unlocked skills that feed it would have on the skill curve (disciplina also counts the dailies that carry no skill), so a stat of 3 and a skill of level 3 mean the same. A `Character.md` written with the old four stats still reads.
 - **Level-up banner** for a new character level, a new skill level or rank, and a skill unlock.
 - **Campaign habits.** A project can list `habits` with a target number of days; each can be sent to Habitica as a daily and shows its streak over the target. The streak is Habitica's, so a missed day starts it again.
 - **Send to Habitica** puts the `skill/<id>` tags of the task or habit on what it creates, and creates the tags that do not exist.
@@ -22,6 +22,8 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 ### Known limits
 
 - A daily counts for XP only if Dromos sees it completed the day it was done; open the view that day. Its streak still counts for habits and unlocks.
+- A daily that Habitica still shows as done after your local midnight, because its day has not rolled over yet, can be counted again for the new day.
+- A ledger row you damage by hand is listed as unreadable; Dromos cannot know what it said, so it may add that transition again. A row repeated exactly is counted once.
 
 ## [0.3.0] - 2026-10-31
 

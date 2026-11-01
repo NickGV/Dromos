@@ -103,10 +103,10 @@ export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 		.sort((left, right) => comparePriority(left.priority, right.priority) || left.title.localeCompare(right.title));
 }
 
-/** `skill` is a single id or a list of ids; both read as a list, and an empty text or `null` is no skill. */
+/** `skill` is a single id or a list of ids; both read as a list of lowercase ids (like the tags), and an empty text or `null` is no skill. */
 function skillsFrom(value: unknown): string[] {
 	const items = Array.isArray(value) ? value : [value];
-	return [...new Set(items.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim()] : [])))];
+	return [...new Set(items.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim().toLowerCase()] : [])))];
 }
 
 /** The completed campaigns of `notes`: the ones that count toward the `campaigns` requirement of a skill. */

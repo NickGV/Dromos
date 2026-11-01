@@ -54,8 +54,9 @@ const characterCurve = new LevelCurve(CHARACTER_CURVE);
 /**
  * The game sync (M3): reads the vault and Habitica, appends to the ledger what changed in
  * Habitica, decides which skills unlock, and writes the derived fields back to `Character.md`
- * and to the skill notes. The ledger is the record: the notes are a projection of it, so a
- * sync that fails half way is repaired by the next one. Never rejects.
+ * and to the skill notes. The ledger is the record and the notes are a projection of it; a
+ * sync that fails half way is repaired by the next one, which plans the same rows again.
+ * Never rejects.
  *
  * Only one sync runs at a time: two overlapping ones would read the same history and plan
  * the same rows twice.
@@ -118,7 +119,6 @@ export class SyncGame {
 		const gameStart = resolveGameStart(vault.character.gameStart, history, today);
 
 		const newRows = rowsToAppend(history, observations, gameStart);
-		if (newRows.length > 0) await ledger.append(newRows);
 		const rows = [...history, ...newRows];
 
 		const streaks = longestStreakBySkill(observations);
@@ -150,9 +150,13 @@ export class SyncGame {
 		const character = { ...characterCurve.progressFor(after.characterXp), totalXp: after.characterXp };
 		const events = detectEvents(characterCurve.levelFor(before.characterXp), character.level, changes);
 
+		// The skill notes go first: they are the only place the day of an unlock is kept, and the
+		// ledger rows can be planned again by the next sync, so a failure between the two writes
+		// loses nothing that matters.
 		for (const { skill, standing, xp } of entries) {
 			await skills.writeProjection(skill.id, { unlocked: skill.unlocked, unlockedOn: skill.unlockedOn, level: standing.level, xp, xpToNext: standing.xpToNext });
 		}
+		if (newRows.length > 0) await ledger.append(newRows);
 		await characters.saveCharacter({
 			level: character.level,
 			totalXp: character.totalXp,

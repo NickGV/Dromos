@@ -167,7 +167,7 @@ describe('skillFromNote: invalid notes are reported, never half-read', () => {
 		['an unknown kind', { kind: 'visits', count: 3 }],
 		['a missing kind', { count: 3 }],
 		['a zero count', { kind: 'quests', count: 0 }],
-		['a text count', { kind: 'quests', count: '5' }],
+		['a count in words', { kind: 'quests', count: 'five' }],
 		['a fractional count', { kind: 'campaigns', count: 1.5 }],
 		['a missing habit days', { kind: 'habit' }],
 		['a manual without text', { kind: 'manual', id: 'x', confirmed: false }],
@@ -175,6 +175,12 @@ describe('skillFromNote: invalid notes are reported, never half-read', () => {
 		['a plain text', 'quests'],
 	])('a requirement with %s: dropping it would unlock the skill too easily', (_label, requirement) => {
 		expect(invalid({ ...LECTOR, requirements: [{ kind: 'quests', count: 1 }, requirement] })).toBe('Requirement 2 is not valid.');
+	});
+
+	it('reads a count written as digits in a text', () => {
+		const frontmatter = { ...LECTOR, requirements: [{ kind: 'quests', count: '5' }, { kind: 'habit', days: ' 21 ' }] };
+
+		expect(skillFromNote(note(frontmatter))).toMatchObject({ skill: { requirements: [{ kind: 'quests', count: 5 }, { kind: 'habit', days: 21 }] } });
 	});
 
 	it('requirements that are not a list', () => {

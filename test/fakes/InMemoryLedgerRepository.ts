@@ -4,7 +4,10 @@ import type { LedgerLoadResult, LedgerRepository, UnreadableLedgerEvent } from '
 /** Ledger held in memory. `appended` keeps each batch, so a test can see what one sync wrote. */
 export class InMemoryLedgerRepository implements LedgerRepository {
 	readonly appended: (readonly LedgerRow[])[] = [];
-	failWith: Error | null = null;
+	/** Makes `readAll` reject. */
+	failReadWith: Error | null = null;
+	/** Makes `append` reject; the rows already there stay readable. */
+	failAppendWith: Error | null = null;
 
 	constructor(
 		private rows: readonly LedgerRow[] = [],
@@ -12,12 +15,12 @@ export class InMemoryLedgerRepository implements LedgerRepository {
 	) {}
 
 	readAll(): Promise<LedgerLoadResult> {
-		if (this.failWith) return Promise.reject(this.failWith);
+		if (this.failReadWith) return Promise.reject(this.failReadWith);
 		return Promise.resolve({ rows: this.rows, unreadable: this.unreadable });
 	}
 
 	append(rows: readonly LedgerRow[]): Promise<void> {
-		if (this.failWith) return Promise.reject(this.failWith);
+		if (this.failAppendWith) return Promise.reject(this.failAppendWith);
 		this.appended.push(rows);
 		this.rows = [...this.rows, ...rows];
 		return Promise.resolve();

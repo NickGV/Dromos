@@ -24,6 +24,7 @@ It does not replace anything. Obsidian keeps the knowledge, Habitica keeps the t
 
 - Habitica stays the engine: a completed **to-do** is worth 5, 10, 15 or 25 XP by its priority and a completed **daily** 3, 5, 8 or 12; a daily earns 10 more XP every 7 days of streak. Habits (the + and − buttons) give no XP.
 - Dromos counts only from the day of its first sync: what you completed before is never turned into progress.
+- A stat shows the level its XP would have on the skill curve: it is fed by the unlocked skills that feed it, and `disciplina` also by the dailies that carry no skill.
 - A task counts for the character once and, in full, for each unlocked skill it is tagged with (`skill/<id>` tags; Dromos creates them in Habitica when you send a campaign task, and you add them by hand to your own tasks). Unchecking a task takes its XP back.
 - Everything is recorded as rows in `<folder>/Ledger/YYYY-MM.md`, one note a month; rows are only ever added.
 
