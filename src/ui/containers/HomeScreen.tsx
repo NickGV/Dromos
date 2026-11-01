@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
+import type { GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
 import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import { SyncButton } from '../atoms/SyncButton';
@@ -10,7 +10,7 @@ import { CharacterPanel, type CharacterPanelState } from '../organisms/Character
 import { QuestList } from '../organisms/QuestList';
 import { SkillsPanel } from '../organisms/SkillsPanel';
 import { characterCardView } from '../presenters/characterCardView';
-import { levelUpBannerView } from '../presenters/levelUpView';
+import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
 import { questListView } from '../presenters/questListView';
 import { skillsPageView } from '../presenters/skillsView';
 import { syncBannerView } from '../presenters/syncBanner';
@@ -26,6 +26,10 @@ export interface HomeScreenDeps {
 	readonly gameSnapshot: () => GameSnapshot;
 	/** The level-up banner was closed. */
 	readonly dismissGameEvents: () => void;
+	/** The game events not toasted yet; each one comes out once. */
+	readonly takeGameAnnouncements: () => readonly GameEvent[];
+	/** Shows a brief toast. */
+	readonly notify: (message: string) => void;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
@@ -65,6 +69,9 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		setGame(deps.gameSnapshot());
 	}, [deps]);
 	const levelUp = levelUpBannerView(game.events, t);
+	const announce = useCallback((): void => {
+		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
+	}, [deps]);
 
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await loadHomeOrNull(deps.loadHome);
@@ -79,10 +86,13 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		const synced = await pending;
 		if (mounted.current) setQuests(synced);
 		const played = await gamePending;
-		if (mounted.current) setGame(played);
+		if (mounted.current) {
+			setGame(played);
+			announce();
+		}
 		const updated = await loadHomeOrNull(deps.loadHome);
 		if (mounted.current && updated) setCharacter(updated.character);
-	}, [deps]);
+	}, [deps, announce]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -96,11 +106,12 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		() =>
 			deps.subscribeGame(() => {
 				setGame(deps.gameSnapshot());
+				announce();
 				void loadHomeOrNull(deps.loadHome).then((updated) => {
 					if (mounted.current && updated) setCharacter(updated.character);
 				});
 			}),
-		[deps],
+		[deps, announce],
 	);
 
 	return (

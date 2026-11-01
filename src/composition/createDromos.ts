@@ -81,6 +81,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			syncGame,
 			gameSnapshot: () => gameState.snapshot(),
 			dismissGameEvents: () => gameState.dismissEvents(),
+			takeGameAnnouncements: () => gameState.takeAnnouncements(),
+			notify: showNotice,
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),

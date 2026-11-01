@@ -696,3 +696,57 @@ describe('SyncGame: rebuild (S17)', () => {
 		expect(state.snapshot().status).toEqual({ kind: 'synced' });
 	});
 });
+
+describe('SyncGame: what is still to announce (S18)', () => {
+	const unlocks = { skills: [lector()], tasks: [todo('a'), todo('b')] };
+	const unlocked = { kind: 'skill-unlocked', skillId: 'lector', name: 'Lector' };
+
+	it('hands over what a sync produced exactly once', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+		expect(state.takeAnnouncements()).toEqual([]);
+	});
+
+	it('leaves the banner alone: it keeps its events until it is closed', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+
+		state.takeAnnouncements();
+
+		expect(state.snapshot().events).toEqual([unlocked]);
+	});
+
+	it('does not lose them when the banner was closed first', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+
+		state.dismissEvents();
+
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('a second sync with nothing new has nothing to announce', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+		state.takeAnnouncements();
+
+		await sync.execute();
+
+		expect(state.takeAnnouncements()).toEqual([]);
+	});
+
+	it('holds what a rebuild decided too', async () => {
+		const quests = [row({ habiticaId: 'a', date: '2026-11-02' }), row({ habiticaId: 'b', date: '2026-11-02' })];
+		const { sync, state } = setup({ skills: [lector()], rows: quests });
+
+		await sync.rebuild();
+
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('starts empty', () => {
+		expect(setup().state.takeAnnouncements()).toEqual([]);
+	});
+});

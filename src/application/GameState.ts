@@ -53,6 +53,8 @@ const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, ch
 /** Session-scoped game state, held in memory only; the vault is the record. */
 export class GameState {
 	private current: GameSnapshot = INITIAL;
+	/** Events no toast has covered yet. Closing the banner does not touch them. */
+	private unannounced: readonly GameEvent[] = [];
 
 	snapshot(): GameSnapshot {
 		return this.current;
@@ -72,6 +74,7 @@ export class GameState {
 	}
 
 	private record(result: GameResult, status: GameStatus, lastSyncedAt: Date | null): void {
+		this.unannounced = [...this.unannounced, ...result.events];
 		this.current = {
 			status,
 			lastSyncedAt,
@@ -87,6 +90,13 @@ export class GameState {
 	/** Changes only the status; everything else stays as the last sync left it. */
 	setStatus(status: GamePendingOrFailedStatus): void {
 		this.current = { ...this.current, status };
+	}
+
+	/** The events not handed over yet. Each comes out once, so a toast is never repeated. */
+	takeAnnouncements(): readonly GameEvent[] {
+		const events = this.unannounced;
+		this.unannounced = [];
+		return events;
 	}
 
 	/** The banner was closed. */

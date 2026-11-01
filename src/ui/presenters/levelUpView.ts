@@ -13,6 +13,11 @@ export function levelUpBannerView(events: readonly GameEvent[], t: Translator): 
 	return { messages: events.map((event) => messageFor(event, t)), dismissLabel: t('event.dismiss') };
 }
 
+/** The toasts of a sync (S18): an unlock only, since a level-up has the banner. */
+export function unlockNotices(events: readonly GameEvent[], t: Translator): string[] {
+	return events.filter((event) => event.kind === 'skill-unlocked').map((event) => messageFor(event, t));
+}
+
 function messageFor(event: GameEvent, t: Translator): string {
 	switch (event.kind) {
 		case 'character-level':
