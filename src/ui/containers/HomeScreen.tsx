@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { HomeSnapshot, LoadHome, QuestSnapshot, SyncQuests } from '../../application';
+import type { HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
 import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import { SyncButton } from '../atoms/SyncButton';
@@ -16,6 +16,8 @@ import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 export interface HomeScreenDeps {
 	readonly loadHome: Pick<LoadHome, 'execute'>;
 	readonly syncQuests: Pick<SyncQuests, 'execute'>;
+	/** The game sync: ledger, unlocks and the derived fields of the notes. Never rejects. */
+	readonly syncGame: Pick<SyncGame, 'execute'>;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
@@ -35,8 +37,9 @@ const CLOCK_TICK_MS = 30_000;
  * The only UI component that calls `application/` (S8). On mount and on
  * "Sincronizar" it reads the character (LoadHome, no network), renders it with
  * the session's quests, then runs one SyncQuests: it renders the `syncing`
- * snapshot first and the outcome when the sync settles. Each run also bumps `syncKey`,
- * which makes the campaigns panel sync too. No polling (S7).
+ * snapshot first and the outcome when the sync settles. The game sync runs next to it and,
+ * when it finishes, the character is read again because the sync rewrites its note. Each run
+ * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  */
 export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [character, setCharacter] = useState<CharacterState>({ kind: 'loading' });
@@ -54,9 +57,13 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
+		const gamePending = deps.syncGame.execute();
 		setQuests(deps.questSnapshot());
 		const synced = await pending;
 		if (mounted.current) setQuests(synced);
+		await gamePending;
+		const updated = await loadHomeOrNull(deps.loadHome);
+		if (mounted.current && updated) setCharacter(updated.character);
 	}, [deps]);
 
 	useEffect(() => {
