@@ -20,4 +20,7 @@ export interface CampaignRepository {
 	 * overwrites an id (`already-linked`) and never touches `research` notes.
 	 */
 	linkHabiticaId(campaignPath: string, taskTitle: string, habiticaId: string): Promise<LinkResult>;
+
+	/** The same check-and-set for a habit of a project: writes the id of its daily into `habits[]`. */
+	linkHabitHabiticaId(campaignPath: string, habitTitle: string, habiticaId: string): Promise<LinkResult>;
 }

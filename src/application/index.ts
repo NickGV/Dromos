@@ -2,6 +2,7 @@
 export * from './CampaignState';
 export * from './gameEvents';
 export * from './GameState';
+export * from './LinkHabitToCampaign';
 export * from './LinkTaskToCampaign';
 export * from './mergeTaskStatuses';
 export * from './LoadHome';
@@ -9,4 +10,5 @@ export * from './QuestState';
 export * from './SyncCampaigns';
 export * from './SyncGame';
 export * from './SyncQuests';
+export * from './sendAndLink';
 export * from './statusForFailure';

@@ -3,8 +3,9 @@ import type { Campaign } from '../../domain';
 import type { CampaignRepository, LinkResult } from '../../ports';
 import { SystemClock } from '../obsidian/SystemClock';
 import { waitForCache } from './cacheWait';
-import { linkHabiticaIdInFrontmatter } from './campaignLink';
+import { linkHabiticaIdInFrontmatter, linkHabitHabiticaIdInFrontmatter } from './campaignLink';
 import { buildActiveCampaigns, buildCompletedCampaigns, linkPath, type VaultNote } from './campaignMapper';
+import { onCacheChanged } from './vaultFrontmatter';
 
 /** Note types `listActive` needs: the campaigns themselves and the sessions of a research. */
 const RELEVANT_TYPES: readonly unknown[] = ['index', 'research', 'study-session'];
@@ -27,26 +28,31 @@ export class VaultCampaignRepository implements CampaignRepository {
 		return Promise.resolve(buildCompletedCampaigns(this.notes()));
 	}
 
-	async linkHabiticaId(campaignPath: string, taskTitle: string, habiticaId: string): Promise<LinkResult> {
+	linkHabiticaId(campaignPath: string, taskTitle: string, habiticaId: string): Promise<LinkResult> {
+		return this.link(campaignPath, 'tasks', habiticaId, (frontmatter) => linkHabiticaIdInFrontmatter(frontmatter, taskTitle, habiticaId));
+	}
+
+	linkHabitHabiticaId(campaignPath: string, habitTitle: string, habiticaId: string): Promise<LinkResult> {
+		return this.link(campaignPath, 'habits', habiticaId, (frontmatter) => linkHabitHabiticaIdInFrontmatter(frontmatter, habitTitle, habiticaId));
+	}
+
+	private async link(
+		campaignPath: string,
+		key: 'tasks' | 'habits',
+		habiticaId: string,
+		apply: (frontmatter: Record<string, unknown>) => LinkResult,
+	): Promise<LinkResult> {
 		const file = this.app.vault.getFileByPath(campaignPath);
 		if (!file) return 'not-found';
 
 		let result = 'not-found' as LinkResult;
 		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-			result = linkHabiticaIdInFrontmatter(frontmatter, taskTitle, habiticaId);
+			result = apply(frontmatter);
 		});
 		// Obsidian re-reads the frontmatter after saving; wait for it so the next read, which
 		// decides whether the button shows again, already sees the id.
 		if (result === 'linked') {
-			await waitForCache(
-				(onChanged) => {
-					const ref = this.app.metadataCache.on('changed', (changed) => onChanged(changed.path));
-					return () => this.app.metadataCache.offref(ref);
-				},
-				file.path,
-				() => this.cacheHasId(file, habiticaId),
-				CACHE_WAIT_MS,
-			);
+			await waitForCache(onCacheChanged(this.app), file.path, () => this.cacheHasId(file, key, habiticaId), CACHE_WAIT_MS);
 		}
 		return result;
 	}
@@ -57,9 +63,9 @@ export class VaultCampaignRepository implements CampaignRepository {
 		return target === null ? null : (this.app.metadataCache.getFirstLinkpathDest(target, file.path)?.path ?? null);
 	}
 
-	private cacheHasId(file: TFile, habiticaId: string): boolean {
-		const tasks: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter?.tasks;
-		return Array.isArray(tasks) && tasks.some((task: unknown) => (task as { habitica_id?: unknown } | null)?.habitica_id === habiticaId);
+	private cacheHasId(file: TFile, key: 'tasks' | 'habits', habiticaId: string): boolean {
+		const entries: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter?.[key];
+		return Array.isArray(entries) && entries.some((entry: unknown) => (entry as { habitica_id?: unknown } | null)?.habitica_id === habiticaId);
 	}
 
 	private notes(): VaultNote[] {
