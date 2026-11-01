@@ -49,6 +49,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const campaignState = new CampaignState();
 	const campaignRepository = new VaultCampaignRepository(plugin.app);
 	const vaultFolder = (): string => settings.vaultFolder;
+	const gameState = new GameState();
 	const syncGame = new SyncGame({
 		skills: new VaultSkillRepository(plugin.app, vaultFolder),
 		ledger: new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today()),
@@ -56,7 +57,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		campaigns: campaignRepository,
 		source: new HabiticaGameTaskSource(habitica),
 		clock,
-		state: new GameState(),
+		state: gameState,
 		hasCredentials,
 	});
 
@@ -65,6 +66,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			loadHome: new LoadHome({ repository, state }),
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			syncGame,
+			gameSnapshot: () => gameState.snapshot(),
+			dismissGameEvents: () => gameState.dismissEvents(),
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),
