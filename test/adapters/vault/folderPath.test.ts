@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { characterNotePath, normalizeVaultFolder } from '../../../src/adapters/vault/folderPath';
+import { characterNotePath, ledgerFolderPath, ledgerNotePath, normalizeVaultFolder, skillNotePath, skillsFolderPath } from '../../../src/adapters/vault/folderPath';
 
 describe('normalizeVaultFolder', () => {
 	it('keeps a clean folder as is', () => {
@@ -29,5 +29,19 @@ describe('characterNotePath', () => {
 		expect(characterNotePath('Dromos')).toBe('Dromos/Character.md');
 		expect(characterNotePath(' Notas/Dromos/ ')).toBe('Notas/Dromos/Character.md');
 		expect(characterNotePath('')).toBe('Dromos/Character.md');
+	});
+});
+
+describe('skills and ledger paths', () => {
+	it('places the skills and the monthly ledger notes inside the normalized folder', () => {
+		expect(skillsFolderPath(' Notas/Dromos/ ')).toBe('Notas/Dromos/Skills');
+		expect(skillNotePath('Dromos', 'lector')).toBe('Dromos/Skills/lector.md');
+		expect(ledgerFolderPath('Dromos/')).toBe('Dromos/Ledger');
+		expect(ledgerNotePath('Dromos', '2026-11')).toBe('Dromos/Ledger/2026-11.md');
+	});
+
+	it('falls back to the default folder', () => {
+		expect(skillNotePath('', 'lector')).toBe('Dromos/Skills/lector.md');
+		expect(ledgerNotePath('///', '2026-11')).toBe('Dromos/Ledger/2026-11.md');
 	});
 });

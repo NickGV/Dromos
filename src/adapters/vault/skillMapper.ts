@@ -1,4 +1,5 @@
 import { RANK_COUNT, STAT_IDS, skillTag, type Requirement, type Skill, type SkillRank, type StatId } from '../../domain';
+import type { InvalidSkillNote } from '../../ports';
 import { asRecord, dateOrNull, fileName, nonEmpty, oneOf, positiveInteger } from './frontmatterFields';
 
 /** A note as the skill mapper sees it: no `obsidian` types, so it is testable. */
@@ -12,11 +13,6 @@ export interface SkillNote {
 export type SkillReadResult =
 	| { readonly kind: 'skill'; readonly skill: Skill }
 	| { readonly kind: 'invalid'; readonly path: string; readonly reason: string };
-
-export interface InvalidSkillNote {
-	readonly path: string;
-	readonly reason: string;
-}
 
 export interface BuiltSkills {
 	readonly skills: readonly Skill[];

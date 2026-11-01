@@ -4,7 +4,7 @@ import type { CampaignRepository, LinkResult } from '../../ports';
 import { SystemClock } from '../obsidian/SystemClock';
 import { waitForCache } from './cacheWait';
 import { linkHabiticaIdInFrontmatter } from './campaignLink';
-import { buildActiveCampaigns, linkPath, type VaultNote } from './campaignMapper';
+import { buildActiveCampaigns, buildCompletedCampaigns, linkPath, type VaultNote } from './campaignMapper';
 
 /** Note types `listActive` needs: the campaigns themselves and the sessions of a research. */
 const RELEVANT_TYPES: readonly unknown[] = ['index', 'research', 'study-session'];
@@ -21,6 +21,10 @@ export class VaultCampaignRepository implements CampaignRepository {
 
 	listActive(): Promise<readonly Campaign[]> {
 		return Promise.resolve(buildActiveCampaigns(this.notes()));
+	}
+
+	listCompleted(): Promise<readonly Campaign[]> {
+		return Promise.resolve(buildCompletedCampaigns(this.notes()));
 	}
 
 	async linkHabiticaId(campaignPath: string, taskTitle: string, habiticaId: string): Promise<LinkResult> {

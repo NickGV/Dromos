@@ -1,4 +1,5 @@
 import type { Character } from '../domain';
+import type { CharacterProjection } from './Projections';
 
 /**
  * Outcome of reading the character note. `missing` carries the vault path that
@@ -9,8 +10,17 @@ export type CharacterLoadResult =
 	| { readonly kind: 'found'; readonly character: Character }
 	| { readonly kind: 'missing'; readonly path: string };
 
-/** Game state stored in the vault. Minimal M1 version: no ledger yet. */
+/** Outcome of writing the projection into the character note. */
+export type CharacterSaveResult = 'saved' | 'unchanged' | 'missing';
+
+/** Game state stored in the vault: the character note. The ledger and the skills have their own repositories. */
 export interface GameStateRepository {
 	/** Reads `<vaultFolder>/Character.md`; resolves `missing` instead of throwing when the note is absent. */
 	loadCharacter(): Promise<CharacterLoadResult>;
+
+	/**
+	 * Writes the derived fields (level, XP, stats) into `Character.md`. It never creates the
+	 * note and never touches `name`, `title` or anything the user wrote.
+	 */
+	saveCharacter(projection: CharacterProjection): Promise<CharacterSaveResult>;
 }

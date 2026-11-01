@@ -13,3 +13,21 @@ export function normalizeVaultFolder(folder: string): string {
 export function characterNotePath(folder: string): string {
 	return `${normalizeVaultFolder(folder)}/${CHARACTER_NOTE_NAME}`;
 }
+
+export function skillsFolderPath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Skills`;
+}
+
+/** Vault path of one skill note, for example `Dromos/Skills/lector.md`; the file name is the skill id. */
+export function skillNotePath(folder: string, skillId: string): string {
+	return `${skillsFolderPath(folder)}/${skillId}.md`;
+}
+
+export function ledgerFolderPath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Ledger`;
+}
+
+/** Vault path of the ledger note of a `YYYY-MM` month, for example `Dromos/Ledger/2026-11.md`. */
+export function ledgerNotePath(folder: string, month: string): string {
+	return `${ledgerFolderPath(folder)}/${month}.md`;
+}

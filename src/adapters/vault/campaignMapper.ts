@@ -39,9 +39,9 @@ const RESEARCH_FOLDER = /^03 - Areas\/[^/]+\/Estudio\//;
  * project folder, or a `research` under an area's `Estudio` folder. The path rule
  * keeps other active `index` or `research` notes (maps, audits, templates) out.
  */
-export function isCampaignNote(note: VaultNote): boolean {
+export function isCampaignNote(note: VaultNote, status: LifecycleStatus = 'active'): boolean {
 	const fields = asRecord(note.frontmatter);
-	if (fields.status !== 'active') return false;
+	if (fields.status !== status) return false;
 	if (fields.type === 'index') return PROJECT_README.test(note.path);
 	if (fields.type === 'research') return RESEARCH_FOLDER.test(note.path);
 	return false;
@@ -80,7 +80,7 @@ export function campaignFromNote(note: VaultNote, sessions: readonly VaultNote[]
 		kind,
 		path: note.path,
 		title: nonEmpty(fields.title) ?? name,
-		status: 'active',
+		status: oneOf(STATUSES, fields.status) ?? 'active',
 		priority: oneOf(PRIORITIES, fields.priority) ?? DEFAULT_PRIORITY,
 		area: linkTarget(fields.area) ?? nonEmpty(fields.area),
 		skills: skillsFrom(fields.skill),
@@ -95,7 +95,7 @@ export function campaignFromNote(note: VaultNote, sessions: readonly VaultNote[]
 /** The pure core of `listActive`: active campaigns of `notes`, sorted by priority then title. */
 export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 	return notes
-		.filter(isCampaignNote)
+		.filter((note) => isCampaignNote(note))
 		.map((note) => campaignFromNote(note, notes))
 		.sort((left, right) => comparePriority(left.priority, right.priority) || left.title.localeCompare(right.title));
 }
@@ -104,6 +104,14 @@ export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 function skillsFrom(value: unknown): string[] {
 	const items = Array.isArray(value) ? value : [value];
 	return [...new Set(items.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim()] : [])))];
+}
+
+/** The completed campaigns of `notes`: the ones that count toward the `campaigns` requirement of a skill. */
+export function buildCompletedCampaigns(notes: readonly VaultNote[]): Campaign[] {
+	return notes
+		.filter((note) => isCampaignNote(note, 'completed'))
+		.map((note) => campaignFromNote(note, notes))
+		.sort((left, right) => left.title.localeCompare(right.title));
 }
 
 function phasesFrom(value: unknown): Phase[] {

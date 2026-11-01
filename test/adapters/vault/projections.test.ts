@@ -4,9 +4,8 @@ import {
 	applySkillProjection,
 	characterProjectionChanged,
 	skillProjectionChanged,
-	type CharacterProjection,
-	type SkillProjection,
 } from '../../../src/adapters/vault/projections';
+import type { CharacterProjection, SkillProjection } from '../../../src/ports';
 
 const CHARACTER: CharacterProjection = {
 	level: 3,

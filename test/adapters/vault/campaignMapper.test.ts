@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	buildActiveCampaigns,
+	buildCompletedCampaigns,
 	campaignFromNote,
 	isCampaignNote,
 	linkPath,
@@ -351,5 +352,30 @@ describe('buildActiveCampaigns', () => {
 
 	it('returns an empty list when nothing qualifies', () => {
 		expect(buildActiveCampaigns([])).toEqual([]);
+	});
+});
+
+describe('completed campaigns (they count toward the campaigns requirement of a skill)', () => {
+	const CHESHBON = note('02 - Projects/Cheshbon/README.md', { type: 'index', status: 'completed', title: 'Cheshbon', skill: ['desarrollador'], created: '2026-03-01' });
+	const HISTORIA = note('03 - Areas/Bible/Estudio/Historia de la Biblia/Estudio - Historia.md', { type: 'research', status: 'completed', skill: 'exegeta' });
+
+	it('isCampaignNote can ask for a status and keeps the path rules', () => {
+		expect(isCampaignNote(CHESHBON, 'completed')).toBe(true);
+		expect(isCampaignNote(CHESHBON)).toBe(false);
+		expect(isCampaignNote(KAIROS, 'completed')).toBe(false);
+		expect(isCampaignNote(note('a.md', { type: 'index', status: 'completed' }), 'completed')).toBe(false);
+	});
+
+	it('lists the completed projects and researches with their status and skills', () => {
+		const campaigns = buildCompletedCampaigns([KAIROS, CHESHBON, HISTORIA]);
+
+		expect(campaigns.map((campaign) => [campaign.title, campaign.status, campaign.skills])).toEqual([
+			['Cheshbon', 'completed', ['desarrollador']],
+			['Estudio - Historia', 'completed', ['exegeta']],
+		]);
+	});
+
+	it('the active list never includes them, and an active campaign reads as active', () => {
+		expect(buildActiveCampaigns([KAIROS, CHESHBON, HISTORIA]).map((campaign) => [campaign.title, campaign.status])).toEqual([['Kairos', 'active']]);
 	});
 });

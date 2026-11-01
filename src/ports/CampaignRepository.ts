@@ -11,6 +11,9 @@ export interface CampaignRepository {
 	 */
 	listActive(): Promise<readonly Campaign[]>;
 
+	/** Completed campaigns, ordered by title: the ones that count toward the `campaigns` requirement of a skill. */
+	listCompleted(): Promise<readonly Campaign[]>;
+
 	/**
 	 * Writes `habiticaId` into the first task of a project that has `taskTitle` and no
 	 * id yet. It is a check-and-set and the only write Dromos makes in a note: it never
