@@ -47,6 +47,30 @@ stats:
 
 Missing or non-numeric fields fall back to empty text or `0`; a note written with the old four stats still reads.
 
+### Changing the rules
+
+The numbers above are defaults. To change them, create `<folder>/Rules.md` with only the fields you want to change; Dromos reads this note and never writes it.
+
+```yaml
+---
+type: dromos-rules
+xp:
+  todo: { trivial: 5, easy: 10, medium: 15, hard: 25 }
+  daily: { trivial: 3, easy: 5, medium: 8, hard: 12 }
+  streak_bonus: { every: 7, xp: 10 }
+level_curve: { kind: polynomial, base: 100, exponent: 1.5 }  # the character: round(base * level ^ exponent)
+skill_curve: { kind: polynomial, base: 100, exponent: 1.3 }
+rank_levels: [1, 5, 10, 15, 20]
+---
+```
+
+- New XP values price new rows only: a row keeps what it paid. A changed curve or rank level recomputes every level from your past XP at the next sync or rebuild.
+- A value that cannot work keeps its default and is named in the **Skills** section: XP that is not a whole number above 0, a curve base below 1, an exponent outside 0 to 10, or rank levels that are not five rising whole numbers.
+
+### Rebuilding
+
+The command `Dromos: Rebuild state from ledger` recomputes `Character.md` and the skill notes from the ledger alone: no Habitica request and no new rows, so it works offline and without an account. If `Character.md` is missing it creates it again, with an empty `name` and `title` for you to write back. Those two fields and the day a skill unlocked live only in their notes, so a rebuild cannot recover them from a deleted note.
+
 ## Settings
 
 Under *Settings → Community plugins → Dromos*:
@@ -65,7 +89,7 @@ Under *Settings → Community plugins → Dromos*:
 - The requests carry your user ID and token in the `x-api-user` and `x-api-key` headers, as Habitica requires, plus `x-client: <creator's Habitica user ID>-dromos`, which Habitica's [API usage guidelines](https://github.com/HabitRPG/habitica/wiki/API-Usage-Guidelines) ask for: it identifies the tool's author, never you.
 - The token is stored only in the plugin's `data.json` (`.obsidian/plugins/dromos/data.json`) on each device. Dromos never writes it to a note, never logs it and never shows it. If you sync your `.obsidian` folder with another tool, that tool copies `data.json` too.
 - The notes of a to-do created by **Send to Habitica** hold the campaign's title and an `obsidian://` link made of your vault's name and the note's path. They go to your own Habitica account, so anyone who can read that account can read them.
-- Quests and campaign progress are kept in memory for the session only. Dromos writes into your notes in four places: the `habitica_id` of a project task or habit when you select **Send to Habitica**; the derived fields of `Character.md` (`level`, `total_xp`, `xp_to_next`, `stats`, `game_start`, `last_sync`, `updated_by`); the derived fields of each skill note (`unlocked`, `unlocked_on`, `level`, `xp`, `xp_to_next`); and new rows at the end of the monthly ledger note. It never writes in `research` or `study-session` notes. Obsidian rewrites the frontmatter of a note when Dromos saves it, so comments inside the YAML may be lost.
+- Quests and campaign progress are kept in memory for the session only. Dromos writes into your notes in four places: the `habitica_id` of a project task or habit when you select **Send to Habitica**; the derived fields of `Character.md` (`level`, `total_xp`, `xp_to_next`, `stats`, `game_start`, `last_sync`, `updated_by`); the derived fields of each skill note (`unlocked`, `unlocked_on`, `level`, `xp`, `xp_to_next`); and new rows at the end of the monthly ledger note. The rebuild command can also create `Character.md` when it is missing. It never writes in `Rules.md`, `research` or `study-session` notes. Obsidian rewrites the frontmatter of a note when Dromos saves it, so comments inside the YAML may be lost.
 
 ## Principles
 
@@ -82,7 +106,7 @@ Under *Settings → Community plugins → Dromos*:
 | M0 Foundations | Repo, build, empty view on desktop and Android |
 | M1 Character | Character card from `Dromos/Character.md` and today's Habitica quests |
 | M2 Campaigns | Project and research notes with phases, progress and tasks linked by `habitica_id` |
-| M3 Skills and XP | Six stats, ledger, level curves, earned skills with ranks, campaign habits, level-up banner |
+| M3 Skills and XP | Six stats, ledger, level curves, earned skills with ranks, campaign habits, level-up banner, `Rules.md`, rebuild command |
 | M4 The guide | Daily briefing written by the scribe, shown in the view |
 | M5 Polish | Android pass, BRAT releases, docs |
 
