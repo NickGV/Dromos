@@ -6,13 +6,14 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- **`Rules.md`.** The XP table, the streak bonus, both level curves and the rank levels can now be set in `<folder>/Rules.md`. A missing field keeps its default; a value that cannot work keeps its default and is named in the Skills section. New XP values price new rows only, and a changed curve or rank level recomputes every level.
+- **`Rules.md`.** The XP table, the streak bonus, both level curves and the rank levels can now be set in `<folder>/Rules.md`. A missing field keeps its default; a value that cannot work keeps its default and is named in the Skills section, as is a field Dromos does not know or a frontmatter it cannot read. New XP values price new rows only, and a changed curve or rank level recomputes every level.
 - **Rebuild state from ledger** command: recomputes `Character.md` and the skill notes from the ledger, without Habitica and without adding rows, and creates `Character.md` again if it is missing.
 - A toast when a skill unlocks, next to the banner.
 
 ### Known limits
 
-- A rebuild cannot recover what only a deleted note held: the `name` and `title` of `Character.md`, and the day a skill unlocked. A skill note created again counts XP only from its new unlock.
+- A rebuild cannot recover what only a deleted note held: the `name` and `title` of `Character.md`, and the day a skill unlocked. A skill note created again counts XP only from its new unlock, and a `game_start` created again is the oldest day in the ledger, later than the real start if that first day left no row.
+- A rebuild with no sync yet in the session shows habit progress as 0 until the next sync. It changes no unlock.
 
 ## [0.4.0] - 2026-11-01
 

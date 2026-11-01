@@ -65,11 +65,11 @@ rank_levels: [1, 5, 10, 15, 20]
 ```
 
 - New XP values price new rows only: a row keeps what it paid. A changed curve or rank level recomputes every level from your past XP at the next sync or rebuild.
-- A value that cannot work keeps its default and is named in the **Skills** section: XP that is not a whole number above 0, a curve base below 1, an exponent outside 0 to 10, or rank levels that are not five rising whole numbers.
+- A value that cannot work keeps its default and is named in the **Skills** section: XP that is not a whole number above 0, a curve base below 1, an exponent outside 0 to 10, or rank levels that are not five rising whole numbers starting at 1. A field Dromos does not know is named too, and a note whose frontmatter cannot be read plays entirely by the defaults and says so.
 
 ### Rebuilding
 
-The command `Dromos: Rebuild state from ledger` recomputes `Character.md` and the skill notes from the ledger alone: no Habitica request and no new rows, so it works offline and without an account. If `Character.md` is missing it creates it again, with an empty `name` and `title` for you to write back. Those two fields and the day a skill unlocked live only in their notes, so a rebuild cannot recover them from a deleted note.
+The command `Dromos: Rebuild state from ledger` recomputes `Character.md` and the skill notes from the ledger alone: no Habitica request and no new rows, so it works offline and without an account. If `Character.md` is missing it creates it again, with an empty `name` and `title` for you to write back. Those two fields and the day a skill unlocked live only in their notes, so a rebuild cannot recover them from a deleted note, and a `game_start` created again is the oldest day in the ledger.
 
 ## Settings
 
