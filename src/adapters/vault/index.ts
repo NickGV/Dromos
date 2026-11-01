@@ -7,3 +7,4 @@ export * from './VaultGameStateRepository';
 export * from './VaultCampaignRepository';
 export * from './skillMapper';
 export * from './ledgerNote';
+export * from './projections';
