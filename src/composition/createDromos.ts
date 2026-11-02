@@ -11,7 +11,7 @@ import {
 	type HabiticaCredentials,
 } from '../adapters/habitica';
 import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClock } from '../adapters/obsidian';
-import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
+import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
@@ -76,7 +76,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 
 	return {
 		home: {
-			loadHome: new LoadHome({ repository, state }),
+			loadHome: new LoadHome({ repository, briefings: new VaultBriefingRepository(plugin.app, vaultFolder), state }),
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			syncGame,
 			gameSnapshot: () => gameState.snapshot(),
