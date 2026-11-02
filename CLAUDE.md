@@ -45,8 +45,19 @@ Rules that keep it honest:
 ## Releases
 
 - Bump `manifest.json` and `versions.json` with `npm version`, then push a tag equal to the version, no leading `v`.
-- `release.yml` creates the GitHub release as a **draft**. BRAT cannot see drafts, so publish it: `gh release edit <tag> --draft=false --latest`.
+- `release.yml` publishes the GitHub release as soon as the tag is pushed, so pushing a tag IS the release. It publishes nothing if the tag is not the version in `manifest.json`, or if the tests, the lint or the build fail. To retry, commit the fix, delete the tag here and on the remote, tag the fix commit with the same version (not `npm version`, which refuses an unchanged version) and push the tag.
 - The repo is public, so BRAT needs no token. Users install through BRAT on every device, Android included.
+
+Which number goes up (Semantic Versioning, by what changed for the user, not by the size of the release):
+
+| What changed | Command | Example |
+|---|---|---|
+| Only fixes, nothing new | `npm version patch` | 0.6.0 → 0.6.1 |
+| Something new the user can use | `npm version minor` | 0.6.0 → 0.7.0 |
+| Something that forces the user to change their notes or data | `npm version major` | 1.0.0 → 2.0.0 |
+
+- Before 1.0 the first number stays at 0: a breaking change raises the second number and the changelog says so. 1.0.0 is the user's decision; the proposal is to make it when M5 closes and BRAT has been stable for a month.
+- Tag only when there is something the user wants on their devices, not per commit, and only with their go-ahead, because a pushed tag publishes. Changes that do not reach the plugin (internal notes, CI) get no tag of their own.
 
 ## Vault contracts (live in the Logos vault, not here)
 

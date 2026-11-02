@@ -21,9 +21,21 @@ jobs:
                   node-version: 24
                   cache: 'npm'
 
-            - name: Build plugin
+            # A tag publishes with no further step, so a wrong tag or a failing check must stop here.
+            - name: Check the tag is the version in the manifest
+              run: |
+                  tag="${GITHUB_REF#refs/tags/}"
+                  version="$(node -p "require('./manifest.json').version")"
+                  if [ "$tag" != "$version" ]; then
+                      echo "::error::Tag $tag is not the version in manifest.json ($version). Nothing was published."
+                      exit 1
+                  fi
+
+            - name: Test and build plugin
               run: |
                   npm ci
+                  npm test
+                  npm run lint
                   npm run build
 
             - name: Check for optional styles
@@ -46,5 +58,6 @@ jobs:
 
                   gh release create "$tag" \
                     --title="$tag" \
-                    --draft \
+                    --latest \
+                    --verify-tag \
                     main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}

@@ -21,7 +21,6 @@ const SOURCES: readonly LedgerSource[] = ['complete', 'revert', 'streak'];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const INTEGER = /^-?\d+$/;
 const POSITIVE = /^[1-9]\d*$/;
-const UNESCAPED_PIPE = /(?<!\\)\|/;
 
 /** `YYYY-MM` of a `YYYY-MM-DD` date: the ledger keeps one note per month. */
 export function ledgerMonthOf(date: string): string {
@@ -112,7 +111,21 @@ function frontmatterEnd(lines: readonly string[]): number {
 
 function cells(line: string): string[] {
 	const inner = line.replace(/^\|/, '').replace(/\|$/, '');
-	return inner.split(UNESCAPED_PIPE).map((cell) => cell.trim().replace(/\\\|/g, '|'));
+	return splitOnPipes(inner).map((cell) => cell.trim().replace(/\\\|/g, '|'));
+}
+
+/** Splits on each pipe with no backslash right before it. A regex lookbehind would do it, but iOS below 16.4 cannot parse one. */
+function splitOnPipes(text: string): string[] {
+	const parts: string[] = [];
+	let start = 0;
+	for (let index = 0; index < text.length; index += 1) {
+		if (text[index] === '|' && text[index - 1] !== '\\') {
+			parts.push(text.slice(start, index));
+			start = index + 1;
+		}
+	}
+	parts.push(text.slice(start));
+	return parts;
 }
 
 function isHeader(line: string): boolean {

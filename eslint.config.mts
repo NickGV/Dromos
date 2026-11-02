@@ -34,6 +34,8 @@ export default defineConfig(
 	...obsidianmd.configs.recommended,
 	{
 		rules: {
+			// The plugin's own regex-lookbehind rule misses a negative lookbehind like (?<!x), and iOS below 16.4 cannot parse one.
+			'no-restricted-syntax': ['error', { selector: 'Literal[regex.pattern=/\\(\\?<[=!]/]', message: 'Lookbehinds are not supported on iOS versions before 16.4.' }],
 			// Habitica and Dromos are proper nouns; Character.md is a file name.
 			'obsidianmd/ui/sentence-case': ['warn', { brands: ['Habitica', 'Dromos'], ignoreRegex: ['Character\\.md'] }],
 		},
