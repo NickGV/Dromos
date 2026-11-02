@@ -48,6 +48,17 @@ Rules that keep it honest:
 - `release.yml` publishes the GitHub release as soon as the tag is pushed, so pushing a tag IS the release. It publishes nothing if the tag is not the version in `manifest.json`, or if the tests, the lint or the build fail; then fix it, delete the tag and push it again.
 - The repo is public, so BRAT needs no token. Users install through BRAT on every device, Android included.
 
+Which number goes up (Semantic Versioning, by what changed for the user, not by the size of the release):
+
+| What changed | Command | Example |
+|---|---|---|
+| Only fixes, nothing new | `npm version patch` | 0.6.0 → 0.6.1 |
+| Something new the user can use | `npm version minor` | 0.6.0 → 0.7.0 |
+| Something that forces the user to change their notes or data | `npm version major` | 1.0.0 → 2.0.0 |
+
+- Before 1.0 the first number stays at 0: a breaking change raises the second number and the changelog says so. 1.0.0 is the user's decision; the proposal is to make it when M5 closes and BRAT has been stable for a month.
+- Tag only when there is something the user wants on their devices, not per commit, and only with their go-ahead, because a pushed tag publishes. Changes that do not reach the plugin (internal notes, CI) get no tag of their own.
+
 ## Vault contracts (live in the Logos vault, not here)
 
 Planning lives in the vault under `02 - Projects/Dromos/` (Charter, Architecture, Phases, Tech-Decisions ADR-001..013, Game-Design, Open-Questions, Visual-Design). The ones this code depends on:
