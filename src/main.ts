@@ -4,7 +4,7 @@ import { DromosView, VIEW_TYPE_DROMOS } from './ui/DromosView';
 
 export default class DromosPlugin extends Plugin {
 	async onload(): Promise<void> {
-		const { home, settingTab } = await createDromos(this);
+		const { home, settingTab, rebuildGame } = await createDromos(this);
 		this.addSettingTab(settingTab);
 		this.registerView(VIEW_TYPE_DROMOS, (leaf) => new DromosView(leaf, home));
 
@@ -17,6 +17,14 @@ export default class DromosPlugin extends Plugin {
 			name: 'Open',
 			callback: () => {
 				void this.activateView();
+			},
+		});
+
+		this.addCommand({
+			id: 'rebuild-state',
+			name: 'Rebuild state from ledger',
+			callback: () => {
+				void rebuildGame();
 			},
 		});
 	}

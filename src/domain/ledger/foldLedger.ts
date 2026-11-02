@@ -1,5 +1,6 @@
 import { STAT_IDS, type StatId } from '../character/Character';
-import { LevelCurve, SKILL_CURVE } from '../rules/LevelCurve';
+import { DEFAULT_RULES, type GameRules } from '../rules/GameRules';
+import { LevelCurve } from '../rules/LevelCurve';
 import type { LedgerRow } from './LedgerRow';
 
 /** What the fold needs to know about a skill. A `Skill` fits this shape. */
@@ -20,8 +21,6 @@ export interface GameTotals {
 	readonly stats: Readonly<Record<StatId, number>>;
 }
 
-const statCurve = new LevelCurve(SKILL_CURVE);
-
 /**
  * Turns the ledger into totals (S1, S3, S13).
  * - Character XP sums each transition once, so a quest with several skills counts once.
@@ -36,7 +35,8 @@ const statCurve = new LevelCurve(SKILL_CURVE);
  *   never doubles XP.
  * - No total goes below zero.
  */
-export function foldLedger(rows: readonly LedgerRow[], skills: readonly SkillXpSource[]): GameTotals {
+export function foldLedger(rows: readonly LedgerRow[], skills: readonly SkillXpSource[], rules: Pick<GameRules, 'skillCurve'> = DEFAULT_RULES): GameTotals {
+	const statCurve = new LevelCurve(rules.skillCurve);
 	const unique = uniqueRows(rows);
 	const skillXp = Object.fromEntries(skills.map((skill) => [skill.id, 0]));
 	const known = new Map(skills.map((skill) => [skill.id, skill]));

@@ -1,8 +1,7 @@
-import { LevelCurve, SKILL_CURVE } from '../rules/LevelCurve';
+import { DEFAULT_RULES, type GameRules } from '../rules/GameRules';
+import { LevelCurve } from '../rules/LevelCurve';
 import { rankIndexFor } from '../rules/Ranks';
 import type { Skill, SkillRank } from './Skill';
-
-const curve = new LevelCurve(SKILL_CURVE);
 
 export interface SkillStanding {
 	/** 0 while the skill is locked. */
@@ -14,10 +13,10 @@ export interface SkillStanding {
 }
 
 /** Level, progress and rank of a skill from its XP. A skill that has just unlocked is level 1 with 0 XP (S3). */
-export function skillStanding(unlocked: boolean, xp: number): SkillStanding {
+export function skillStanding(unlocked: boolean, xp: number, rules: Pick<GameRules, 'skillCurve' | 'rankLevels'> = DEFAULT_RULES): SkillStanding {
 	if (!unlocked) return { level: 0, xpIntoLevel: 0, xpToNext: null, rankIndex: null };
-	const { level, xpIntoLevel, xpToNext } = curve.progressFor(xp);
-	return { level, xpIntoLevel, xpToNext, rankIndex: rankIndexFor(level) };
+	const { level, xpIntoLevel, xpToNext } = new LevelCurve(rules.skillCurve).progressFor(xp);
+	return { level, xpIntoLevel, xpToNext, rankIndex: rankIndexFor(level, rules.rankLevels) };
 }
 
 /** The rank the note describes at `rankIndex`, or `null` when there is none (locked, or a note with fewer ranks). */

@@ -18,7 +18,10 @@ export interface LevelProgress {
 	readonly xpToNext: number;
 }
 
-/** Totals above this are clamped so the per-level loop in `progressFor` always ends quickly. */
+/**
+ * Totals above this are clamped. `progressFor` loops once per level, and a curve from `Rules.md`
+ * asks at least 1 XP per level, so the loop is never longer than the total.
+ */
 const MAX_TOTAL_XP = Number.MAX_SAFE_INTEGER;
 
 export class LevelCurve {

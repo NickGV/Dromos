@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { GameState } from '../../src/application/GameState';
 import { SyncGame } from '../../src/application/SyncGame';
 import type { Campaign, Character, LedgerRow, Skill } from '../../src/domain';
-import type { CharacterLoadResult, ObservedTask } from '../../src/ports';
+import { DEFAULT_RULES, type GameRules } from '../../src/domain/rules/GameRules';
+import type { CharacterLoadResult, ObservedTask, RulesLoadResult, UnreadableLedgerEvent } from '../../src/ports';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { campaign } from '../domain/campaign/campaignFixtures';
 import { row } from '../domain/ledger/ledgerFixtures';
@@ -12,6 +13,7 @@ import { FixedClock } from '../fakes/FixedClock';
 import { InMemoryCampaignRepository } from '../fakes/InMemoryCampaignRepository';
 import { InMemoryGameStateRepository } from '../fakes/InMemoryGameStateRepository';
 import { InMemoryLedgerRepository } from '../fakes/InMemoryLedgerRepository';
+import { InMemoryRulesRepository } from '../fakes/InMemoryRulesRepository';
 import { InMemorySkillRepository } from '../fakes/InMemorySkillRepository';
 
 const NOW = new Date('2026-11-03T15:00:00.000Z');
@@ -54,12 +56,14 @@ interface Options {
 	tasks?: ObservedTask[];
 	credentials?: boolean;
 	day?: string;
+	rules?: RulesLoadResult;
+	unreadable?: UnreadableLedgerEvent[];
 }
 
 function setup(options: Options = {}) {
 	const state = new GameState();
 	const skills = new InMemorySkillRepository(options.skills ?? [lector()]);
-	const ledger = new InMemoryLedgerRepository(options.rows ?? []);
+	const ledger = new InMemoryLedgerRepository(options.rows ?? [], options.unreadable ?? []);
 	const characters = new InMemoryGameStateRepository(options.character ?? { kind: 'found', character: NICO });
 	const source = new FakeGameTaskSource(options.tasks ?? []);
 	const sync = new SyncGame({
@@ -67,6 +71,7 @@ function setup(options: Options = {}) {
 		ledger,
 		characters,
 		campaigns: new InMemoryCampaignRepository([], options.completed ?? []),
+		rules: new InMemoryRulesRepository(options.rules),
 		source,
 		clock: new FixedClock(NOW, options.day ?? TODAY),
 		state,
@@ -77,7 +82,7 @@ function setup(options: Options = {}) {
 
 describe('SyncGame: what stops it', () => {
 	it('starts idle with nothing', () => {
-		expect(setup().state.snapshot()).toEqual({ status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [] });
+		expect(setup().state.snapshot()).toEqual({ status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null });
 	});
 
 	it('does nothing without Habitica credentials', async () => {
@@ -159,6 +164,7 @@ describe('SyncGame: what stops it', () => {
 			ledger,
 			characters: new InMemoryGameStateRepository({ kind: 'found', character: NICO }),
 			campaigns: new InMemoryCampaignRepository(),
+			rules: new InMemoryRulesRepository(),
 			source,
 			clock: new FixedClock(NOW, '2026-11-04'),
 			state: new GameState(),
@@ -411,6 +417,7 @@ describe('SyncGame: what it shows', () => {
 			ledger: new InMemoryLedgerRepository([], [{ path: 'Dromos/Ledger/2026-11.md', line: 12, text: '| broken |' }]),
 			characters: new InMemoryGameStateRepository({ kind: 'found', character: NICO }),
 			campaigns: new InMemoryCampaignRepository(),
+			rules: new InMemoryRulesRepository(),
 			source: new FakeGameTaskSource(),
 			clock: new FixedClock(NOW, TODAY),
 			state,
@@ -423,5 +430,373 @@ describe('SyncGame: what it shows', () => {
 		expect(snapshot.unreadable).toEqual([{ path: 'Dromos/Ledger/2026-11.md', line: 12, text: '| broken |' }]);
 		expect(snapshot.status).toEqual({ kind: 'synced' });
 		expect(snapshot.lastSyncedAt).toEqual(NOW);
+	});
+});
+
+describe('SyncGame: Rules.md (S16)', () => {
+	const RULES: GameRules = {
+		xp: { todo: { trivial: 1, easy: 40, medium: 3, hard: 4 }, daily: { trivial: 6, easy: 7, medium: 8, hard: 9 }, streakBonus: { every: 3, xp: 50 } },
+		characterCurve: { base: 10, exponent: 1 },
+		skillCurve: { base: 20, exponent: 1 },
+		rankLevels: [1, 2, 3, 4, 5],
+	};
+	const withRules = { rules: RULES, invalid: null };
+
+	it('prices a new row by the rules', async () => {
+		const { sync, ledger } = setup({ skills: [owned()], tasks: [todo('a')], rules: withRules });
+
+		await sync.execute();
+
+		expect(ledger.appended.flat().map((paid) => paid.xp)).toEqual([40]);
+	});
+
+	it('keeps what a row already paid when the XP table changes', async () => {
+		const { sync, characters } = setup({ skills: [owned()], rows: [row({ xp: 10, date: '2026-11-02' })], tasks: [], rules: withRules });
+
+		await sync.execute();
+
+		expect(characters.saved[0]?.totalXp).toBe(10);
+	});
+
+	it('turns the ledger into levels with the curves and the rank levels of the rules', async () => {
+		const rows = [row({ xp: 40, date: '2026-11-02' })];
+		const { sync, characters, skills } = setup({ skills: [owned()], rows, tasks: [], rules: withRules });
+
+		const snapshot = await sync.execute();
+
+		// Character: 10 to level 2, 20 to level 3, then 30 asked. Skill: 20 to level 2, then 40 asked.
+		expect(characters.saved[0]).toMatchObject({ level: 3, totalXp: 40, xpToNext: 30, stats: { inteligencia: 2 } });
+		expect(skills.projections.get('lector')).toMatchObject({ level: 2, xp: 40, xpToNext: 40 });
+		expect(snapshot.skills?.[0]?.standing).toEqual({ level: 2, xpIntoLevel: 20, xpToNext: 40, rankIndex: 1 });
+	});
+
+	it('does not celebrate a level that only a changed curve moved', async () => {
+		const rows = [row({ xp: 40, date: '2026-11-02' })];
+		const { sync } = setup({ skills: [owned()], rows, tasks: [], rules: withRules });
+
+		expect((await sync.execute()).events).toEqual([]);
+	});
+
+	it('shows which fields of the note could not be used, and still syncs', async () => {
+		const invalid = { path: 'Dromos/Rules.md', fields: ['xp.todo.easy'] };
+		const { sync } = setup({ rules: { rules: RULES, invalid } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.invalidRules).toEqual(invalid);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+	});
+});
+
+describe('SyncGame: rebuild (S17)', () => {
+	const paid = [row({ xp: 40, date: '2026-11-02' }), row({ habiticaId: 'task-2', xp: 60, date: '2026-11-02' })];
+	const missing: CharacterLoadResult = { kind: 'missing', path: 'Dromos/Character.md' };
+	const stats = { fuerza: 0, vitalidad: 0, inteligencia: 2, sabiduria: 0, espiritu: 0, disciplina: 0 };
+	const rebuiltCharacter = { level: 2, totalXp: 100, xpToNext: 283, stats, gameStart: '2026-11-02', lastSync: null };
+
+	it('recomputes the notes from the ledger, asking nothing of Habitica and adding no rows', async () => {
+		const { sync, source, ledger, characters, skills } = setup({ skills: [owned()], rows: paid });
+
+		const outcome = await sync.rebuild();
+
+		expect(source.calls).toBe(0);
+		expect(ledger.appended).toEqual([]);
+		expect(characters.saved).toEqual([rebuiltCharacter]);
+		expect(skills.projections.get('lector')).toEqual({ unlocked: true, unlockedOn: '2026-11-01', level: 2, xp: 100, xpToNext: 246 });
+		expect(outcome).toEqual({ kind: 'rebuilt', level: 2, totalXp: 100, createdCharacter: false, unreadableRows: 0 });
+	});
+
+	it('needs no Habitica account', async () => {
+		const { sync } = setup({ skills: [owned()], rows: paid, credentials: false });
+
+		expect((await sync.rebuild()).kind).toBe('rebuilt');
+	});
+
+	it('shows the rebuilt state without claiming a sync happened', async () => {
+		const { sync, state } = setup({ skills: [owned()], rows: paid });
+
+		await sync.rebuild();
+
+		const snapshot = state.snapshot();
+		expect(snapshot.character).toEqual({ level: 2, totalXp: 100, xpIntoLevel: 0, xpToNext: 283 });
+		expect(snapshot.skills?.[0]?.xp).toBe(100);
+		expect(snapshot.lastSyncedAt).toBeNull();
+		expect(snapshot.status).toEqual({ kind: 'idle' });
+	});
+
+	it('leaves a synced state as synced, and clears a failure the notes no longer reflect', async () => {
+		const synced = setup({ skills: [owned()], rows: paid });
+		await synced.sync.execute();
+		await synced.sync.rebuild();
+		expect(synced.state.snapshot().status).toEqual({ kind: 'synced' });
+
+		const failed = setup({ skills: [owned()], rows: paid });
+		failed.source.failWith = new TaskSourceError('Offline', null, 'down');
+		await failed.sync.execute();
+		expect(failed.state.snapshot().status).toEqual({ kind: 'offline' });
+		await failed.sync.rebuild();
+		expect(failed.state.snapshot().status).toEqual({ kind: 'idle' });
+	});
+
+	it('creates Character.md again when it is missing, with its created date', async () => {
+		const { sync, characters, state } = setup({ skills: [owned()], rows: paid, character: missing });
+
+		const outcome = await sync.rebuild();
+
+		expect(characters.created).toEqual([{ projection: rebuiltCharacter, created: TODAY }]);
+		expect(characters.saved).toEqual([]);
+		expect(outcome).toMatchObject({ kind: 'rebuilt', createdCharacter: true });
+		expect(state.snapshot().status).toEqual({ kind: 'idle' });
+	});
+
+	it('gives back the same derived fields as the note that was deleted', async () => {
+		const { sync, characters } = setup({ skills: [owned()], tasks: [todo('a'), todo('b')] });
+		await sync.execute();
+		const original = characters.saved.at(-1);
+		characters.set(missing);
+
+		await sync.rebuild();
+
+		expect(characters.created[0]?.projection).toEqual({ ...original, lastSync: null });
+	});
+
+	it('lets the next sync play on the note it created', async () => {
+		const { sync, characters } = setup({ skills: [owned()], rows: paid, character: missing, tasks: [todo('a')] });
+		await sync.rebuild();
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+		expect(characters.saved.at(-1)?.totalXp).toBe(110);
+	});
+
+	it('never starts the game: with an empty ledger a game not started stays that way', async () => {
+		const { sync, characters } = setup({ skills: [lector()], rows: [] });
+
+		await sync.rebuild();
+
+		expect(characters.saved[0]?.gameStart).toBeNull();
+	});
+
+	it('keeps the start of a game already running', async () => {
+		const { sync, characters } = setup({ skills: [owned()], rows: paid, character: { kind: 'found', character: { ...NICO, gameStart: '2026-10-30' } } });
+
+		await sync.rebuild();
+
+		expect(characters.saved[0]?.gameStart).toBe('2026-10-30');
+	});
+
+	it('applies a changed curve at once, and celebrates nothing', async () => {
+		const rules: GameRules = { ...DEFAULT_RULES, characterCurve: { base: 10, exponent: 1 } };
+		const { sync, characters, state } = setup({ skills: [owned()], rows: paid, rules: { rules, invalid: null } });
+
+		const outcome = await sync.rebuild();
+
+		// 10 + 20 + 30 + 40 is exactly 100 XP, so level 5, which asks for 50.
+		expect(characters.saved[0]).toMatchObject({ level: 5, totalXp: 100, xpToNext: 50 });
+		expect(outcome).toMatchObject({ level: 5 });
+		expect(state.snapshot().events).toEqual([]);
+	});
+
+	it('announces an unlock it decides, which no later sync would announce', async () => {
+		const quests = [row({ habiticaId: 'a', date: '2026-11-02' }), row({ habiticaId: 'b', date: '2026-11-02' })];
+		const { sync, state, skills } = setup({ skills: [lector()], rows: quests });
+
+		await sync.rebuild();
+
+		expect(skills.projections.get('lector')).toMatchObject({ unlocked: true, unlockedOn: TODAY });
+		expect(state.snapshot().events).toEqual([{ kind: 'skill-unlocked', skillId: 'lector', name: 'Lector' }]);
+	});
+
+	it('keeps an unlock its requirements no longer show: unlocks are permanent', async () => {
+		const { sync, skills } = setup({ skills: [owned()], rows: [] });
+
+		await sync.rebuild();
+
+		expect(skills.projections.get('lector')).toMatchObject({ unlocked: true, unlockedOn: '2026-11-01' });
+	});
+
+	it('remembers the habit streaks of the last sync, since it cannot ask Habitica', async () => {
+		const habit = lector({ requirements: [{ kind: 'habit', days: 30 }] });
+		const daily = todo('d', { kind: 'daily', streak: 12 });
+		const { sync, state } = setup({ skills: [habit], tasks: [daily] });
+		await sync.execute();
+
+		await sync.rebuild();
+
+		expect(state.snapshot().skills?.[0]?.requirements[0]).toMatchObject({ done: 12, total: 30 });
+	});
+
+	it('says how many ledger rows it had to leave out', async () => {
+		const unreadable = [{ path: 'Dromos/Ledger/2026-11.md', line: 12, text: '| broken |' }];
+		const { sync, state } = setup({ skills: [owned()], rows: paid, unreadable });
+
+		expect(await sync.rebuild()).toMatchObject({ unreadableRows: 1 });
+		expect(state.snapshot().unreadable).toEqual(unreadable);
+	});
+
+	it('never rejects: a failed read answers failed and leaves the state alone', async () => {
+		const { sync, ledger, skills, state, characters } = setup({ skills: [owned()], rows: paid });
+		ledger.failReadWith = new Error('disk');
+
+		expect(await sync.rebuild()).toEqual({ kind: 'failed' });
+		expect(skills.projections.size).toBe(0);
+		expect(characters.saved).toEqual([]);
+		expect(state.snapshot().character).toBeNull();
+	});
+
+	it('answers failed when a write fails, and a later rebuild repairs it', async () => {
+		const { sync, skills, characters } = setup({ skills: [owned()], rows: paid });
+		const save = characters.saveCharacter.bind(characters);
+		characters.saveCharacter = () => Promise.reject(new Error('disk'));
+
+		expect(await sync.rebuild()).toEqual({ kind: 'failed' });
+		expect(skills.projections.get('lector')).toMatchObject({ xp: 100 });
+
+		characters.saveCharacter = save;
+		expect((await sync.rebuild()).kind).toBe('rebuilt');
+		expect(characters.saved).toEqual([rebuiltCharacter]);
+	});
+
+	it('answers failed when the note disappears between the read and the write', async () => {
+		const { sync, characters } = setup({ skills: [owned()], rows: paid, character: missing });
+		characters.loadCharacter = () => Promise.resolve({ kind: 'found', character: NICO });
+
+		expect(await sync.rebuild()).toEqual({ kind: 'failed' });
+	});
+
+	it('waits for a sync in flight, so it reads the rows that sync wrote', async () => {
+		const { sync, characters } = setup({ skills: [owned()], tasks: [todo('a')] });
+
+		const [, outcome] = await Promise.all([sync.execute(), sync.rebuild()]);
+
+		expect(outcome).toMatchObject({ kind: 'rebuilt', totalXp: 10 });
+		expect(characters.saved.map((saved) => saved.lastSync)).toEqual([NOW.toISOString(), null]);
+	});
+
+	it('makes a sync asked meanwhile wait its turn instead of dropping it', async () => {
+		const { sync, source, characters } = setup({ skills: [owned()], tasks: [todo('a')] });
+
+		const [outcome, snapshot] = await Promise.all([sync.rebuild(), sync.execute()]);
+
+		expect(outcome).toMatchObject({ kind: 'rebuilt', totalXp: 0 });
+		expect(source.calls).toBe(1);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+		expect(characters.saved.map((saved) => saved.lastSync)).toEqual([null, NOW.toISOString()]);
+	});
+
+	it('keeps reading syncing while a sync waits behind several rebuilds', async () => {
+		const { sync, state } = setup({ skills: [owned()] });
+
+		const first = sync.rebuild();
+		const second = sync.rebuild();
+		const syncing = sync.execute();
+		await first;
+
+		expect(state.snapshot().status).toEqual({ kind: 'syncing' });
+		await Promise.all([second, syncing]);
+		expect(state.snapshot().status).toEqual({ kind: 'synced' });
+	});
+
+	it('still reads syncing at once when a sync has to wait for a rebuild', async () => {
+		const { sync, state } = setup({ skills: [owned()] });
+
+		const rebuilding = sync.rebuild();
+		const syncing = sync.execute();
+
+		expect(state.snapshot().status).toEqual({ kind: 'syncing' });
+		await Promise.all([rebuilding, syncing]);
+		expect(state.snapshot().status).toEqual({ kind: 'synced' });
+	});
+});
+
+describe('SyncGame: what is still to announce (S18)', () => {
+	const unlocks = { skills: [lector()], tasks: [todo('a'), todo('b')] };
+	const unlocked = { kind: 'skill-unlocked', skillId: 'lector', name: 'Lector' };
+
+	it('hands over what a sync produced exactly once', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+		expect(state.takeAnnouncements()).toEqual([]);
+	});
+
+	it('leaves the banner alone: it keeps its events until it is closed', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+
+		state.takeAnnouncements();
+
+		expect(state.snapshot().events).toEqual([unlocked]);
+	});
+
+	it('does not lose them when the banner was closed first', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+
+		state.dismissEvents();
+
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('a second sync with nothing new has nothing to announce', async () => {
+		const { sync, state } = setup(unlocks);
+		await sync.execute();
+		state.takeAnnouncements();
+
+		await sync.execute();
+
+		expect(state.takeAnnouncements()).toEqual([]);
+	});
+
+	it('holds what a rebuild decided too', async () => {
+		const quests = [row({ habiticaId: 'a', date: '2026-11-02' }), row({ habiticaId: 'b', date: '2026-11-02' })];
+		const { sync, state } = setup({ skills: [lector()], rows: quests });
+
+		await sync.rebuild();
+
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('keeps an unlock whose note was written when a later write fails, since no later sync would report it', async () => {
+		const { sync, ledger, state } = setup(unlocks);
+		ledger.failAppendWith = new Error('disk');
+
+		expect((await sync.execute()).status).toEqual({ kind: 'error' });
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+		expect(state.snapshot().events).toEqual([unlocked]);
+
+		ledger.failAppendWith = null;
+		await sync.execute();
+
+		expect(state.takeAnnouncements()).toEqual([]);
+		expect(state.snapshot().events).toEqual([unlocked]);
+	});
+
+	it('reports nothing for a note it could not write: the next sync will', async () => {
+		const { sync, skills, state } = setup(unlocks);
+		const write = skills.writeProjection.bind(skills);
+		skills.writeProjection = () => Promise.reject(new Error('disk'));
+
+		await sync.execute();
+		expect(state.takeAnnouncements()).toEqual([]);
+
+		skills.writeProjection = write;
+		await sync.execute();
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('keeps the unlock of a rebuild that fails on the character note', async () => {
+		const quests = [row({ habiticaId: 'a', date: '2026-11-02' }), row({ habiticaId: 'b', date: '2026-11-02' })];
+		const { sync, characters, state } = setup({ skills: [lector()], rows: quests });
+		characters.saveCharacter = () => Promise.resolve('missing');
+
+		expect(await sync.rebuild()).toEqual({ kind: 'failed' });
+		expect(state.takeAnnouncements()).toEqual([unlocked]);
+	});
+
+	it('starts empty', () => {
+		expect(setup().state.takeAnnouncements()).toEqual([]);
 	});
 });

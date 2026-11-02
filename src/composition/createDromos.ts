@@ -10,15 +10,18 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, SystemClock } from '../adapters/obsidian';
-import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultSkillRepository } from '../adapters/vault';
+import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClock } from '../adapters/obsidian';
+import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
+import { rebuildMessage } from '../ui/presenters/rebuildView';
 
 /** What the plugin registers, built once per plugin load. */
 export interface Dromos {
 	readonly home: HomeScreenDeps;
 	readonly settingTab: DromosSettingTab;
+	/** Recomputes the notes from the ledger and answers with a toast; the open view follows. */
+	readonly rebuildGame: () => Promise<void>;
 }
 
 /**
@@ -41,9 +44,11 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	};
 
 	const settingsListeners = new Set<() => void>();
+	const gameListeners = new Set<() => void>();
 	const clock = new SystemClock();
 	const state = new QuestState();
-	const repository = new VaultGameStateRepository(plugin.app, () => settings.vaultFolder);
+	const rules = new VaultRulesRepository(plugin.app, () => settings.vaultFolder);
+	const repository = new VaultGameStateRepository(plugin.app, () => settings.vaultFolder, rules);
 	const habitica = new HabiticaClient(createObsidianHttp(), credentials);
 	const source = new HabiticaTaskSource(habitica, clock);
 	const campaignState = new CampaignState();
@@ -62,6 +67,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		ledger: new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today()),
 		characters: repository,
 		campaigns: campaignRepository,
+		rules,
 		source: new HabiticaGameTaskSource(habitica),
 		clock,
 		state: gameState,
@@ -75,12 +81,18 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			syncGame,
 			gameSnapshot: () => gameState.snapshot(),
 			dismissGameEvents: () => gameState.dismissEvents(),
+			takeGameAnnouncements: () => gameState.takeAnnouncements(),
+			notify: showNotice,
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),
 			subscribeSettings: (onChange) => {
 				settingsListeners.add(onChange);
 				return () => void settingsListeners.delete(onChange);
+			},
+			subscribeGame: (onChange) => {
+				gameListeners.add(onChange);
+				return () => void gameListeners.delete(onChange);
 			},
 			campaigns: {
 				syncCampaigns: new SyncCampaigns({
@@ -100,6 +112,11 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				},
 				clock,
 			},
+		},
+		rebuildGame: async () => {
+			const outcome = await syncGame.rebuild();
+			showNotice(rebuildMessage(outcome, createTranslator(settings.language)));
+			gameListeners.forEach((listener) => listener());
 		},
 		settingTab: new DromosSettingTab(plugin.app, plugin, store, (next) => {
 			settings = next;

@@ -11,8 +11,29 @@ export function applyCharacterProjection(frontmatter: Record<string, unknown>, p
 	frontmatter.xp_to_next = projection.xpToNext;
 	frontmatter.stats = stats;
 	frontmatter.game_start = projection.gameStart;
-	frontmatter.last_sync = projection.lastSync;
+	if (projection.lastSync !== null) frontmatter.last_sync = projection.lastSync;
 	frontmatter.updated_by = 'dromos';
+}
+
+/** The whole text of a `Character.md` created again by a rebuild. */
+export function newCharacterNote(projection: CharacterProjection, created: string): string {
+	return [
+		'---',
+		'type: dromos-character',
+		`created: ${created}`,
+		'name: ""',
+		'title: ""',
+		`level: ${projection.level}`,
+		`total_xp: ${projection.totalXp}`,
+		`xp_to_next: ${projection.xpToNext}`,
+		'stats:',
+		...STAT_IDS.map((id) => `  ${id}: ${projection.stats[id]}`),
+		`game_start: ${projection.gameStart ?? 'null'}`,
+		`last_sync: ${projection.lastSync ?? 'null'}`,
+		'updated_by: dromos',
+		'---',
+		'',
+	].join('\n');
 }
 
 /**
@@ -26,7 +47,7 @@ export function characterProjectionChanged(frontmatter: unknown, projection: Cha
 		fields.level !== projection.level ||
 		fields.total_xp !== projection.totalXp ||
 		fields.xp_to_next !== projection.xpToNext ||
-		fields.game_start !== projection.gameStart ||
+		(fields.game_start ?? null) !== projection.gameStart ||
 		STAT_IDS.some((id) => stats[id] !== projection.stats[id])
 	);
 }

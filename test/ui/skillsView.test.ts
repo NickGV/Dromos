@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameSnapshot, SkillEntry } from '../../src/application';
 import { skillStanding, type Skill } from '../../src/domain';
-import { createTranslator } from '../../src/i18n';
+import { createTranslator, type Translator } from '../../src/i18n';
 import { skillsPageView } from '../../src/ui/presenters/skillsView';
 import { skill } from '../domain/skill/skillFixtures';
 
@@ -35,6 +35,7 @@ function snapshot(overrides: Partial<GameSnapshot> = {}): GameSnapshot {
 		events: [],
 		invalidSkills: [],
 		unreadable: [],
+		invalidRules: null,
 		...overrides,
 	};
 }
@@ -192,6 +193,17 @@ describe('skillsPageView: titles, notices and problems', () => {
 		);
 
 		expect(view.problems).toEqual(['Dromos/Skills/bad.md: Unknown stat "x".', 'Unreadable ledger row (Dromos/Ledger/2026-11.md, line 12)']);
+	});
+
+	it('names the fields of Rules.md it could not use, before anything else, in both languages', () => {
+		const invalidRules = { path: 'Dromos/Rules.md', fields: ['xp.todo.easy', 'rank_levels'] };
+		const invalidSkills = [{ path: 'Dromos/Skills/bad.md', reason: 'Unknown stat "x".' }];
+
+		const shown = (t: Translator) => skillsPageView(snapshot({ skills: [earned()], invalidRules, invalidSkills }), t).problems;
+
+		expect(shown(en)[0]).toBe('Dromos/Rules.md: could not use xp.todo.easy, rank_levels. The default values apply instead.');
+		expect(shown(createTranslator('es'))[0]).toBe('Dromos/Rules.md: no se pudo usar xp.todo.easy, rank_levels. Se aplican los valores por defecto.');
+		expect(shown(en)).toHaveLength(2);
 	});
 
 	it('lists each unreadable ledger row with its line, up to five, and counts the rest', () => {

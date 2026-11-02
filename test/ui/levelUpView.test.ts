@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameEvent } from '../../src/application';
 import { createTranslator } from '../../src/i18n';
-import { levelUpBannerView } from '../../src/ui/presenters/levelUpView';
+import { levelUpBannerView, unlockNotices } from '../../src/ui/presenters/levelUpView';
 
 const es = createTranslator('es');
 const en = createTranslator('en');
@@ -45,5 +45,28 @@ describe('levelUpBannerView', () => {
 			messages: ['You reached level 2.', 'Skill unlocked: Lector.', 'Atleta reached level 5: new rank, Corredor.'],
 			dismissLabel: 'Dismiss',
 		});
+	});
+});
+
+describe('unlockNotices: the toast of an unlock (S18)', () => {
+	const unlocked: GameEvent = { kind: 'skill-unlocked', skillId: 'lector', name: 'Lector' };
+
+	it('words each unlock, in both languages', () => {
+		expect(unlockNotices([unlocked], en)).toEqual(['Skill unlocked: Lector.']);
+		expect(unlockNotices([unlocked], es)).toEqual(['Skill desbloqueada: Lector.']);
+	});
+
+	it('leaves level-ups to the banner', () => {
+		const events: GameEvent[] = [
+			{ kind: 'character-level', level: 3 },
+			{ kind: 'skill-level', skillId: 'atleta', name: 'Atleta', level: 2, rank: null, rankChanged: false },
+			unlocked,
+		];
+
+		expect(unlockNotices(events, en)).toEqual(['Skill unlocked: Lector.']);
+	});
+
+	it('has nothing to say without an unlock', () => {
+		expect(unlockNotices([], en)).toEqual([]);
 	});
 });

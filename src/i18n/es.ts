@@ -57,6 +57,7 @@ export const es = {
 	'skills.req.manual.pending': 'Pendiente',
 	'skills.req.manual.confirmed': 'Confirmado',
 	'skills.problem.note': '{path}: {reason}',
+	'skills.problem.rules': '{path}: no se pudo usar {fields}. Se aplican los valores por defecto.',
 	'skills.problem.ledger': 'Fila ilegible del registro ({path}, línea {line})',
 	'skills.problem.ledgerMore.one': 'y 1 fila ilegible más del registro',
 	'skills.problem.ledgerMore.other': 'y {count} filas ilegibles más del registro',
@@ -66,6 +67,12 @@ export const es = {
 	'event.skillLevel': '{name} llegó al nivel {level}.',
 	'event.skillLevelRank': '{name} llegó al nivel {level}: nuevo rango, {rank}.',
 	'event.dismiss': 'Cerrar',
+
+	'rebuild.done': 'Estado reconstruido desde el registro: nivel {level}, {xp} XP.',
+	'rebuild.created': 'Character.md se creó de nuevo: vuelve a poner tu nombre y tu título.',
+	'rebuild.unreadable.one': '1 fila del registro no se pudo leer y quedó fuera.',
+	'rebuild.unreadable.other': '{count} filas del registro no se pudieron leer y quedaron fuera.',
+	'rebuild.failed': 'No se pudo reconstruir el estado. El registro no cambió.',
 
 	'quests.title': 'Quests de hoy',
 	'quests.dailies': 'Diarias',

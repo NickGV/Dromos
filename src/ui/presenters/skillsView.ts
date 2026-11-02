@@ -123,6 +123,7 @@ function meanPercent(requirements: readonly RequirementRowView[]): number {
 
 function problemsOf(snapshot: GameSnapshot, t: Translator): string[] {
 	const problems = snapshot.invalidSkills.map((note) => t('skills.problem.note', { path: note.path, reason: note.reason }));
+	if (snapshot.invalidRules !== null) problems.unshift(t('skills.problem.rules', { path: snapshot.invalidRules.path, fields: snapshot.invalidRules.fields.join(', ') }));
 	for (const event of snapshot.unreadable.slice(0, MAX_LISTED_ROWS)) problems.push(t('skills.problem.ledger', { path: event.path, line: event.line }));
 	const more = snapshot.unreadable.length - MAX_LISTED_ROWS;
 	if (more > 0) problems.push(plural(t, 'skills.problem.ledgerMore', more));

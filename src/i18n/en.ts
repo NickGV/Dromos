@@ -56,6 +56,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'skills.req.manual.pending': 'Pending',
 	'skills.req.manual.confirmed': 'Confirmed',
 	'skills.problem.note': '{path}: {reason}',
+	'skills.problem.rules': '{path}: could not use {fields}. The default values apply instead.',
 	'skills.problem.ledger': 'Unreadable ledger row ({path}, line {line})',
 	'skills.problem.ledgerMore.one': 'and 1 more unreadable ledger row',
 	'skills.problem.ledgerMore.other': 'and {count} more unreadable ledger rows',
@@ -65,6 +66,12 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'event.skillLevel': '{name} reached level {level}.',
 	'event.skillLevelRank': '{name} reached level {level}: new rank, {rank}.',
 	'event.dismiss': 'Dismiss',
+
+	'rebuild.done': 'State rebuilt from the ledger: level {level}, {xp} XP.',
+	'rebuild.created': 'Character.md was created again: add your name and title back.',
+	'rebuild.unreadable.one': '1 ledger row could not be read and was left out.',
+	'rebuild.unreadable.other': '{count} ledger rows could not be read and were left out.',
+	'rebuild.failed': 'The state could not be rebuilt. The ledger was not changed.',
 
 	'quests.title': "Today's quests",
 	'quests.dailies': 'Dailies',
