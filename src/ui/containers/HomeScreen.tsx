@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
+import type { BriefingState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
 import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
+import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
 import { LevelUpBanner } from '../molecules/LevelUpBanner';
 import { StatusBanner } from '../molecules/StatusBanner';
+import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { QuestList } from '../organisms/QuestList';
 import { SkillsPanel } from '../organisms/SkillsPanel';
+import { briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
 import { questListView } from '../presenters/questListView';
@@ -30,6 +33,8 @@ export interface HomeScreenDeps {
 	readonly takeGameAnnouncements: () => readonly GameEvent[];
 	/** Shows a brief toast. */
 	readonly notify: (message: string) => void;
+	/** Renders the text of the briefing as a note. */
+	readonly renderMarkdown: MarkdownRender;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
@@ -57,6 +62,8 @@ const CLOCK_TICK_MS = 30_000;
  */
 export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [character, setCharacter] = useState<CharacterState>({ kind: 'loading' });
+	// `null` until the first read: saying Esdras has not written would be a guess.
+	const [briefing, setBriefing] = useState<BriefingState | null>(null);
 	const [quests, setQuests] = useState<QuestSnapshot>(deps.questSnapshot);
 	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
@@ -69,6 +76,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		setGame(deps.gameSnapshot());
 	}, [deps]);
 	const levelUp = levelUpBannerView(game.events, t);
+	const skills = skillsPageView(game, t);
 	const announce = useCallback((): void => {
 		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
 	}, [deps]);
@@ -77,6 +85,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		const home = await loadHomeOrNull(deps.loadHome);
 		if (!mounted.current) return;
 		setCharacter(home ? home.character : { kind: 'unreadable' });
+		setBriefing(home ? home.briefing : { kind: 'unreadable' });
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
@@ -92,7 +101,10 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			announce();
 		}
 		const updated = await loadHomeOrNull(deps.loadHome);
-		if (mounted.current && updated) setCharacter(updated.character);
+		if (mounted.current && updated) {
+			setCharacter(updated.character);
+			setBriefing(updated.briefing);
+		}
 	}, [deps, announce]);
 
 	useEffect(() => {
@@ -109,7 +121,10 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 				setGame(deps.gameSnapshot());
 				announce();
 				void loadHomeOrNull(deps.loadHome).then((updated) => {
-					if (mounted.current && updated) setCharacter(updated.character);
+					if (mounted.current && updated) {
+						setCharacter(updated.character);
+						setBriefing(updated.briefing);
+					}
 				});
 			}),
 		[deps, announce],
@@ -124,9 +139,10 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			</div>
 			{levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
 			<CharacterPanel state={panelState(character, t)} />
+			{briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} /> : null}
 			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
 			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
-			<SkillsPanel view={skillsPageView(game, t)} />
+			<SkillsPanel view={skills} />
 		</main>
 		</I18nProvider>
 	);

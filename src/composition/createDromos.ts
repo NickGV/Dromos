@@ -10,7 +10,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, DromosSettingTab, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClock } from '../adapters/obsidian';
 import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
@@ -83,6 +83,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,
+			renderMarkdown: createMarkdownRender(plugin.app),
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),

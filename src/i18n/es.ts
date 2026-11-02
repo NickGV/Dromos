@@ -41,6 +41,13 @@ export const es = {
 	'stat.espiritu': 'Espíritu',
 	'stat.disciplina': 'Disciplina',
 
+	'briefing.aria': 'Briefing de Esdras',
+	'briefing.notToday': 'Esdras aún no escribió hoy',
+	'briefing.unreadable': 'No se pudo leer el briefing.',
+	'briefing.mission': 'Misión del día',
+	'briefing.nearSkill': 'Skill más cercana',
+	'briefing.signature': '— Esdras',
+
 	'skills.title': 'Skills',
 	'skills.earned': 'Ganadas ({count})',
 	'skills.locked': 'Por desbloquear ({count})',
