@@ -436,6 +436,59 @@
 	.dromos-root .dromos-spinner { animation-duration: 3s; }
 }
 
+/* Panel of Esdras (M4): an open scroll, its rods at the top and the bottom */
+.dromos-root .dromos-briefing {
+	border-top: 3px double var(--text-faint);
+	border-bottom: 3px double var(--text-faint);
+}
+
+.dromos-root .dromos-briefing-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.dromos-root .dromos-briefing-request {
+	flex: 0 0 auto;
+	margin-left: auto;
+}
+
+.dromos-root .dromos-briefing-icon { font-size: var(--font-ui-medium); }
+
+.dromos-root .dromos-briefing-content.is-dimmed { opacity: 0.6; }
+
+.dromos-root .dromos-briefing-mission,
+.dromos-root .dromos-briefing-near {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 8px 0 0;
+}
+
+.dromos-root .dromos-briefing-label {
+	font-size: var(--font-ui-smaller);
+	font-variant: small-caps;
+	letter-spacing: 0.04em;
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-briefing-why {
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+}
+
+.dromos-root .dromos-briefing-body { margin-top: 8px; }
+.dromos-root .dromos-briefing-body p:first-child { margin-top: 0; }
+.dromos-root .dromos-briefing-body p:last-child { margin-bottom: 0; }
+
+.dromos-root .dromos-briefing-signature {
+	margin: 8px 0 0;
+	text-align: right;
+	font-style: italic;
+	color: var(--text-muted);
+}
+
 /* Level-up banner and Skills (M3) */
 .dromos-root .dromos-levelup {
 	display: flex;

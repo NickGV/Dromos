@@ -19,6 +19,11 @@ export function rulesNotePath(folder: string): string {
 	return `${normalizeVaultFolder(folder)}/Rules.md`;
 }
 
+/** Vault path of the briefing note under the given folder setting, for example `Dromos/Briefing.md`. */
+export function briefingNotePath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Briefing.md`;
+}
+
 export function skillsFolderPath(folder: string): string {
 	return `${normalizeVaultFolder(folder)}/Skills`;
 }

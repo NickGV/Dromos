@@ -6,6 +6,7 @@ export * from './LinkHabitToCampaign';
 export * from './LinkTaskToCampaign';
 export * from './mergeTaskStatuses';
 export * from './LoadHome';
+export * from './RequestBriefing';
 export * from './QuestState';
 export * from './SyncCampaigns';
 export * from './SyncGame';

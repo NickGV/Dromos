@@ -1,3 +1,4 @@
+export * from './briefing/Briefing';
 export * from './campaign';
 export * from './character/Character';
 export * from './ledger';

@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
+import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
 import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
+import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
 import { LevelUpBanner } from '../molecules/LevelUpBanner';
 import { StatusBanner } from '../molecules/StatusBanner';
+import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { QuestList } from '../organisms/QuestList';
 import { SkillsPanel } from '../organisms/SkillsPanel';
+import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
 import { questListView } from '../presenters/questListView';
@@ -30,6 +33,10 @@ export interface HomeScreenDeps {
 	readonly takeGameAnnouncements: () => readonly GameEvent[];
 	/** Shows a brief toast. */
 	readonly notify: (message: string) => void;
+	/** Renders the text of the briefing as a note. */
+	readonly renderMarkdown: MarkdownRender;
+	/** Copies the command of the job; `null` where it cannot be run, and the button does not show. */
+	readonly requestBriefing: Pick<RequestBriefing, 'execute'> | null;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
@@ -42,7 +49,7 @@ export interface HomeScreenDeps {
 	readonly subscribeGame: (onChange: () => void) => () => void;
 }
 
-type CharacterState = HomeSnapshot['character'] | { readonly kind: 'loading' } | { readonly kind: 'unreadable' };
+type CharacterShown = CharacterState | { readonly kind: 'loading' };
 
 /** Re-render period that keeps "Sincronizado hace N min" current. Local only: it sends no request. */
 const CLOCK_TICK_MS = 30_000;
@@ -56,7 +63,9 @@ const CLOCK_TICK_MS = 30_000;
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  */
 export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
-	const [character, setCharacter] = useState<CharacterState>({ kind: 'loading' });
+	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
+	// `null` until the first read: saying Esdras has not written would be a guess.
+	const [briefing, setBriefing] = useState<BriefingState | null>(null);
 	const [quests, setQuests] = useState<QuestSnapshot>(deps.questSnapshot);
 	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
@@ -69,14 +78,28 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		setGame(deps.gameSnapshot());
 	}, [deps]);
 	const levelUp = levelUpBannerView(game.events, t);
+	const skills = skillsPageView(game, t);
+	const { requestBriefing } = deps;
+	const onRequestBriefing = requestBriefing
+		? (): void => {
+				void requestBriefing.execute().then((request) => deps.notify(briefingRequestMessage(request, deps.translator())));
+			}
+		: null;
 	const announce = useCallback((): void => {
 		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
 	}, [deps]);
 
+	// A read after a sync that fails keeps what is on screen: that note was readable a moment ago.
+	const showLaterRead = useCallback((home: HomeSnapshot): void => {
+		if (home.character.kind !== 'unreadable') setCharacter(home.character);
+		if (home.briefing.kind !== 'unreadable') setBriefing(home.briefing);
+	}, []);
+
 	const refresh = useCallback(async (): Promise<void> => {
-		const home = await loadHomeOrNull(deps.loadHome);
+		const home = await deps.loadHome.execute();
 		if (!mounted.current) return;
-		setCharacter(home ? home.character : { kind: 'unreadable' });
+		setCharacter(home.character);
+		setBriefing(home.briefing);
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
@@ -91,9 +114,9 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			setGame(deps.gameSnapshot());
 			announce();
 		}
-		const updated = await loadHomeOrNull(deps.loadHome);
-		if (mounted.current && updated) setCharacter(updated.character);
-	}, [deps, announce]);
+		const updated = await deps.loadHome.execute();
+		if (mounted.current) showLaterRead(updated);
+	}, [deps, announce, showLaterRead]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -108,11 +131,11 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			deps.subscribeGame(() => {
 				setGame(deps.gameSnapshot());
 				announce();
-				void loadHomeOrNull(deps.loadHome).then((updated) => {
-					if (mounted.current && updated) setCharacter(updated.character);
+				void deps.loadHome.execute().then((updated) => {
+					if (mounted.current) showLaterRead(updated);
 				});
 			}),
-		[deps, announce],
+		[deps, announce, showLaterRead],
 	);
 
 	return (
@@ -124,24 +147,16 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			</div>
 			{levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
 			<CharacterPanel state={panelState(character, t)} />
+			{briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} /> : null}
 			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
 			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
-			<SkillsPanel view={skillsPageView(game, t)} />
+			<SkillsPanel view={skills} />
 		</main>
 		</I18nProvider>
 	);
 }
 
-// A failed vault read must not stop the quests from syncing.
-async function loadHomeOrNull(loadHome: HomeScreenDeps['loadHome']): Promise<HomeSnapshot | null> {
-	try {
-		return await loadHome.execute();
-	} catch {
-		return null;
-	}
-}
-
-function panelState(character: CharacterState, t: Translator): CharacterPanelState {
+function panelState(character: CharacterShown, t: Translator): CharacterPanelState {
 	return character.kind === 'found' ? { kind: 'found', view: characterCardView(character.character, t) } : character;
 }
 

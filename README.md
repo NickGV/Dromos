@@ -6,11 +6,12 @@ Dromos is an Obsidian plugin that shows your productive life as a calm role-play
 
 It does not replace anything. Obsidian keeps the knowledge, Habitica keeps the tasks and the gold, Dromos shows the race.
 
-**Status: M3, skills and XP.** The interface is in English, with Spanish available in the settings. The "Dromos" tab shows your character from `Dromos/Character.md`, today's quests from Habitica, your active campaigns and your skills, on desktop and mobile. See the roadmap below.
+**Status: M4, the guide.** The interface is in English, with Spanish available in the settings. The "Dromos" tab shows your character from `Dromos/Character.md`, the briefing of Esdras, today's quests from Habitica, your active campaigns and your skills, on desktop and mobile. See the roadmap below.
 
 ## What the view shows
 
 - **Character card**: name, title, level, an XP bar (XP into the level / XP the level needs) and the six stats (fuerza, vitalidad, inteligencia, sabiduría, espíritu, disciplina), read from the frontmatter of `<folder>/Character.md`. Dromos keeps the level, the XP and the stats of that note up to date from your ledger; `name` and `title` stay yours. If the note is missing, the card says which path it expected and shows no invented values, and the game does not start.
+- **Panel of Esdras**: the briefing in `<folder>/Briefing.md`, which the scribe writes and Dromos only reads: the mission of the day, the skill closest to unlocking with what it still asks, and the text rendered as a note, with links you can follow. A briefing of another day stays visible, dimmed, under "Esdras has not written today"; with no note, that line is all the panel shows. The note is read when the view opens and on **Sync**. On desktop, **Ask for a briefing** copies the command that makes Esdras write it, `/dromos-briefing`, to run in OpenCode from your vault folder; Dromos itself runs nothing.
 - **Today's quests**: today's Habitica dailies (completed ones struck through), then pending to-dos that are overdue or due today, then undated to-dos. Future to-dos are hidden.
 - **Status band**: "Synced N min ago", "Syncing…", "Offline", "Invalid token", a reminder to set your credentials, or a request to wait when Habitica limits requests. After a failed sync the list from the last successful sync of this session stays on screen.
 - **Campaigns**: every active project and research, ordered by `priority`. A campaign is an `index` note that is the `README.md` of a folder under `02 - Projects/`, or a `research` note under `03 - Areas/<area>/Estudio/`, with `status: active`. Each card shows its kind, the open phase with a progress bar, the next step and, folded, its tasks. A project task counts as done when its Habitica to-do (`habitica_id`) is completed; a research counts completed phases. A campaign with no completed task for 14 days (configurable) gets a **Stalled** stamp. The name opens the note in a new tab.
@@ -46,6 +47,22 @@ stats:
 ```
 
 Missing or non-numeric fields fall back to empty text or `0`; a note written with the old four stats still reads.
+
+A `Briefing.md` (`created` decides whether it counts as today's; everything but the text is optional):
+
+```yaml
+---
+type: dromos-briefing
+created: 2026-11-03
+mission:
+  title: Close the sign-up screen of Kairos
+  why: It is the campaign with the nearest deadline.
+near_unlock:
+  skill: lector
+---
+
+Shalom. Today the race asks for one thing.
+```
 
 ### Changing the rules
 
@@ -89,7 +106,7 @@ Under *Settings → Community plugins → Dromos*:
 - The requests carry your user ID and token in the `x-api-user` and `x-api-key` headers, as Habitica requires, plus `x-client: <creator's Habitica user ID>-dromos`, which Habitica's [API usage guidelines](https://github.com/HabitRPG/habitica/wiki/API-Usage-Guidelines) ask for: it identifies the tool's author, never you.
 - The token is stored only in the plugin's `data.json` (`.obsidian/plugins/dromos/data.json`) on each device. Dromos never writes it to a note, never logs it and never shows it. If you sync your `.obsidian` folder with another tool, that tool copies `data.json` too.
 - The notes of a to-do created by **Send to Habitica** hold the campaign's title and an `obsidian://` link made of your vault's name and the note's path. They go to your own Habitica account, so anyone who can read that account can read them.
-- Quests and campaign progress are kept in memory for the session only. Dromos writes into your notes in four places: the `habitica_id` of a project task or habit when you select **Send to Habitica**; the derived fields of `Character.md` (`level`, `total_xp`, `xp_to_next`, `stats`, `game_start`, `last_sync`, `updated_by`); the derived fields of each skill note (`unlocked`, `unlocked_on`, `level`, `xp`, `xp_to_next`); and new rows at the end of the monthly ledger note. The rebuild command can also create `Character.md` when it is missing. It never writes in `Rules.md`, `research` or `study-session` notes. Obsidian rewrites the frontmatter of a note when Dromos saves it, so comments inside the YAML may be lost.
+- Quests and campaign progress are kept in memory for the session only. Dromos writes into your notes in four places: the `habitica_id` of a project task or habit when you select **Send to Habitica**; the derived fields of `Character.md` (`level`, `total_xp`, `xp_to_next`, `stats`, `game_start`, `last_sync`, `updated_by`); the derived fields of each skill note (`unlocked`, `unlocked_on`, `level`, `xp`, `xp_to_next`); and new rows at the end of the monthly ledger note. The rebuild command can also create `Character.md` when it is missing. It never writes in `Briefing.md`, `Rules.md`, `research` or `study-session` notes. Obsidian rewrites the frontmatter of a note when Dromos saves it, so comments inside the YAML may be lost.
 
 ## Principles
 

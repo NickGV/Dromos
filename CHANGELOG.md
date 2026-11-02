@@ -2,6 +2,17 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-11-02
+
+### Added
+
+- **Panel of Esdras.** The view shows `<folder>/Briefing.md` under the character card: the mission of the day, the skill closest to unlocking with what it still asks, and the text rendered as a note, with links you can follow. A briefing of another day stays visible, dimmed, under "Esdras has not written today". Dromos only reads this note.
+- **Ask for a briefing**, on desktop: copies the command `/dromos-briefing` to the clipboard, to run in OpenCode from your vault folder. Dromos itself runs nothing.
+
+### Known limits
+
+- The note is read when the view opens and on **Sync**, so a briefing that arrives while the view is open shows on the next **Sync**.
+
 ## [0.5.0] - 2026-11-01
 
 ### Added

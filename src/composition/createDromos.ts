@@ -10,9 +10,9 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { DromosSettingTab, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClock } from '../adapters/obsidian';
-import { VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { createMarkdownRender, DromosSettingTab, isDesktopApp, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
+import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
 
@@ -76,13 +76,16 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 
 	return {
 		home: {
-			loadHome: new LoadHome({ repository, state }),
+			loadHome: new LoadHome({ repository, briefings: new VaultBriefingRepository(plugin.app, vaultFolder), state }),
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			syncGame,
 			gameSnapshot: () => gameState.snapshot(),
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,
+			renderMarkdown: createMarkdownRender(plugin.app),
+			// The job runs in OpenCode on the desktop: on a phone there is nowhere to paste the command.
+			requestBriefing: isDesktopApp() ? new RequestBriefing(new SystemClipboard()) : null,
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),
