@@ -45,7 +45,7 @@ Rules that keep it honest:
 ## Releases
 
 - Bump `manifest.json` and `versions.json` with `npm version`, then push a tag equal to the version, no leading `v`.
-- `release.yml` creates the GitHub release as a **draft**. BRAT cannot see drafts, so publish it: `gh release edit <tag> --draft=false --latest`.
+- `release.yml` publishes the GitHub release as soon as the tag is pushed, so pushing a tag IS the release. It publishes nothing if the tag is not the version in `manifest.json`, or if the tests, the lint or the build fail; then fix it, delete the tag and push it again.
 - The repo is public, so BRAT needs no token. Users install through BRAT on every device, Android included.
 
 ## Vault contracts (live in the Logos vault, not here)
