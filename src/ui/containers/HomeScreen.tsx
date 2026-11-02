@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { BriefingState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, SyncGame, SyncQuests } from '../../application';
+import type { BriefingState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
 import type { Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
@@ -11,7 +11,7 @@ import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { QuestList } from '../organisms/QuestList';
 import { SkillsPanel } from '../organisms/SkillsPanel';
-import { briefingView } from '../presenters/briefingView';
+import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
 import { questListView } from '../presenters/questListView';
@@ -35,6 +35,8 @@ export interface HomeScreenDeps {
 	readonly notify: (message: string) => void;
 	/** Renders the text of the briefing as a note. */
 	readonly renderMarkdown: MarkdownRender;
+	/** Copies the command of the job; `null` where it cannot be run, and the button does not show. */
+	readonly requestBriefing: Pick<RequestBriefing, 'execute'> | null;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
@@ -77,6 +79,12 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	}, [deps]);
 	const levelUp = levelUpBannerView(game.events, t);
 	const skills = skillsPageView(game, t);
+	const { requestBriefing } = deps;
+	const onRequestBriefing = requestBriefing
+		? (): void => {
+				void requestBriefing.execute().then((request) => deps.notify(briefingRequestMessage(request, deps.translator())));
+			}
+		: null;
 	const announce = useCallback((): void => {
 		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
 	}, [deps]);
@@ -139,7 +147,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			</div>
 			{levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
 			<CharacterPanel state={panelState(character, t)} />
-			{briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} /> : null}
+			{briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} /> : null}
 			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
 			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
 			<SkillsPanel view={skills} />

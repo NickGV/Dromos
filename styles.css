@@ -444,8 +444,14 @@
 
 .dromos-root .dromos-briefing-head {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
+}
+
+.dromos-root .dromos-briefing-request {
+	flex: 0 0 auto;
+	margin-left: auto;
 }
 
 .dromos-root .dromos-briefing-icon { font-size: var(--font-ui-medium); }

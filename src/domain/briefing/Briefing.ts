@@ -1,3 +1,6 @@
+/** The command of Esdras's job, which writes the briefing. It runs in OpenCode, from the vault's folder. */
+export const BRIEFING_COMMAND = '/dromos-briefing';
+
 /** The mission of the day, as Esdras wrote it. */
 export interface BriefingMission {
 	readonly title: string;

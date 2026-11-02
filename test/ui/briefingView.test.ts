@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createTranslator } from '../../src/i18n';
-import { briefingView } from '../../src/ui/presenters/briefingView';
+import { briefingRequestMessage, briefingView } from '../../src/ui/presenters/briefingView';
 import type { SkillCardView } from '../../src/ui/presenters/skillsView';
 import { aBriefing } from '../fakes/InMemoryBriefingRepository';
 
@@ -56,13 +56,13 @@ describe('briefingView', () => {
 	it('says Esdras has not written today when there is no note, with nothing to dim or sign', () => {
 		const view = briefingView({ kind: 'missing' }, TODAY, [], es);
 
-		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'Esdras aún no escribió hoy', dimmed: false, mission: null, near: null, markdown: null, signature: null });
+		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'Esdras aún no escribió hoy', requestLabel: 'Pedir briefing', dimmed: false, mission: null, near: null, markdown: null, signature: null });
 	});
 
 	it('says so when the note cannot be read', () => {
 		const view = briefingView({ kind: 'unreadable' }, TODAY, [], es);
 
-		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'No se pudo leer el briefing.', dimmed: false, mission: null, near: null, markdown: null, signature: null });
+		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'No se pudo leer el briefing.', requestLabel: 'Pedir briefing', dimmed: false, mission: null, near: null, markdown: null, signature: null });
 	});
 
 	it('has no text block when the note has an empty body, and keeps the mission', () => {
@@ -108,6 +108,19 @@ describe('briefingView', () => {
 
 		expect(view.ariaLabel).toBe('Briefing from Esdras');
 		expect(view.notice).toBe('Esdras has not written today');
+		expect(view.requestLabel).toBe('Ask for a briefing');
 		expect(briefingView({ kind: 'unreadable' }, TODAY, [], en).notice).toBe('Could not read the briefing.');
+	});
+});
+
+describe('briefingRequestMessage', () => {
+	it('names the command and where to run it after copying', () => {
+		expect(briefingRequestMessage('copied', es)).toBe('Comando copiado: /dromos-briefing. Córrelo en OpenCode desde la carpeta de tu bóveda.');
+		expect(briefingRequestMessage('copied', en)).toBe('Command copied: /dromos-briefing. Run it in OpenCode from your vault folder.');
+	});
+
+	it('still names the command when it could not be copied', () => {
+		expect(briefingRequestMessage('failed', es)).toBe('No se pudo copiar. El comando es /dromos-briefing: córrelo en OpenCode desde la carpeta de tu bóveda.');
+		expect(briefingRequestMessage('failed', en)).toBe('Could not copy it. The command is /dromos-briefing: run it in OpenCode from your vault folder.');
 	});
 });

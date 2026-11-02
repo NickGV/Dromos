@@ -47,6 +47,9 @@ export const es = {
 	'briefing.mission': 'Misión del día',
 	'briefing.nearSkill': 'Skill más cercana',
 	'briefing.signature': '— Esdras',
+	'briefing.request': 'Pedir briefing',
+	'briefing.request.copied': 'Comando copiado: {command}. Córrelo en OpenCode desde la carpeta de tu bóveda.',
+	'briefing.request.failed': 'No se pudo copiar. El comando es {command}: córrelo en OpenCode desde la carpeta de tu bóveda.',
 
 	'skills.title': 'Skills',
 	'skills.earned': 'Ganadas ({count})',

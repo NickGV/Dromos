@@ -2,7 +2,7 @@ import { MarkdownBlock, type MarkdownRender } from '../atoms/MarkdownBlock';
 import type { BriefingView } from '../presenters/briefingView';
 
 /** The panel of Esdras: an open scroll with the mission, the close skill and the text of the day. */
-export function BriefingPanel({ view, renderMarkdown }: { readonly view: BriefingView; readonly renderMarkdown: MarkdownRender }) {
+export function BriefingPanel({ view, renderMarkdown, onRequest }: { readonly view: BriefingView; readonly renderMarkdown: MarkdownRender; readonly onRequest: (() => void) | null }) {
 	return (
 		<section className="dromos-card dromos-briefing" aria-label={view.ariaLabel}>
 			<div className="dromos-briefing-head">
@@ -10,6 +10,11 @@ export function BriefingPanel({ view, renderMarkdown }: { readonly view: Briefin
 					📜
 				</span>
 				{view.notice ? <p className="dromos-empty">{view.notice}</p> : null}
+				{onRequest ? (
+					<button type="button" className="dromos-briefing-request" onClick={onRequest}>
+						{view.requestLabel}
+					</button>
+				) : null}
 			</div>
 			<div className={view.dimmed ? 'dromos-briefing-content is-dimmed' : 'dromos-briefing-content'}>
 				{view.mission ? (
