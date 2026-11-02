@@ -8,7 +8,12 @@ import { getFrontMatterInfo, parseYaml, type App, type TFile } from 'obsidian';
 export async function frontmatterOf(app: Pick<App, 'vault' | 'metadataCache'>, file: TFile): Promise<unknown> {
 	const cached = app.metadataCache.getFileCache(file);
 	if (cached) return cached.frontmatter;
-	const info = getFrontMatterInfo(await app.vault.cachedRead(file));
+	return frontmatterIn(await app.vault.cachedRead(file));
+}
+
+/** The frontmatter written in the text of a note. Broken YAML yields `undefined`. */
+export function frontmatterIn(content: string): unknown {
+	const info = getFrontMatterInfo(content);
 	if (!info.exists) return undefined;
 	try {
 		return parseYaml(info.frontmatter) as unknown;

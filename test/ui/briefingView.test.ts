@@ -73,6 +73,14 @@ describe('briefingView', () => {
 		expect(view.mission).toEqual({ label: 'Misión del día', title: 'Cerrar Kairos', why: null });
 	});
 
+	it('signs only what has something written', () => {
+		const empty = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, body: '' }) }, TODAY, [], es);
+		const onlyMission = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, body: '', mission: { title: 'Cerrar Kairos', why: null } }) }, TODAY, [], es);
+
+		expect(empty.signature).toBeNull();
+		expect(onlyMission.signature).toBe('— Esdras');
+	});
+
 	it('highlights the mission with its why', () => {
 		const mission = { title: 'Cerrar Kairos', why: 'Lleva 9 días sin moverse.' };
 		const view = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, mission }) }, TODAY, [], en);

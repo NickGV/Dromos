@@ -39,6 +39,7 @@ export function briefingView(state: BriefingState, today: string, lockedSkills: 
 	}
 	const { briefing } = state;
 	const ofToday = isBriefingOf(briefing, today);
+	const hasText = briefing.body !== '';
 	return {
 		ariaLabel,
 		notice: ofToday ? null : t('briefing.notToday'),
@@ -46,8 +47,8 @@ export function briefingView(state: BriefingState, today: string, lockedSkills: 
 		dimmed: !ofToday,
 		mission: briefing.mission ? { label: t('briefing.mission'), title: briefing.mission.title, why: briefing.mission.why } : null,
 		near: nearOf(briefing, lockedSkills, t),
-		markdown: briefing.body === '' ? null : { body: briefing.body, sourcePath: briefing.path },
-		signature: t('briefing.signature'),
+		markdown: hasText ? { body: briefing.body, sourcePath: briefing.path } : null,
+		signature: hasText || briefing.mission ? t('briefing.signature') : null,
 	};
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LoadHome, QuestState, SyncQuests } from '../../src/application';
 import type { Character } from '../../src/domain';
+import type { CharacterLoadResult } from '../../src/ports';
 import { FakeTaskSource } from '../fakes/FakeTaskSource';
 import { FixedClock } from '../fakes/FixedClock';
 import { aBriefing, InMemoryBriefingRepository } from '../fakes/InMemoryBriefingRepository';
@@ -20,6 +21,16 @@ const CHARACTER: Character = {
 
 const IDLE_QUESTS = { quests: null, lastSyncedAt: null, status: { kind: 'idle' } };
 
+class UnreadableGameStateRepository extends InMemoryGameStateRepository {
+	constructor() {
+		super({ kind: 'found', character: CHARACTER });
+	}
+
+	override loadCharacter(): Promise<CharacterLoadResult> {
+		return Promise.reject(new Error('disk'));
+	}
+}
+
 describe('LoadHome', () => {
 	it('returns the briefing next to the character', async () => {
 		const repository = new InMemoryGameStateRepository({ kind: 'found', character: CHARACTER });
@@ -38,6 +49,24 @@ describe('LoadHome', () => {
 
 		expect(home.briefing).toEqual({ kind: 'unreadable' });
 		expect(home.character).toEqual({ kind: 'found', character: CHARACTER });
+	});
+
+	it('still returns a readable briefing when the character cannot be read', async () => {
+		const briefing = aBriefing();
+		const loadHome = new LoadHome({ repository: new UnreadableGameStateRepository(), briefings: new InMemoryBriefingRepository({ kind: 'found', briefing }), state: new QuestState() });
+
+		const home = await loadHome.execute();
+
+		expect(home.character).toEqual({ kind: 'unreadable' });
+		expect(home.briefing).toEqual({ kind: 'found', briefing });
+	});
+
+	it('says so for each note and never rejects when neither can be read', async () => {
+		const loadHome = new LoadHome({ repository: new UnreadableGameStateRepository(), briefings: new InMemoryBriefingRepository(new Error('disk')), state: new QuestState() });
+
+		const home = await loadHome.execute();
+
+		expect(home).toEqual({ character: { kind: 'unreadable' }, briefing: { kind: 'unreadable' }, quests: IDLE_QUESTS });
 	});
 
 	it('reads the briefing again on every call, so what Esdras wrote shows on the next sync', async () => {
