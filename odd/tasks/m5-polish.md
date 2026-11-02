@@ -21,7 +21,7 @@ Quoted from `02 - Projects/Dromos/02-Phases.md` (M5), in the user's language.
 | ID | Specs | Scope | Route | Status | Commit |
 |---|---|---|---|---|---|
 | T1 | S1 | The release workflow publishes on a tag, and a tag that is not the manifest's version or fails the checks publishes nothing. Risk: item 5 | inline (no Writer trigger) | done locally: no runnable RED for a workflow, so the tag check ran with four tags (0.6.0 passes; v0.6.0, test and 0.7.0 stop it, exit 1) and the file parsed as YAML with the steps in order. `CLAUDE.md` updated. One independent verifier at the end of the feature; the real proof is the next tag | this commit |
-| T2 | S3 | `docs/`: installation, Habitica, frontmatter schemas, FAQ | inline | pending | |
+| T2 | S3 | `docs/`: installation, Habitica, frontmatter schemas, FAQ | inline | done: passive docs, so no RED; 26 relative links and anchors resolve, and the claims were compared with the code, which corrected two (the ledger's `kind` and `source`, BRAT's command names). What the tab shows and `Rules.md` stay in `README.md`, linked from `docs/`, so they are not written twice | this commit |
 | T3 | S2, S5, S6 | Audit: the checklist, accessibility, `minAppVersion`, the 4 lint warnings | inline | pending | |
 | T4 | S7 | Android pass | by the user | pending | |
 | T5 | S8 | Q014 | by the user | pending | |

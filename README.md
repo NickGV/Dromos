@@ -170,7 +170,7 @@ Dependencies point inwards: `ui` and `adapters` know Obsidian; `application` kno
 
 ## Installing with BRAT
 
-Once releases exist: install [BRAT](https://github.com/TfTHacker/obsidian42-brat), choose *Add a beta plugin* and paste this repository's URL. Each tagged release ships `main.js`, `manifest.json` and `styles.css`.
+Install [BRAT](https://github.com/TfTHacker/obsidian42-brat), choose *Add a beta plugin* and paste this repository's URL. Each tagged release ships `main.js`, `manifest.json` and `styles.css`. See [the documentation](docs/README.md) for installation, Habitica, the note formats and an FAQ.
 
 ## License
 
