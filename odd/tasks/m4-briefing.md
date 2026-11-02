@@ -21,17 +21,20 @@ Quoted from the vault (`02-Phases`, `04-Game-Design`, `08-Visual-Design`), in th
 
 | ID | Specs | Scope | Route | Status | Commit |
 |---|---|---|---|---|---|
-| T1 | S2, S4, S5, S9 | Domain `Briefing`, mapper of the note, `isBriefingOf` the day; parser tests | inline (no Writer trigger) | pending | |
-| T2 | S1, S9 | Port, `VaultBriefingRepository`, `LoadHome` returns the briefing; a failed read does not hide the character | inline | pending | |
-| T3 | S1, S2, S3, S4 | Presenter, `BriefingPanel`, Markdown adapter with clickable wikilinks, copy in both languages, CSS | inline | pending | |
+| T1 | S2, S4, S5, S9 | Domain `Briefing`, mapper of the note, `isBriefingOf` the day; parser tests | inline (no Writer trigger) | done: 8 tests RED (missing module) then GREEN | `54d3bf4` |
+| T2 | S1, S9 | Port, `VaultBriefingRepository`, `LoadHome` returns the briefing; a failed read does not hide the character | inline | done: 6 tests RED then GREEN, 866/866, lint 0 errors and 4 warnings. `VaultBriefingRepository` has no unit test (Obsidian-bound) | `54d3bf4` |
+| T3 | S1, S2, S3, S4 | Presenter, `BriefingPanel`, Markdown adapter with clickable wikilinks, copy in both languages, CSS | inline | done: `briefingView` 11 tests RED then GREEN, 877/877, lint 0 errors and 4 warnings, build ok. `createMarkdownRender`, `MarkdownBlock`, `BriefingPanel` and the container wiring have no unit tests (no React harness); manual check pending, as S5 says. Risk: item 6, so one independent verifier runs at the end of the feature | `4b90615` |
 | T4 | S6 | "Pedir briefing" button | inline | blocked: needs the command from Esdras | |
-| T5 | all | README and CHANGELOG | inline | pending | |
+| T5 | all | README and CHANGELOG | inline | done for T1-T3; the button is not documented yet | this commit |
 
 ## Not verified
 
-- The render with `MarkdownRenderer` and the wikilinks: by hand in Obsidian, as S5 says.
+- The render with `MarkdownRenderer` and the wikilinks: by hand in Obsidian, as S5 says. Nothing has run in Obsidian yet: no `Briefing.md` exists and this build is not installed.
+- What a wikilink to a note that does not exist does when followed. `openLinkText` should create it, as anywhere in Obsidian; check it by hand, since Dromos would have caused that note.
+- A render that resolves after its view closed. The adapter fills its own child for that reason; StrictMode's double effect in the real view is the check.
 
 ## Log
 
 - **L1** (2026-11-02): User: "Dale, arranquemos con M4".
 - **L2** (2026-11-02): Esdras's session ended with the PC shutdown and no peer is reachable, so S4, S6 and S7 stay open with Esdras. The plugin side does not depend on them, so it goes first. The user answered Q013: "Si dale, manual por ahora".
+- **L3** (2026-11-02): T1-T3 done on the branch, not pushed. `stale_campaigns` and `mission.habitica_id` are not read: the campaign cards already stamp the stalled ones and nothing here needs the id. Next: Esdras answers S4, S6 and S7 when their session is open, then T4, the manual check and the independent verifier.
