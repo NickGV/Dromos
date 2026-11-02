@@ -59,4 +59,5 @@ jobs:
                   gh release create "$tag" \
                     --title="$tag" \
                     --latest \
+                    --verify-tag \
                     main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}

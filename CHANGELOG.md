@@ -2,6 +2,20 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `docs/`: installation, Habitica, the format of each note and an FAQ.
+
+### Changed
+
+- Pushing a version tag now publishes the release, with no draft to publish by hand. A tag that is not the version in `manifest.json`, or that fails the tests, the lint or the build, publishes nothing.
+
+### Fixed
+
+- The ledger reader used a regular expression iOS below 16.4 cannot parse, so the plugin would not load there.
+
 ## [0.6.0] - 2026-11-02
 
 ### Added

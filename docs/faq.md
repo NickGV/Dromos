@@ -18,7 +18,7 @@ Dromos counts from the day of its first sync, so past completions never become p
 
 Check these three things:
 
-1. The task has the tag `skill/<id>`, matching the file name of the skill note.
+1. The task has the tag `skill/<id>`, matching the file name of the skill note, which must be lowercase with no spaces.
 2. The skill is unlocked. While it is locked, tagged to-dos count toward unlocking it instead.
 3. The skill was already unlocked the day before. Its XP counts from the day after it unlocks.
 
@@ -54,7 +54,7 @@ A damaged row is listed as unreadable in the Skills section. Dromos cannot know 
 
 ### A skill does not appear, or the Skills section names a note
 
-The note could not be read, and the section says why. See [the skill format](frontmatter.md#skill).
+If the section names it, the note could not be read, and it says why. If it says nothing, check that the note has `type: dromos-skill`, because any other note in the folder is ignored. See [the skill format](frontmatter.md#skill).
 
 ### My comments in the frontmatter disappeared
 
@@ -100,4 +100,10 @@ Habitica allows 30 requests per minute, and each sync makes about eight. Wait th
 
 ### A campaign is stamped "Stalled"
 
-No task of it was completed for 14 days, or for its own `stale_after_days`. A campaign with no completed task counts from `created`.
+No task of it was completed for the days in the setting (14 by default), or for its own `stale_after_days`. A campaign with no completed task counts from `created`.
+
+## Time
+
+### The day changes at the wrong hour
+
+Dromos' day is America/Bogota's, whatever your device says. It does not read your time zone yet.
