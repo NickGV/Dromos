@@ -6,7 +6,7 @@ Dromos is an Obsidian plugin that shows your productive life as a calm role-play
 
 It does not replace anything. Obsidian keeps the knowledge, Habitica keeps the tasks and the gold, Dromos shows the race.
 
-**Status: M4, the guide.** The interface is in English, with Spanish available in the settings. The "Dromos" tab shows your character from `Dromos/Character.md`, the briefing of Esdras, today's quests from Habitica, your active campaigns and your skills, on desktop and mobile. See the roadmap below.
+**Status: M5, polish and release.** The interface is in English, with Spanish available in the settings. The "Dromos" tab shows your character from `Dromos/Character.md`, the briefing of Esdras, today's quests from Habitica, your active campaigns and your skills, on desktop and mobile. See the roadmap below.
 
 ## What the view shows
 
