@@ -163,8 +163,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | done: 21 tests RED then GREEN, 958/958, lint 0 errors and 4 warnings, build ok, preview at 390 and 960 px light and dark (L5). Risk: item 6 | `a19de33` |
 | T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | `6545418` |
 | T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | `79d1698` |
-| T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | this commit |
-| T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | pending | |
+| T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | `98d8b82` |
+| T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | done: 9 rules RED then GREEN, 1157/1157, lint 0 errors and 4 warnings, build ok, preview with the real briefing and a live check (L12). Risk: item 6 | this commit |
 | T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | pending | |
 | T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | pending | |
 | T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | pending | |
@@ -270,3 +270,13 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   - "The route" for the campaign road.
 
   **Left for the vault:** the briefing's language. Esdras writes Spanish while the interface may be English, so the letter would need a `lang` field. That is a vault contract, to be agreed with Esdras and the user.
+- **L12** (2026-11-03): T6 by W6. The real briefing folds from 2,185 px to 318 px on a 390 px phone.
+  - **Storage.** `DeviceStore` port; `LocalDeviceStore` guards `loadLocalStorage` and falls back to memory, so on Obsidian before 1.8.7 the seal comes back after a restart. The mark is `dromos:briefing-read`: the letter's date plus a hash of its body.
+  - **Live check.** Opening the letter writes the mark and removes the seal. The note renders once. "Fold the letter" sends focus back to the toggle. The open state survives a screen change, and a reload starts folded.
+  - **Contrast, lowest light / dark.** Links 4.91 / 7.42, code 8.84 / 9.34, excerpt 5.67 / 6.23, seal fill 3.51 / 6.56.
+  - **Departures:**
+    - a "Why this mission" label over the why;
+    - the closest skill is clipped while folded and shown in full when open;
+    - the signature sits in one place per state;
+    - the toggle ids come from a per-view counter, because two Dromos tabs could repeat `useId`.
+  - **Reuse.** The short-date helper moved to `presenters/dates.ts`. Deadlines compared identical in 14 cases in both languages.

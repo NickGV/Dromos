@@ -1,6 +1,7 @@
 import { plural, type MessageKey, type Translator } from '../../i18n';
 import { nextTaskIndex, overallCountText, overallProgress, roadView, type RoadView } from './campaignHomeView';
 import type { CampaignCardView, CampaignListView, HabitRowView, TaskRowView } from './campaignView';
+import { dayMonth } from './dates';
 
 /** What a task's chip says about it; the tone colors the chip. */
 export type TaskChipTone = 'done' | 'next' | 'pending' | 'unsent' | 'missing';
@@ -158,27 +159,4 @@ export function deadlineText(deadline: string | null, daysLeft: number | null, t
 	if (daysLeft === 0) return t('campaign.screen.dueToday');
 	if (daysLeft < 0) return plural(t, 'campaign.screen.overdue', -daysLeft);
 	return plural(t, 'campaign.screen.due', daysLeft, { date: dayMonth(deadline, t) });
-}
-
-const MONTHS = [
-	'date.month.jan',
-	'date.month.feb',
-	'date.month.mar',
-	'date.month.apr',
-	'date.month.may',
-	'date.month.jun',
-	'date.month.jul',
-	'date.month.aug',
-	'date.month.sep',
-	'date.month.oct',
-	'date.month.nov',
-	'date.month.dec',
-] as const satisfies readonly MessageKey[];
-
-// Read from the string itself, never through a `Date`, so no time zone can move the day.
-function dayMonth(date: string, t: Translator): string {
-	const match = /^\d{4}-(\d{2})-(\d{2})$/.exec(date);
-	const month = match ? MONTHS[Number(match[1]) - 1] : undefined;
-	if (!match || month === undefined) return date;
-	return t('date.dayMonth', { day: Number(match[2]), month: t(month) });
 }

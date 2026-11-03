@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
 import type { Language, Translator } from '../../i18n';
-import type { Clock } from '../../ports';
+import type { Clock, DeviceStore } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
 import { LevelRibbon } from '../atoms/LevelRibbon';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
@@ -24,6 +24,7 @@ import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
 import { questListView, questPanelView } from '../presenters/questListView';
 import { skillRingView, skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
+import { openLetter, storedLetterMark } from './briefingLetter';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
@@ -52,6 +53,8 @@ export interface HomeScreenDeps {
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
+	/** This device's own small state: the mark of the last letter of Esdras opened here (game-ui S13). */
+	readonly deviceStore: DeviceStore;
 	readonly campaigns: CampaignsDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
 	readonly translator: () => Translator;
@@ -77,6 +80,9 @@ interface Place {
 /** Re-render period that keeps "Sincronizado hace N min" current. Local only: it sends no request. */
 const CLOCK_TICK_MS = 30_000;
 
+/** Numbers the open views, so each one's letter has its own ids in the window (aria-controls). */
+let viewCount = 0;
+
 /**
  * The only UI component that calls `application/` (S8). On mount and on
  * "Sincronizar" it reads the character (LoadHome, no network), renders it with
@@ -100,6 +106,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [syncKey, setSyncKey] = useState(0);
 	const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
+	// The letter folds on every open of the view and stays as it was while the screen changes (S13).
+	const [letterOpen, setLetterOpen] = useState(false);
+	const [readMark, setReadMark] = useState<unknown>(() => storedLetterMark(deps.deviceStore));
+	const [letterId] = useState(() => `dromos-letter-${(viewCount += 1)}`);
 	const { screen } = place;
 	const mounted = useRef(false);
 	const frame = useRef<HTMLDivElement>(null);
@@ -125,6 +135,22 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 				void requestBriefing.execute().then((request) => deps.notify(briefingRequestMessage(request, deps.translator())));
 			}
 		: null;
+	// Opening the letter marks it read on this device, which takes the wax seal off.
+	const toggleLetter = (): void => {
+		if (!letterOpen) {
+			const mark = openLetter(briefing, deps.deviceStore);
+			if (mark) setReadMark(mark);
+		}
+		setLetterOpen(!letterOpen);
+	};
+	// The fold button at the letter's end: the focus goes back to the top toggle and the panel's head
+	// comes into view, as the letter rolls up under it.
+	const foldLetter = (): void => {
+		setLetterOpen(false);
+		const toggle = main.current?.querySelector<HTMLElement>(`#${letterId}-toggle`);
+		toggle?.focus({ preventScroll: true });
+		toggle?.closest('.dromos-briefing')?.querySelector('.dromos-briefing-head')?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+	};
 	const announce = useCallback((): void => {
 		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
 	}, [deps]);
@@ -215,7 +241,16 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					) : null}
 					{showCeremony ? <LevelUpPanel view={ceremony} onDismiss={dismissEvents} renderIcon={deps.renderIcon} /> : null}
 					{home && briefing ? (
-						<BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} renderIcon={deps.renderIcon} />
+						<BriefingPanel
+							view={briefingView(briefing, deps.clock.today(), skills.locked, t, readMark)}
+							renderMarkdown={deps.renderMarkdown}
+							onRequest={onRequestBriefing}
+							renderIcon={deps.renderIcon}
+							open={letterOpen}
+							letterId={letterId}
+							onToggle={toggleLetter}
+							onFold={foldLetter}
+						/>
 					) : null}
 					{home ? <QuestList view={questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t)} /> : null}
 					{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
@@ -276,6 +311,10 @@ function useScreenFocus(screen: DromosScreen, frame: RefObject<HTMLElement>, mai
 		const heading = main.current?.querySelector<HTMLElement>('[data-screen-heading]') ?? main.current;
 		heading?.focus({ preventScroll: true });
 	}, [screen, frame, main]);
+}
+
+function prefersReducedMotion(): boolean {
+	return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function useClockTick(): void {

@@ -84,6 +84,14 @@ No briefing is dated today. On desktop, **Copy briefing command** copies `/dromo
 
 That is by design: the command runs on a computer.
 
+### The letter shows only its first lines
+
+The panel opens folded so the quests stay in sight. Select **Read the letter** to unroll it, and **Fold the letter** at its end to roll it up.
+
+### The wax seal comes back on another device
+
+Each device remembers on its own which letter you opened, so a letter read on your computer is still new on your phone.
+
 ### A new briefing does not show
 
 The panel reads the note when the tab opens and on **Sync**. Select **Sync**.

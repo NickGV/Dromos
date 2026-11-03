@@ -168,7 +168,7 @@ Shalom. Today the race asks for one thing.
 
 | Field | Rule |
 |---|---|
-| `created` | The day, `YYYY-MM-DD`. If it is not today, or is missing, the panel dims and says "Esdras has not written today" |
-| `mission.title`, `mission.why` | Highlighted above the text; no title, no mission |
+| `created` | The day, `YYYY-MM-DD`. Today's letter is headed "Letter from Esdras · today"; one of another day, or with no date, is dimmed and headed "Last letter · 2 Nov" (or "Last letter") |
+| `mission.title`, `mission.why` | The title heads the folded panel, cut at two lines; the why opens the unrolled letter, with text in backticks shown as code and no other markdown. No title, no mission |
 | `near_unlock.skill` | A skill id; shown only while that skill is locked, and Dromos works out what it still asks |
 | Body | Rendered as a note, with links you can follow. The panel signs it, so the body should not. It should not start with a `---` line |

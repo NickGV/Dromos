@@ -2,6 +2,7 @@ import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src
 import { createTranslator, type Language } from '../../../src/i18n';
 import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
 import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
+import { InMemoryDeviceStore } from '../../fakes/InMemoryDeviceStore';
 
 export const noop = (): void => undefined;
 export const renderNothing = (): (() => void) => noop;
@@ -46,6 +47,7 @@ export function homeDeps(
 		openSettings: options.openSettings ?? null,
 		questSnapshot: () => quests,
 		clock,
+		deviceStore: new InMemoryDeviceStore(),
 		campaigns,
 		translator: () => createTranslator(language),
 		language: () => language,

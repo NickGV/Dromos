@@ -82,6 +82,13 @@ export const es = {
 	'briefing.nearSkill': 'Skill más cercana',
 	'briefing.signature': '— Esdras',
 	'briefing.request': 'Copiar comando del briefing',
+	'briefing.top.today': 'Carta de Esdras · hoy',
+	'briefing.top.last': 'Última carta · {date}',
+	'briefing.top.lastUndated': 'Última carta',
+	'briefing.new': 'Carta nueva',
+	'briefing.read': 'Leer la carta · {minutes} min',
+	'briefing.fold': 'Doblar la carta',
+	'briefing.why': 'Por qué esta misión',
 	'briefing.request.copied': 'Comando copiado: {command}. Córrelo en OpenCode desde la carpeta de tu bóveda.',
 	'briefing.request.failed': 'No se pudo copiar. El comando es {command}: córrelo en OpenCode desde la carpeta de tu bóveda.',
 

@@ -10,7 +10,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
@@ -91,6 +91,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			openSettings: createOpenSettings(plugin.app, plugin.manifest.id),
 			questSnapshot: () => state.snapshot(),
 			clock,
+			// Per-device marks (the letter last opened) in Obsidian's local storage, never in the vault or data.json.
+			deviceStore: new LocalDeviceStore(plugin.app),
 			translator: () => createTranslator(settings.language),
 			language: () => settings.language,
 			subscribeSettings: (onChange) => {

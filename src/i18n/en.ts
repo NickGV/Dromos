@@ -81,6 +81,13 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'briefing.nearSkill': 'Closest skill',
 	'briefing.signature': '— Esdras',
 	'briefing.request': 'Copy briefing command',
+	'briefing.top.today': 'Letter from Esdras · today',
+	'briefing.top.last': 'Last letter · {date}',
+	'briefing.top.lastUndated': 'Last letter',
+	'briefing.new': 'New letter',
+	'briefing.read': 'Read the letter · {minutes} min',
+	'briefing.fold': 'Fold the letter',
+	'briefing.why': 'Why this mission',
 	'briefing.request.copied': 'Command copied: {command}. Run it in OpenCode from your vault folder.',
 	'briefing.request.failed': 'Could not copy it. The command is {command}: run it in OpenCode from your vault folder.',
 

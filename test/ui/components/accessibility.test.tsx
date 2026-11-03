@@ -64,8 +64,22 @@ describe('busy buttons keep keyboard focus', () => {
 // The outline of the campaigns and skills screens is checked in campaignScreen.test.tsx and skillsScreen.test.tsx.
 describe('heading outline', () => {
 	it('gives the panel of Esdras a heading', () => {
-		const view: BriefingView = { ariaLabel: 'Briefing from Esdras', notice: null, requestLabel: 'Copy briefing command', dimmed: false, mission: null, near: null, markdown: null, signature: '— Esdras' };
-		const html = renderToStaticMarkup(<BriefingPanel view={view} renderMarkdown={renderNothing} onRequest={null} />);
+		const view: BriefingView = {
+			ariaLabel: 'Briefing from Esdras',
+			topLine: 'Letter from Esdras · today',
+			notice: null,
+			newLabel: null,
+			requestLabel: 'Copy briefing command',
+			requestInRow: false,
+			dimmed: false,
+			mission: null,
+			near: null,
+			excerpt: null,
+			markdown: null,
+			signature: '— Esdras',
+			letter: { readLabel: 'Read the letter · 1 min', foldLabel: 'Fold the letter' },
+		};
+		const html = renderToStaticMarkup(<BriefingPanel view={view} renderMarkdown={renderNothing} onRequest={null} open={false} letterId="dromos-letter-1" onToggle={noop} onFold={noop} />);
 		expect(html).toMatch(/<h2[^>]*>Briefing from Esdras<\/h2>/);
 	});
 });

@@ -8,6 +8,7 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 - **A level-up ceremony.** When your character levels up, the XP bar fills, the level medallion turns ochre, a ribbon with the new level unfurls over the landscape, and a panel under the card lists what your skills did in that sync. Skill level-ups and unlocks alone open the panel without the ribbon. With reduced motion, everything shows at once. It replaces the ribbon in the character card.
 - **Today's quests show what they pay.** Each quest lists its kind, the skills it feeds and the XP the ledger writes for it, beside Today or Overdue. The panel is headed by how many dailies are done and the XP still to earn, or "Day complete".
+- **The letter of Esdras folds.** The panel opens folded on every visit: "Letter from Esdras · today" or "Last letter · 2 Nov", the mission cut at two lines, the closest skill with what it asks, and two lines of the text. **Read the letter · N min** unrolls the rest, and **Fold the letter** at its end rolls it up and takes the keyboard focus back to the top. A letter not opened yet on this device carries an ochre wax seal and "New letter"; this device remembers it in Obsidian's local storage, never in a note or `data.json`. With reduced motion it opens and folds at once. On phones the seal sits beside the top line.
 - **Three screens and a signpost.** A signpost of wooden planks in the landscape leads to the screens of the view: **Path** (home), **Campaigns** and **Skills**, and **Settings**, which opens the Dromos settings tab. Campaigns and Skills open with a card naming the screen and your character, level and XP. Changing screen takes you back to the top and moves the keyboard focus to the screen's title.
 
 ### Changed
@@ -20,7 +21,14 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 - **Skills on the home screen** are one row of ring medallions; the ring is the progress, and a medallion opens the Skills screen on its skill. A skill icon written as an icon name, such as `book-open`, is drawn with Obsidian's icons.
 - **The Campaigns screen after the design**: a tab per campaign, and for the one shown its kind, name and deadline, the stalled seal, a hatched bar of all its tasks with the next step, **The path** with a flag per phase, and **Tasks by phase**, each task with its state (Done, Next, Pending, Not linked or Not found in Habitica) and **Send to Habitica** where it can be sent. **Open note** opens the campaign's note. Changing tab sends no request.
 - **The Skills screen after the design**: a grid of every medallion, earned first, and the detail of the one selected: level and rank or Locked, the stat it feeds, the bar to the next level or the requirements, what counts, and the recent entries of the ledger ("today", "yesterday", "N days ago"; a revert shows its XP with a minus sign).
+- **Copy briefing command** sits beside **Read the letter** when the letter is old or missing, and at the end of today's letter.
 - **Offline**: a band above the landscape says "Last known state · N ago" and the landscape loses its color; the sync line stays quiet. Other sync failures keep their band in the character card.
+
+### Fixed
+
+- Links in the briefing kept Obsidian's purple, 3.53:1 on the parchment; they are now ochre ink and underlined, 4.9:1 or more, and inline code is a chip of the paper.
+- The mission's why showed Esdras's backticks as they were; text in backticks is now code.
+- The briefing's text and mission stop at a reading width of about 36em on wide panes.
 
 ## [0.7.0] - 2026-11-03
 
