@@ -5,5 +5,6 @@ export * from './SystemClipboard';
 export * from './SystemClock';
 export * from './markdownRender';
 export * from './noteUri';
+export * from './openSettings';
 export * from './renderIcon';
 export * from './showNotice';

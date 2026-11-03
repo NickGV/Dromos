@@ -34,18 +34,28 @@ describe('HomeScreen puts the character first', () => {
 		expect(section).toContain('Dismiss');
 	});
 
-	it('keeps a quiet sync line after a sync, and a prominent one when Habitica cannot be reached', () => {
+	// While offline the band above the scene says it (game-ui S10), so that case lives in screens.test.tsx.
+	it('keeps a quiet sync line after a sync, and a prominent one when the sync fails', () => {
 		const synced = renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: { quests: [], lastSyncedAt: new Date('2026-11-03T13:57:00Z'), status: { kind: 'synced' } } })} />);
-		const offline = renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: { ...IDLE_QUESTS, status: { kind: 'offline' } } })} />);
+		const failed = renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: { ...IDLE_QUESTS, status: { kind: 'error' } } })} />);
 		expect(firstSection(synced)).toMatch(/class="dromos-banner is-success"/);
-		expect(firstSection(offline)).toMatch(/class="dromos-banner is-warning is-prominent"/);
+		expect(firstSection(failed)).toMatch(/class="dromos-banner is-error is-prominent"/);
 	});
 });
 
 describe('CharacterCard', () => {
-	it('opens with the landscape, a drawing screen readers skip', () => {
-		const view = { name: 'Nicolás', title: 'Corredor', levelText: 'Level 3', xp: { current: 240, total: 520, percent: 46, text: '240 / 520 XP' }, stats: [] };
+	const view = { name: 'Nicolás', title: 'Corredor', levelText: 'Level 3', xp: { current: 240, total: 520, percent: 46, text: '240 / 520 XP' }, stats: [{ id: 'fuerza' as const, label: 'Strength', value: 2 }] };
+
+	// The landscape is now the scene above every screen (game-ui S1); screens.test.tsx checks it is aria-hidden.
+	it('leaves the landscape to the scene above it and keeps the name, title, level, XP and stats', () => {
+		const html = renderToStaticMarkup(<CharacterCard view={view} ribbon={null} footer={<p>sync line</p>} />);
+		expect(html).not.toContain('dromos-landscape');
+		expect(html).toMatch(/<h2[^>]*>Nicolás<\/h2>/);
+		for (const text of ['Corredor', 'Level 3', '240 / 520 XP', 'Strength', '<p>sync line</p>']) expect(html).toContain(text);
+	});
+
+	it('gives the name as the heading that takes the focus when the home screen opens', () => {
 		const html = renderToStaticMarkup(<CharacterCard view={view} ribbon={null} footer={null} />);
-		expect(html).toMatch(/^<section[^>]*><svg[^>]*class="dromos-landscape"[^>]*aria-hidden="true"/);
+		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"[^>]*>Nicolás<\/h2>/);
 	});
 });

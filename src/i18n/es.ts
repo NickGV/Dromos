@@ -45,6 +45,18 @@ export const es = {
 	'stat.espiritu': 'Espíritu',
 	'stat.disciplina': 'Disciplina',
 
+	'nav.aria': 'Secciones',
+	'nav.home': 'Camino',
+	'nav.campaigns': 'Campañas',
+	'nav.skills': 'Skills',
+	'nav.settings': 'Ajustes',
+	'nav.goTo': 'Ir a {screen}',
+	'screen.campaigns': 'Campañas',
+	'screen.skills': 'Skills',
+	'screen.level': 'nivel {level}',
+	'offline.band': 'Último estado conocido · {ago}',
+	'offline.band.never': 'Último estado conocido',
+
 	'briefing.aria': 'Briefing de Esdras',
 	'briefing.notToday': 'Esdras aún no escribió hoy',
 	'briefing.unreadable': 'No se pudo leer el briefing.',

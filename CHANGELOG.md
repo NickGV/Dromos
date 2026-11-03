@@ -2,6 +2,18 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Three screens and a signpost.** A signpost of wooden planks in the landscape leads to the screens of the view: **Path** (home), **Campaigns** and **Skills**, and **Settings**, which opens the Dromos settings tab. Campaigns and Skills open with a card naming the screen and your character, level and XP. Changing screen takes you back to the top and moves the keyboard focus to the screen's title.
+
+### Changed
+
+- **The landscape of the design** now heads the whole view instead of the character card: a sky with a sun and drifting clouds, birds, cypresses, a tree and a village, three hills and the path, and the walker with a staff and an ochre belt. In a dark theme it is a night with a moon, stars, lit windows and a lamp. It is lower on phones and on the Campaigns and Skills screens, and the clouds hold still with reduced motion. The character card overlaps its foot.
+- **Parchment.** Dromos now draws its own surfaces instead of the theme's: parchment panels with a paper grain and an umber hairline, linen buttons, and titles in EB Garamond, a font that now ships inside the plugin, with its license. Dark themes get a night parchment of the same hues. Every text keeps a contrast of 4.5:1 or more.
+- **Offline**: a band above the landscape says "Last known state · N ago" and the landscape loses its color; the sync line stays quiet. Other sync failures keep their band in the character card.
+
 ## [0.7.0] - 2026-11-03
 
 ### Changed

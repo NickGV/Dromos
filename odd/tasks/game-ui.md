@@ -111,13 +111,13 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 
 | ID | Specs | Scope | Route | Status | Commit |
 |---|---|---|---|---|---|
-| T1 | S6, S8, S9 (data) | Quest price and skill from the ledger pricing; the last ledger rows per skill; campaign deadline and task phase in the view models. Raw values only, no new copy | delegated W1 (parallel with T2, disjoint surfaces) | done: 18 tests RED then GREEN, 936/936, lint 0 errors and 4 warnings (the earlier ones), build ok; parent spot check (L4). Risk: none (`taskPrice` is a pure extraction; the rows the ledger writes are unchanged and pinned) | this commit |
-| T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | pending | |
+| T1 | S6, S8, S9 (data) | Quest price and skill from the ledger pricing; the last ledger rows per skill; campaign deadline and task phase in the view models. Raw values only, no new copy | delegated W1 (parallel with T2, disjoint surfaces) | done: 18 tests RED then GREEN, 936/936, lint 0 errors and 4 warnings (the earlier ones), build ok; parent spot check (L4). Risk: none (`taskPrice` is a pure extraction; the rows the ledger writes are unchanged and pinned) | `392a5f2` |
+| T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | done: 21 tests RED then GREEN, 958/958, lint 0 errors and 4 warnings, build ok, preview at 390 and 960 px light and dark (L5). Risk: item 6 | this commit |
 | T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | pending | |
-| T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T1 and T2, parallel with T3 in its own worktree | pending | |
+| T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | pending | |
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | pending | |
 
-Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx` and the i18n files, so they run in separate worktrees.
+Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
 
 ## Log
 
@@ -140,3 +140,17 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   - a link from the mission to a campaign;
   - completed to-dos in today's list, so the header counts dailies only.
 - **L4** (2026-11-03): T1 by W1. `taskPrice` in `nextRows.ts` is now the one place the price of a completion comes from, and the rows the ledger writes are built from it. `SyncGame` prices every task it already fetched into `questPrices`, without a new request, and keeps each skill's last five rows in `recent`. The campaign card gains `deadline`, `daysLeft` (never NaN) and the `phase` of each task row; each segment gains its phase `id`, so T4 can group the tasks. Left out on purpose: the streak bonus is not in a quest's XP, because predicting it would mean guessing the streak.
+- **L5** (2026-11-03): T2 by W2.
+  - The view has three screens under one scene, with a signpost of planks. "Settings" uses a runtime-guarded `app.setting`; the dep is `null` and the plank hidden where that is missing.
+  - The landscape is the design's, path for path, with token colors and a night variant. The clouds drift and stop with reduced motion.
+  - The offline band: offline now keeps the sync line quiet, because the band says it.
+  - EB Garamond is embedded with its OFL text; `styles.css` is about 137 KB.
+  - Obsidian's variables are pointed at the parchment tokens inside `.dromos-root`, so the existing sections follow.
+  - Values deepened from the design for contrast:
+    - muted text #6F5B4C;
+    - meaningful ochre fill #9A6E15;
+    - olive #5F7A42;
+    - clay text #A33F25.
+  - Lowest measured values, light / dark: text 4.59 / 5.37, graphics 3.26 / 5.65.
+  - The campaigns panel stays mounted on every screen, so switching screens spends no request.
+  - Not checked in real Obsidian yet. T4 runs after T3, not in parallel: the two share components and files.

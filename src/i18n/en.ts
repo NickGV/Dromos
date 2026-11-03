@@ -44,6 +44,18 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'stat.espiritu': 'Spirit',
 	'stat.disciplina': 'Discipline',
 
+	'nav.aria': 'Sections',
+	'nav.home': 'Path',
+	'nav.campaigns': 'Campaigns',
+	'nav.skills': 'Skills',
+	'nav.settings': 'Settings',
+	'nav.goTo': 'Go to {screen}',
+	'screen.campaigns': 'Campaigns',
+	'screen.skills': 'Skills',
+	'screen.level': 'level {level}',
+	'offline.band': 'Last known state · {ago}',
+	'offline.band.never': 'Last known state',
+
 	'briefing.aria': 'Briefing from Esdras',
 	'briefing.notToday': 'Esdras has not written today',
 	'briefing.unreadable': 'Could not read the briefing.',

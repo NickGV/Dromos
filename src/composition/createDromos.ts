@@ -10,7 +10,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, DromosSettingTab, renderIcon, isDesktopApp, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
@@ -87,6 +87,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			renderIcon,
 			// The job runs in OpenCode on the desktop: on a phone there is nowhere to paste the command.
 			requestBriefing: isDesktopApp() ? new RequestBriefing(new SystemClipboard()) : null,
+			// The signpost's settings plank opens this plugin's tab; hidden where Obsidian has no settings window.
+			openSettings: createOpenSettings(plugin.app, plugin.manifest.id),
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),

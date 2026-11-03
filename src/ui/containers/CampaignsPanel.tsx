@@ -21,11 +21,21 @@ export interface CampaignsDeps {
 	readonly clock: Clock;
 }
 
+export interface CampaignsPanelProps {
+	readonly deps: CampaignsDeps;
+	readonly syncKey: number;
+	/**
+	 * Draws nothing while true, but stays mounted: a screen without campaigns keeps the panel's
+	 * state, and showing it again spends no Habitica request (game-ui S1).
+	 */
+	readonly hidden?: boolean;
+}
+
 /**
  * Container of the campaigns (S5, S6): syncs when it mounts and whenever `syncKey` changes
  * (the home's "Sincronizar"), and sends a task to Habitica on request. It never polls (S4).
  */
-export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps; readonly syncKey: number }) {
+export function CampaignsPanel({ deps, syncKey, hidden = false }: CampaignsPanelProps) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
 	const [sending, setSending] = useState<Sending | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
@@ -68,6 +78,7 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 		[deps, sync, t],
 	);
 
+	if (hidden) return null;
 	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
 	return (
 		<CampaignList

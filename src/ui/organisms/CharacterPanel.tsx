@@ -31,7 +31,9 @@ export function CharacterPanel({ state, ribbon, footer }: CharacterPanelProps) {
 			return (
 				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
 					{ribbon}
-					<h2 className="dromos-card-title">{t('character.missing.title')}</h2>
+					<h2 className="dromos-card-title" tabIndex={-1} data-screen-heading>
+						{t('character.missing.title')}
+					</h2>
 					<p className="dromos-empty">
 						{t('character.missing.before')}
 						<code>{state.path}</code>
