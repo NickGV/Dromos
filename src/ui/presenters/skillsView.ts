@@ -154,3 +154,49 @@ function problemsOf(snapshot: GameSnapshot, t: Translator): string[] {
 	if (more > 0) problems.push(plural(t, 'skills.problem.ledgerMore', more));
 	return problems;
 }
+
+/** One skill as a ring medallion (game-ui S9): the home row, and the grid of the Skills screen. */
+export interface SkillRingView {
+	readonly id: string;
+	readonly name: string;
+	readonly icon: string;
+	readonly earned: boolean;
+	/** The level badge of an earned skill; `null` while locked, which shows a lock. */
+	readonly level: number | null;
+	/** How much of the ring is drawn, whole percent: the level's progress once earned, the unlock's before. */
+	readonly percent: number;
+	/** "Level 2 · 40/160" (XP into the level) once earned; the closest requirement while locked. */
+	readonly caption: string | null;
+	/** The medallion button's name, its visible name first. */
+	readonly ariaLabel: string;
+}
+
+export function skillRingView(card: SkillCardView, t: Translator): SkillRingView {
+	const caption = card.unlocked ? earnedCaption(card, t) : card.caption;
+	const parts = [card.name, card.unlocked ? null : t('skills.ring.locked'), caption].filter((part): part is string => part !== null);
+	return {
+		id: card.id,
+		name: card.name,
+		icon: card.icon,
+		earned: card.unlocked,
+		level: card.level,
+		percent: card.unlocked ? (card.xp?.percent ?? 100) : card.progressPercent,
+		caption,
+		ariaLabel: parts.join(', '),
+	};
+}
+
+// Without a next level on the curve the caption names the level alone.
+function earnedCaption(card: SkillCardView, t: Translator): string | null {
+	if (card.xp === null) return card.levelText;
+	return t('skills.ring.caption', { level: card.level ?? 0, current: card.xp.current, total: card.xp.total });
+}
+
+/**
+ * Whether a skill's icon is the name of one of the host app's icons, drawn by its icon set, such
+ * as `book-open`: only lowercase letters, digits and dashes (game-ui S9). Anything else, an emoji
+ * included, is shown as text.
+ */
+export function isIconName(icon: string): boolean {
+	return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(icon);
+}

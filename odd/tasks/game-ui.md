@@ -112,8 +112,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | ID | Specs | Scope | Route | Status | Commit |
 |---|---|---|---|---|---|
 | T1 | S6, S8, S9 (data) | Quest price and skill from the ledger pricing; the last ledger rows per skill; campaign deadline and task phase in the view models. Raw values only, no new copy | delegated W1 (parallel with T2, disjoint surfaces) | done: 18 tests RED then GREEN, 936/936, lint 0 errors and 4 warnings (the earlier ones), build ok; parent spot check (L4). Risk: none (`taskPrice` is a pure extraction; the rows the ledger writes are unchanged and pinned) | `392a5f2` |
-| T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | done: 21 tests RED then GREEN, 958/958, lint 0 errors and 4 warnings, build ok, preview at 390 and 960 px light and dark (L5). Risk: item 6 | this commit |
-| T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | pending | |
+| T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | done: 21 tests RED then GREEN, 958/958, lint 0 errors and 4 warnings, build ok, preview at 390 and 960 px light and dark (L5). Risk: item 6 | `a19de33` |
+| T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | this commit |
 | T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | pending | |
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | pending | |
 
@@ -154,3 +154,16 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   - Lowest measured values, light / dark: text 4.59 / 5.37, graphics 3.26 / 5.65.
   - The campaigns panel stays mounted on every screen, so switching screens spends no request.
   - Not checked in real Obsidian yet. T4 runs after T3, not in parallel: the two share components and files.
+- **L6** (2026-11-03): T3 by W3. On the home screen:
+  - the character card has a level medallion, pips (a number above 6) and "Level N+1 in Z XP";
+  - the ceremony runs fill, then medal, then ribbon and panel, with its timing in `useCeremonyPhase`, the final state at once under reduced motion, and focus back to the name on dismiss. `LevelUpBanner` is deleted; the unlock toasts stay;
+  - the briefing is a scroll;
+  - the quest panel has chips, and its header counts dailies only. "+X XP to earn" is the sum of the pending dailies and stays blank while nothing is priced;
+  - compact campaign cards open the campaigns screen (`selectedCampaign` in `HomeScreen`). The card is an `<article>` whose heading button is stretched over it, so the road stays readable to screen readers;
+  - ring medallions open the skills screen.
+
+  For T4: `RingMedallion`, `SkillRingButton` and `CampaignRoad` (`wide`).
+
+  Deepened for contrast: the lock arc and the segments ahead go to #857b70 in light (3.43); the seal uses the clay ink #a33f25 (5.86). Lowest measured, light / dark: text 4.81 / 5.96, graphics 3.39 / 3.74.
+
+  Not checked: real Obsidian and its icons inside the rings.

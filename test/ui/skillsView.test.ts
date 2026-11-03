@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { GameSnapshot, SkillEntry } from '../../src/application';
 import { skillStanding, type Skill } from '../../src/domain';
 import { createTranslator, type Translator } from '../../src/i18n';
-import { nextSkillSelection, skillsPageView } from '../../src/ui/presenters/skillsView';
+import { isIconName, nextSkillSelection, skillRingView, skillsPageView } from '../../src/ui/presenters/skillsView';
 import { skill } from '../domain/skill/skillFixtures';
 
 const es = createTranslator('es');
@@ -268,5 +268,56 @@ describe('nextSkillSelection', () => {
 		expect(nextSkillSelection(null, 'lector')).toBe('lector');
 		expect(nextSkillSelection('lector', 'atleta')).toBe('atleta');
 		expect(nextSkillSelection('lector', 'lector')).toBeNull();
+	});
+});
+
+describe('skillRingView: the ring medallion of the home screen (game-ui S9)', () => {
+	const cardOf = (entry: SkillEntry, t: Translator = en) => {
+		const page = skillsPageView(snapshot({ skills: [entry] }), t);
+		const found = page.earned[0] ?? page.locked[0];
+		if (!found) throw new Error('no card');
+		return found;
+	};
+
+	it('draws the ring of an earned skill as its progress through the level', () => {
+		const card = cardOf(earned({}, 40));
+
+		expect(card.xp).toMatchObject({ current: 40, total: 100 });
+		expect(skillRingView(card, en)).toEqual({ id: 'lector', name: 'Lector', icon: '📖', earned: true, level: 1, percent: 40, caption: 'Level 1 · 40/100', ariaLabel: 'Lector, Level 1 · 40/100' });
+	});
+
+	it('draws the ring of a locked skill as its progress towards unlocking, captioned by the closest requirement', () => {
+		const card = cardOf(locked({}, [{ requirement: { kind: 'quests', count: 4 }, done: 3, total: 4, met: false }]), es);
+
+		expect(skillRingView(card, es)).toEqual({
+			id: 'cuidador',
+			name: 'Cuidador',
+			icon: '🩺',
+			earned: false,
+			level: null,
+			percent: 75,
+			caption: 'Quests con esta skill: 3 de 4',
+			ariaLabel: 'Cuidador, bloqueada, Quests con esta skill: 3 de 4',
+		});
+	});
+
+	it('fills the ring and names the level alone when the curve has no next level', () => {
+		const card = { ...cardOf(earned({}, 40)), xp: null };
+
+		expect(skillRingView(card, en)).toMatchObject({ percent: 100, caption: 'Level 1', ariaLabel: 'Lector, Level 1' });
+	});
+
+	it('names a locked skill without requirements as locked only', () => {
+		expect(skillRingView(cardOf(locked()), en)).toMatchObject({ percent: 0, caption: null, ariaLabel: 'Cuidador, locked' });
+	});
+});
+
+describe('isIconName: which icons the host app draws (game-ui S9)', () => {
+	it('takes lowercase letters, digits and dashes as an icon name', () => {
+		expect(['book-open', 'dumbbell', 'heart-pulse', 'flag-2'].map(isIconName)).toEqual([true, true, true, true]);
+	});
+
+	it('leaves anything else as text, emoji included', () => {
+		expect(['📖', 'Book', 'book open', '', 'a_b', '🏃‍♂️'].map(isIconName)).toEqual([false, false, false, false, false, false]);
 	});
 });

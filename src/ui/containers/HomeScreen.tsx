@@ -3,26 +3,29 @@ import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapsh
 import type { Language, Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
+import { LevelRibbon } from '../atoms/LevelRibbon';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
-import { LevelUpBanner } from '../molecules/LevelUpBanner';
 import { OfflineBand } from '../molecules/OfflineBand';
 import type { DromosScreen } from '../molecules/Signpost';
 import { StatusBanner } from '../molecules/StatusBanner';
 import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
+import { LevelUpPanel } from '../organisms/LevelUpPanel';
 import { QuestList } from '../organisms/QuestList';
 import { Scene } from '../organisms/Scene';
 import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
 import { SkillsPanel } from '../organisms/SkillsPanel';
+import { SkillsRow } from '../organisms/SkillsRow';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
-import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
-import { questListView } from '../presenters/questListView';
-import { nextSkillSelection, skillsPageView } from '../presenters/skillsView';
+import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
+import { questListView, questPanelView } from '../presenters/questListView';
+import { nextSkillSelection, skillRingView, skillsPageView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
+import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
 export interface HomeScreenDeps {
@@ -32,7 +35,7 @@ export interface HomeScreenDeps {
 	readonly syncGame: Pick<SyncGame, 'execute'>;
 	/** The session's game state right now; reads `syncing` as soon as `syncGame.execute()` returns. */
 	readonly gameSnapshot: () => GameSnapshot;
-	/** The level-up banner was closed. */
+	/** The level-up ceremony was closed. */
 	readonly dismissGameEvents: () => void;
 	/** The game events not toasted yet; each one comes out once. */
 	readonly takeGameAnnouncements: () => readonly GameEvent[];
@@ -62,6 +65,12 @@ export interface HomeScreenDeps {
 
 type CharacterShown = CharacterState | { readonly kind: 'loading' };
 
+/** Where the view is: the screen on show, and the campaign a home card opened, which the campaigns screen shows (game-ui S7). */
+interface Place {
+	readonly screen: DromosScreen;
+	readonly campaign: string | null;
+}
+
 /** Re-render period that keeps "Sincronizado hace N min" current. Local only: it sends no request. */
 const CLOCK_TICK_MS = 30_000;
 
@@ -75,6 +84,8 @@ const CLOCK_TICK_MS = 30_000;
  *
  * It holds the three screens of the view (game-ui S1): home, campaigns and skills, under one
  * scene with a signpost. Changing screen spends no request: the campaigns panel stays mounted.
+ * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
+ * here, and the card, the ribbon and the panel are drawn from the step it is at.
  */
 export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
@@ -84,7 +95,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
 	const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
-	const [screen, setScreen] = useState<DromosScreen>(initialScreen);
+	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
+	const { screen } = place;
 	const mounted = useRef(false);
 	const frame = useRef<HTMLDivElement>(null);
 	const main = useRef<HTMLElement>(null);
@@ -92,12 +104,16 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	useClockTick();
 	useSettingsChange(deps.subscribeSettings);
 	const t = deps.translator();
+	const skills = skillsPageView(game, t);
+	const ceremony = ceremonyView(game.events, [...skills.earned, ...skills.locked], t);
+	const phase = useCeremonyPhase(ceremony?.level ?? null);
+	const go = useCallback((next: DromosScreen): void => setPlace((current) => ({ ...current, screen: next })), []);
+	// Closing the panel takes its button away: the focus goes back to the character's name.
 	const dismissEvents = useCallback((): void => {
 		deps.dismissGameEvents();
 		setGame(deps.gameSnapshot());
+		main.current?.querySelector<HTMLElement>('[data-screen-heading]')?.focus({ preventScroll: true });
 	}, [deps]);
-	const levelUp = levelUpBannerView(game.events, t);
-	const skills = skillsPageView(game, t);
 	const { requestBriefing } = deps;
 	const onRequestBriefing = requestBriefing
 		? (): void => {
@@ -161,18 +177,26 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const offline = quests.status.kind === 'offline';
 	const banner = syncBannerView(quests, deps.clock.now(), t);
 	const language = deps.language();
+	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
+	const showCeremony = home && ceremony !== null && (ceremony.level === null || phase === 'final');
 	return (
 		<I18nProvider t={t}>
 			{/* `lang` on the frame covers the signpost; the one on <main> stays for the content. */}
 			<div className="dromos-frame" lang={language} ref={frame}>
 				{offline ? <OfflineBand text={offlineBandText(quests, deps.clock.now(), t)} /> : null}
-				<Scene screen={screen} offline={offline} onGo={setScreen} onSettings={deps.openSettings} />
+				<Scene
+					screen={screen}
+					offline={offline}
+					onGo={go}
+					onSettings={deps.openSettings}
+					ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
+				/>
 				<main className={`dromos-home is-${screen}`} lang={language} ref={main} tabIndex={-1}>
 					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted. */}
 					{home ? (
 						<CharacterPanel
 							state={panelState(character, t)}
-							ribbon={levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
+							ceremony={ceremony?.level != null ? phase : null}
 							footer={
 								<div className="dromos-sync-line">
 									{/* While offline the band above the scene says it (S10), so the line stays quiet. */}
@@ -184,10 +208,24 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					) : (
 						<ScreenHeader title={t(screen === 'campaigns' ? 'screen.campaigns' : 'screen.skills')} character={headerCharacter(character, t)} />
 					)}
-					{home && briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} /> : null}
-					{home ? <QuestList view={questListView(quests.quests, deps.clock.today(), t)} /> : null}
-					<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} hidden={screen === 'skills'} />
-					{screen !== 'campaigns' ? (
+					{showCeremony ? <LevelUpPanel view={ceremony} onDismiss={dismissEvents} renderIcon={deps.renderIcon} /> : null}
+					{home && briefing ? (
+						<BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} renderIcon={deps.renderIcon} />
+					) : null}
+					{home ? <QuestList view={questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t)} /> : null}
+					<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} hidden={screen === 'skills'} onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined} />
+					{home ? (
+						<SkillsRow
+							page={skills}
+							rings={[...skills.earned, ...skills.locked].map((card) => skillRingView(card, t))}
+							onOpen={(skillId) => {
+								setSelectedSkill(skillId);
+								go('skills');
+							}}
+							renderIcon={deps.renderIcon}
+						/>
+					) : null}
+					{screen === 'skills' ? (
 						<SkillsPanel view={skills} selectedId={selectedSkill} onSelect={(skillId) => setSelectedSkill((current) => nextSkillSelection(current, skillId))} renderIcon={deps.renderIcon} />
 					) : null}
 				</main>

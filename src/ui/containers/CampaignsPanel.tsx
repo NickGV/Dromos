@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CampaignSnapshot, LinkHabitToCampaign, LinkTaskToCampaign, SyncCampaigns } from '../../application';
 import type { Clock } from '../../ports';
 import { useT } from '../i18n';
+import { CampaignBoard } from '../organisms/CampaignBoard';
 import type { Sending } from '../organisms/CampaignCard';
 import { CampaignList } from '../organisms/CampaignList';
+import { campaignHomeCardView } from '../presenters/campaignHomeView';
 import { campaignListView } from '../presenters/campaignView';
 import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcomeView';
 
@@ -29,13 +31,19 @@ export interface CampaignsPanelProps {
 	 * state, and showing it again spends no Habitica request (game-ui S1).
 	 */
 	readonly hidden?: boolean;
+	/**
+	 * Given on the home screen: the panel draws the compact cards (game-ui S7), each opening the
+	 * campaigns screen on its campaign through this. Without it, the full panel with its tasks,
+	 * habits and send buttons.
+	 */
+	readonly onOpenCampaign?: (path: string) => void;
 }
 
 /**
  * Container of the campaigns (S5, S6): syncs when it mounts and whenever `syncKey` changes
  * (the home's "Sincronizar"), and sends a task to Habitica on request. It never polls (S4).
  */
-export function CampaignsPanel({ deps, syncKey, hidden = false }: CampaignsPanelProps) {
+export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign }: CampaignsPanelProps) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
 	const [sending, setSending] = useState<Sending | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
@@ -80,6 +88,7 @@ export function CampaignsPanel({ deps, syncKey, hidden = false }: CampaignsPanel
 
 	if (hidden) return null;
 	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
+	if (onOpenCampaign) return <CampaignBoard list={view} cards={view.cards.map((card) => campaignHomeCardView(card, t))} onOpen={onOpenCampaign} />;
 	return (
 		<CampaignList
 			view={view}

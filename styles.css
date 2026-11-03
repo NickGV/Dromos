@@ -151,6 +151,26 @@
 	--dromos-clay: #e0805f;
 	--dromos-clay-ink: #e8906f;
 	--dromos-stone: #8a8279;
+	/* Stone where it carries meaning: a locked ring's arc, a task still ahead. */
+	--dromos-stone-mark: #8a8279;
+	/* The stalled seal: clay with its word, and the pale ring inside its edge. */
+	--dromos-seal: #e0805f;
+	--dromos-on-seal: #1b1713;
+	--dromos-seal-ring: rgba(27, 23, 19, 0.55);
+	/* Surfaces of the home screen (game-ui S3-S9): a card's tinted header and its hover, the
+	   rolled edges of the scroll, hairlines between rows, the XP chip, a completed quest's
+	   circle, a locked medallion's face, and the hatching of the XP bar. */
+	--dromos-tint: rgba(168, 130, 95, 0.1);
+	--dromos-card-hover: #2b241c;
+	--dromos-roll: rgba(168, 130, 95, 0.18);
+	--dromos-rule: rgba(168, 130, 95, 0.45);
+	--dromos-rule-dashed: rgba(168, 130, 95, 0.35);
+	--dromos-ochre-tint: rgba(212, 166, 74, 0.18);
+	--dromos-done-fill: #3b3127;
+	--dromos-lock-face: rgba(138, 130, 121, 0.22);
+	--dromos-xp-track: rgba(212, 166, 74, 0.1);
+	--dromos-hatch: rgba(237, 227, 207, 0.1);
+	--dromos-hatch-on-fill: rgba(36, 28, 18, 0.2);
 	--dromos-ink-warning: #e8a85c;
 	--dromos-ink-error: #ff8a7a;
 	--dromos-font-display: 'EB Garamond', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', P052, 'URW Palladio L', Georgia, 'Noto Serif', serif;
@@ -215,6 +235,23 @@
 	--dromos-clay: #b5593c;
 	--dromos-clay-ink: #a33f25;
 	--dromos-stone: #b8afa3;
+	/* The design's lock #b8afa3 is 1.79:1 on the panel: deepened to 3.43:1 where it means something. */
+	--dromos-stone-mark: #857b70;
+	/* The design's clay #b5593c under linen text is 4.32:1: the seal takes the clay ink, 5.84:1. */
+	--dromos-seal: #a33f25;
+	--dromos-on-seal: #faf5ea;
+	--dromos-seal-ring: rgba(250, 245, 234, 0.65);
+	--dromos-tint: rgba(139, 94, 60, 0.08);
+	--dromos-card-hover: #f6eedb;
+	--dromos-roll: rgba(139, 94, 60, 0.16);
+	--dromos-rule: rgba(139, 94, 60, 0.45);
+	--dromos-rule-dashed: rgba(139, 94, 60, 0.35);
+	--dromos-ochre-tint: rgba(201, 150, 43, 0.2);
+	--dromos-done-fill: #e4daca;
+	--dromos-lock-face: rgba(184, 175, 163, 0.3);
+	--dromos-xp-track: rgba(201, 150, 43, 0.14);
+	--dromos-hatch: rgba(139, 94, 60, 0.12);
+	--dromos-hatch-on-fill: rgba(59, 47, 42, 0.12);
 	--dromos-ink-warning: #8f5300;
 	--dromos-ink-error: #a33f25;
 }
@@ -499,8 +536,7 @@
 .dromos-root .dromos-btn,
 .dromos-root .dromos-sync-button,
 .dromos-root .dromos-send-button,
-.dromos-root .dromos-briefing-request,
-.dromos-root .dromos-levelup-dismiss {
+.dromos-root .dromos-briefing-request {
 	gap: 8px;
 	height: auto;
 	min-height: 44px;
@@ -517,8 +553,7 @@
 
 .dromos-root .dromos-btn.is-small,
 .dromos-root .dromos-sync-button,
-.dromos-root .dromos-send-button,
-.dromos-root .dromos-levelup-dismiss {
+.dromos-root .dromos-send-button {
 	min-height: 36px;
 	padding: 5px 12px;
 	font-size: 13px;
@@ -529,16 +564,14 @@
 .dromos-root .dromos-btn:not([aria-disabled="true"]):hover,
 .dromos-root .dromos-sync-button:not([aria-disabled="true"]):hover,
 .dromos-root .dromos-send-button:not([aria-disabled="true"]):hover,
-.dromos-root .dromos-briefing-request:hover,
-.dromos-root .dromos-levelup-dismiss:hover { background-color: var(--dromos-panel); }
+.dromos-root .dromos-briefing-request:hover { background-color: var(--dromos-panel); }
 
 .dromos-root .dromos-btn.is-primary:not([aria-disabled="true"]):hover { background-color: var(--dromos-ochre-hover); }
 
 .dromos-root .dromos-btn:focus-visible,
 .dromos-root .dromos-sync-button:focus-visible,
 .dromos-root .dromos-send-button:focus-visible,
-.dromos-root .dromos-briefing-request:focus-visible,
-.dromos-root .dromos-levelup-dismiss:focus-visible {
+.dromos-root .dromos-briefing-request:focus-visible {
 	outline: 2px solid var(--dromos-focus);
 	outline-offset: 2px;
 	box-shadow: none;
@@ -546,8 +579,7 @@
 
 .is-mobile .dromos-root .dromos-btn.is-small,
 .is-mobile .dromos-root .dromos-sync-button,
-.is-mobile .dromos-root .dromos-send-button,
-.is-mobile .dromos-root .dromos-levelup-dismiss { min-height: 44px; }
+.is-mobile .dromos-root .dromos-send-button { min-height: 44px; }
 
 /* A busy button keeps its focus (aria-disabled, not disabled) and ignores clicks. Obsidian
    already dims it as it dims a disabled one; a muted color on top would fall under 4.5:1. */
@@ -649,42 +681,78 @@
 	color: var(--text-muted);
 }
 
-/* Character */
-.dromos-root .dromos-character-head {
+/* Sections of the home screen (game-ui S6, S7, S9): the title stands above its panels, as in
+   the design, and the home screen spaces them as the design does. */
+.dromos-root .dromos-home.is-home { gap: 24px; }
+.dromos-root .dromos-section { min-width: 0; }
+.dromos-root .dromos-section-empty { margin: 0; padding: 16px; color: var(--text-muted); }
+
+/* Character (game-ui S3): the level medallion beside the name, the title and the hatched XP
+   bar; the six stats as pips in two columns; the sync line at the foot. */
+.dromos-root .dromos-character { padding: 16px 20px; }
+
+.dromos-root .dromos-character-main {
 	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 12px;
-	margin-bottom: 12px;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px 28px;
 }
 
-.dromos-root .dromos-character-names { min-width: 0; }
+.dromos-root .dromos-character-who {
+	display: flex;
+	flex: 1 1 280px;
+	align-items: center;
+	gap: 16px;
+	min-width: 0;
+}
+
+.dromos-root .dromos-character-names { flex: 1 1 auto; min-width: 0; }
 
 .dromos-root .dromos-character-name {
 	margin: 0;
 	font-family: var(--dromos-font-display);
-	font-size: 1.8em;
-	font-weight: 500;
-	line-height: 1.15;
+	font-size: 34px;
+	font-weight: 600;
+	line-height: 1.1;
 	overflow-wrap: anywhere;
 }
 
 .dromos-root .dromos-character-title {
 	margin: 2px 0 0;
-	font-style: italic;
-	color: var(--text-muted);
+	color: var(--dromos-ink-muted);
+	font-size: 15px;
+	font-variant: small-caps;
+	letter-spacing: 0.14em;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
 }
 
-.dromos-root .dromos-character-level {
+.dromos-root .dromos-level-medal {
+	position: relative;
+	display: grid;
 	flex: 0 0 auto;
-	padding: 2px 10px;
-	border: 1px solid var(--dromos-ochre-mark);
-	border-radius: var(--radius-l);
-	color: var(--dromos-ochre-ink);
-	font-size: var(--font-ui-small);
-	font-weight: var(--font-semibold);
-	white-space: nowrap;
+	place-items: center;
+	width: 72px;
+	height: 72px;
 }
+
+.dromos-root .dromos-level-medal-disc { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dromos-root .dromos-level-medal-face { fill: var(--dromos-panel); stroke: var(--dromos-umber); stroke-width: 1.2; transition: fill 1.4s ease; }
+.dromos-root .dromos-level-medal.is-lit .dromos-level-medal-face { fill: var(--dromos-ochre); }
+.dromos-root .dromos-level-medal-rim { fill: none; stroke: var(--dromos-umber); stroke-opacity: 0.5; }
+
+.dromos-root .dromos-level-medal-number {
+	position: relative;
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 30px;
+	font-weight: 700;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 1;
+	transition: color 1.4s ease;
+}
+
+.dromos-root .dromos-level-medal.is-lit .dromos-level-medal-number { color: var(--dromos-on-ochre); }
 
 .dromos-root .dromos-xp {
 	display: flex;
@@ -713,43 +781,205 @@
 	color: var(--text-muted);
 }
 
-.dromos-root .dromos-stats {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 8px;
+/* The character's bar, after the design: a hatched track with a hairline, the fill hatched too,
+   and its numbers under it. The fill moves, so a level-up can fill it before it drops. */
+.dromos-root .dromos-xp.is-stacked {
+	display: block;
+	margin: 8px 0 0;
 }
 
-.dromos-root .dromos-stat {
+.dromos-root .dromos-xp.is-stacked .dromos-xp-track {
+	height: 13px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 7px;
+	background-color: var(--dromos-xp-track);
+	background-image: repeating-linear-gradient(-45deg, var(--dromos-hatch) 0 1px, transparent 1px 5px);
+}
+
+.dromos-root .dromos-xp.is-stacked .dromos-xp-fill {
+	box-sizing: border-box;
+	background-image: repeating-linear-gradient(45deg, var(--dromos-hatch-on-fill) 0 1px, transparent 1px 5px);
+	transition: width 0.6s ease-out;
+}
+
+.dromos-root .dromos-xp.is-stacked .dromos-xp-fill[style="width:0%"] { border-right: 0; }
+.dromos-root .dromos-xp.is-stacked .dromos-xp-fill:not([style="width:0%"]) { border-right: 1px solid var(--dromos-umber); }
+
+.dromos-root .dromos-xp-caption {
 	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 8px 4px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-s);
-	background: var(--background-primary);
-}
-
-.dromos-root .dromos-stat-value {
-	font-size: 1.3em;
-	font-weight: var(--font-semibold);
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 0 8px;
+	margin-top: 3px;
+	color: var(--dromos-ink-muted);
+	font-size: 12px;
 	font-variant-numeric: tabular-nums;
 }
 
-.dromos-root .dromos-stat-label {
-	font-size: var(--font-ui-smaller);
-	color: var(--text-muted);
-	text-align: center;
+.dromos-root .dromos-xp-caption .dromos-xp-text { font-size: inherit; color: inherit; }
+
+.dromos-root .dromos-stats {
+	display: grid;
+	flex: 1 1 250px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 22px;
+	min-width: 0;
+}
+
+/* The label and its pips share a line; where the column is too narrow the pips go under it. */
+.dromos-root .dromos-stat {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 2px 8px;
+	font-size: 14px;
+	line-height: 1.3;
+}
+
+.dromos-root .dromos-stat-label { min-width: 0; }
+.dromos-root .dromos-stat-pips { display: flex; flex: 0 0 auto; align-items: center; gap: 3px; min-height: 18px; }
+
+.dromos-root .dromos-pip {
+	width: 9px;
+	height: 9px;
+	box-sizing: border-box;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 50%;
+}
+
+.dromos-root .dromos-pip.is-filled { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-mark); }
+
+.dromos-root .dromos-stat-number {
+	font-family: var(--dromos-font-display);
+	font-size: 18px;
+	font-weight: 700;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 1;
+}
+
+/* The level-up ceremony (game-ui S4): the panel settles in under the card, the ribbon unfurls
+   over the scene. Only this moment moves; reduced motion shows the end at once (below). */
+.dromos-root .dromos-ceremony {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 16px;
+	padding: 20px 22px;
+	animation: dromos-settle 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dromos-root .dromos-ceremony-news { align-self: stretch; }
+
+.dromos-root .dromos-ceremony-title {
+	margin: 0;
+	font-family: var(--dromos-font-display);
+	font-size: 30px;
+	font-weight: 600;
+	line-height: 1.15;
+	text-wrap: balance;
 	overflow-wrap: anywhere;
 }
 
-/* Quests */
-.dromos-root .dromos-quest-group + .dromos-quest-group { margin-top: 12px; }
+.dromos-root .dromos-ceremony-rows { margin: 14px 0 0; padding: 0; list-style: none; }
 
-.dromos-root .dromos-quest-group-title {
-	margin: 0 0 4px;
-	font-size: var(--font-ui-small);
-	font-weight: var(--font-semibold);
-	color: var(--text-muted);
+.dromos-root .dromos-ceremony-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding-top: 14px;
+	border-top: 1px dashed var(--dromos-rule);
+}
+
+.dromos-root .dromos-ceremony-row + .dromos-ceremony-row { margin-top: 14px; }
+.dromos-root .dromos-ceremony-words { display: flex; flex-direction: column; min-width: 0; }
+
+.dromos-root .dromos-ceremony-text {
+	font-family: var(--dromos-font-display);
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.2;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-ceremony-detail { color: var(--dromos-ink-muted); font-size: 13px; }
+
+.dromos-root .dromos-ribbon {
+	position: absolute;
+	z-index: 2;
+	top: 20px;
+	left: 50%;
+	width: 270px;
+	height: 58px;
+	transform: translateX(-50%);
+	pointer-events: none;
+}
+
+.dromos-root .dromos-ribbon > * { animation: dromos-unfurl 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.dromos-root .dromos-ribbon-cloth { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.dromos-root .dromos-ribbon-tail { fill: var(--dromos-ochre-hover); stroke: var(--dromos-umber); }
+.dromos-root .dromos-ribbon-band { fill: var(--dromos-ochre); stroke: var(--dromos-umber); }
+
+.dromos-root .dromos-ribbon-text {
+	position: absolute;
+	top: 4px;
+	right: 22px;
+	left: 22px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 36px;
+	color: var(--dromos-on-ochre);
+	line-height: 1.05;
+}
+
+.dromos-root .dromos-ribbon-kicker { font-size: 11px; font-variant: small-caps; letter-spacing: 0.14em; }
+
+.dromos-root .dromos-ribbon-title {
+	font-family: var(--dromos-font-display);
+	font-size: 24px;
+	font-weight: 700;
+}
+
+@keyframes dromos-unfurl {
+	from { opacity: 0; transform: scaleX(0.5); }
+	to { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes dromos-settle {
+	from { opacity: 0; transform: translateY(6px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* On narrow panes the signpost stands where a centred ribbon would cross it: the ribbon moves
+   to the left of the scene, a little smaller. */
+@container dromos-view (max-width: 472px) {
+	.dromos-root .dromos-ribbon { top: 14px; left: 10px; transform: scale(0.82); transform-origin: left top; }
+	.dromos-root .dromos-character { padding: 16px; }
+	.dromos-root .dromos-stats { column-gap: 16px; }
+	.dromos-root .dromos-character-name { font-size: 30px; }
+}
+
+/* The narrowest panes (about 360 px and less): the planks reach the left half of the scene, so
+   the ribbon shrinks into the strip of sky above them. */
+@container dromos-view (max-width: 340px) {
+	.dromos-root .dromos-ribbon { top: 2px; left: 8px; transform: scale(0.68); }
+}
+
+/* Quests (game-ui S6): one panel, its header line, and rows split by a dashed hairline. */
+.dromos-root .dromos-quest-panel { padding: 0; }
+.dromos-root .dromos-quest-panel > .dromos-empty { padding: 16px; }
+
+.dromos-root .dromos-quest-header {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 0 8px;
+	margin: 0;
+	padding: 10px 16px 8px;
+	color: var(--dromos-ink-muted);
+	font-size: 13px;
 }
 
 .dromos-root .dromos-quest-items {
@@ -760,14 +990,81 @@
 
 .dromos-root .dromos-quest {
 	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 6px 0;
-	border-bottom: 1px solid var(--background-modifier-border);
+	align-items: flex-start;
+	gap: 12px;
+	min-height: 56px;
+	padding: 12px 16px;
+	border-top: 1px dashed var(--dromos-rule-dashed);
 }
 
-.dromos-root .dromos-quest:last-child { border-bottom: none; }
+.dromos-root .dromos-quest-items:first-child > .dromos-quest:first-child { border-top: 0; }
 
+.dromos-root .dromos-quest-mark { flex: 0 0 auto; margin-top: 1px; overflow: visible; }
+.dromos-root .dromos-quest-circle { fill: transparent; stroke: var(--dromos-umber); stroke-width: 1.4; }
+.dromos-root .dromos-quest.is-completed .dromos-quest-circle { fill: var(--dromos-done-fill); }
+
+.dromos-root .dromos-quest-tick {
+	fill: none;
+	stroke: var(--dromos-ink);
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	animation: dromos-draw 0.5s ease-out 0.1s both;
+}
+
+@keyframes dromos-draw {
+	from { stroke-dashoffset: 22; }
+	to { stroke-dashoffset: 0; }
+}
+
+.dromos-root .dromos-quest-body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.dromos-root .dromos-quest-title {
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.4;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-quest.is-completed .dromos-quest-title {
+	color: var(--dromos-ink-muted);
+	text-decoration: line-through;
+}
+
+.dromos-root .dromos-quest-chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 6px;
+	color: var(--dromos-ink-muted);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.dromos-root .dromos-quest-chip:not(.is-type) {
+	padding: 0 8px;
+	border: 1px solid var(--dromos-ochre-mark);
+	border-radius: 999px;
+	color: var(--dromos-ink);
+}
+
+.dromos-root .dromos-quest-chip.is-xp { background: var(--dromos-ochre-tint); }
+.dromos-root .dromos-quest-chip.is-overdue { border-color: var(--dromos-ink-error); color: var(--dromos-ink-error); }
+
+/* A completed quest's chips step back: stone hairlines, muted words. */
+.dromos-root .dromos-quest.is-completed .dromos-quest-chip:not(.is-type) {
+	border-color: var(--dromos-stone-mark);
+	background: transparent;
+	color: var(--dromos-ink-muted);
+}
+
+/* The circle of a campaign task row, until the campaigns screen gets its own (game-ui T4). */
 .dromos-root .dromos-quest-check {
 	flex: 0 0 auto;
 	width: 14px;
@@ -775,34 +1072,6 @@
 	border: 1.5px solid var(--dromos-umber);
 	border-radius: 50%;
 }
-
-.dromos-root .dromos-quest-title {
-	flex: 1 1 auto;
-	min-width: 0;
-	overflow-wrap: anywhere;
-}
-
-.dromos-root .dromos-quest.is-completed .dromos-quest-check {
-	border-color: var(--dromos-stone);
-	background: var(--dromos-stone);
-}
-
-.dromos-root .dromos-quest.is-completed .dromos-quest-title {
-	color: var(--text-muted);
-	text-decoration: line-through;
-}
-
-.dromos-root .dromos-quest-due {
-	flex: 0 0 auto;
-	padding: 1px 8px;
-	border: 1px solid currentColor;
-	border-radius: var(--radius-l);
-	font-size: var(--font-ui-smaller);
-}
-
-.dromos-root .dromos-quest-due.is-overdue { color: var(--dromos-ink-error); }
-/* The accent stays on the border: as text it falls under 4.5:1 on light backgrounds. */
-.dromos-root .dromos-quest-due.is-today { border-color: var(--dromos-ochre-mark); }
 
 .dromos-root .dromos-visually-hidden {
 	position: absolute;
@@ -826,16 +1095,12 @@
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		align-items: start;
+		gap: 28px 24px;
 	}
 
 	.dromos-root .dromos-home.is-home > * { grid-column: 1 / -1; }
 	.dromos-root .dromos-home.is-home > .dromos-quests,
 	.dromos-root .dromos-home.is-home > .dromos-campaigns { grid-column: auto; }
-}
-
-/* Narrow panes and phones (Android): two stats per row. */
-@container (max-width: 440px) {
-	.dromos-root .dromos-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Campaigns (M2) */
@@ -1070,25 +1335,46 @@
 /* Reduced motion holds the spinner still (with the clouds, above); the label beside it already
    says what is happening. */
 
-/* Panel of Esdras (M4): an open scroll, its rods at the top and the bottom */
-.dromos-root .dromos-briefing {
-	border-top: 3px double var(--dromos-umber);
-	border-bottom: 3px double var(--dromos-umber);
+/* Panel of Esdras as a scroll (game-ui S5): rolled at its top and its bottom, a scroll icon in
+   a circle, the text of the day in a large serif and the signature on the right. */
+.dromos-root .dromos-briefing { padding: 0; overflow: hidden; }
+
+.dromos-root .dromos-scroll-edge {
+	height: 11px;
+	border-bottom: 1px solid var(--dromos-umber);
+	background: var(--dromos-roll);
 }
 
-.dromos-root .dromos-briefing-head {
+.dromos-root .dromos-briefing-sheet + .dromos-scroll-edge { border-top: 1px solid var(--dromos-umber); border-bottom: 0; }
+
+.dromos-root .dromos-briefing-sheet {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	gap: 8px;
+	align-items: flex-start;
+	gap: 14px 18px;
+	padding: 16px 22px;
 }
 
-.dromos-root .dromos-briefing-request {
+.dromos-root .dromos-briefing-seal {
+	display: grid;
 	flex: 0 0 auto;
-	margin-left: auto;
+	place-items: center;
+	width: 46px;
+	height: 46px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 50%;
+	background: var(--dromos-paper);
+	color: var(--dromos-ink);
 }
 
-.dromos-root .dromos-briefing-icon { font-size: var(--font-ui-medium); }
+.dromos-root .dromos-briefing-seal svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.dromos-root .dromos-briefing-text { flex: 1 1 280px; min-width: 0; }
+
+.dromos-root .dromos-briefing-notice {
+	margin: 0 0 6px;
+	color: var(--dromos-ink-muted);
+	font-style: italic;
+}
 
 .dromos-root .dromos-briefing-content.is-dimmed,
 .dromos-root .dromos-briefing-content.is-dimmed strong { color: var(--text-muted); }
@@ -1098,57 +1384,60 @@
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
-	margin: 8px 0 0;
+	margin: 0 0 10px;
 }
 
-.dromos-root .dromos-briefing-label {
-	font-size: var(--font-ui-smaller);
-	font-variant: small-caps;
-	letter-spacing: 0.04em;
-	color: var(--text-muted);
-}
-
-.dromos-root .dromos-briefing-why {
-	font-size: var(--font-ui-small);
-	color: var(--text-muted);
-}
-
-.dromos-root .dromos-briefing-body { margin-top: 8px; }
-.dromos-root .dromos-briefing-body p:first-child { margin-top: 0; }
-.dromos-root .dromos-briefing-body p:last-child { margin-bottom: 0; }
-
-.dromos-root .dromos-briefing-signature {
-	margin: 8px 0 0;
-	text-align: right;
-	font-style: italic;
-	color: var(--text-muted);
-}
-
-/* Level-up ribbon under the name in the character card, and Skills (M3) */
-.dromos-root .dromos-levelup {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	margin: 0 0 12px;
-	padding: 8px 12px;
-	border: 1px solid var(--dromos-ochre-mark);
-	border-left-width: 3px;
-	border-radius: var(--radius-s);
-	background: var(--background-primary);
-}
-
-.dromos-root .dromos-levelup-list {
-	flex: 1 1 auto;
-	min-width: 0;
-	margin: 0;
-	padding: 0;
-	list-style: none;
+.dromos-root .dromos-briefing-mission strong {
+	font-family: var(--dromos-font-display);
+	font-size: 21px;
+	font-weight: 600;
+	line-height: 1.3;
 	overflow-wrap: anywhere;
 }
 
-.dromos-root .dromos-levelup-list li + li { margin-top: 2px; }
-.dromos-root .dromos-levelup-dismiss { flex: 0 0 auto; }
+.dromos-root .dromos-briefing-label {
+	color: var(--dromos-ink-muted);
+	font-size: 13px;
+	font-variant: small-caps;
+	letter-spacing: 0.08em;
+}
 
+.dromos-root .dromos-briefing-why {
+	color: var(--dromos-ink-muted);
+	font-size: var(--font-ui-small);
+}
+
+.dromos-root .dromos-briefing-near-icon { display: inline-flex; vertical-align: -0.15em; }
+.dromos-root .dromos-briefing-near-icon svg { width: 1.1em; height: 1.1em; }
+
+.dromos-root .dromos-briefing-body {
+	font-family: var(--dromos-font-display);
+	font-size: 21px;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-briefing-body p:first-child { margin-top: 0; }
+.dromos-root .dromos-briefing-body p:last-child { margin-bottom: 0; }
+
+.dromos-root .dromos-briefing-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.dromos-root .dromos-briefing-signature {
+	margin: 0 0 0 auto;
+	color: var(--dromos-ink-muted);
+	font-family: var(--dromos-font-display);
+	font-size: 19px;
+	font-style: italic;
+}
+
+/* Skills (M3) */
 .dromos-root .dromos-skills-notice {
 	margin: 0 0 8px;
 	padding: 6px 12px;
@@ -1394,3 +1683,312 @@
 .dromos-root .dromos-habit-title { flex: 1 1 8em; min-width: 0; overflow-wrap: anywhere; }
 .dromos-root .dromos-habit-text { color: var(--text-muted); font-size: var(--font-ui-small); }
 .dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--dromos-olive); }
+
+/* Campaign cards on the home screen (game-ui S7): one panel each, a tinted header with the
+   serif name and the seal or the count, the road, the next step. The name's button stretches
+   over the whole card, so the card is one target and the text in it stays readable. */
+.dromos-root .dromos-campaign-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.dromos-root .dromos-campaign-card {
+	position: relative;
+	overflow: hidden;
+	padding: 0;
+}
+
+.dromos-root .dromos-campaign-card:hover { background-color: var(--dromos-card-hover); }
+
+.dromos-root .dromos-campaign-card-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-height: 58px;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--dromos-rule);
+	background: var(--dromos-tint);
+}
+
+.dromos-root .dromos-campaign-card-title {
+	min-width: 0;
+	margin: 0;
+	font-family: var(--dromos-font-display);
+	font-size: 25px;
+	font-weight: 600;
+	line-height: 1.1;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-campaign-card-open {
+	height: auto;
+	padding: 0;
+	border: 0;
+	background: none;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	white-space: normal;
+	cursor: pointer;
+}
+
+.dromos-root .dromos-campaign-card-open::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 8px;
+}
+
+.dromos-root .dromos-campaign-card-open:focus-visible { outline: none; box-shadow: none; }
+.dromos-root .dromos-campaign-card-open:focus-visible::after { outline: 2px solid var(--dromos-focus); outline-offset: -3px; }
+
+/* Where :has() works, the ring goes around the card, 2 px out, as on every other button; the
+   ring inside the card above stays for the hosts without it. */
+@supports selector(:has(*)) {
+	.dromos-root .dromos-campaign-card:has(.dromos-campaign-card-open:focus-visible) { outline: 2px solid var(--dromos-focus); outline-offset: 2px; }
+	.dromos-root .dromos-campaign-card-open:focus-visible::after { outline: none; }
+}
+
+.dromos-root .dromos-campaign-card-count {
+	flex: 0 0 auto;
+	color: var(--dromos-ink-muted);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+/* The stalled seal: a round clay stamp, a little crooked, with a pale ring inside its edge. */
+.dromos-root .dromos-seal {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 62px;
+	height: 62px;
+	margin: -6px 0;
+	border-radius: 50%;
+	background: var(--dromos-seal);
+	box-shadow: inset 0 0 0 3px var(--dromos-seal), inset 0 0 0 4px var(--dromos-seal-ring);
+	color: var(--dromos-on-seal);
+	font-family: var(--dromos-font-display);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	transform: rotate(-8deg);
+}
+
+.dromos-root .dromos-campaign-card-body { padding: 14px 16px; }
+
+.dromos-root .dromos-campaign-card-next {
+	margin: 10px 0 0;
+	font-size: 14px;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-campaign-card-next-label { color: var(--dromos-ink-muted); }
+.dromos-root .dromos-campaign-card-note { margin: 2px 0 0; color: var(--dromos-ink-muted); font-size: 12px; }
+.dromos-root .dromos-campaign-card-problem { margin: 4px 0 0; color: var(--dromos-ink-warning); font-size: 12px; }
+
+/* The road (game-ui S7): a segment per task, olive when done, ochre for the next, dashed ahead;
+   a gate between phases, ochre once the phase before it is complete. Phases share the width by
+   their tasks, and wrap onto a second line rather than squeeze their names. */
+.dromos-root .dromos-trail {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 10px 6px;
+}
+
+.dromos-root .dromos-trail-phase {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-width: 64px;
+}
+
+.dromos-root .dromos-trail-segments { display: flex; gap: 3px; }
+
+.dromos-root .dromos-trail-segment {
+	flex: 1 1 0;
+	min-width: 4px;
+	height: 9px;
+	box-sizing: border-box;
+	overflow: hidden;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 5px;
+}
+
+.dromos-root .dromos-trail-segment.is-done { background: var(--dromos-olive); }
+.dromos-root .dromos-trail-segment.is-next { background: var(--dromos-ochre-mark); }
+.dromos-root .dromos-trail-segment.is-ahead { border: 1px dashed var(--dromos-stone-mark); }
+.dromos-root .dromos-trail-segment.is-fill.is-open { border-color: var(--dromos-ochre-mark); }
+.dromos-root .dromos-trail-fill { display: block; height: 100%; background: var(--dromos-ochre-mark); }
+.dromos-root .dromos-trail-segment.is-done .dromos-trail-fill { background: var(--dromos-olive); }
+
+.dromos-root .dromos-trail.is-wide .dromos-trail-segment { height: 12px; border-radius: 6px; }
+
+.dromos-root .dromos-trail-gate {
+	flex: 0 0 auto;
+	width: 14px;
+	height: 14px;
+	box-sizing: border-box;
+	margin-top: -3px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 50%;
+	background: var(--dromos-paper);
+}
+
+.dromos-root .dromos-trail-gate.is-reached { background: var(--dromos-ochre-mark); }
+
+.dromos-root .dromos-trail-label {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 0 4px;
+	margin-top: 4px;
+	color: var(--dromos-ink-muted);
+	font-size: 12px;
+	line-height: 1.3;
+}
+
+.dromos-root .dromos-trail-name { min-width: 0; overflow-wrap: anywhere; }
+.dromos-root .dromos-trail-count { font-variant-numeric: tabular-nums; }
+
+/* Skills as ring medallions (game-ui S9): the ring is the progress, the face holds the icon,
+   a badge with the level or a lock sits at its foot. A ring is its own size container, so
+   the icon, the badge and the lock follow whatever size it is drawn at. */
+.dromos-root .dromos-ring-panel { padding: 14px 8px; }
+.dromos-root .dromos-ring-panel > .dromos-empty,
+.dromos-root .dromos-ring-panel > .dromos-skills-notice,
+.dromos-root .dromos-ring-panel > .dromos-skills-problems { margin-inline: 8px; }
+
+.dromos-root .dromos-rings {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	gap: 6px;
+}
+
+.dromos-root .dromos-ring-button {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	width: 108px;
+	height: auto;
+	padding: 6px 4px;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	text-align: center;
+	white-space: normal;
+	cursor: pointer;
+}
+
+.dromos-root .dromos-ring-button:hover { background: var(--dromos-hover); }
+.dromos-root .dromos-ring-button:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: 2px; box-shadow: none; }
+
+.dromos-root .dromos-ring-name {
+	font-family: var(--dromos-font-display);
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.1;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-ring-caption {
+	color: var(--dromos-ink-muted);
+	font-size: 12px;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-ring {
+	position: relative;
+	display: block;
+	flex: 0 0 auto;
+	container-type: size;
+}
+
+.dromos-root .dromos-ring-drawing { display: block; width: 100%; height: 100%; }
+.dromos-root .dromos-ring-track { fill: none; stroke: var(--dromos-umber); stroke-opacity: 0.22; stroke-width: 3; }
+.dromos-root .dromos-ring-arc { fill: none; stroke: var(--dromos-ochre-mark); stroke-width: 3; stroke-linecap: round; }
+.dromos-root .dromos-ring.is-locked .dromos-ring-arc { stroke: var(--dromos-stone-mark); }
+.dromos-root .dromos-ring-face { fill: var(--dromos-ochre); stroke: var(--dromos-umber); stroke-width: 1.2; }
+.dromos-root .dromos-ring.is-locked .dromos-ring-face { fill: var(--dromos-lock-face); stroke: var(--dromos-stone-mark); }
+
+.dromos-root .dromos-ring-icon {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	color: var(--dromos-on-ochre);
+	font-size: 30px;
+	font-size: 34cqw;
+	line-height: 1;
+}
+
+.dromos-root .dromos-ring.is-locked .dromos-ring-icon { color: var(--dromos-ink-muted); }
+/* A locked emoji shows as a grey silhouette. */
+.dromos-root .dromos-ring.is-locked .dromos-ring-icon:not(.is-named) { filter: grayscale(1); }
+
+.dromos-root .dromos-ring-icon svg {
+	width: 32px;
+	width: 36cqw;
+	height: 32px;
+	height: 36cqw;
+	stroke-width: 1.5;
+}
+
+.dromos-root .dromos-ring-badge {
+	position: absolute;
+	right: 2%;
+	bottom: 2%;
+	display: grid;
+	place-items: center;
+	width: 26px;
+	width: 30cqw;
+	height: 26px;
+	height: 30cqw;
+	box-sizing: border-box;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 50%;
+	background: var(--dromos-paper);
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 17px;
+	font-size: 19cqw;
+	font-weight: 700;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 1;
+}
+
+.dromos-root .dromos-ring-lock {
+	position: absolute;
+	right: 7%;
+	bottom: 5%;
+	display: grid;
+	place-items: center;
+	width: 18px;
+	width: 20cqw;
+	height: 18px;
+	height: 20cqw;
+	color: var(--dromos-ink-muted);
+}
+
+.dromos-root .dromos-ring-lock svg { width: 100%; height: 100%; stroke-width: 1.8; }
+
+/* Reduced motion: the ceremony shows its last step at once, without moving. */
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-ribbon > *,
+	.dromos-root .dromos-ceremony,
+	.dromos-root .dromos-quest-tick { animation: none; }
+	.dromos-root .dromos-level-medal-face,
+	.dromos-root .dromos-level-medal-number,
+	.dromos-root .dromos-xp.is-stacked .dromos-xp-fill { transition: none; }
+}

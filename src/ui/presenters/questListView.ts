@@ -54,3 +54,51 @@ function dueOf(dueDate: string | null, today: string, t: Translator): QuestRowVi
 	if (dueDate === null || dueDate > today) return null;
 	return dueDate < today ? { tone: 'overdue', label: t('quests.due.overdue') } : { tone: 'today', label: t('quests.due.today') };
 }
+
+/** One chip under a quest's title (game-ui S6). */
+export type QuestChipView =
+	| { readonly kind: 'type' | 'skill' | 'xp'; readonly label: string }
+	| { readonly kind: 'due'; readonly label: string; readonly tone: DueTone };
+
+/** One row of today's quests panel: the drawn circle, the title and its chips. Rows are not buttons. */
+export interface QuestPanelRowView {
+	readonly id: string;
+	readonly title: string;
+	readonly completed: boolean;
+	/** The kind, each skill, "+X XP" when priced and the due label, in that order. */
+	readonly chips: readonly QuestChipView[];
+}
+
+/**
+ * Today's quests as one panel (game-ui S6): a header line about the dailies, then one list,
+ * dailies first. Only dailies are counted: a completed to-do leaves today's list, so a count of
+ * to-dos done would always read zero.
+ */
+export interface QuestPanelView {
+	/** "2 of 3 dailies done"; `null` without dailies. */
+	readonly doneText: string | null;
+	/** "+15 XP to earn", "Day complete" once every daily is done; `null` while nothing is priced or without dailies. */
+	readonly gainText: string | null;
+	readonly rows: readonly QuestPanelRowView[];
+	readonly emptyText: string | null;
+}
+
+export function questPanelView(list: QuestListView, t: Translator): QuestPanelView {
+	const rows = [...list.dailies.map((row) => panelRow(row, 'quests.kind.daily', t)), ...list.todos.map((row) => panelRow(row, 'quests.kind.todo', t))];
+	if (list.dailies.length === 0) return { doneText: null, gainText: null, rows, emptyText: list.emptyText };
+	const pending = list.dailies.filter((row) => !row.completed);
+	const gain = pending.reduce((sum, row) => sum + (row.xp ?? 0), 0);
+	return {
+		doneText: t('quests.header.done', { done: list.dailies.length - pending.length, total: list.dailies.length }),
+		gainText: pending.length === 0 ? t('quests.header.complete') : gain > 0 ? t('quests.header.gain', { xp: gain }) : null,
+		rows,
+		emptyText: list.emptyText,
+	};
+}
+
+function panelRow(row: QuestRowView, kind: 'quests.kind.daily' | 'quests.kind.todo', t: Translator): QuestPanelRowView {
+	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }, ...row.skills.map((skill) => ({ kind: 'skill' as const, label: skill.name }))];
+	if (row.xp !== null) chips.push({ kind: 'xp', label: t('quests.xp', { xp: row.xp }) });
+	if (row.due) chips.push({ kind: 'due', label: row.due.label, tone: row.due.tone });
+	return { id: row.id, title: row.title, completed: row.completed, chips };
+}

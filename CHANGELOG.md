@@ -6,12 +6,18 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ### Added
 
+- **A level-up ceremony.** When your character levels up, the XP bar fills, the level medallion turns ochre, a ribbon with the new level unfurls over the landscape, and a panel under the card lists what your skills did in that sync. Skill level-ups and unlocks alone open the panel without the ribbon. With reduced motion, everything shows at once. It replaces the ribbon in the character card.
+- **Today's quests show what they pay.** Each quest lists its kind, the skills it feeds and the XP the ledger writes for it, beside Today or Overdue. The panel is headed by how many dailies are done and the XP still to earn, or "Day complete".
 - **Three screens and a signpost.** A signpost of wooden planks in the landscape leads to the screens of the view: **Path** (home), **Campaigns** and **Skills**, and **Settings**, which opens the Dromos settings tab. Campaigns and Skills open with a card naming the screen and your character, level and XP. Changing screen takes you back to the top and moves the keyboard focus to the screen's title.
 
 ### Changed
 
 - **The landscape of the design** now heads the whole view instead of the character card: a sky with a sun and drifting clouds, birds, cypresses, a tree and a village, three hills and the path, and the walker with a staff and an ochre belt. In a dark theme it is a night with a moon, stars, lit windows and a lamp. It is lower on phones and on the Campaigns and Skills screens, and the clouds hold still with reduced motion. The character card overlaps its foot.
 - **Parchment.** Dromos now draws its own surfaces instead of the theme's: parchment panels with a paper grain and an umber hairline, linen buttons, and titles in EB Garamond, a font that now ships inside the plugin, with its license. Dark themes get a night parchment of the same hues. Every text keeps a contrast of 4.5:1 or more.
+- **The character card after the design**: a medallion with the level, the name in a large serif, title and level in small caps, a hatched XP bar that says how much XP the next level is away, and the six stats drawn as six pips (a number above six).
+- **The panel of Esdras is a scroll**, rolled at its top and bottom, with the text of the day in a large serif and the signature beside **Copy briefing command**.
+- **Compact campaign cards on the home screen**: the name, the stalled seal or the tasks done, a road with a segment per task and a gate between phases, and the next step. A card opens the Campaigns screen, where the tasks, the habits and **Send to Habitica** are. A campaign with tasks Habitica no longer has says so in one line.
+- **Skills on the home screen** are one row of ring medallions; the ring is the progress, and a medallion opens the Skills screen on its skill. A skill icon written as an icon name, such as `book-open`, is drawn with Obsidian's icons.
 - **Offline**: a band above the landscape says "Last known state · N ago" and the landscape loses its color; the sync line stays quiet. Other sync failures keep their band in the character card.
 
 ## [0.7.0] - 2026-11-03
