@@ -21,7 +21,7 @@ The user's words are in L1 and L2. The items below describe the design boards. A
     - birds, cypresses, a tree and a village;
     - three hills and a path;
     - the walking figure, with a staff and an ochre belt.
-  - Scene height: 300 px on the home screen, 220 px on narrow views and 170 px on the other screens. Dark themes get a night variant.
+  - Scene height: 300 px on the home screen, 220 px on narrow views (every screen, L15) and 170 px on the other screens on wider panes. Dark themes get a night variant.
   - The clouds stop under `prefers-reduced-motion`.
   - A signpost of wooden planks inside the scene leads to the other screens: "Camino" (home), "Campañas", "Skills" and "Ajustes". "Ajustes" opens the plugin's settings tab; assumption: the plank is hidden where that tab cannot be opened.
   - The view has three screens: home, campaigns and skills. The screens that are not home open with a header card, for example "Campañas · Kairos", showing "Nicolás · <title> · nivel 3 · 240 / 520 XP".
@@ -166,8 +166,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | `98d8b82` |
 | T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | done: 9 rules RED then GREEN, 1157/1157, lint 0 errors and 4 warnings, build ok, preview with the real briefing and a live check (L12). Risk: item 6 | `7fdd81d` |
 | T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | done: RED then GREEN per rule, 1214/1214, lint 0 errors and 4 warnings, build ok, 102 geometry cases and a live run (L13). Risk: item 6 | `c1ee881` |
-| T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | done: RED then GREEN per rule, 1256/1256, lint 0 errors and 4 warnings, build ok, 153 geometry cases, contrast at the four periods, a live check (L14). Risk: item 6 | this commit |
-| T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | pending | |
+| T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | done: RED then GREEN per rule, 1256/1256, lint 0 errors and 4 warnings, build ok, 153 geometry cases, contrast at the four periods, a live check (L14). Risk: item 6 | `8b6e6fc` |
+| T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | B1 and B2 fixed (L15); recheck limited to them pending | `d8856b0`, this commit |
 
 Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
 
@@ -316,3 +316,22 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
     - 153 geometry cases with no collision.
     - Lowest contrast: plaque edge 3.35 (light dusk), campfire 3.22 (light night offline), text 4.85.
   - **Commit.** About 1,250 authored lines in one commit. The data, the scene and the polish all meet in `HomeScreen.tsx`, `styles.css` and the i18n files.
+- **L15** (2026-11-03): T9. The independent verifier checked `8b6e6fc` against `98d8b82`.
+  - **PASS:** S13, S15, S16, S17 and S18.
+  - **Unchanged from the baseline:**
+    - Requests: the same calls, and none on switching screens.
+    - Ledger: rows and notes byte-identical in the differential `SyncGame` run.
+    - Headings and `lang`.
+    - The ceremony timeline.
+    - Layout: 326 cases.
+  - **B1:** going offline was no longer announced. The offline sync line had dropped the banner, and with it its live region.
+    - First correction (`d8856b0`) rendered a standalone live region while offline. The recheck failed: a region inserted already holding its text is unreliably announced.
+    - Second correction: `StatusBanner` stays mounted with `quiet`. That hides its text and keeps its live region in the same slot. A markup test pins the same element shape across syncing and offline.
+  - **B2:** the plank targets were 33 px on the 170 px screens, under the 44 px of S11. Asked "¿Cómo lo resolvemos?" and the user answered "Paisaje de 220 px (Recomendado)". On narrow views every screen now gets the 220 px scene, so its four planks keep 44 px targets. Wider panes keep 170 px. S1 is updated.
+  - **Advisories, left as they are:**
+    - On wide 170 px screens (about 1150 px and up) the slice crops the lintel and the walker's head. The baseline figure was cropped from about 1350 px.
+    - On a first visit the walker may still walk after the sync.
+    - The ribbon kicker and the Spanish "detenida" seal are as at the baseline.
+    - The walker's shadow sits 1.8 px under the card at walk 0.
+    - A ledger skill with no note shows its id.
+    - The current plank differs from the others only by tone, 1.4:1; `aria-current` carries the meaning.

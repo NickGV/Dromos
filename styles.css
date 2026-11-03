@@ -660,8 +660,8 @@
 
 .dromos-root .dromos-plank.is-current:focus-visible { box-shadow: inset 0 0 0 1px var(--dromos-plank-scorch), inset 0 0 8px var(--dromos-plank-scorch), 0 0 0 6px var(--dromos-paper); }
 
-/* The scenes of 170 px leave the signpost 134 px over the header card: its four planks are 28 px
-   tall there, their targets 34 px, 6 px apart. */
+/* The scenes of 170 px (wider panes only; narrow ones get 220 px) leave the signpost 134 px over
+   the header card: its four planks are 28 px tall there, their targets 34 px, 6 px apart. */
 .dromos-root .dromos-scene:not(.is-home) .dromos-signpost { bottom: 34px; gap: 6px; }
 .dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 28px; padding: 3px 10px; font-size: 14px; }
 .dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -3px 0; }
@@ -700,12 +700,18 @@
 /* Narrow panes and phones (S11): a lower scene, the signpost 14 px from the right. The same
    pane width as the narrow stats below: those measure .dromos-home, 16 px inside a side. */
 @container dromos-view (max-width: 472px) {
-	.dromos-root .dromos-scene.is-home { --dromos-scene-h: 220px; height: 220px; }
+	/* Every screen gets the 220 px scene here, the campaigns and skills ones too, so the four planks
+	   keep 44 px targets on phones (game-ui L15). */
+	.dromos-root .dromos-scene.is-home,
+	.dromos-root .dromos-scene:not(.is-home) { --dromos-scene-h: 220px; height: 220px; }
 	.dromos-root .dromos-signpost { right: 14px; }
 	/* Four 44 px targets over the 220 px scene: 34 px planks reaching 5 px out, 10 px apart. */
-	.dromos-root .dromos-scene.is-home .dromos-signpost { bottom: 47px; gap: 10px; }
-	.dromos-root .dromos-scene.is-home .dromos-plank { min-height: 34px; padding-block: 4px; }
-	.dromos-root .dromos-scene.is-home .dromos-plank::after { inset: -5px 0; }
+	.dromos-root .dromos-scene.is-home .dromos-signpost,
+	.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { bottom: 47px; gap: 10px; }
+	.dromos-root .dromos-scene.is-home .dromos-plank,
+	.dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 34px; padding: 4px 12px; font-size: 16px; }
+	.dromos-root .dromos-scene.is-home .dromos-plank::after,
+	.dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -5px 0; }
 	/* The drawing is framed at least 60 px further left, so the walker stands clear of the
 	   signpost instead of behind it, and the sun moves right with it. Below 400 px it is framed
 	   further, so the plaque of the gate does not reach the signpost; the sky moves back by as
@@ -730,6 +736,9 @@
 	.dromos-root .dromos-landscape,
 	.dromos-root .dromos-gate-plaque { transition: none; }
 }
+
+/* A quiet banner keeps only its hidden live region (game-ui S12): it takes no room in the line. */
+.dromos-root .dromos-banner.is-quiet { display: contents; }
 
 /* Parchment panels: the design's paper grain, 8 px corners, a hairline umber border. */
 .dromos-root .dromos-panel,
