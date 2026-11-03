@@ -201,3 +201,4 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   The contrast and layout probes need a browser, so they are not committed as unit tests; their scripts stay in the verifier's scratch (`/tmp/tmp.m5PuWcwZkz`).
 
   Not done: a look in real Obsidian, desktop and Android, including Obsidian's icons inside the rings and the settings plank.
+- **L9** (2026-11-03): User, on installing into this PC's Obsidian: "si dale porfavor". The installed 0.7.0 files were first backed up to scratch (`backup-0.7.0/`). Then `npm run install:local` ran with `DROMOS_VAULT=~/Documents/Logos`, from `98d8b82`. `main.js` and `styles.css` in the vault are byte-identical to the build, and `data.json` is untouched. The manifest still says 0.7.0. Next: the user's look in Obsidian after a reload.
