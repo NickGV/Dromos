@@ -2,6 +2,20 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Screen readers heard the sync status again every minute, because its "N min ago" changed while the view was open. Now they hear a change of status only.
+- The campaign name lost its keyboard focus ring, and on phones its touch area was smaller than a button's.
+- Text that fell under the WCAG AA contrast ratio in Obsidian's default themes now reaches it: the Dailies and To-dos headings, a briefing of another day, locked skills, warnings, and the Overdue and Stalled labels. Nothing is dimmed with transparency anymore.
+- "Synced 185 min ago" now reads "Synced 3 h ago", and days after a day.
+- The task and skill toggles are touch-sized on phones.
+- The view declares its language, so a screen reader reads the Spanish interface with a Spanish voice.
+- Headings nest: skill names sit under Earned and To unlock, and the panel of Esdras has a heading.
+- Sync and Send to Habitica keep keyboard focus while they work.
+- With reduced motion, the spinner holds still.
+
 ## [0.6.1] - 2026-11-02
 
 ### Added

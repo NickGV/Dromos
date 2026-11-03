@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
-import type { Translator } from '../../i18n';
+import type { Language, Translator } from '../../i18n';
 import type { Clock } from '../../ports';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
@@ -43,6 +43,8 @@ export interface HomeScreenDeps {
 	readonly campaigns: CampaignsDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
 	readonly translator: () => Translator;
+	/** The interface language, for the `lang` of the screen; read on every render. */
+	readonly language: () => Language;
 	/** Calls `onChange` whenever the settings change, so the open view re-renders (a language switch applies at once). Returns the unsubscribe function. */
 	readonly subscribeSettings: (onChange: () => void) => () => void;
 	/** Calls `onChange` when something other than this screen changed the game (the rebuild command). Returns the unsubscribe function. */
@@ -140,7 +142,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 
 	return (
 		<I18nProvider t={t}>
-		<main className="dromos-home">
+		<main className="dromos-home" lang={deps.language()}>
 			<div className="dromos-toolbar">
 				<StatusBanner {...syncBannerView(quests, deps.clock.now(), t)} />
 				<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />

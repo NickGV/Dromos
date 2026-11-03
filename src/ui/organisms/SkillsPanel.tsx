@@ -18,7 +18,9 @@ export function SkillsPanel({ view }: { readonly view: SkillsPageView }) {
 						))}
 					</div>
 					<details className="dromos-skills-locked" open={view.earned.length === 0}>
-						<summary className="dromos-skills-subtitle">{view.lockedTitle}</summary>
+						<summary className="dromos-skills-toggle">
+							<h3 className="dromos-skills-subtitle">{view.lockedTitle}</h3>
+						</summary>
 						<div className="dromos-skill-items">
 							{view.locked.map((card) => (
 								<SkillCard key={card.id} view={card} />

@@ -24,8 +24,12 @@ describe('English: sync banner', () => {
 	it('says how long ago', () => {
 		expect(agoText(0, t)).toBe('less than 1 min ago');
 		expect(agoText(1, t)).toBe('1 min ago');
-		expect(agoText(75, t)).toBe('75 min ago');
-		expect(banner({ kind: 'synced' }, 5)).toEqual({ tone: 'success', message: 'Synced 5 min ago', detail: null });
+		expect(agoText(59, t)).toBe('59 min ago');
+		expect(agoText(60, t)).toBe('1 h ago');
+		expect(agoText(185, t)).toBe('3 h ago');
+		expect(agoText(24 * 60, t)).toBe('1 day ago');
+		expect(agoText(3 * 24 * 60 + 5, t)).toBe('3 days ago');
+		expect(banner({ kind: 'synced' }, 5)).toEqual({ tone: 'success', message: 'Synced 5 min ago', detail: null, announcement: 'Quests synced' });
 	});
 
 	it('words every status', () => {
@@ -35,6 +39,7 @@ describe('English: sync banner', () => {
 		expect(banner({ kind: 'not-configured' })).toEqual({
 			tone: 'neutral',
 			message: 'Connect your Habitica account',
+			announcement: 'Connect your Habitica account',
 			detail: 'Enter your Habitica user ID and API token in the Dromos settings.',
 		});
 		expect(banner({ kind: 'unauthorized' })).toMatchObject({ tone: 'error', message: 'Invalid token' });

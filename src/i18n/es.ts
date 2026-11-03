@@ -8,6 +8,7 @@ export const es = {
 	'sync.idle': 'Sin sincronizar todavía',
 	'sync.syncing': 'Sincronizando…',
 	'sync.synced': 'Sincronizado {ago}',
+	'sync.synced.announce': 'Misiones sincronizadas',
 	'sync.notConfigured': 'Conecta tu cuenta de Habitica',
 	'sync.notConfigured.detail': 'Escribe tu ID de usuario y tu token de API de Habitica en los ajustes de Dromos.',
 	'sync.offline': 'Sin conexión',
@@ -21,6 +22,9 @@ export const es = {
 
 	'time.ago.now': 'hace menos de 1 min',
 	'time.ago.minutes': 'hace {minutes} min',
+	'time.ago.hours': 'hace {hours} h',
+	'time.ago.days.one': 'hace 1 día',
+	'time.ago.days.other': 'hace {count} días',
 	'time.wait.moment': 'un momento',
 	'time.wait.one': '1 segundo',
 	'time.wait.other': '{count} segundos',

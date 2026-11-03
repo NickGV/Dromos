@@ -21,7 +21,7 @@ export function CampaignTaskRow({ row, sending, onSend }: CampaignTaskRowProps) 
 			{row.state === 'missing' ? <span className="dromos-chip is-warning">{t('task.missing')}</span> : null}
 			{row.state === 'unsent' ? <span className="dromos-chip">{t('task.unsent')}</span> : null}
 			{row.canSend ? (
-				<button type="button" className="dromos-send-button" disabled={sending} aria-busy={sending} onClick={onSend}>
+				<button type="button" className="dromos-send-button" aria-disabled={sending} aria-busy={sending} onClick={sending ? undefined : onSend}>
 					{sending ? (
 						<>
 							<span className="dromos-spinner" aria-hidden="true" />

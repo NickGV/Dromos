@@ -7,6 +7,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'sync.idle': 'Not synced yet',
 	'sync.syncing': 'Syncing…',
 	'sync.synced': 'Synced {ago}',
+	'sync.synced.announce': 'Quests synced',
 	'sync.notConfigured': 'Connect your Habitica account',
 	'sync.notConfigured.detail': 'Enter your Habitica user ID and API token in the Dromos settings.',
 	'sync.offline': 'Offline',
@@ -20,6 +21,9 @@ export const en: Readonly<Record<MessageKey, string>> = {
 
 	'time.ago.now': 'less than 1 min ago',
 	'time.ago.minutes': '{minutes} min ago',
+	'time.ago.hours': '{hours} h ago',
+	'time.ago.days.one': '1 day ago',
+	'time.ago.days.other': '{count} days ago',
 	'time.wait.moment': 'a moment',
 	'time.wait.one': '1 second',
 	'time.wait.other': '{count} seconds',

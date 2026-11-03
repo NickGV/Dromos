@@ -89,6 +89,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			questSnapshot: () => state.snapshot(),
 			clock,
 			translator: () => createTranslator(settings.language),
+			language: () => settings.language,
 			subscribeSettings: (onChange) => {
 				settingsListeners.add(onChange);
 				return () => void settingsListeners.delete(onChange);

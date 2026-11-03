@@ -15,7 +15,7 @@ export function SkillCard({ view }: { readonly view: SkillCardView }) {
 						{view.icon}
 					</span>
 				) : null}
-				<h3 className="dromos-skill-name">{view.name}</h3>
+				<h4 className="dromos-skill-name">{view.name}</h4>
 				<span className="dromos-chip">{view.statLabel}</span>
 				{view.levelText ? <span className="dromos-chip is-mono">{view.levelText}</span> : null}
 			</header>
