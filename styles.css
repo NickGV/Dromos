@@ -19,11 +19,9 @@
 
 .theme-dark .dromos-root { --dromos-ink-error: #ff7a70; }
 
-/* A busy button keeps its focus (aria-disabled, not disabled) and ignores clicks. */
-.dromos-root button[aria-disabled="true"] {
-	cursor: progress;
-	color: var(--text-muted);
-}
+/* A busy button keeps its focus (aria-disabled, not disabled) and ignores clicks. Obsidian
+   already dims it as it dims a disabled one; a muted color on top would fall under 4.5:1. */
+.dromos-root button[aria-disabled="true"] { cursor: progress; }
 
 /* Disclosure toggles: touch-sized on phones. */
 .is-mobile .dromos-root summary { padding-block: 12px; }
@@ -565,6 +563,8 @@
 .dromos-root .dromos-skills-toggle {
 	margin: 12px 0 8px;
 	cursor: pointer;
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
 	color: var(--text-muted);
 }
 
