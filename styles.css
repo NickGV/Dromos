@@ -313,6 +313,10 @@
 	--dromos-scene-belt: #d4a64a;
 	--dromos-scene-star: #e8ddb5;
 	--dromos-scene-lamp: #f0c36a;
+	/* The gate at the road's end (game-ui S16): moonlit stone at night, 5.3:1 or more on the hills
+	   and the sky. The outline of what marks the progress, the gate and the walker, is the scene's. */
+	--dromos-scene-gate: #cbb993;
+	--dromos-scene-marker-line: #0f1310;
 }
 
 .theme-light .dromos-root {
@@ -329,6 +333,11 @@
 	--dromos-scene-skin: #f3e9d2;
 	--dromos-scene-hair: #3b2f2a;
 	--dromos-scene-belt: #c9962b;
+	/* Dark wood by day, 3.7:1 or more on the hills, the darker patch and the sky. By day the outline
+	   of the gate and the walker is ink, 4.2:1 or more there, where the scene's umber is 2.1:1 on
+	   the hill: now that the walker's place is the progress, its shape must read (S2). */
+	--dromos-scene-gate: #4a3428;
+	--dromos-scene-marker-line: #3b2f2a;
 }
 
 /* The scene, the offline band above it and the signpost bleed to the edges of the view:
@@ -362,6 +371,15 @@
 }
 
 .dromos-root .dromos-scene {
+	/* How the drawing is sliced into the scene, for the text placed over it (game-ui S16): the
+	   scene's width, which bleeds over the view's padding, its height (kept equal to `height`),
+	   and how far the drawing is framed to the left. Below 687 px the frame moves left, so the
+	   road's end and the plaque of its gate stay clear of the signpost; the sky moves back by
+	   about as much, so the sun and the clouds stay where they were. */
+	--dromos-scene-w: calc(100cqi + 2 * var(--size-4-3, 12px));
+	--dromos-scene-h: 170px;
+	--dromos-scene-shift: max(0px, calc(687px - var(--dromos-scene-w)));
+	--dromos-sky-x: calc(var(--dromos-scene-shift) / 2);
 	position: relative;
 	overflow: hidden;
 	height: 170px;
@@ -372,6 +390,7 @@
 /* 300 px on the home screen; on panes wider than the drawing it grows with it, up to 380 px, so
    the slice does not crop its sky away (a recorded departure from S1, game-ui L8). */
 .dromos-root .dromos-scene.is-home {
+	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
 	height: 300px;
 	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
 }
@@ -379,8 +398,9 @@
 .dromos-root .dromos-landscape {
 	position: absolute;
 	inset: 0;
+	left: calc(-1 * var(--dromos-scene-shift));
 	display: block;
-	width: 100%;
+	width: calc(100% + var(--dromos-scene-shift));
 	height: 100%;
 	transition: filter 0.8s;
 }
@@ -416,6 +436,18 @@
 .dromos-root .dromos-scene-lamp { fill: var(--dromos-scene-lamp); stroke: none; }
 .dromos-root .dromos-scene-lamp-glow { fill: var(--dromos-scene-lamp); stroke: none; opacity: 0.25; }
 
+/* The gate at the road's end and the walker on its way there (game-ui S16). The gate is drawn in
+   the walker's units at 0.7, so its 1.4 stroke is the scene's 1. While the walker walks, its body
+   bobs in two steps. */
+.dromos-root .dromos-scene-gate { fill: var(--dromos-scene-gate); stroke: var(--dromos-scene-marker-line); stroke-width: 1.4; stroke-linejoin: round; }
+.dromos-root .dromos-walker .dromos-scene-figure { stroke: var(--dromos-scene-marker-line); }
+.dromos-root .dromos-walker.is-walking .dromos-walker-body { animation: dromos-step 0.4s steps(2, jump-none) infinite; }
+
+@keyframes dromos-step {
+	from { transform: translateY(0); }
+	to { transform: translateY(-1.6px); }
+}
+
 /* Stars, the lamp and lit windows belong to the night. */
 .theme-light .dromos-root .dromos-scene-stars,
 .theme-light .dromos-root .dromos-scene-windows,
@@ -431,9 +463,11 @@
 	to { transform: translateX(26px); }
 }
 
-/* Past 1216 px the 380 px scene is cropped at the top: the sun, the clouds and the birds come
+/* The sky moves back as far as the frame moved left, so the sun and the clouds keep their place.
+   Past 1216 px the 380 px scene is cropped at the top: the sun, the clouds and the birds come
    down about as much as it crops, up to 100 px. */
-.dromos-root .dromos-scene.is-home .dromos-scene-sky { transform: translateY(min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
+.dromos-root .dromos-scene-sky { transform: translateX(var(--dromos-sky-x)); }
+.dromos-root .dromos-scene.is-home .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
 
 /* Under 700 px the slice crops the left of the scene: the sun moves right of the first cloud. */
 @container dromos-view (max-width: 700px) {
@@ -505,22 +539,60 @@
 	box-shadow: none;
 }
 
+/* The plaque on the gate's lintel, "Level 6" (game-ui S16): text over the drawing, so it keeps
+   its size and its contrast on any sky. It sits on the lintel at the gate's point in the view box
+   (--dromos-gate-x, --dromos-gate-top, from the markup), mapped as the slice maps the drawing:
+   scaled by k, the larger of the two ratios, centred across and anchored at the foot. Where the
+   short scene of a wide pane crops the lintel away, it stays 4 px inside the scene's top. Not a
+   plank: smaller, square to the road, and it takes no pointer. */
+.dromos-root .dromos-gate-plaque {
+	--dromos-k: max(calc((var(--dromos-scene-w) + var(--dromos-scene-shift)) / 960), calc(var(--dromos-scene-h) / 300));
+	position: absolute;
+	z-index: 1;
+	left: calc((var(--dromos-scene-w) - var(--dromos-scene-shift)) / 2 + (var(--dromos-gate-x) - 480) * var(--dromos-k));
+	bottom: min(calc((300 - var(--dromos-gate-top)) * var(--dromos-k) - 1px), calc(var(--dromos-scene-h) - 24px));
+	transform: translateX(-50%);
+	padding: 0 6px 1px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 2px;
+	background: var(--dromos-panel);
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 13px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.06em;
+	line-height: 1.25;
+	white-space: nowrap;
+	pointer-events: none;
+	transition: filter 0.8s;
+}
+
+.dromos-root .dromos-scene.is-offline .dromos-gate-plaque { filter: saturate(0.62) sepia(0.14); }
+
 /* Narrow panes and phones (S11): a lower scene, the signpost 14 px from the right. The same
    pane width as the narrow stats below: those measure .dromos-home, 16 px inside a side. */
 @container dromos-view (max-width: 472px) {
-	.dromos-root .dromos-scene.is-home { height: 220px; }
+	.dromos-root .dromos-scene.is-home { --dromos-scene-h: 220px; height: 220px; }
 	.dromos-root .dromos-signpost { right: 14px; }
-	/* The drawing is framed 60 px further left, so the walker stands clear of the signpost
-	   instead of behind it, and the sun moves right with it. */
-	.dromos-root .dromos-landscape { left: -120px; width: calc(100% + 120px); }
+	/* The drawing is framed at least 60 px further left, so the walker stands clear of the
+	   signpost instead of behind it, and the sun moves right with it. Below 400 px it is framed
+	   further, so the plaque of the gate does not reach the signpost; the sky moves back by as
+	   much, at the 220 px scene's scale. */
+	.dromos-root .dromos-scene {
+		--dromos-scene-shift: max(120px, calc(519px - var(--dromos-scene-w)));
+		--dromos-sky-x: calc((var(--dromos-scene-shift) - 120px) * 0.68);
+	}
 	.dromos-root .dromos-scene-sun { transform: translateX(230px); }
 }
 
 /* Reduced motion: the clouds and the spinner hold still, the scene changes color at once. */
 @media (prefers-reduced-motion: reduce) {
 	.dromos-root .dromos-scene-drift,
+	.dromos-root .dromos-walker-body,
 	.dromos-root .dromos-spinner { animation: none; }
-	.dromos-root .dromos-landscape { transition: none; }
+	.dromos-root .dromos-landscape,
+	.dromos-root .dromos-gate-plaque { transition: none; }
 }
 
 /* Parchment panels: the design's paper grain, 8 px corners, a hairline umber border. */
@@ -856,6 +928,20 @@
 }
 
 .dromos-root .dromos-xp-caption .dromos-xp-text { font-size: inherit; color: inherit; }
+
+/* Since the last visit (game-ui S15): the bar catches up in 1.2 s, slowing as the walker does
+   beside it (the same ease-out quart), and a line under it says what changed. */
+.dromos-root .dromos-xp.is-stacked.is-catching-up .dromos-xp-fill { transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1); }
+
+.dromos-root .dromos-since {
+	margin: 6px 0 0;
+	color: var(--dromos-ochre-ink);
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.35;
+}
+
+.dromos-root .dromos-since-part { white-space: nowrap; }
 
 .dromos-root .dromos-stats {
 	display: grid;
@@ -2247,5 +2333,6 @@
 	.dromos-root .dromos-hatched-fill { transition: none; }
 	.dromos-root .dromos-level-medal-face,
 	.dromos-root .dromos-level-medal-number,
-	.dromos-root .dromos-xp.is-stacked .dromos-xp-fill { transition: none; }
+	.dromos-root .dromos-xp.is-stacked .dromos-xp-fill,
+	.dromos-root .dromos-xp.is-stacked.is-catching-up .dromos-xp-fill { transition: none; }
 }

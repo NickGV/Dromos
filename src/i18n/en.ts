@@ -73,6 +73,13 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'screen.level': 'level {level}',
 	'offline.band': 'Last known state · {ago}',
 	'offline.band.never': 'Last known state',
+	'since.xp.today': '{xp} XP since earlier today',
+	'since.xp.yesterday': '{xp} XP since yesterday',
+	'since.xp.days': '{xp} XP in {days} days',
+	'since.skill': '{name} {xp}',
+	'since.more': 'and {count} more',
+	'since.quests.one': '{n} quest',
+	'since.quests.other': '{n} quests',
 
 	'briefing.aria': 'Briefing from Esdras',
 	'briefing.notToday': 'Esdras has not written today',

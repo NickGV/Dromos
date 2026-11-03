@@ -22,10 +22,13 @@ import { briefingRequestMessage, briefingView } from '../presenters/briefingView
 import { characterCardView } from '../presenters/characterCardView';
 import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
 import { questListView, questPanelView } from '../presenters/questListView';
+import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinceVisitView';
 import { skillRingView, skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
+import { walkerView } from '../presenters/walkerView';
 import { openLetter, storedLetterMark } from './briefingLetter';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
+import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -53,7 +56,7 @@ export interface HomeScreenDeps {
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
-	/** This device's own small state: the mark of the last letter of Esdras opened here (game-ui S13). */
+	/** This device's own small state: the mark of the last letter of Esdras opened here (game-ui S13), and what it last saw of the game (S15). */
 	readonly deviceStore: DeviceStore;
 	readonly campaigns: CampaignsDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
@@ -67,6 +70,12 @@ export interface HomeScreenDeps {
 }
 
 type CharacterShown = CharacterState | { readonly kind: 'loading' };
+
+/**
+ * Since the last visit on this device (game-ui S15): `waiting` until the open sync settles, then
+ * what changed, `null` on a first visit or when nothing did. It stays so until the next open.
+ */
+type Visit = { readonly kind: 'waiting' } | { readonly kind: 'settled'; readonly delta: VisitDelta | null };
 
 /**
  * Where the view is: the screen on show, and the campaign the campaigns screen shows, which a
@@ -96,6 +105,12 @@ let viewCount = 0;
  * state here, and the campaigns panel stays mounted in its slot on every screen.
  * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
  * here, and the card, the ribbon and the panel are drawn from the step it is at.
+ *
+ * Since the last visit (game-ui S15): the record this device kept is read once on open. While the
+ * open sync runs, the bar and the walker wait where that record left them; once it settles and
+ * the character is read again, they move to the new values and a line under the bar says what
+ * changed, which a live region announces once. The new record is written then, and after every
+ * later sync while the view stays open.
  */
 export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
@@ -110,6 +125,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [letterOpen, setLetterOpen] = useState(false);
 	const [readMark, setReadMark] = useState<unknown>(() => storedLetterMark(deps.deviceStore));
 	const [letterId] = useState(() => `dromos-letter-${(viewCount += 1)}`);
+	const [lastSeen] = useState(() => storedLastSeen(deps.deviceStore));
+	const [visit, setVisit] = useState<Visit>({ kind: 'waiting' });
+	const visitSettled = useRef(false);
 	const { screen } = place;
 	const mounted = useRef(false);
 	const frame = useRef<HTMLDivElement>(null);
@@ -161,6 +179,17 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		if (home.briefing.kind !== 'unreadable') setBriefing(home.briefing);
 	}, []);
 
+	// The first settled sync of this open tells what changed since the record; every one keeps the new record.
+	const seeVisit = useCallback((): void => {
+		const snapshot = deps.gameSnapshot();
+		if (visitSettled.current) {
+			noteSeen(deps.deviceStore, snapshot, deps.clock);
+			return;
+		}
+		visitSettled.current = true;
+		setVisit({ kind: 'settled', delta: settleVisit(deps.deviceStore, lastSeen, snapshot, deps.clock) });
+	}, [deps, lastSeen]);
+
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await deps.loadHome.execute();
 		if (!mounted.current) return;
@@ -180,9 +209,14 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 			setGame(deps.gameSnapshot());
 			announce();
 		}
-		const updated = await deps.loadHome.execute();
-		if (mounted.current) showLaterRead(updated);
-	}, [deps, announce, showLaterRead]);
+		try {
+			const updated = await deps.loadHome.execute();
+			if (mounted.current) showLaterRead(updated);
+		} finally {
+			// After the character is read again, so the bar and the walker set off once, to the new values.
+			if (mounted.current) seeVisit();
+		}
+	}, [deps, announce, showLaterRead, seeVisit]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -197,6 +231,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 			deps.subscribeGame(() => {
 				setGame(deps.gameSnapshot());
 				announce();
+				if (visitSettled.current) noteSeen(deps.deviceStore, deps.gameSnapshot(), deps.clock);
 				void deps.loadHome.execute().then((updated) => {
 					if (mounted.current) showLaterRead(updated);
 				});
@@ -210,6 +245,13 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const language = deps.language();
 	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
 	const showCeremony = home && ceremony !== null && (ceremony.level === null || phase === 'final');
+	const characterCeremony = ceremony?.level != null ? { level: ceremony.level, phase } : null;
+	const standing = character.kind === 'found' ? character.character : null;
+	const motion = canAnimate();
+	// While the open sync runs the bar and the walker wait at the record's place, if they may move later.
+	const held = visit.kind === 'waiting' && motion && standing ? heldProgress(lastSeen, standing) : null;
+	const cardVisit = visitCardView({ delta: visit.kind === 'settled' ? visit.delta : null, held, ceremony: characterCeremony?.phase ?? null, motion }, t);
+	const walker = walkerView(standing, characterCeremony === null ? (held?.fraction ?? null) : null, characterCeremony);
 	return (
 		<I18nProvider t={t}>
 			{/* `lang` on the frame covers the signpost; the one on <main> stays for the content. */}
@@ -221,13 +263,16 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					onGo={go}
 					onSettings={deps.openSettings}
 					ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
+					walker={walker.fraction}
+					gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
 				/>
 				<main className={`dromos-home is-${screen}`} lang={language} ref={main} tabIndex={-1}>
 					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted. */}
 					{home ? (
 						<CharacterPanel
 							state={panelState(character, t)}
-							ceremony={ceremony?.level != null ? phase : null}
+							ceremony={characterCeremony?.phase ?? null}
+							visit={cardVisit}
 							footer={
 								<div className="dromos-sync-line">
 									{/* While offline the band above the scene says it (S10), so the line stays quiet. */}
@@ -276,6 +321,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, deps.clock.today(), t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
 				</main>
+				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
+				<p className="dromos-visually-hidden dromos-since-news" role="status">
+					{cardVisit.line ?? ''}
+				</p>
 			</div>
 		</I18nProvider>
 	);
@@ -311,6 +360,11 @@ function useScreenFocus(screen: DromosScreen, frame: RefObject<HTMLElement>, mai
 		const heading = main.current?.querySelector<HTMLElement>('[data-screen-heading]') ?? main.current;
 		heading?.focus({ preventScroll: true });
 	}, [screen, frame, main]);
+}
+
+/** Whether the bar and the walker may move: not under reduced motion, nor where nothing runs (server rendering). */
+function canAnimate(): boolean {
+	return typeof window !== 'undefined' && !prefersReducedMotion();
 }
 
 function prefersReducedMotion(): boolean {

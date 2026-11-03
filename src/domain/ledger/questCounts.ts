@@ -30,3 +30,22 @@ export function lastComplete(taskRows: readonly LedgerRow[]): LastComplete {
 	const reverted = taskRows.some((row) => row.source === 'revert' && row.n === n);
 	return { n, active: n > 0 && !reverted };
 }
+
+/**
+ * Completions that still stand across every task (game-ui S15): one per `complete` transition,
+ * less one per `revert`. A quest with several skills writes a row per skill that share the
+ * transition, and an exact repeat is the same transition, so each counts once. Dailies count
+ * like to-dos; streak bonuses are not transitions of a task and never count.
+ */
+export function standingCompletionCount(rows: readonly LedgerRow[]): number {
+	const seen = new Set<string>();
+	let count = 0;
+	for (const row of rows) {
+		if (row.source === 'streak') continue;
+		const transition = `${row.source}|${row.date}|${row.habiticaId}|${row.n}`;
+		if (seen.has(transition)) continue;
+		seen.add(transition);
+		count += row.source === 'complete' ? 1 : -1;
+	}
+	return count;
+}

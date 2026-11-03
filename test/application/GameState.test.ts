@@ -12,12 +12,13 @@ function result(overrides: Partial<GameResult> = {}): GameResult {
 		unreadable: [],
 		invalidRules: null,
 		questPrices: new Map(),
+		completedQuests: 7,
 		...overrides,
 	};
 }
 
 describe('GameState', () => {
-	it('shows what a sync recorded as before, and keeps its quest prices through later status changes (game-ui S6)', () => {
+	it('shows what a sync recorded as before, and keeps its quest prices and its count of completions through later status changes (game-ui S6, S15)', () => {
 		const state = new GameState();
 		const questPrices = new Map([['a', { xp: 10, skills: [{ id: 'lector', name: 'Lector' }] }]]);
 
@@ -35,6 +36,7 @@ describe('GameState', () => {
 			unreadable: [],
 			invalidRules: null,
 			questPrices,
+			completedQuests: 7,
 		});
 	});
 });

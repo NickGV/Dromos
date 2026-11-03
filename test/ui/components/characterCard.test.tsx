@@ -113,3 +113,49 @@ describe('CharacterPanel', () => {
 		expect(html).not.toContain('dromos-level-medal');
 	});
 });
+
+// game-ui S15: since the last visit, the line under the bar and the bar catching up.
+describe('CharacterCard since the last visit (game-ui S15)', () => {
+	const visit = (overrides: Partial<NonNullable<Parameters<typeof CharacterCard>[0]['visit']>> = {}) => ({ line: null, parts: [], heldPercent: null, catchUp: false, ...overrides });
+	const parts = ['+45 XP since yesterday', 'Reader +15', '2 quests'];
+	const withVisit = (value: ReturnType<typeof visit>, ceremony: Parameters<typeof CharacterCard>[0]['ceremony'] = null): string =>
+		renderToStaticMarkup(<CharacterCard view={view} footer={<p>sync line</p>} ceremony={ceremony} visit={value} />);
+
+	it('shows the line under the bar and its numbers, each part kept whole and the dot at the end of a line', () => {
+		const html = withVisit(visit({ line: parts.join(' · '), parts }));
+
+		expect(html).toMatch(/<span class="dromos-xp-next">Level 4 in 280 XP<\/span><\/div><\/div><p class="dromos-since">/);
+		expect(html).toContain(
+			'<p class="dromos-since"><span><span class="dromos-since-part">+45 XP since yesterday</span></span><span>\u00a0· <span class="dromos-since-part">Reader +15</span></span><span>\u00a0· <span class="dromos-since-part">2 quests</span></span></p>',
+		);
+	});
+
+	it('draws no line without one', () => {
+		expect(withVisit(visit())).not.toContain('dromos-since');
+		expect(card()).not.toContain('dromos-since');
+	});
+
+	it('holds the bar at the value last seen while the sync runs, with the real values for screen readers', () => {
+		const html = withVisit(visit({ heldPercent: 20 }));
+
+		expect(fillWidth(html)).toBe('20');
+		expect(html).toMatch(/role="progressbar"[^>]*aria-valuemax="520"[^>]*aria-valuenow="240"/);
+	});
+
+	it('then lets the bar catch up slowly', () => {
+		expect(withVisit(visit({ catchUp: true }))).toContain('<div class="dromos-xp is-stacked is-catching-up">');
+		expect(fillWidth(withVisit(visit({ catchUp: true })))).toBe('46');
+	});
+
+	it('leaves the bar to the ceremony: it fills while held, then shows the new level', () => {
+		expect(fillWidth(withVisit(visit({ heldPercent: 20, catchUp: true }), 'fill'))).toBe('100');
+		expect(withVisit(visit({ heldPercent: 20, catchUp: true }), 'fill')).not.toContain('is-catching-up');
+		expect(fillWidth(withVisit(visit({ heldPercent: 20 }), 'medal'))).toBe('46');
+	});
+
+	it('keeps the text of the bar and its next level as they were', () => {
+		const html = withVisit(visit({ line: '+45 XP since yesterday', parts: ['+45 XP since yesterday'], heldPercent: 20, catchUp: true }));
+
+		expect(html).toMatch(/<span class="dromos-xp-text">240 \/ 520 XP<\/span><span class="dromos-xp-next">Level 4 in 280 XP<\/span>/);
+	});
+});

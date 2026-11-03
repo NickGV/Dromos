@@ -11,6 +11,7 @@ import {
 	resolveUnlock,
 	rowsToAppend,
 	skillStanding,
+	standingCompletionCount,
 	taskPrice,
 	type Campaign,
 	type Character,
@@ -76,6 +77,7 @@ interface GameProjection {
 	readonly entries: readonly SkillEntry[];
 	readonly events: readonly GameEvent[];
 	readonly questPrices: ReadonlyMap<string, QuestPrice>;
+	readonly completedQuests: number;
 }
 
 /** How many ledger rows each skill keeps for its recent entries (game-ui S9). */
@@ -212,7 +214,8 @@ export class SyncGame {
 
 	/**
 	 * Decides the unlocks and turns `rows` into levels. Compared with the ledger as it was read, it also says what is new.
-	 * It keeps each skill's last rows, and prices `observations` as the ledger would pay them.
+	 * It keeps each skill's last rows, prices `observations` as the ledger would pay them, and counts
+	 * the completions that stand. Counting reads the rows only: what the ledger writes is unchanged.
 	 */
 	private project(vault: VaultReads, rows: readonly LedgerRow[], streaks: ReadonlyMap<string, number>, observations: readonly ObservedTask[]): GameProjection {
 		const { rules } = vault.rules;
@@ -255,7 +258,7 @@ export class SyncGame {
 
 		const character = { ...characterCurve.progressFor(after.characterXp), totalXp: after.characterXp };
 		const events = detectEvents(characterCurve.levelFor(before.characterXp), character.level, changes);
-		return { character, stats: after.stats, entries, events, questPrices: questPrices(observations, vault) };
+		return { character, stats: after.stats, entries, events, questPrices: questPrices(observations, vault), completedQuests: standingCompletionCount(rows) };
 	}
 
 	/**
@@ -292,6 +295,7 @@ function gameResult(vault: VaultReads, game: GameProjection): GameResult {
 		unreadable: vault.ledger.unreadable,
 		invalidRules: vault.rules.invalid,
 		questPrices: game.questPrices,
+		completedQuests: game.completedQuests,
 	};
 }
 

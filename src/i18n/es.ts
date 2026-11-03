@@ -74,6 +74,13 @@ export const es = {
 	'screen.level': 'nivel {level}',
 	'offline.band': 'Último estado conocido · {ago}',
 	'offline.band.never': 'Último estado conocido',
+	'since.xp.today': '{xp} XP desde más temprano',
+	'since.xp.yesterday': '{xp} XP desde ayer',
+	'since.xp.days': '{xp} XP en {days} días',
+	'since.skill': '{name} {xp}',
+	'since.more': 'y {count} más',
+	'since.quests.one': '{n} quest',
+	'since.quests.other': '{n} quests',
 
 	'briefing.aria': 'Briefing de Esdras',
 	'briefing.notToday': 'Esdras aún no escribió hoy',

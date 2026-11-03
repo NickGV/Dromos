@@ -164,8 +164,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | `6545418` |
 | T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | `79d1698` |
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | `98d8b82` |
-| T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | done: 9 rules RED then GREEN, 1157/1157, lint 0 errors and 4 warnings, build ok, preview with the real briefing and a live check (L12). Risk: item 6 | this commit |
-| T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | pending | |
+| T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | done: 9 rules RED then GREEN, 1157/1157, lint 0 errors and 4 warnings, build ok, preview with the real briefing and a live check (L12). Risk: item 6 | `7fdd81d` |
+| T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | done: RED then GREEN per rule, 1214/1214, lint 0 errors and 4 warnings, build ok, 102 geometry cases and a live run (L13). Risk: item 6 | this commit |
 | T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | pending | |
 | T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | pending | |
 
@@ -280,3 +280,21 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
     - the signature sits in one place per state;
     - the toggle ids come from a per-view counter, because two Dromos tabs could repeat `useId`.
   - **Reuse.** The short-date helper moved to `presenters/dates.ts`. Deadlines compared identical in 14 cases in both languages.
+- **L13** (2026-11-03): T7 by W7.
+  - **S15.**
+    - Data: `GameSnapshot.completedQuests` counts the completions that still stand. The ledger's rows and notes are unchanged and pinned.
+    - Record: `dromos:last-seen` in `DeviceStore`.
+    - On open, the bar and the walker hold at the recorded value until the character is read again, then catch up in 1.2 s, and the line appears. Example: "+45 XP since yesterday · Reader +15 · … · 2 quests", with at most three skills, then "and N more", and reverts as "−10 XP".
+    - It is announced once through a live region in the frame.
+  - **S16.**
+    - The walker moves along the road by arc length, its scale going from 1 to 0.7, towards a gate marked "Level N+1". It walks with requestAnimationFrame, with a two-step bob, and jumps when XP falls or under reduced motion.
+    - At a level-up it reaches the gate first.
+  - **Measurements.**
+    - 102 geometry cases, from 320 to 1600 px: nothing collides with the signpost, with at least 5.9 px of clearance.
+    - Contrast, lowest light / dark: line 4.91 / 7.42, plaque 10.7 / 12.65, gate 4.32 / 5.35.
+  - **Departures.**
+    - The walk starts 6 units up the road, so the feet clear the card.
+    - The drawing is framed further left below 687 px, and below about 400 px on narrow panes, which shifts the L5 framing slightly.
+    - On wide 170 px scenes the plaque is clamped inside the top.
+    - In light, the walker and the gate get an ink outline, because umber on the hill is 2.08:1.
+    - The record is rewritten on every open.

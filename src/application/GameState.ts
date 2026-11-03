@@ -60,6 +60,8 @@ export interface GameResult {
 	readonly invalidRules: InvalidRules | null;
 	/** Habitica task id to its price, for every task the last game sync read. */
 	readonly questPrices: ReadonlyMap<string, QuestPrice>;
+	/** Task completions in the ledger that still stand: completions less reverts (game-ui S15). */
+	readonly completedQuests: number;
 }
 
 /** Immutable view of the game; every change produces a new object. */
@@ -79,6 +81,11 @@ export interface GameSnapshot {
 	 * first records a result. A task missing from it has no known price yet.
 	 */
 	readonly questPrices?: ReadonlyMap<string, QuestPrice>;
+	/**
+	 * Task completions in the ledger that still stand, completions less reverts, as the last game
+	 * result counted them; absent until the game first records a result (game-ui S15).
+	 */
+	readonly completedQuests?: number;
 }
 
 const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
@@ -118,6 +125,7 @@ export class GameState {
 			unreadable: [...result.unreadable],
 			invalidRules: result.invalidRules,
 			questPrices: result.questPrices,
+			completedQuests: result.completedQuests,
 		};
 	}
 

@@ -1,13 +1,19 @@
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
+import { FAR_SCALE, GATE, GATE_SHAPE } from '../presenters/walkerView';
+
+export interface LandscapeProps {
+	/** Drawn last, over the road and in front of the gate: the walker (game-ui S16). */
+	readonly children?: ReactNode;
+}
 
 /**
  * The scene at the top of the view (game-ui S1), drawn after the user's design: a sky with a sun
  * and three drifting clouds, birds, cypresses, a tree and a village, three hills and the path,
- * and the walker with a staff and an ochre belt. Every fill and stroke is a `--dromos-scene-*`
- * token, so the dark theme turns it into a night with stars, a moon, lit windows and a lamp.
- * It is a drawing: screen readers skip it.
+ * with a gate at the path's far end (S16) and the walker it is given. Every fill and stroke is a
+ * `--dromos-scene-*` token, so the dark theme turns it into a night with stars, a moon, lit
+ * windows and a lamp. It is a drawing: screen readers skip it.
  */
-export function Landscape() {
+export function Landscape({ children = null }: LandscapeProps) {
 	// Unique per view: two open Dromos tabs must not share one gradient, since Chromium stops
 	// painting a gradient whose element sits in a hidden tab.
 	const sky = `dromos-sky-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
@@ -81,18 +87,24 @@ export function Landscape() {
 			<path className="dromos-scene-patch is-near" d="M0 276C260 262 600 284 960 270V300H0z" />
 			<path className="dromos-scene-road" d="M410 300C450 272 508 266 514 248 520 234 556 226 600 214L612 216C575 228 556 240 562 250 568 266 522 286 522 300z" />
 			<path className="dromos-scene-strokes" d="M60 270l3-8M66 271l1-6M72 270l-2-7M860 262l3-8M866 263l1-6M872 262l-2-7M300 280l3-8M306 281l1-6" />
-			<ellipse className="dromos-scene-shadow" cx="536" cy="246" rx="16" ry="3.5" />
-			<g className="dromos-scene-figure" transform="translate(536 244)">
-				<circle className="dromos-scene-lamp-glow" cx="20" cy="-62" r="10" />
-				<path className="dromos-scene-staff" d="M20 -66V2" />
-				<path className="dromos-scene-robe" d="M-6 -50L6 -50 13 -2-14 -2z" />
-				<path className="dromos-scene-belt" d="M-8 -30L9 -30" />
-				<path className="dromos-scene-limb" d="M6 -46L19 -38" />
-				<circle className="dromos-scene-head" cx="0" cy="-58" r="7.2" />
-				<path className="dromos-scene-hair" d="M-7 -59C-8 -67 7 -68 7 -59 3 -63-3 -63-7 -59z" />
-				<path className="dromos-scene-limb" d="M-9 -2h6M5 -2h7" />
-				<circle className="dromos-scene-lamp" cx="20" cy="-62" r="2.6" />
+			{/* The gate at the far end of the road, in the walker's units so it walks under the lintel (game-ui S16). */}
+			<g className="dromos-scene-gate" transform={`translate(${GATE.x} ${GATE.y}) scale(${FAR_SCALE})`}>
+				<path className="dromos-scene-gate-post" d={post(-GATE_SHAPE.postOuter, -GATE_SHAPE.postInner)} />
+				<path className="dromos-scene-gate-post" d={post(GATE_SHAPE.postInner, GATE_SHAPE.postOuter)} />
+				<path className="dromos-scene-gate-lintel" d={lintel()} />
 			</g>
+			{children}
 		</svg>
 	);
+}
+
+/** A post of the gate from `left` to `right`, standing on the ground at 0. */
+function post(left: number, right: number): string {
+	return `M${left} 0V${-GATE_SHAPE.height}H${right}V0z`;
+}
+
+/** The lintel across the posts' tops, a little wider than them. */
+function lintel(): string {
+	const top = -(GATE_SHAPE.height + GATE_SHAPE.lintelDepth);
+	return `M${-GATE_SHAPE.lintelHalf} ${-GATE_SHAPE.height}V${top}H${GATE_SHAPE.lintelHalf}V${-GATE_SHAPE.height}z`;
 }

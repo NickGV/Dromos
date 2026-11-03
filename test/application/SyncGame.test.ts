@@ -928,3 +928,35 @@ describe('SyncGame: what a sync showed and wrote before game-ui stays the same',
 		expect(snapshot.skills?.[0]).toMatchObject({ skill: { id: 'lector', unlocked: true, unlockedOn: '2026-11-01' }, xp: 20, standing: PREVIOUS_SKILL_STANDING, rank: null, requirements: [{ done: 2, total: 2, met: true }] });
 	});
 });
+
+describe('SyncGame: the completions that stand, for "since your last visit" (game-ui S15)', () => {
+	it('counts the history and the new rows once per transition, and writes the same rows as before', async () => {
+		const history = [row({ habiticaId: 'h1', date: '2026-11-01' }), row({ habiticaId: 'h2', date: '2026-11-02' }), row({ habiticaId: 'h2', date: '2026-11-02', source: 'revert', xp: -10 })];
+		const cuidador = skill({ id: 'cuidador', name: 'Cuidador', requirements: [] });
+		const { sync, ledger, source } = setup({ skills: [owned(), cuidador], rows: history, tasks: [todo('a', { skills: ['lector', 'cuidador'] })] });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.completedQuests).toBe(2);
+		expect(ledger.appended.flat().map((paid) => [paid.habiticaId, paid.skill, paid.source, paid.n])).toEqual([
+			['a', 'lector', 'complete', 1],
+			['a', 'cuidador', 'complete', 1],
+		]);
+		expect(source.calls).toBe(1);
+	});
+
+	it('has no count before the first game sync, keeps it when a sync fails, and a rebuild counts the ledger again', async () => {
+		const { sync, source, state, ledger } = setup({ skills: [owned()], tasks: [todo('a')] });
+		expect(state.snapshot().completedQuests).toBeUndefined();
+
+		const good = await sync.execute();
+		source.failWith = new TaskSourceError('Offline', null, 'down');
+		const failed = await sync.execute();
+		await ledger.append([row({ habiticaId: 'later', date: TODAY })]);
+		await sync.rebuild();
+
+		expect(good.completedQuests).toBe(1);
+		expect(failed.completedQuests).toBe(1);
+		expect(state.snapshot().completedQuests).toBe(2);
+	});
+});
