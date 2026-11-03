@@ -20,6 +20,12 @@ describe('HomeScreen puts the character first', () => {
 		expect(section).toMatch(/<button[^>]*class="dromos-sync-button"/);
 	});
 
+	it('marks only the loading text as busy, so the sync line can still be announced', () => {
+		const section = firstSection(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />));
+		expect(/^<section[^>]*>/.exec(section)?.[0]).not.toContain('aria-busy');
+		expect(section).toMatch(/<p[^>]*aria-busy="true"[^>]*>Loading the character…<\/p>/);
+	});
+
 	it('shows a level-up as a ribbon inside the character, not above it', () => {
 		const game = { ...IDLE_GAME, events: [{ kind: 'character-level' as const, level: 4 }] };
 		const section = firstSection(renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} />));

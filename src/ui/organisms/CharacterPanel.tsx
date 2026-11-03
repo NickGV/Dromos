@@ -50,9 +50,12 @@ export function CharacterPanel({ state, ribbon, footer }: CharacterPanelProps) {
 			);
 		case 'loading':
 			return (
-				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')} aria-busy="true">
+				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
 					{ribbon}
-					<p className="dromos-empty">{t('character.loading')}</p>
+					{/* Busy is the text alone: a busy section would hold back the sync line's live region. */}
+					<p className="dromos-empty" aria-busy="true">
+						{t('character.loading')}
+					</p>
 					{footer}
 				</section>
 			);

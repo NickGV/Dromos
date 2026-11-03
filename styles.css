@@ -39,6 +39,10 @@
 
 .theme-dark .dromos-root { --dromos-ink-error: #ff7a70; }
 
+/* On phones in the light theme Obsidian's button color is the card's own, so a button on a
+   card had no shape: give it the page color there. */
+.is-mobile.theme-light .dromos-root .dromos-card { --interactive-normal: var(--background-primary); }
+
 /* The landscape at the head of the character card: a summer afternoon in the light theme, a
    night with stars and a lamp in the dark one. Flat fills, no gradient. */
 .dromos-root {
@@ -352,8 +356,10 @@
 	border: 0;
 }
 
-/* Wide panes: quests and campaigns side by side, the rest across both columns. */
-@container dromos-view (min-width: 760px) {
+/* Wide panes (760 px and more): quests and campaigns side by side, the rest across both
+   columns. Obsidian pads the view 12 px on each side and the query measures inside that
+   padding, so 760 px reads as 736. */
+@container dromos-view (min-width: 736px) {
 	.dromos-root .dromos-home {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -366,11 +372,9 @@
 	.dromos-root .dromos-home > .dromos-campaigns { grid-column: auto; }
 }
 
-/* Narrow panes and phones (Android): tighter stats, still three per row, and a lower landscape. */
+/* Narrow panes and phones (Android): two stats per row, a lower landscape. */
 @container (max-width: 440px) {
-	.dromos-root .dromos-stats { gap: 6px; }
-	.dromos-root .dromos-stat { padding: 6px 2px; }
-	.dromos-root .dromos-stat-value { font-size: 1.15em; }
+	.dromos-root .dromos-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.dromos-root .dromos-landscape { height: 88px; }
 }
 
@@ -432,6 +436,7 @@
 	background: none;
 	box-shadow: none;
 	height: auto;
+	white-space: normal;
 	font: inherit;
 	color: inherit;
 	text-align: left;
@@ -511,7 +516,10 @@
 	background: var(--background-modifier-border);
 }
 
-.dromos-root .dromos-road-segment.is-open { height: 9px; }
+.dromos-root .dromos-road-segment.is-open {
+	height: 9px;
+	box-shadow: inset 0 0 0 1px var(--dromos-ochre);
+}
 
 .dromos-root .dromos-road-fill {
 	display: block;
@@ -799,7 +807,7 @@
 
 .dromos-root .dromos-medallion-lock {
 	background: var(--dromos-stone);
-	color: var(--text-normal);
+	color: #1e1e1e;
 }
 
 .dromos-root .dromos-medallion-lock svg {

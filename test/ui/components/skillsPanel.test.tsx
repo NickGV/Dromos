@@ -37,9 +37,10 @@ const view: SkillsPageView = {
 
 const render = (selectedId: string | null): string => renderToStaticMarkup(<SkillsPanel view={view} selectedId={selectedId} onSelect={noop} renderIcon={noop} />);
 
-/** The opening tag of the medallion button of `id`. */
-function medallion(html: string, id: string): string {
-	return new RegExp(`<button[^>]*aria-controls="dromos-skill-${id}"[^>]*>`).exec(html)?.[0] ?? '';
+/** The opening tag of each medallion button, earned ones first: Lector, then Atleta. */
+function medallion(html: string, id: 'lector' | 'atleta'): string {
+	const tags = [...html.matchAll(/<button[^>]*class="dromos-medallion[^"]*"[^>]*>/g)].map((match) => match[0]);
+	return tags[id === 'lector' ? 0 : 1] ?? '';
 }
 
 describe('SkillsPanel shows the skills as medallions', () => {
@@ -48,6 +49,12 @@ describe('SkillsPanel shows the skills as medallions', () => {
 		expect(medallion(html, 'lector')).toContain('aria-expanded="false"');
 		expect(medallion(html, 'atleta')).toContain('aria-expanded="false"');
 		expect(html).not.toContain('<article');
+	});
+
+	it('points a medallion at its card only while the card is there', () => {
+		const html = render('atleta');
+		expect(medallion(html, 'atleta')).toContain('aria-controls="dromos-skill-atleta"');
+		expect(medallion(html, 'lector')).not.toContain('aria-controls');
 	});
 
 	it('shows the level of an earned skill and the closest requirement of a locked one', () => {

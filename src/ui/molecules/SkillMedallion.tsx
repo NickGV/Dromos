@@ -18,7 +18,7 @@ export interface SkillMedallionProps {
 export function SkillMedallion({ view, open, onSelect, renderIcon }: SkillMedallionProps) {
 	const t = useT();
 	return (
-		<button type="button" className={`dromos-medallion ${view.unlocked ? 'is-earned' : 'is-locked'}`} aria-expanded={open} aria-controls={skillDetailId(view.id)} onClick={onSelect}>
+		<button type="button" className={`dromos-medallion ${view.unlocked ? 'is-earned' : 'is-locked'}`} aria-expanded={open} aria-controls={open ? skillDetailId(view.id) : undefined} onClick={onSelect}>
 			<span className="dromos-medallion-face" aria-hidden="true">
 				<span className="dromos-medallion-icon">{view.icon}</span>
 				{view.unlocked ? <span className="dromos-medallion-badge">{view.level}</span> : <Icon name="lock" render={renderIcon} className="dromos-medallion-lock" />}
