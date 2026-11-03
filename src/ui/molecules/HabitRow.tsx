@@ -1,4 +1,5 @@
 import { PhaseProgress } from '../atoms/PhaseProgress';
+import { SendButton } from '../atoms/SendButton';
 import { useT } from '../i18n';
 import type { HabitRowView } from '../presenters/campaignView';
 
@@ -19,16 +20,7 @@ export function HabitRow({ row, sending, onSend }: HabitRowProps) {
 				{row.state === 'missing' ? <span className="dromos-chip is-warning">{t('task.missing')}</span> : null}
 				{row.state === 'unsent' && !row.canSend ? <span className="dromos-chip">{t('task.unsent')}</span> : null}
 				{row.canSend ? (
-					<button type="button" className="dromos-send-button" aria-disabled={sending} aria-busy={sending} onClick={sending ? undefined : onSend}>
-						{sending ? (
-							<>
-								<span className="dromos-spinner" aria-hidden="true" />
-								{t('task.sending')}
-							</>
-						) : (
-							t('task.send')
-						)}
-					</button>
+					<SendButton sending={sending} onSend={onSend} label={t('task.send')} sendingLabel={t('task.sending')} />
 				) : null}
 			</div>
 			<span className="dromos-habit-text">{row.text}</span>

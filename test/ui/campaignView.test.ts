@@ -300,10 +300,9 @@ describe('campaignListView', () => {
 		expect(rows({ kind: 'not-configured' })).toHaveLength(0);
 	});
 
-	it('has a card per campaign and a footer that counts them', () => {
+	it('has a card per campaign', () => {
 		expect(view(snapshot()).cards.map((card) => card.title)).toEqual(['Kairos']);
-		expect(view(snapshot()).footer).toBe('1 campaña activa');
-		expect(view(snapshot({ campaigns: [kairos, kairos] })).footer).toBe('2 campañas activas');
+		expect(view(snapshot({ campaigns: [kairos, kairos] })).cards).toHaveLength(2);
 	});
 
 	it('shows no notice when Habitica answered', () => {

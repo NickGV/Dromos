@@ -113,8 +113,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 |---|---|---|---|---|---|
 | T1 | S6, S8, S9 (data) | Quest price and skill from the ledger pricing; the last ledger rows per skill; campaign deadline and task phase in the view models. Raw values only, no new copy | delegated W1 (parallel with T2, disjoint surfaces) | done: 18 tests RED then GREEN, 936/936, lint 0 errors and 4 warnings (the earlier ones), build ok; parent spot check (L4). Risk: none (`taskPrice` is a pure extraction; the rows the ledger writes are unchanged and pinned) | `392a5f2` |
 | T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | done: 21 tests RED then GREEN, 958/958, lint 0 errors and 4 warnings, build ok, preview at 390 and 960 px light and dark (L5). Risk: item 6 | `a19de33` |
-| T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | this commit |
-| T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | pending | |
+| T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | `6545418` |
+| T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | this commit |
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | pending | |
 
 Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
@@ -167,3 +167,11 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   Deepened for contrast: the lock arc and the segments ahead go to #857b70 in light (3.43); the seal uses the clay ink #a33f25 (5.86). Lowest measured, light / dark: text 4.81 / 5.96, graphics 3.39 / 3.74.
 
   Not checked: real Obsidian and its icons inside the rings.
+- **L7** (2026-11-03): T4 by W4.
+  - **Campaigns screen.** Pill tabs (`aria-pressed`), then a header panel: kind, name, deadline in both languages, seal, stale text and "Open note". Below it come the hatched bar, "The path" on the wide road, "Tasks by phase" with state chips and sending, a "Without a phase" group, and the habits. `CampaignsPanel` draws the screen's header card, because only it knows the campaign's name.
+  - **Skills screen.** A medallion grid (`aria-pressed`) and the detail panel in a polite live region: level or Locked, Feeds, the bar or the requirements, What counts, and Recent entries ("today", "yesterday", "N days ago", a revert as −XP).
+  - **Requests.** Measured live with counting fakes: changing tab, screen or medallion spends no request, and send makes one `linkTask` and one reload.
+  - **Deleted, unused now:** `CampaignList`, `CampaignCard`, `PhaseRoad`, `SkillsPanel`, `SkillCard`, `SkillMedallion` and their copy and CSS.
+  - **Departures for contrast.** In light, the selected tab is the deep ochre #7a5a12 with paper text, because the design's ochre is 2.45:1 on the paper. The selected medallion tint is 0.12.
+  - **Lowest contrast, light / dark.** Text 4.81 / 5.24; graphics 3.26 / 4.26.
+  - **Next.** T5, the independent verifier.

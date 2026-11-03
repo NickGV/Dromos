@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { GameSnapshot, SkillEntry } from '../../src/application';
 import { skillStanding, type Skill } from '../../src/domain';
 import { createTranslator, type Translator } from '../../src/i18n';
-import { isIconName, nextSkillSelection, skillRingView, skillsPageView } from '../../src/ui/presenters/skillsView';
+import { isIconName, skillRingView, skillsPageView } from '../../src/ui/presenters/skillsView';
 import { skill } from '../domain/skill/skillFixtures';
 
 const es = createTranslator('es');
@@ -181,12 +181,6 @@ describe('skillsPageView: skills still to earn', () => {
 });
 
 describe('skillsPageView: titles, notices and problems', () => {
-	it('counts earned and locked skills in the section titles', () => {
-		const view = skillsPageView(snapshot({ skills: [earned(), locked(), locked({ id: 'other', name: 'Other' })] }), es);
-
-		expect(view).toMatchObject({ earnedTitle: 'Ganadas (1)', lockedTitle: 'Por desbloquear (2)' });
-	});
-
 	it('warns when the last sync failed in the vault but keeps what it knew', () => {
 		const view = skillsPageView(snapshot({ status: { kind: 'error' }, skills: [earned()] }), es);
 
@@ -260,14 +254,6 @@ describe('skillsPageView: medallions', () => {
 		const card = skillsPageView(snapshot({ skills: [earned({}, 0)] }), en).earned[0];
 		expect(card?.caption).toBe(card?.rankName);
 		expect(card?.levelText).toBe(`Level ${String(card?.level)}`);
-	});
-});
-
-describe('nextSkillSelection', () => {
-	it('opens a skill, switches to another, and closes the open one when it is chosen again', () => {
-		expect(nextSkillSelection(null, 'lector')).toBe('lector');
-		expect(nextSkillSelection('lector', 'atleta')).toBe('atleta');
-		expect(nextSkillSelection('lector', 'lector')).toBeNull();
 	});
 });
 

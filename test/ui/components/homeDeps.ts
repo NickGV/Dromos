@@ -18,7 +18,7 @@ const IDLE_CAMPAIGNS: CampaignSnapshot = { campaigns: null, issues: [], lastSync
  * screen shows its first render (the character loading) with the snapshots given here.
  */
 export function homeDeps(
-	options: { readonly language?: Language; readonly quests?: QuestSnapshot; readonly game?: GameSnapshot; readonly openSettings?: (() => void) | null } = {},
+	options: { readonly language?: Language; readonly quests?: QuestSnapshot; readonly game?: GameSnapshot; readonly campaigns?: CampaignSnapshot; readonly openSettings?: (() => void) | null } = {},
 ): HomeScreenDeps {
 	const language = options.language ?? 'en';
 	const quests = options.quests ?? IDLE_QUESTS;
@@ -27,7 +27,7 @@ export function homeDeps(
 		syncCampaigns: { execute: never, reload: never },
 		linkTask: { execute: never },
 		linkHabit: { execute: never },
-		campaignSnapshot: () => IDLE_CAMPAIGNS,
+		campaignSnapshot: () => options.campaigns ?? IDLE_CAMPAIGNS,
 		staleAfterDays: () => 14,
 		openNote: noop,
 		clock,

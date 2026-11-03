@@ -1,5 +1,5 @@
 import type { GameSnapshot, RecentEntry, SkillEntry } from '../../application';
-import type { RequirementProgress } from '../../domain';
+import { daysSince, type RequirementProgress } from '../../domain';
 import { plural, type Translator } from '../../i18n';
 import { statLabel, xpBarView, type XpBarView } from './characterCardView';
 
@@ -47,8 +47,6 @@ export interface SkillsPageView {
 	readonly emptyText: string | null;
 	/** A warning above the list, or `null`. */
 	readonly notice: string | null;
-	readonly earnedTitle: string;
-	readonly lockedTitle: string;
 	readonly earned: readonly SkillCardView[];
 	readonly locked: readonly SkillCardView[];
 	/** Skill notes and ledger rows that could not be read. */
@@ -72,8 +70,6 @@ export function skillsPageView(snapshot: GameSnapshot, t: Translator): SkillsPag
 		title: t('skills.title'),
 		emptyText: emptyText(snapshot, t),
 		notice: snapshot.status.kind === 'error' && snapshot.skills !== null ? t('skills.notice.error') : null,
-		earnedTitle: t('skills.earned', { count: earned.length }),
-		lockedTitle: t('skills.locked', { count: locked.length }),
 		earned,
 		locked,
 		problems: problemsOf(snapshot, t),
@@ -136,11 +132,6 @@ function closestRequirement(requirements: readonly RequirementRowView[]): string
 	return closest?.text ?? null;
 }
 
-/** The skill open on the Skills page after `clicked` is chosen: choosing the open one closes it. */
-export function nextSkillSelection(current: string | null, clicked: string): string | null {
-	return current === clicked ? null : clicked;
-}
-
 function meanPercent(requirements: readonly RequirementRowView[]): number {
 	if (requirements.length === 0) return 0;
 	return Math.round(requirements.reduce((sum, item) => sum + item.percent, 0) / requirements.length);
@@ -199,4 +190,109 @@ function earnedCaption(card: SkillCardView, t: Translator): string | null {
  */
 export function isIconName(icon: string): boolean {
 	return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(icon);
+}
+
+/** One medallion of the Skills screen's grid: the ring, and whether it is the one in the detail. */
+export interface SkillScreenRingView extends SkillRingView {
+	readonly selected: boolean;
+}
+
+/** One ledger row of a skill as its detail lists it: "Clean Architecture" and "+15 XP · yesterday". */
+export interface RecentEntryView {
+	readonly task: string;
+	readonly detail: string;
+}
+
+/** The detail panel of the Skills screen (game-ui S9). */
+export interface SkillDetailView {
+	readonly id: string;
+	readonly name: string;
+	readonly icon: string;
+	readonly earned: boolean;
+	/** How much of the big ring is drawn, as on the skill's medallion. */
+	readonly ringPercent: number;
+	/** "Level 2 · Scholar", "Level 2" without a rank, or "Locked". */
+	readonly levelLine: string;
+	readonly rankDescription: string | null;
+	/** "Feeds · Intelligence". */
+	readonly feedsText: string;
+	/** The next-level bar of an earned skill; `null` while locked or at the top of the curve. */
+	readonly xp: { readonly label: string; readonly valueText: string; readonly percent: number; readonly ariaLabel: string } | null;
+	/** "To unlock" above the requirements of a locked skill; `null` once earned. */
+	readonly requirementsTitle: string | null;
+	readonly requirements: readonly RequirementRowView[];
+	readonly countsTitle: string;
+	/** The skill's description; `null` when the note has none. */
+	readonly description: string | null;
+	readonly recentTitle: string;
+	/** Newest first. */
+	readonly recent: readonly RecentEntryView[];
+	/** "No entries yet" while there are none, else `null`. */
+	readonly noRecentText: string | null;
+	readonly earnedText: string | null;
+}
+
+/** The Skills screen (game-ui S9): a grid of every medallion, earned first, and the selected one's detail. */
+export interface SkillsScreenView {
+	readonly gridTitle: string;
+	readonly detailTitle: string;
+	readonly rings: readonly SkillScreenRingView[];
+	/** `null` while there is no skill. */
+	readonly detail: SkillDetailView | null;
+}
+
+/** The Skills screen with the skill `selectedId` in the detail; the first skill when it is `null` or gone. */
+export function skillsScreenView(page: SkillsPageView, selectedId: string | null, today: string, t: Translator): SkillsScreenView {
+	const cards = [...page.earned, ...page.locked];
+	const selected = cards.find((card) => card.id === selectedId) ?? cards[0] ?? null;
+	return {
+		gridTitle: t('skills.screen.medallions'),
+		detailTitle: t('skills.screen.detail'),
+		rings: cards.map((card) => ({ ...skillRingView(card, t), selected: card === selected })),
+		detail: selected ? skillDetailView(selected, today, t) : null,
+	};
+}
+
+export function skillDetailView(card: SkillCardView, today: string, t: Translator): SkillDetailView {
+	const level = card.level ?? 0;
+	const recent = card.recent ?? [];
+	return {
+		id: card.id,
+		name: card.name,
+		icon: card.icon,
+		earned: card.unlocked,
+		ringPercent: skillRingView(card, t).percent,
+		levelLine: card.unlocked ? [card.levelText, card.rankName].filter((part): part is string => part !== null).join(' · ') : t('skills.medallion.locked'),
+		rankDescription: card.rankDescription || null,
+		feedsText: t('skills.detail.feeds', { stat: card.statLabel }),
+		xp:
+			card.unlocked && card.xp
+				? { label: t('skills.detail.nextLevel', { level: level + 1 }), valueText: card.xp.text, percent: card.xp.percent, ariaLabel: t('skills.detail.xp.aria', { name: card.name }) }
+				: null,
+		requirementsTitle: card.unlocked ? null : t('skills.detail.unlock'),
+		requirements: card.requirements,
+		countsTitle: t('skills.detail.counts'),
+		description: card.description || null,
+		recentTitle: t('skills.detail.recent'),
+		recent: recent.map((entry) => ({ task: entry.task, detail: `${entryXpText(entry.xp, t)} · ${entryDayText(entry.date, today, t)}` })),
+		noRecentText: recent.length === 0 ? t('skills.detail.none') : null,
+		earnedText: card.earnedText,
+	};
+}
+
+// A revert carries the negative XP of the completion it cancels: shown with a minus sign.
+function entryXpText(xp: number, t: Translator): string {
+	return xp < 0 ? t('skills.detail.revert', { xp: -xp }) : t('quests.xp', { xp });
+}
+
+/**
+ * The day of a ledger row next to `today`: "today", "yesterday" or "N days ago". A day it cannot
+ * place, one after today included, is shown as written.
+ */
+export function entryDayText(date: string, today: string, t: Translator): string {
+	const days = daysSince(date, today);
+	if (!Number.isFinite(days) || days < 0) return date;
+	if (days === 0) return t('time.day.today');
+	if (days === 1) return t('time.day.yesterday');
+	return plural(t, 'time.ago.days', days);
 }

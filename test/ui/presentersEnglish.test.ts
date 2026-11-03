@@ -125,7 +125,7 @@ describe('English: campaigns', () => {
 		expect(campaignCardView(open, { ...ctx, issues }).warnings).toEqual(['"Screen" was not found in Habitica.']);
 	});
 
-	it('words the list: empty states, notices and the footer in both numbers', () => {
+	it('words the list: empty states and notices', () => {
 		const snapshot = (overrides: Partial<CampaignSnapshot>): CampaignSnapshot => ({
 			campaigns: [open],
 			issues: [],
@@ -137,8 +137,6 @@ describe('English: campaigns', () => {
 
 		expect(view(snapshot({ campaigns: null })).emptyText).toBe('Campaigns will appear after syncing.');
 		expect(view(snapshot({ campaigns: [] })).emptyText).toBe('No active campaigns.');
-		expect(view(snapshot({})).footer).toBe('1 active campaign');
-		expect(view(snapshot({ campaigns: [open, open] })).footer).toBe('2 active campaigns');
 		expect(view(snapshot({ status: { kind: 'not-configured' } })).notice).toBe('Connect your Habitica account to see the progress of sent tasks.');
 		expect(view(snapshot({ status: { kind: 'offline' } })).notice).toBe('Progress could not be refreshed from Habitica.');
 	});

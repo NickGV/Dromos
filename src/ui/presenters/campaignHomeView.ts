@@ -36,8 +36,7 @@ export function roadView(card: CampaignCardView): RoadView {
 		const percent = card.progress.percent;
 		return { phases: [stretch('', '', card.tasks, -1, card.tasks.length > 0 ? null : { state: percent >= 100 ? 'done' : 'open', percent })] };
 	}
-	const open = card.segments.find((segment) => segment.state === 'open');
-	const next = open ? card.tasks.findIndex((row) => row.phase === open.id && row.state !== 'completed') : -1;
+	const next = nextTaskIndex(card);
 	const nextRow = next >= 0 ? card.tasks[next] : undefined;
 	return {
 		phases: card.segments.map((segment) => {
@@ -46,6 +45,15 @@ export function roadView(card: CampaignCardView): RoadView {
 			return segment.state === 'done' ? { ...phase, complete: true } : phase;
 		}),
 	};
+}
+
+/**
+ * The index in `card.tasks` of the next step: the first task not completed in the open phase,
+ * the one the road draws in ochre. -1 when there is none, as for a campaign without phases.
+ */
+export function nextTaskIndex(card: CampaignCardView): number {
+	const open = card.segments.find((segment) => segment.state === 'open');
+	return open ? card.tasks.findIndex((row) => row.phase === open.id && row.state !== 'completed') : -1;
 }
 
 function stretch(id: string, name: string, rows: readonly TaskRowView[], nextIndex: number, fill: RoadPhaseView['fill']): RoadPhaseView {
@@ -99,9 +107,25 @@ export function campaignHomeCardView(card: CampaignCardView, t: Translator): Cam
 	};
 }
 
-function countOf(card: CampaignCardView, t: Translator): string {
+/** How far a whole campaign has gone: its tasks done over its tasks, or its phases when it has no tasks. */
+export interface OverallProgress {
+	readonly done: number;
+	readonly total: number;
+	readonly unit: 'tasks' | 'phases';
+}
+
+export function overallProgress(card: CampaignCardView): OverallProgress {
 	if (card.tasks.length === 0 && card.segments.length > 0) {
-		return t('campaign.home.phases', { done: card.segments.filter((segment) => segment.state === 'done').length, total: card.segments.length });
+		return { done: card.segments.filter((segment) => segment.state === 'done').length, total: card.segments.length, unit: 'phases' };
 	}
-	return t('campaign.home.tasks', { done: card.tasks.filter((row) => row.state === 'completed').length, total: card.tasks.length });
+	return { done: card.tasks.filter((row) => row.state === 'completed').length, total: card.tasks.length, unit: 'tasks' };
+}
+
+/** "3 of 7 tasks", or "1 of 3 phases" for a campaign without tasks. */
+export function overallCountText(progress: OverallProgress, t: Translator): string {
+	return t(progress.unit === 'phases' ? 'campaign.home.phases' : 'campaign.home.tasks', { done: progress.done, total: progress.total });
+}
+
+function countOf(card: CampaignCardView, t: Translator): string {
+	return overallCountText(overallProgress(card), t);
 }

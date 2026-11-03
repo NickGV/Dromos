@@ -98,7 +98,7 @@ describe('CampaignHomeCard (game-ui S7)', () => {
 	});
 });
 
-describe('HomeScreen shows compact campaign cards on home, and the full panel on the campaigns screen', () => {
+describe('HomeScreen shows compact campaign cards on home, and the campaign screen on the campaigns screen', () => {
 	const snapshot: CampaignSnapshot = { campaigns: [kairos], issues: [], lastSyncedAt: new Date('2026-10-31T10:00:00Z'), status: { kind: 'synced' } };
 	const deps = () => {
 		const base = homeDeps();
@@ -110,15 +110,16 @@ describe('HomeScreen shows compact campaign cards on home, and the full panel on
 
 		expect(html).toContain('<section class="dromos-section dromos-campaigns" aria-label="Campaigns">');
 		expect(html).toContain('aria-label="Open campaign Kairos"');
-		expect(html).not.toContain('dromos-campaign-tasks');
+		expect(html).not.toContain('dromos-task-group');
 		expect(html).not.toContain('Send to Habitica');
 	});
 
-	it('keeps today’s full panel on the campaigns screen', () => {
+	// game-ui S8: campaignScreen.test.tsx checks the screen itself.
+	it('draws the campaign screen, with its tasks by phase, on the campaigns screen', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={deps()} initialScreen="campaigns" />);
 
-		expect(html).toContain('<section class="dromos-card dromos-campaigns" aria-label="Campaigns">');
-		expect(html).toContain('dromos-campaign-tasks');
+		expect(html).toContain('<div class="dromos-campaign-screen dromos-campaigns">');
+		expect(html).toContain('dromos-task-group');
 		expect(html).not.toContain('dromos-campaign-card');
 	});
 

@@ -16,13 +16,13 @@ import { LevelUpPanel } from '../organisms/LevelUpPanel';
 import { QuestList } from '../organisms/QuestList';
 import { Scene } from '../organisms/Scene';
 import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
-import { SkillsPanel } from '../organisms/SkillsPanel';
 import { SkillsRow } from '../organisms/SkillsRow';
+import { SkillsScreen } from '../organisms/SkillsScreen';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
 import { questListView, questPanelView } from '../presenters/questListView';
-import { nextSkillSelection, skillRingView, skillsPageView } from '../presenters/skillsView';
+import { skillRingView, skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { useCeremonyPhase } from './useCeremonyPhase';
@@ -65,7 +65,10 @@ export interface HomeScreenDeps {
 
 type CharacterShown = CharacterState | { readonly kind: 'loading' };
 
-/** Where the view is: the screen on show, and the campaign a home card opened, which the campaigns screen shows (game-ui S7). */
+/**
+ * Where the view is: the screen on show, and the campaign the campaigns screen shows, which a
+ * home card or a tab chose (game-ui S7, S8); `null` shows the first one.
+ */
 interface Place {
 	readonly screen: DromosScreen;
 	readonly campaign: string | null;
@@ -83,7 +86,8 @@ const CLOCK_TICK_MS = 30_000;
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  *
  * It holds the three screens of the view (game-ui S1): home, campaigns and skills, under one
- * scene with a signpost. Changing screen spends no request: the campaigns panel stays mounted.
+ * scene with a signpost. Changing screen, campaign tab or skill spends no request: they are only
+ * state here, and the campaigns panel stays mounted in its slot on every screen.
  * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
  * here, and the card, the ribbon and the panel are drawn from the step it is at.
  */
@@ -108,6 +112,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const ceremony = ceremonyView(game.events, [...skills.earned, ...skills.locked], t);
 	const phase = useCeremonyPhase(ceremony?.level ?? null);
 	const go = useCallback((next: DromosScreen): void => setPlace((current) => ({ ...current, screen: next })), []);
+	const selectCampaign = useCallback((path: string): void => setPlace((current) => ({ ...current, campaign: path })), []);
 	// Closing the panel takes its button away: the focus goes back to the character's name.
 	const dismissEvents = useCallback((): void => {
 		deps.dismissGameEvents();
@@ -205,15 +210,22 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 								</div>
 							}
 						/>
-					) : (
-						<ScreenHeader title={t(screen === 'campaigns' ? 'screen.campaigns' : 'screen.skills')} character={headerCharacter(character, t)} />
-					)}
+					) : screen === 'skills' ? (
+						<ScreenHeader title={t('screen.skills')} character={headerCharacter(character, t)} />
+					) : null}
 					{showCeremony ? <LevelUpPanel view={ceremony} onDismiss={dismissEvents} renderIcon={deps.renderIcon} /> : null}
 					{home && briefing ? (
 						<BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} renderIcon={deps.renderIcon} />
 					) : null}
 					{home ? <QuestList view={questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t)} /> : null}
-					<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} hidden={screen === 'skills'} onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined} />
+					{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
+					<CampaignsPanel
+						deps={deps.campaigns}
+						syncKey={syncKey}
+						hidden={screen === 'skills'}
+						onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
+						screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign, character: headerCharacter(character, t) } : undefined}
+					/>
 					{home ? (
 						<SkillsRow
 							page={skills}
@@ -226,7 +238,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						/>
 					) : null}
 					{screen === 'skills' ? (
-						<SkillsPanel view={skills} selectedId={selectedSkill} onSelect={(skillId) => setSelectedSkill((current) => nextSkillSelection(current, skillId))} renderIcon={deps.renderIcon} />
+						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, deps.clock.today(), t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
 				</main>
 			</div>

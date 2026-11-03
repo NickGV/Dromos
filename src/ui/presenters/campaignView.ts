@@ -1,5 +1,5 @@
 import type { CampaignSnapshot, CampaignIssue } from '../../application';
-import { plural, type Translator } from '../../i18n';
+import type { Translator } from '../../i18n';
 import { campaignProgress, daysSince, habitProgress, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignHabit, type Progress } from '../../domain';
 
 /** How one task is shown in a campaign card. */
@@ -79,14 +79,13 @@ export interface CampaignViewContext {
 	readonly t: Translator;
 }
 
-/** What `CampaignList` renders. */
+/** The campaigns as the home cards and the campaigns screen show them. */
 export interface CampaignListView {
 	readonly cards: readonly CampaignCardView[];
 	/** Shown instead of the list when there is nothing to show, else `null`. */
 	readonly emptyText: string | null;
 	/** Why Habitica's progress may be old or missing, else `null`. */
 	readonly notice: string | null;
-	readonly footer: string;
 }
 
 export function campaignCardView(campaign: Campaign, context: CampaignViewContext): CampaignCardView {
@@ -148,7 +147,6 @@ export function campaignListView(snapshot: CampaignSnapshot, context: Omit<Campa
 		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues, canSend, habiticaKnown: snapshot.lastSyncedAt !== null })),
 		emptyText: snapshot.campaigns === null ? t('campaign.empty.beforeSync') : campaigns.length === 0 ? t('campaign.empty.none') : null,
 		notice: noticeFor(snapshot.status.kind, t),
-		footer: plural(t, 'campaign.footer', campaigns.length),
 	};
 }
 

@@ -23,3 +23,15 @@ export function clickOf(node: ReactNode): () => void {
 	if (typeof onClick !== 'function') throw new Error('the button has no onClick');
 	return onClick as () => void;
 }
+
+/**
+ * Every element of component `type` in the tree a hook-free component returns, depth first. The
+ * components are not called, so a test reaches the props a parent hands them, such as `onSend`.
+ */
+export function componentsOf(node: ReactNode, type: unknown): Element[] {
+	if (Array.isArray(node)) return node.flatMap((child: ReactNode) => componentsOf(child, type));
+	if (!isValidElement(node)) return [];
+	const element = node as Element;
+	const own = element.type === type ? [element] : [];
+	return [...own, ...componentsOf(element.props.children as ReactNode, type)];
+}

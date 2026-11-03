@@ -6,9 +6,7 @@ import { CampaignTaskRow } from '../../../src/ui/molecules/CampaignTaskRow';
 import { HabitRow } from '../../../src/ui/molecules/HabitRow';
 import { StatusBanner } from '../../../src/ui/molecules/StatusBanner';
 import { BriefingPanel } from '../../../src/ui/organisms/BriefingPanel';
-import { SkillsPanel } from '../../../src/ui/organisms/SkillsPanel';
 import type { BriefingView } from '../../../src/ui/presenters/briefingView';
-import type { SkillCardView, SkillsPageView } from '../../../src/ui/presenters/skillsView';
 import { homeDeps, noop, renderNothing } from './homeDeps';
 
 
@@ -50,7 +48,7 @@ describe('busy buttons keep keyboard focus', () => {
 	});
 
 	it('Send to Habitica on a task is aria-disabled, not disabled, while it sends', () => {
-		const tag = buttonTag(renderToStaticMarkup(<CampaignTaskRow row={{ title: 'Login screen', state: 'unsent', canSend: true }} sending onSend={noop} />));
+		const tag = buttonTag(renderToStaticMarkup(<CampaignTaskRow row={{ title: 'Login screen', completed: false, chip: { label: 'Pending', tone: 'pending' }, canSend: true }} sending onSend={noop} />));
 		expect(tag).toContain('aria-disabled="true"');
 		expect(tag).not.toMatch(/\sdisabled=/);
 	});
@@ -63,49 +61,8 @@ describe('busy buttons keep keyboard focus', () => {
 	});
 });
 
-function skill(id: string, unlocked: boolean): SkillCardView {
-	return {
-		id,
-		icon: '📖',
-		name: `Skill ${id}`,
-		statLabel: 'Intelligence',
-		description: 'Reading.',
-		unlocked,
-		level: unlocked ? 1 : null,
-		levelText: unlocked ? 'Level 1' : null,
-		rankName: null,
-		rankDescription: null,
-		caption: null,
-		xp: null,
-		requirements: [],
-		progressPercent: unlocked ? 100 : 40,
-		earnedText: null,
-	};
-}
-
+// The outline of the campaigns and skills screens is checked in campaignScreen.test.tsx and skillsScreen.test.tsx.
 describe('heading outline', () => {
-	const skills: SkillsPageView = {
-		title: 'Skills',
-		emptyText: null,
-		notice: null,
-		earnedTitle: 'Earned (1)',
-		lockedTitle: 'To unlock (1)',
-		earned: [skill('lector', true)],
-		locked: [skill('atleta', false)],
-		problems: [],
-	};
-
-	it('puts the name of an open skill under its group heading', () => {
-		const html = renderToStaticMarkup(<SkillsPanel view={skills} selectedId="lector" onSelect={noop} renderIcon={noop} />);
-		expect(html).toMatch(/<h4[^>]*>Skill lector<\/h4>/);
-		expect(html).not.toMatch(/<h3[^>]*>Skill /);
-	});
-
-	it('gives the locked group a heading inside its toggle', () => {
-		const html = renderToStaticMarkup(<SkillsPanel view={skills} selectedId={null} onSelect={noop} renderIcon={noop} />);
-		expect(html).toMatch(/<summary[^>]*><h3[^>]*>To unlock \(1\)<\/h3><\/summary>/);
-	});
-
 	it('gives the panel of Esdras a heading', () => {
 		const view: BriefingView = { ariaLabel: 'Briefing from Esdras', notice: null, requestLabel: 'Copy briefing command', dimmed: false, mission: null, near: null, markdown: null, signature: '— Esdras' };
 		const html = renderToStaticMarkup(<BriefingPanel view={view} renderMarkdown={renderNothing} onRequest={null} />);

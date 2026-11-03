@@ -97,11 +97,14 @@ describe('HomeScreen shows the skills as one row of ring medallions', () => {
 		expect(html).toContain('<section class="dromos-section dromos-skills" aria-label="Skills">');
 	});
 
-	it('keeps today’s full panel on the skills screen', () => {
+	// game-ui S9: the skills screen draws the same rings as its grid; skillsScreen.test.tsx checks it.
+	it('draws the same rings as the grid of the skills screen, the first one pressed', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} initialScreen="skills" />);
 
-		expect(html).toContain('class="dromos-medallion is-earned"');
-		expect(html).not.toContain('dromos-ring-button');
+		expect([...html.matchAll(/class="dromos-ring-button [^"]*" aria-label="([^",]+)[^"]*" aria-pressed="(\w+)"/g)].map((match) => [match[1], match[2]])).toEqual([
+			['Reader', 'true'],
+			['Athlete', 'false'],
+		]);
 	});
 });
 

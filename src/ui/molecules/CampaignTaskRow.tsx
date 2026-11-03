@@ -1,37 +1,32 @@
+import { HandDrawnCheck } from '../atoms/HandDrawnCheck';
+import { SendButton } from '../atoms/SendButton';
 import { useT } from '../i18n';
-import type { TaskRowView } from '../presenters/campaignView';
+import type { CampaignTaskView } from '../presenters/campaignScreenView';
 
 export interface CampaignTaskRowProps {
-	readonly row: TaskRowView;
+	readonly row: CampaignTaskView;
 	/** True while this task is being sent to Habitica. */
 	readonly sending: boolean;
 	readonly onSend: () => void;
 }
 
-/** One task of a campaign: its state, its title and, when it can go to Habitica, the send button. */
+/**
+ * One task of a campaign (game-ui S8): the hand-drawn circle, checked and struck through once
+ * done, its title, its state chip and, when it can go to Habitica, the send button. The circle
+ * is a status, not a button: Dromos does not complete tasks.
+ */
 export function CampaignTaskRow({ row, sending, onSend }: CampaignTaskRowProps) {
 	const t = useT();
 	return (
-		<li className={`dromos-campaign-task is-${row.state}`}>
-			<span className="dromos-quest-check" aria-hidden="true" />
-			<span className="dromos-campaign-task-title">
-				{row.title}
-				{row.state === 'completed' ? <span className="dromos-visually-hidden">{t('task.completed')}</span> : null}
+		<li className={row.completed ? 'dromos-task is-completed' : 'dromos-task'}>
+			<HandDrawnCheck completed={row.completed} />
+			<span className="dromos-task-body">
+				<span className="dromos-task-title">{row.title}</span>
+				<span className="dromos-task-chips">
+					<span className={`dromos-task-chip is-${row.chip.tone}`}>{row.chip.label}</span>
+				</span>
 			</span>
-			{row.state === 'missing' ? <span className="dromos-chip is-warning">{t('task.missing')}</span> : null}
-			{row.state === 'unsent' && !row.canSend ? <span className="dromos-chip">{t('task.unsent')}</span> : null}
-			{row.canSend ? (
-				<button type="button" className="dromos-send-button" aria-disabled={sending} aria-busy={sending} onClick={sending ? undefined : onSend}>
-					{sending ? (
-						<>
-							<span className="dromos-spinner" aria-hidden="true" />
-							{t('task.sending')}
-						</>
-					) : (
-						t('task.send')
-					)}
-				</button>
-			) : null}
+			{row.canSend ? <SendButton sending={sending} onSend={onSend} label={t('task.send')} sendingLabel={t('task.sending')} /> : null}
 		</li>
 	);
 }
