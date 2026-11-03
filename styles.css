@@ -210,7 +210,7 @@
 
 /* Day parchment: the design's values. Deepened, each for the reason given, where text fell
    under 4.5:1 or a meaningful fill under 3:1 on the panel #f3e9d2 or the track #e6d9bd:
-   muted ink #7a6657 (4.50 on the panel, 4.19 on its grain) to #6f5b4c; ochre for marks
+   muted ink #7a6657 (4.50 on the panel, 4.19 on its grain) to #665243 (L8); ochre for marks
    #c9962b (2.21) to #9a6e15; olive for fills #6e8b4e (2.75 on the track) to #5f7a42; clay for
    text #b5593c (3.90) to #a33f25. */
 .theme-light .dromos-root {
@@ -218,7 +218,9 @@
 	--dromos-panel: #f3e9d2;
 	--dromos-umber: #8b5e3c;
 	--dromos-ink: #3b2f2a;
-	--dromos-ink-muted: #6f5b4c;
+	/* Muted text sits on tinted headers too: #6f5b4c fell to 4.44:1 where the paper grain crosses the
+	   tint (game-ui L8); #665243 keeps 5.10:1 there and 6.77:1 on the paper. */
+	--dromos-ink-muted: #665243;
 	--dromos-track: #e6d9bd;
 	--dromos-hover: rgba(139, 94, 60, 0.07);
 	--dromos-plank-hover: #e9d9ae;
@@ -250,8 +252,8 @@
 	--dromos-rule: rgba(139, 94, 60, 0.45);
 	--dromos-rule-dashed: rgba(139, 94, 60, 0.35);
 	--dromos-ochre-tint: rgba(201, 150, 43, 0.2);
-	/* The selected medallion's tint: the design's 0.16 leaves its muted caption at 4.41:1 where
-	   the paper grain crosses; 0.12 keeps it at 4.54:1. The hairline around it carries the state. */
+	/* The selected medallion's tint: the design's 0.16 dims its muted caption; at 0.12 the caption
+	   keeps 5.14:1 where both grain layers cross (game-ui L8). The hairline carries the state. */
 	--dromos-selected: rgba(201, 150, 43, 0.12);
 	/* The selected campaign tab: the design's ochre #c9962b is 2.45:1 on the paper, under the 3:1
 	   a state needs, and no ochre clears 3:1 there and still carries ink at 4.5:1; the deep
@@ -343,7 +345,7 @@
 }
 
 /* 300 px on the home screen; on panes wider than the drawing it grows with it, up to 380 px, so
-   the slice does not crop its sky away. */
+   the slice does not crop its sky away (a recorded departure from S1, game-ui L8). */
 .dromos-root .dromos-scene.is-home {
 	height: 300px;
 	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);

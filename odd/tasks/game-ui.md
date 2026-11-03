@@ -114,8 +114,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T1 | S6, S8, S9 (data) | Quest price and skill from the ledger pricing; the last ledger rows per skill; campaign deadline and task phase in the view models. Raw values only, no new copy | delegated W1 (parallel with T2, disjoint surfaces) | done: 18 tests RED then GREEN, 936/936, lint 0 errors and 4 warnings (the earlier ones), build ok; parent spot check (L4). Risk: none (`taskPrice` is a pure extraction; the rows the ledger writes are unchanged and pinned) | `392a5f2` |
 | T2 | S1, S2, S10, S11 | Screens and signpost, design landscape, header card, embedded serif, parchment tokens light and dark, offline band | delegated W2 (parallel with T1) | done: 21 tests RED then GREEN, 958/958, lint 0 errors and 4 warnings, build ok, preview at 390 and 960 px light and dark (L5). Risk: item 6 | `a19de33` |
 | T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | `6545418` |
-| T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | this commit |
-| T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | pending | |
+| T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | `79d1698` |
+| T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | this commit |
 
 Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
 
@@ -175,3 +175,29 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   - **Departures for contrast.** In light, the selected tab is the deep ochre #7a5a12 with paper text, because the design's ochre is 2.45:1 on the paper. The selected medallion tint is 0.12.
   - **Lowest contrast, light / dark.** Text 4.81 / 5.24; graphics 3.26 / 4.26.
   - **Next.** T5, the independent verifier.
+- **L8** (2026-11-03): T5. The independent verifier checked `79d1698` against `3d3a28f` with the preview over Obsidian's real `app.css`:
+  - 168 layout renders (7 scenarios × 6 widths × 2 themes × 2 languages);
+  - a live click-through with counting fakes;
+  - a differential `SyncGame` run.
+
+  Results:
+  - PASS on S3 to S11, and S12 apart from contrast.
+  - 1112/1112, lint clean, build ok.
+  - Opening the view makes the same calls as the baseline, and switching screens, tabs or medallions makes none.
+  - The rows and notes the ledger writes are byte-identical to the baseline.
+
+  **Two blockers.**
+  - **B1:** light muted text on tinted surfaces measured 4.44 to 4.48:1 where both paper-grain layers cross. Fixed in one batch: the light `--dromos-ink-muted` goes from #6f5b4c to #665243. The recheck, limited to B1, gives at least 5.10:1 on desktop and phone, with dark unchanged. PASS.
+  - **B2:** the home scene grows past 300 px on panes wider than the 960 px drawing, up to 380 px from about 1216 px. It is kept and recorded as a deliberate departure from S1: at a fixed 300 px the slice crops the sky away on wide panes (at 1600 px about 30 px of sky remain and the sun does not fit). The user can choose a fixed 300 px instead.
+
+  **Advisories left.**
+  - The ribbon's "New level" touches the band edge, which is the design's own geometry.
+  - "detenida" crosses the seal's inner ring in Spanish, as in the design.
+  - Screens use h2 headings with no h1, as at the baseline.
+  - The skill detail is a new polite live region.
+  - The chips reuse the strings "Sin vincular" and "No encontrada en Habitica".
+  - The 44 px targets apply only on mobile.
+
+  The contrast and layout probes need a browser, so they are not committed as unit tests; their scripts stay in the verifier's scratch (`/tmp/tmp.m5PuWcwZkz`).
+
+  Not done: a look in real Obsidian, desktop and Android, including Obsidian's icons inside the rings and the settings plank.
