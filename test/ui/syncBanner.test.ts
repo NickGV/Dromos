@@ -62,12 +62,28 @@ describe('the announcement of the banner', () => {
 	});
 });
 
+describe('the prominence of the banner', () => {
+	it('is quiet while nothing needs the user', () => {
+		for (const status of [{ kind: 'idle' }, { kind: 'syncing' }, { kind: 'synced' }] as SyncStatus[]) {
+			expect(syncBannerView(snapshot(status, 3), NOW, t).prominent).toBe(false);
+		}
+	});
+
+	it('is prominent when Habitica could not be reached or the account is not set', () => {
+		const statuses: SyncStatus[] = [{ kind: 'not-configured' }, { kind: 'offline' }, { kind: 'unauthorized' }, { kind: 'rate-limited', retryAfterSeconds: 30 }, { kind: 'error' }];
+		for (const status of statuses) {
+			expect(syncBannerView(snapshot(status, 3), NOW, t).prominent).toBe(true);
+		}
+	});
+});
+
 describe('syncBannerView', () => {
 	it('shows "Sincronizado hace N min" after a sync', () => {
 		expect(syncBannerView(snapshot({ kind: 'synced' }, 5), NOW, t)).toEqual({
 			tone: 'success',
 			message: 'Sincronizado hace 5 min',
 			announcement: 'Misiones sincronizadas',
+			prominent: false,
 			detail: null,
 		});
 	});
@@ -81,6 +97,7 @@ describe('syncBannerView', () => {
 			tone: 'neutral',
 			message: 'Sincronizando…',
 			announcement: 'Sincronizando…',
+			prominent: false,
 			detail: null,
 		});
 	});
@@ -90,6 +107,7 @@ describe('syncBannerView', () => {
 			tone: 'warning',
 			message: 'Sin conexión',
 			announcement: 'Sin conexión',
+			prominent: true,
 			detail: null,
 		});
 	});
@@ -99,6 +117,7 @@ describe('syncBannerView', () => {
 			tone: 'warning',
 			message: 'Sin conexión',
 			announcement: 'Sin conexión',
+			prominent: true,
 			detail: `${STALE_NOTE} (hace 12 min).`,
 		});
 	});
@@ -108,6 +127,7 @@ describe('syncBannerView', () => {
 			tone: 'error',
 			message: 'Token inválido',
 			announcement: 'Token inválido',
+			prominent: true,
 			detail: 'Revisa el ID de usuario y el token de API de Habitica en los ajustes de Dromos.',
 		});
 	});
@@ -123,6 +143,7 @@ describe('syncBannerView', () => {
 			tone: 'neutral',
 			message: 'Conecta tu cuenta de Habitica',
 			announcement: 'Conecta tu cuenta de Habitica',
+			prominent: true,
 			detail: 'Escribe tu ID de usuario y tu token de API de Habitica en los ajustes de Dromos.',
 		});
 	});
@@ -132,6 +153,7 @@ describe('syncBannerView', () => {
 			tone: 'warning',
 			message: 'Demasiadas solicitudes a Habitica',
 			announcement: 'Demasiadas solicitudes a Habitica',
+			prominent: true,
 			detail: 'Espera 42 segundos antes de volver a sincronizar.',
 		});
 		expect(syncBannerView(snapshot({ kind: 'rate-limited', retryAfterSeconds: 1 }), NOW, t).detail).toBe(
@@ -150,6 +172,7 @@ describe('syncBannerView', () => {
 			tone: 'error',
 			message: 'No se pudo sincronizar con Habitica',
 			announcement: 'No se pudo sincronizar con Habitica',
+			prominent: true,
 			detail: 'Inténtalo de nuevo en unos minutos.',
 		});
 		expect(syncBannerView(snapshot({ kind: 'error' }, 7), NOW, t).detail).toBe(
@@ -162,6 +185,7 @@ describe('syncBannerView', () => {
 			tone: 'neutral',
 			message: 'Sin sincronizar todavía',
 			announcement: 'Sin sincronizar todavía',
+			prominent: false,
 			detail: null,
 		});
 	});

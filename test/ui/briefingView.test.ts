@@ -16,9 +16,11 @@ function lockedCard(overrides: Partial<SkillCardView> = {}): SkillCardView {
 		statLabel: 'Sabiduría',
 		description: '',
 		unlocked: false,
+		level: null,
 		levelText: null,
 		rankName: null,
 		rankDescription: null,
+		caption: null,
 		xp: null,
 		requirements: [],
 		progressPercent: 0,
@@ -56,13 +58,13 @@ describe('briefingView', () => {
 	it('says Esdras has not written today when there is no note, with nothing to dim or sign', () => {
 		const view = briefingView({ kind: 'missing' }, TODAY, [], es);
 
-		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'Esdras aún no escribió hoy', requestLabel: 'Pedir briefing', dimmed: false, mission: null, near: null, markdown: null, signature: null });
+		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'Esdras aún no escribió hoy', requestLabel: 'Copiar comando del briefing', dimmed: false, mission: null, near: null, markdown: null, signature: null });
 	});
 
 	it('says so when the note cannot be read', () => {
 		const view = briefingView({ kind: 'unreadable' }, TODAY, [], es);
 
-		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'No se pudo leer el briefing.', requestLabel: 'Pedir briefing', dimmed: false, mission: null, near: null, markdown: null, signature: null });
+		expect(view).toEqual({ ariaLabel: 'Briefing de Esdras', notice: 'No se pudo leer el briefing.', requestLabel: 'Copiar comando del briefing', dimmed: false, mission: null, near: null, markdown: null, signature: null });
 	});
 
 	it('has no text block when the note has an empty body, and keeps the mission', () => {
@@ -116,7 +118,7 @@ describe('briefingView', () => {
 
 		expect(view.ariaLabel).toBe('Briefing from Esdras');
 		expect(view.notice).toBe('Esdras has not written today');
-		expect(view.requestLabel).toBe('Ask for a briefing');
+		expect(view.requestLabel).toBe('Copy briefing command');
 		expect(briefingView({ kind: 'unreadable' }, TODAY, [], en).notice).toBe('Could not read the briefing.');
 	});
 });

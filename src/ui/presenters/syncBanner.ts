@@ -11,6 +11,8 @@ export interface SyncBannerView {
 	readonly detail: string | null;
 	/** What a screen reader announces: the status without the time, so it changes only when the status does. */
 	readonly announcement: string;
+	/** True when the user has something to do or to know: Habitica was not reached, or the account is not set. */
+	readonly prominent: boolean;
 }
 
 /** Whole minutes from `since` to `now`, rounded down; never negative. */
@@ -51,21 +53,25 @@ function baseView(status: SyncStatus, ago: string | null, t: Translator): SyncBa
 		case 'synced':
 			return { ...view('success', t('sync.synced', { ago: ago ?? agoText(0, t) })), announcement: t('sync.synced.announce') };
 		case 'not-configured':
-			return view('neutral', t('sync.notConfigured'), t('sync.notConfigured.detail'));
+			return prominent(view('neutral', t('sync.notConfigured'), t('sync.notConfigured.detail')));
 		case 'offline':
-			return view('warning', t('sync.offline'));
+			return prominent(view('warning', t('sync.offline')));
 		case 'unauthorized':
-			return view('error', t('sync.unauthorized'), t('sync.unauthorized.detail'));
+			return prominent(view('error', t('sync.unauthorized'), t('sync.unauthorized.detail')));
 		case 'rate-limited':
-			return view('warning', t('sync.rateLimited'), t('sync.rateLimited.detail', { wait: waitText(status.retryAfterSeconds, t) }));
+			return prominent(view('warning', t('sync.rateLimited'), t('sync.rateLimited.detail', { wait: waitText(status.retryAfterSeconds, t) })));
 		case 'error':
-			return view('error', t('sync.error'), t('sync.error.detail'));
+			return prominent(view('error', t('sync.error'), t('sync.error.detail')));
 	}
 }
 
 // Only the synced message carries a time; every other one can be announced as it is.
 function view(tone: BannerTone, message: string, detail: string | null = null): SyncBannerView {
-	return { tone, message, detail, announcement: message };
+	return { tone, message, detail, announcement: message, prominent: false };
+}
+
+function prominent(banner: SyncBannerView): SyncBannerView {
+	return { ...banner, prominent: true };
 }
 
 function waitText(seconds: number | null, t: Translator): string {

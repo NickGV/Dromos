@@ -20,9 +20,13 @@ export interface SkillCardView {
 	readonly statLabel: string;
 	readonly description: string;
 	readonly unlocked: boolean;
+	/** The level of an earned skill, for its medallion; `null` while locked. */
+	readonly level: number | null;
 	readonly levelText: string | null;
 	readonly rankName: string | null;
 	readonly rankDescription: string | null;
+	/** The line under the medallion: the rank of an earned skill, the unmet requirement closest to done of a locked one. */
+	readonly caption: string | null;
 	readonly xp: XpBarView | null;
 	/** What is still asked (locked skills); empty once earned. */
 	readonly requirements: readonly RequirementRowView[];
@@ -83,6 +87,7 @@ function emptyText(snapshot: GameSnapshot, t: Translator): string | null {
 function cardOf(entry: SkillEntry, t: Translator): SkillCardView {
 	const { skill, standing, rank } = entry;
 	const requirements = skill.unlocked ? [] : entry.requirements.map((item) => requirementRow(item, t));
+	const rankName = skill.unlocked ? (rank?.name ?? null) : null;
 	return {
 		id: skill.id,
 		icon: skill.icon,
@@ -90,9 +95,11 @@ function cardOf(entry: SkillEntry, t: Translator): SkillCardView {
 		statLabel: statLabel(skill.stat, t),
 		description: skill.description,
 		unlocked: skill.unlocked,
+		level: skill.unlocked ? standing.level : null,
 		levelText: skill.unlocked ? t('skills.level', { level: standing.level }) : null,
-		rankName: skill.unlocked ? (rank?.name ?? null) : null,
+		rankName,
 		rankDescription: skill.unlocked ? (rank?.description ?? null) : null,
+		caption: skill.unlocked ? rankName : closestRequirement(requirements),
 		xp: skill.unlocked && standing.xpToNext !== null ? xpBarView(standing.xpIntoLevel, standing.xpToNext) : null,
 		requirements,
 		progressPercent: skill.unlocked ? 100 : meanPercent(requirements),
@@ -114,6 +121,18 @@ function requirementRow(item: RequirementProgress, t: Translator): RequirementRo
 		case 'manual':
 			return { text: requirement.text, detail: t(requirement.confirmed ? 'skills.req.manual.confirmed' : 'skills.req.manual.pending'), met: item.met, percent };
 	}
+}
+
+// The first of the unmet requirements with the most done: what is nearest to unlocking the skill.
+function closestRequirement(requirements: readonly RequirementRowView[]): string | null {
+	let closest: RequirementRowView | null = null;
+	for (const row of requirements) if (!row.met && (closest === null || row.percent > closest.percent)) closest = row;
+	return closest?.text ?? null;
+}
+
+/** The skill open on the Skills page after `clicked` is chosen: choosing the open one closes it. */
+export function nextSkillSelection(current: string | null, clicked: string): string | null {
+	return current === clicked ? null : clicked;
 }
 
 function meanPercent(requirements: readonly RequirementRowView[]): number {

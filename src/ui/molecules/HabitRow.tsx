@@ -17,7 +17,7 @@ export function HabitRow({ row, sending, onSend }: HabitRowProps) {
 			<div className="dromos-habit-head">
 				<span className="dromos-habit-title">{row.title}</span>
 				{row.state === 'missing' ? <span className="dromos-chip is-warning">{t('task.missing')}</span> : null}
-				{row.state === 'unsent' ? <span className="dromos-chip">{t('task.unsent')}</span> : null}
+				{row.state === 'unsent' && !row.canSend ? <span className="dromos-chip">{t('task.unsent')}</span> : null}
 				{row.canSend ? (
 					<button type="button" className="dromos-send-button" aria-disabled={sending} aria-busy={sending} onClick={sending ? undefined : onSend}>
 						{sending ? (

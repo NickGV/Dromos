@@ -51,7 +51,7 @@ export const es = {
 	'briefing.mission': 'Misión del día',
 	'briefing.nearSkill': 'Skill más cercana',
 	'briefing.signature': '— Esdras',
-	'briefing.request': 'Pedir briefing',
+	'briefing.request': 'Copiar comando del briefing',
 	'briefing.request.copied': 'Comando copiado: {command}. Córrelo en OpenCode desde la carpeta de tu bóveda.',
 	'briefing.request.failed': 'No se pudo copiar. El comando es {command}: córrelo en OpenCode desde la carpeta de tu bóveda.',
 
@@ -64,6 +64,7 @@ export const es = {
 	'skills.empty.none': 'No se encontró ninguna nota de skill en la carpeta Skills.',
 	'skills.notice.error': 'No se pudieron actualizar las skills. Se muestra el último estado conocido.',
 	'skills.level': 'Nivel {level}',
+	'skills.medallion.locked': 'Bloqueada',
 	'skills.earnedOn': 'Ganada el {date}',
 	'skills.req.quests': 'Quests con esta skill: {done} de {total}',
 	'skills.req.campaigns': 'Campañas completadas: {done} de {total}',
@@ -140,7 +141,7 @@ export const es = {
 	'link.writeFailed': 'La tarea se creó en Habitica pero no se pudo guardar su id en la nota. Id: {id}',
 
 	'settings.userId.name': 'ID de usuario de Habitica',
-	'settings.userId.desc': 'Identifica tu cuenta al consultar tus tareas.',
+	'settings.userId.desc': 'Identifica tu cuenta al consultar tus tareas. Está, junto al token de API, en Habitica, en Ajustes → Datos del sitio.',
 	'settings.token.name': 'Token de API de Habitica',
 	'settings.token.desc': 'Se guarda solo en los datos del plugin en este dispositivo.',
 	'settings.folder.name': 'Carpeta de Dromos',

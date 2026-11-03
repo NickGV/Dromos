@@ -22,6 +22,20 @@ const kairos = campaign({
 	],
 });
 
+describe('campaignCardView: the road of phases', () => {
+	it('draws one segment per phase: the done ones, the open one with its progress, and the ones ahead', () => {
+		expect(campaignCardView(kairos, ctx).segments).toEqual([
+			{ name: 'Phase design', state: 'done', percent: 100 },
+			{ name: 'Phase mvp', state: 'open', percent: 33 },
+			{ name: 'Phase ship', state: 'ahead', percent: 0 },
+		]);
+	});
+
+	it('has no segments for a campaign without phases', () => {
+		expect(campaignCardView(campaign({ path: 'P/Loose/README.md', title: 'Loose', phases: [], tasks: [task('Only', 'none')] }), ctx).segments).toEqual([]);
+	});
+});
+
 describe('campaignCardView: projects', () => {
 	const card = campaignCardView(kairos, ctx);
 

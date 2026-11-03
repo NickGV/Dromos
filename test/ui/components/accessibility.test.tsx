@@ -1,10 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src/application';
-import { createTranslator, type Language } from '../../../src/i18n';
 import { SyncButton } from '../../../src/ui/atoms/SyncButton';
-import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
-import { HomeScreen, type HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
+import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { CampaignTaskRow } from '../../../src/ui/molecules/CampaignTaskRow';
 import { HabitRow } from '../../../src/ui/molecules/HabitRow';
 import { StatusBanner } from '../../../src/ui/molecules/StatusBanner';
@@ -12,9 +9,8 @@ import { BriefingPanel } from '../../../src/ui/organisms/BriefingPanel';
 import { SkillsPanel } from '../../../src/ui/organisms/SkillsPanel';
 import type { BriefingView } from '../../../src/ui/presenters/briefingView';
 import type { SkillCardView, SkillsPageView } from '../../../src/ui/presenters/skillsView';
+import { homeDeps, noop, renderNothing } from './homeDeps';
 
-const noop = (): void => undefined;
-const renderNothing = (): (() => void) => noop;
 
 /** The text of every element with `role="status"`, tags stripped. */
 function liveRegionTexts(html: string): string[] {
@@ -28,13 +24,13 @@ function buttonTag(html: string): string {
 
 describe('StatusBanner', () => {
 	it('announces the status only, so the minute count is not read out on every re-render', () => {
-		const html = renderToStaticMarkup(<StatusBanner tone="success" message="Synced 5 min ago" detail={null} announcement="Quests synced" />);
+		const html = renderToStaticMarkup(<StatusBanner tone="success" message="Synced 5 min ago" detail={null} announcement="Quests synced" prominent={false} />);
 		expect(liveRegionTexts(html)).toEqual(['Quests synced']);
 		expect(html).toContain('Synced 5 min ago');
 	});
 
 	it('keeps the detail visible and outside the live region', () => {
-		const html = renderToStaticMarkup(<StatusBanner tone="warning" message="Offline" detail="Showing the last list fetched this session (12 min ago)." announcement="Offline" />);
+		const html = renderToStaticMarkup(<StatusBanner tone="warning" message="Offline" detail="Showing the last list fetched this session (12 min ago)." announcement="Offline" prominent />);
 		expect(liveRegionTexts(html)).toEqual(['Offline']);
 		expect(html).toContain('Showing the last list fetched this session (12 min ago).');
 	});
@@ -75,9 +71,11 @@ function skill(id: string, unlocked: boolean): SkillCardView {
 		statLabel: 'Intelligence',
 		description: 'Reading.',
 		unlocked,
+		level: unlocked ? 1 : null,
 		levelText: unlocked ? 'Level 1' : null,
 		rankName: null,
 		rankDescription: null,
+		caption: null,
 		xp: null,
 		requirements: [],
 		progressPercent: unlocked ? 100 : 40,
@@ -97,65 +95,27 @@ describe('heading outline', () => {
 		problems: [],
 	};
 
-	it('puts skill names under their group heading', () => {
-		const html = renderToStaticMarkup(<SkillsPanel view={skills} />);
+	it('puts the name of an open skill under its group heading', () => {
+		const html = renderToStaticMarkup(<SkillsPanel view={skills} selectedId="lector" onSelect={noop} renderIcon={noop} />);
 		expect(html).toMatch(/<h4[^>]*>Skill lector<\/h4>/);
-		expect(html).toMatch(/<h4[^>]*>Skill atleta<\/h4>/);
 		expect(html).not.toMatch(/<h3[^>]*>Skill /);
 	});
 
 	it('gives the locked group a heading inside its toggle', () => {
-		const html = renderToStaticMarkup(<SkillsPanel view={skills} />);
+		const html = renderToStaticMarkup(<SkillsPanel view={skills} selectedId={null} onSelect={noop} renderIcon={noop} />);
 		expect(html).toMatch(/<summary[^>]*><h3[^>]*>To unlock \(1\)<\/h3><\/summary>/);
 	});
 
 	it('gives the panel of Esdras a heading', () => {
-		const view: BriefingView = { ariaLabel: 'Briefing from Esdras', notice: null, requestLabel: 'Ask for a briefing', dimmed: false, mission: null, near: null, markdown: null, signature: '— Esdras' };
+		const view: BriefingView = { ariaLabel: 'Briefing from Esdras', notice: null, requestLabel: 'Copy briefing command', dimmed: false, mission: null, near: null, markdown: null, signature: '— Esdras' };
 		const html = renderToStaticMarkup(<BriefingPanel view={view} renderMarkdown={renderNothing} onRequest={null} />);
 		expect(html).toMatch(/<h2[^>]*>Briefing from Esdras<\/h2>/);
 	});
 });
 
 describe('HomeScreen', () => {
-	const today = '2026-11-03';
-	const clock = { today: () => today, now: () => new Date('2026-11-03T14:00:00Z') };
-	const quests: QuestSnapshot = { quests: null, lastSyncedAt: null, status: { kind: 'idle' } };
-	const game: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
-	const campaignSnapshot: CampaignSnapshot = { campaigns: null, issues: [], lastSyncedAt: null, status: { kind: 'idle' } };
-	const never = <T,>(): Promise<T> => new Promise<T>(noop);
-
-	function deps(language: Language): HomeScreenDeps {
-		const campaigns: CampaignsDeps = {
-			syncCampaigns: { execute: never, reload: never },
-			linkTask: { execute: never },
-			linkHabit: { execute: never },
-			campaignSnapshot: () => campaignSnapshot,
-			staleAfterDays: () => 14,
-			openNote: noop,
-			clock,
-		};
-		return {
-			loadHome: { execute: never },
-			syncQuests: { execute: never },
-			syncGame: { execute: never },
-			gameSnapshot: () => game,
-			dismissGameEvents: noop,
-			takeGameAnnouncements: () => [],
-			notify: noop,
-			renderMarkdown: renderNothing,
-			requestBriefing: null,
-			questSnapshot: () => quests,
-			clock,
-			campaigns,
-			translator: () => createTranslator(language),
-			language: () => language,
-			subscribeSettings: () => noop,
-			subscribeGame: () => noop,
-		};
-	}
-
 	it('marks its content with the interface language', () => {
-		expect(renderToStaticMarkup(<HomeScreen deps={deps('es')} />)).toMatch(/<main[^>]*lang="es"/);
-		expect(renderToStaticMarkup(<HomeScreen deps={deps('en')} />)).toMatch(/<main[^>]*lang="en"/);
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ language: 'es' })} />)).toMatch(/<main[^>]*lang="es"/);
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ language: 'en' })} />)).toMatch(/<main[^>]*lang="en"/);
 	});
 });

@@ -10,7 +10,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, DromosSettingTab, isDesktopApp, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, DromosSettingTab, renderIcon, isDesktopApp, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
@@ -84,6 +84,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,
 			renderMarkdown: createMarkdownRender(plugin.app),
+			renderIcon,
 			// The job runs in OpenCode on the desktop: on a phone there is nowhere to paste the command.
 			requestBriefing: isDesktopApp() ? new RequestBriefing(new SystemClipboard()) : null,
 			questSnapshot: () => state.snapshot(),
