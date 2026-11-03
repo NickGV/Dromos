@@ -167,7 +167,7 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | done: 9 rules RED then GREEN, 1157/1157, lint 0 errors and 4 warnings, build ok, preview with the real briefing and a live check (L12). Risk: item 6 | `7fdd81d` |
 | T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | done: RED then GREEN per rule, 1214/1214, lint 0 errors and 4 warnings, build ok, 102 geometry cases and a live run (L13). Risk: item 6 | `c1ee881` |
 | T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | done: RED then GREEN per rule, 1256/1256, lint 0 errors and 4 warnings, build ok, 153 geometry cases, contrast at the four periods, a live check (L14). Risk: item 6 | `8b6e6fc` |
-| T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | B1 and B2 fixed (L15); recheck limited to them pending | `d8856b0`, this commit |
+| T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | done: PASS on S13-S18 and no regression of S1-S12; B1 and B2 fixed and rechecked PASS (L15, L16) | `d8856b0`, `98dc2e5` |
 
 Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
 
@@ -335,3 +335,8 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
     - The walker's shadow sits 1.8 px under the card at walk 0.
     - A ledger skill with no note shows its id.
     - The current plank differs from the others only by tone, 1.4:1; `aria-current` carries the meaning.
+- **L16** (2026-11-03): The recheck limited to B1 and B2 at `98dc2e5` passed.
+  - **B1:** one `role="status"` element lasts through syncing, offline, syncing and offline again; only its text changes. While offline the visible line is Sync only. The synced, syncing and error markup is byte-identical to `8b6e6fc`.
+  - **B2:** on narrow panes the campaigns and skills screens have the 220 px scene and 44 px plank targets, with no collision in 108 cases. The 170 px scene is unchanged at 760 and 960 px.
+
+  User: "dale, instalalo cuando pase y sube la version para verlo en android tambien". Release 0.8.0 (minor: new things the user can use) from `feat/game-ui`, as 0.7.0 was from `feat/calm-ui`; then a local install.
