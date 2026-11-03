@@ -107,6 +107,54 @@ The user's words are in L1 and L2. The items below describe the design boards. A
   - Everything in calm-ui S1 keeps holding: contrast AA in light and dark, keyboard focus, `lang`, headings, and the sync live region.
   - Every new piece of copy exists in English and Spanish.
 
+- **S13 Collapsible briefing** (L10: "el brief estaria bien que se pueda collapsar, porque siempre es bastante largo")
+  - **Collapsed** shows:
+    - a top line: "Letter from Esdras · today", or "Last letter · 2 Nov" when it is from another day;
+    - the mission title, cut at two lines;
+    - "Closest skill · <name> · <progress>";
+    - a two-line muted excerpt of Esdras's text;
+    - a row with a disclosure button on the left ("Read the letter · N min") and "— Esdras" on the right.
+  - **Expanded** adds the mission's why, what the skill asks, the full body and the footer, ending with a second "Fold the letter" button. That button sends focus back to the top toggle.
+  - **State.**
+    - It opens collapsed every time; the open state lives in memory only.
+    - A letter not opened yet on this device carries an ochre wax seal and "New letter"; opening it marks it read.
+    - The read mark (letter date plus a hash of the body) is kept per device through a new port. Its Obsidian adapter guards `app.loadLocalStorage` / `saveLocalStorage` at runtime, because they appeared after `minAppVersion`, and falls back to memory.
+    - Never in a vault note or `data.json`.
+  - **Accessibility:** the control is a `<button aria-expanded aria-controls>`, not `<details>`. The markdown stays mounted.
+  - **Motion:** the letter unrolls (`grid-template-rows` 0fr → 1fr, about 280 ms); under reduced motion there is no transition.
+  - When the letter is old or missing, "Copy briefing command" moves into the collapsed row.
+- **S14 Polish** (from the UI/UX review, L11):
+  - **Contrast.** Links, unresolved and external links, and inline code inside the briefing use the parchment palette at AA, because Obsidian resolves `--link-color` on `body`.
+  - **Mission text.** Raw backticks in the mission's why are shown as code, not as backticks.
+  - **Line length.** The briefing text and the mission are at most about 36em wide.
+  - **Signpost.** It always shows its four planks in a fixed order; the current screen's plank is marked burnt in, with `aria-current="page"`.
+  - **Wording.**
+    - The campaign road is "The route" / "La ruta", so "Camino" is only home.
+    - A quiet line under the quests says "Complete quests in Habitica · Dromos picks them up on sync".
+    - Skill dates use the short date format of the campaigns.
+  - **Offline.** While offline, the card's sync line shows only Sync.
+  - **Phone layout.**
+    - The character title does not break mid-phrase.
+    - The briefing seal sits inline with its top line.
+- **S15 Since your last visit** (L11)
+  - On open, after the game sync, the XP bar fills from the value last seen on this device.
+  - A line shows what changed since then, for example "+45 XP since yesterday · Reader +15 · 2 quests".
+  - The last-seen values are kept per device through the S13 port.
+  - The first visit on a device shows no line and no animation.
+  - Under reduced motion the bar shows its final value at once.
+- **S16 The walker advances** (L11)
+  - The figure in the scene stands along the path at `xpIntoLevel / xpToNext`.
+  - A gate marked "Level N+1" stands at the path's end.
+  - When XP rises, the walker walks to the new place, except under reduced motion.
+- **S17 The world reacts** (L11)
+  - When every daily is done ("Day complete"), a campfire lights up in the scene.
+  - The sky follows the time of day from the clock (dawn, day, dusk, night) within each theme's palette.
+  - Contrast of everything drawn over the scene keeps holding at every hour.
+- **S18 Chronicle of deeds** (L11)
+  - On home, a strip lists the last five deeds of the ledger, as a journal. Each deed is one task transition, with its skills grouped, for example "Yesterday · Read 20 pages · Reader +10 XP".
+  - A revert reads as undone.
+  - The data comes from the ledger rows `SyncGame` already reads, without a new request.
+
 ## Tasks
 
 | ID | Specs | Scope | Route | Status | Commit |
@@ -116,6 +164,10 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T3 | S3, S4, S5, S6, S7, S9 (home) | Character card and ceremony, briefing scroll, quest panel, campaign cards, ring medallions | delegated W3, after T1 and T2 | done: 90 tests RED then GREEN, 1048/1048, lint 0 errors and 4 warnings, build ok, preview light and dark at 390 and 960 px, Spanish at 320 px (L6). Risk: item 6 | `6545418` |
 | T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | `79d1698` |
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | this commit |
+| T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | pending | |
+| T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | pending | |
+| T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | pending | |
+| T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | pending | |
 
 Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
 
@@ -203,3 +255,18 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
   Not done: a look in real Obsidian, desktop and Android, including Obsidian's icons inside the rings and the settings plank.
 - **L9** (2026-11-03): User, on installing into this PC's Obsidian: "si dale porfavor". The installed 0.7.0 files were first backed up to scratch (`backup-0.7.0/`). Then `npm run install:local` ran with `DROMOS_VAULT=~/Documents/Logos`, from `98d8b82`. `main.js` and `styles.css` in the vault are byte-identical to the build, and `data.json` is untouched. The manifest still says 0.7.0. Next: the user's look in Obsidian after a reload.
 - **L10** (2026-11-03): User, after looking at the install: "si se ve bien, pero podriamos realizar algunas mejoras, por ejemplo el brief estaria bien que se pueda collapsar, porque siempre es bastante largo. instala la skill de https://impeccable.style/ porfavor y utiliza esta y las skills que tenemos para revisar el ui/UX para ver si lo dejamos asi o si lo hacemos mucho mejor". Impeccable was already installed globally at 4.7.0 and was updated to 4.8.0 with `npx skills update impeccable -g -y`. A read-only reviewer is running with Impeccable's critique and audit methods, `ux-heuristics` and `design-everyday-things`, against the rendered UI and the real briefing in the vault. Next: present its findings and the collapsible-briefing proposal, then implement what the user picks.
+- **L11** (2026-11-03): UI/UX review (read-only) with Impeccable 4.8.0 critique and audit, `ux-heuristics` and `design-everyday-things`.
+  - **Verdict:** polish plus a few bigger moves, no redesign. Nielsen score 26/40.
+  - **Real briefing size:** 278 words, which renders 2,185 px tall on a 390 px phone; the quests start 3.2 screens down.
+  - **New P1s:**
+    - briefing links #8a5cf5 at 3.53:1;
+    - the old-letter copy;
+    - no reward on return.
+
+  Asked which bigger ideas to add on top of the collapsible briefing and the polish. User: "El caminante avanza, El mundo reacciona, Crónica de hazañas, Desde tu última visita". That became S13 to S18 and T6 to T9.
+
+  **Defaults taken from the review:**
+  - the briefing opens collapsed every time, with a "New letter" seal;
+  - "The route" for the campaign road.
+
+  **Left for the vault:** the briefing's language. Esdras writes Spanish while the interface may be English, so the letter would need a `lang` field. That is a vault contract, to be agreed with Esdras and the user.
