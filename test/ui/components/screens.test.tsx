@@ -201,12 +201,18 @@ describe('HomeScreen offline', () => {
 		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'error' }) })} />)).toContain('class="dromos-scene is-home"');
 	});
 
+	it('still announces going offline through the hidden live region, though the line shows only Sync (S12)', () => {
+		const offline = renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'offline' }) })} />);
+		const syncLine = /<div class="dromos-sync-line">(.*?)<\/section>/.exec(offline)?.[1] ?? '';
+		expect(syncLine).toMatch(/<span class="dromos-visually-hidden" role="status" aria-live="polite">Offline<\/span>/);
+	});
+
 	it('lets the band tell it, so the sync line shows only Sync while offline (game-ui S14); other failures keep the prominent banner', () => {
 		const offline = renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'offline' }) })} />);
 		const error = renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'error' }) })} />);
 		const syncLine = (html: string) => /<div class="dromos-sync-line">(.*?)<\/section>/.exec(html)?.[1] ?? '';
 		expect(syncLine(offline)).not.toContain('dromos-banner');
-		expect(syncLine(offline)).toMatch(/^<button[^>]*class="dromos-sync-button"[^>]*>.*Sync<\/button><\/div>$/);
+		expect(syncLine(offline)).toMatch(/^(?:<span class="dromos-visually-hidden"[^>]*>[^<]*<\/span>)?<button[^>]*class="dromos-sync-button"[^>]*>.*Sync<\/button><\/div>$/);
 		expect(syncLine(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'synced' }) })} />))).toContain('Synced 2 h ago');
 		expect(error).toContain('class="dromos-banner is-error is-prominent"');
 		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: { ...IDLE_QUESTS, status: { kind: 'unauthorized' } } })} />)).toContain('class="dromos-banner is-error is-prominent"');

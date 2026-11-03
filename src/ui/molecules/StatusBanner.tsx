@@ -1,3 +1,4 @@
+import { SyncAnnouncement } from '../atoms/SyncAnnouncement';
 import type { SyncBannerView } from '../presenters/syncBanner';
 
 /**
@@ -11,9 +12,7 @@ export function StatusBanner({ tone, message, detail, announcement, prominent }:
 		<div className={`dromos-banner is-${tone}${prominent ? ' is-prominent' : ''}`}>
 			<span className="dromos-banner-message">{message}</span>
 			{detail ? <span className="dromos-banner-detail">{detail}</span> : null}
-			<span className="dromos-visually-hidden" role="status" aria-live="polite">
-				{announcement}
-			</span>
+			<SyncAnnouncement announcement={announcement} />
 		</div>
 	);
 }

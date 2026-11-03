@@ -1,7 +1,7 @@
 /**
  * The band above the scene while Habitica cannot be reached (S10): an oil lamp and "Last known
- * state · N ago". It is no live region: its time changes every minute, and the sync line
- * already announces the status once.
+ * state · N ago". It is no live region: its time changes every minute, and the sync line's
+ * hidden live region (`SyncAnnouncement`) announces the status once.
  */
 export function OfflineBand({ text }: { readonly text: string }) {
 	return (

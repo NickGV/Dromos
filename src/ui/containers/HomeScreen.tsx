@@ -10,6 +10,7 @@ import { I18nProvider } from '../i18n';
 import { OfflineBand } from '../molecules/OfflineBand';
 import type { DromosScreen } from '../molecules/Signpost';
 import { StatusBanner } from '../molecules/StatusBanner';
+import { SyncAnnouncement } from '../atoms/SyncAnnouncement';
 import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { Chronicle } from '../organisms/Chronicle';
@@ -286,8 +287,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							visit={cardVisit}
 							footer={
 								<div className="dromos-sync-line">
-									{/* While offline the band above the scene says it (S10), so the line shows only Sync (game-ui S14). */}
-									{offline ? null : <StatusBanner {...banner} />}
+									{/* While offline the band above the scene says it (S10), so the line shows only Sync (game-ui S14);
+									    its hidden live region stays, so going offline is still announced (S12). */}
+									{offline ? <SyncAnnouncement announcement={banner.announcement} /> : <StatusBanner {...banner} />}
 									<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
 								</div>
 							}
