@@ -38,7 +38,7 @@ export function CharacterCard({ view, footer, ceremony = null, visit = null }: C
 						<h2 className="dromos-character-name" tabIndex={-1} data-screen-heading>
 							{view.name}
 						</h2>
-						<p className="dromos-character-title">{view.titleLine}</p>
+						<TitleLine parts={view.titleParts} />
 						<XpBar {...view.xp} note={view.nextLevelText} fill={fill} catchUp={!ceremonyOwnsBar && (visit?.catchUp ?? false)} />
 						{visit?.line ? <SinceLine parts={visit.parts} /> : null}
 					</div>
@@ -51,6 +51,23 @@ export function CharacterCard({ view, footer, ceremony = null, visit = null }: C
 			</div>
 			{footer}
 		</section>
+	);
+}
+
+/**
+ * The title and the level in small caps (game-ui S3). Each phrase stays whole, so a narrow card
+ * breaks only between them, and the dot between them shows only while both share a line (S14).
+ */
+function TitleLine({ parts }: { readonly parts: readonly string[] }) {
+	return (
+		<p className="dromos-character-title">
+			{parts.map((part, index) => (
+				<span key={index} className="dromos-character-title-part">
+					{index > 0 ? <span className="dromos-character-title-dot"> · </span> : null}
+					{part}
+				</span>
+			))}
+		</p>
 	);
 }
 

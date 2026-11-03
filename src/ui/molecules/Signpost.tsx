@@ -11,7 +11,7 @@ const SCREENS: readonly { readonly id: DromosScreen; readonly label: MessageKey 
 ];
 
 export interface SignpostProps {
-	/** The screen on show: its plank is left out. */
+	/** The screen on show: its plank is burnt in and marked as the page. */
 	readonly current: DromosScreen;
 	readonly onGo: (screen: DromosScreen) => void;
 	/** Opens the plugin's settings tab; `null` where it cannot be opened, and the plank does not show. */
@@ -19,20 +19,28 @@ export interface SignpostProps {
 }
 
 /**
- * The signpost inside the scene (S1): one wooden plank per screen other than the current one,
- * then the settings. Each plank is a button named "Go to X", so the visible label is part of
- * its accessible name.
+ * The signpost inside the scene (S1): its four planks always in the same order, one per screen
+ * and then the settings (game-ui S14), so a plank never moves under the pointer. The current
+ * screen's plank is burnt into the wood and carries `aria-current="page"`; its name is its label.
+ * The others are named "Go to X", so the visible label is part of the accessible name.
  */
 export function Signpost({ current, onGo, onSettings }: SignpostProps) {
 	const t = useT();
-	const plank = (key: string, label: string, onClick: () => void) => (
-		<button key={key} type="button" className="dromos-plank" aria-label={t('nav.goTo', { screen: label })} onClick={onClick}>
+	const plank = (key: string, label: string, onClick: () => void, here = false) => (
+		<button
+			key={key}
+			type="button"
+			className={here ? 'dromos-plank is-current' : 'dromos-plank'}
+			aria-label={here ? undefined : t('nav.goTo', { screen: label })}
+			aria-current={here ? 'page' : undefined}
+			onClick={onClick}
+		>
 			{label}
 		</button>
 	);
 	return (
 		<nav className="dromos-signpost" aria-label={t('nav.aria')}>
-			{SCREENS.filter((screen) => screen.id !== current).map((screen) => plank(screen.id, t(screen.label), () => onGo(screen.id)))}
+			{SCREENS.map((screen) => plank(screen.id, t(screen.label), () => onGo(screen.id), screen.id === current))}
 			{onSettings ? plank('settings', t('nav.settings'), onSettings) : null}
 		</nav>
 	);

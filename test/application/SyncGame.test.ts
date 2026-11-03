@@ -960,3 +960,61 @@ describe('SyncGame: the completions that stand, for "since your last visit" (gam
 		expect(state.snapshot().completedQuests).toBe(2);
 	});
 });
+
+describe('SyncGame: the chronicle of deeds (game-ui S18)', () => {
+	const escriba = skill({ id: 'escriba', name: 'Escriba', requirements: [] });
+	const history = [
+		row({ habiticaId: 'h1', task: 'One', date: '2026-10-30' }),
+		row({ habiticaId: 'h2', task: 'Stretch', skill: null, kind: 'daily', date: '2026-11-01' }),
+		row({ habiticaId: 'h2', task: 'Stretch', skill: null, kind: 'daily', date: '2026-11-01', xp: 5, source: 'streak' }),
+		row({ habiticaId: 'h3', task: 'Three', date: '2026-11-02', xp: -10, source: 'revert' }),
+		row({ habiticaId: 'h4', task: 'Ghost skill', skill: 'gone', date: '2026-11-02' }),
+	];
+
+	it('lists the last five deeds, newest first, with the names of their skills, from the one read of the ledger', async () => {
+		const { sync, ledger, source } = setup({ skills: [owned(), escriba], rows: history, tasks: [todo('a', { title: 'Write today', skills: ['lector', 'escriba'] })] });
+		const reads = vi.spyOn(ledger, 'readAll');
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.deeds).toEqual([
+			{ date: '2026-11-03', task: 'Write today', xp: 10, source: 'complete', skills: [{ id: 'lector', name: 'Lector' }, { id: 'escriba', name: 'Escriba' }] },
+			{ date: '2026-11-02', task: 'Ghost skill', xp: 10, source: 'complete', skills: [{ id: 'gone', name: 'gone' }] },
+			{ date: '2026-11-02', task: 'Three', xp: -10, source: 'revert', skills: [{ id: 'lector', name: 'Lector' }] },
+			{ date: '2026-11-01', task: 'Stretch', xp: 5, source: 'streak', skills: [] },
+			{ date: '2026-11-01', task: 'Stretch', xp: 10, source: 'complete', skills: [] },
+		]);
+		expect(reads).toHaveBeenCalledTimes(1);
+		expect(source.calls).toBe(1);
+	});
+
+	it('writes the same rows and notes as without the chronicle', async () => {
+		const { sync, ledger, characters, skills } = setup({ skills: [owned(), escriba], rows: history, tasks: [todo('a', { title: 'Write today', skills: ['lector', 'escriba'] })] });
+
+		await sync.execute();
+
+		expect(ledger.appended).toEqual([
+			[row({ habiticaId: 'a', task: 'Write today', xp: 10 }), row({ habiticaId: 'a', task: 'Write today', skill: 'escriba', xp: 10 })],
+		]);
+		expect(characters.saved).toEqual([{ ...PREVIOUS_CHARACTER, totalXp: 35, stats: { ...PREVIOUS_CHARACTER.stats, inteligencia: 0, disciplina: 1 }, gameStart: '2026-10-30' }]);
+		expect(Object.fromEntries(skills.projections)).toEqual({
+			lector: { unlocked: true, unlockedOn: '2026-11-01', level: 1, xp: 0, xpToNext: 100 },
+			escriba: { unlocked: false, unlockedOn: null, level: 0, xp: 0, xpToNext: null },
+		});
+	});
+
+	it('has none before the first game sync, keeps them when a sync fails, and a rebuild reads them from the ledger alone', async () => {
+		const { sync, source, state } = setup({ skills: [owned()], rows: history.slice(0, 1), tasks: [todo('a')] });
+		expect(state.snapshot().deeds).toBeUndefined();
+
+		await sync.execute();
+		const after = state.snapshot().deeds;
+		source.failWith = new TaskSourceError('Offline', null, 'down');
+		const failed = await sync.execute();
+		await sync.rebuild();
+
+		expect(after?.map((deed) => deed.task)).toEqual(['Task a', 'One']);
+		expect(failed.deeds).toEqual(after);
+		expect(state.snapshot().deeds?.map((deed) => deed.task)).toEqual(['Task a', 'One']);
+	});
+});

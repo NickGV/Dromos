@@ -118,7 +118,7 @@ describe('campaignScreenView: the header panel (game-ui S8)', () => {
 	});
 
 	it('names the road apart from the overall bar, and counts each phase in tasks', () => {
-		expect(detail?.roadProgress.label).toBe('Path of Kairos');
+		expect(detail?.roadProgress.label).toBe('Route of Kairos');
 		expect(detail?.road.phases.map((stretch) => stretch.countText)).toEqual(['1/1 tasks', '1/3 tasks', '0/1 tasks']);
 		expect(screen(snapshot(), null, es).campaign?.road.phases[1]?.countText).toBe('1/3 tareas');
 	});
@@ -188,8 +188,8 @@ describe('campaignScreenView: the copy in both languages', () => {
 		const english = screen(snapshot()).campaign;
 		const spanish = screen(snapshot(), null, es).campaign;
 
-		expect([english?.pathTitle, english?.tasksTitle, english?.habitsTitle, english?.openNoteLabel]).toEqual(['The path', 'Tasks by phase', 'Habits', 'Open note']);
-		expect([spanish?.pathTitle, spanish?.tasksTitle, spanish?.habitsTitle, spanish?.openNoteLabel]).toEqual(['El camino', 'Tareas por fase', 'Hábitos', 'Abrir nota']);
+		expect([english?.pathTitle, english?.tasksTitle, english?.habitsTitle, english?.openNoteLabel]).toEqual(['The route', 'Tasks by phase', 'Habits', 'Open note']);
+		expect([spanish?.pathTitle, spanish?.tasksTitle, spanish?.habitsTitle, spanish?.openNoteLabel]).toEqual(['La ruta', 'Tareas por fase', 'Hábitos', 'Abrir nota']);
 		expect(spanish?.progress.countText).toBe('2 de 7 tareas');
 		expect(spanish?.deadlineText).toBe('Entrega 28 nov · faltan 25 días');
 	});

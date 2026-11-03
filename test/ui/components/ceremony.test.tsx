@@ -15,7 +15,7 @@ const readerUp: GameEvent = { kind: 'skill-level', skillId: 'lector', name: 'Rea
 const unlocked: GameEvent = { kind: 'skill-unlocked', skillId: 'atleta', name: 'Athlete' };
 
 /** The markup of the scene, up to `<main>`. */
-const sceneOf = (html: string): string => /<div class="dromos-scene[^"]*">(.*?)<main/.exec(html)?.[1] ?? '';
+const sceneOf = (html: string): string => /<div class="dromos-scene[^"]*"[^>]*>(.*?)<main/.exec(html)?.[1] ?? '';
 
 describe('LevelRibbon (game-ui S4)', () => {
 	it('says "New level" above the level, as a drawing the panel already puts in words', () => {
@@ -66,7 +66,7 @@ describe('Scene', () => {
 	it('keeps the landscape and the signpost alone without one', () => {
 		const html = renderToStaticMarkup(<Scene screen="home" offline={false} onGo={noop} onSettings={null} />);
 
-		expect(html).toMatch(/^<div class="dromos-scene is-home"><svg[^>]*class="dromos-landscape"/);
+		expect(html).toMatch(/^<div class="dromos-scene is-home" data-period="day"><svg[^>]*class="dromos-landscape"/);
 		expect(html).not.toContain('dromos-ribbon');
 	});
 });

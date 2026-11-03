@@ -138,7 +138,7 @@ describe('CampaignScreen (game-ui S8)', () => {
 		const html = render();
 
 		expect(html).toMatch(/^<div class="dromos-campaign-screen dromos-campaigns">/);
-		const order = ['dromos-campaign-tabs', 'dromos-campaign-hero', '>The path</h3>', '>Tasks by phase</h3>', '>Habits</h3>'].map((marker) => html.indexOf(marker));
+		const order = ['dromos-campaign-tabs', 'dromos-campaign-hero', '>The route</h3>', '>Tasks by phase</h3>', '>Habits</h3>'].map((marker) => html.indexOf(marker));
 		expect(order.every((position) => position > 0)).toBe(true);
 		expect([...order].sort((left, right) => left - right)).toEqual(order);
 	});
@@ -146,7 +146,7 @@ describe('CampaignScreen (game-ui S8)', () => {
 	it('draws the path with the wide road and a gate between phases', () => {
 		const html = render();
 
-		expect(html).toMatch(/<div class="dromos-trail is-wide" role="progressbar" aria-label="Path of Kairos"/);
+		expect(html).toMatch(/<div class="dromos-trail is-wide" role="progressbar" aria-label="Route of Kairos"/);
 		expect(html).toContain('class="dromos-trail-gate is-reached"');
 	});
 
@@ -236,7 +236,9 @@ describe('HomeScreen on the campaigns screen (game-ui S8)', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ campaigns: snapshot })} initialScreen="campaigns" />);
 
 		expect(html).toMatch(/<main[^>]*><header class="dromos-panel dromos-screen-header"><h2[^>]*>Campaigns · Kairos<\/h2>/);
-		expect(html.match(/>Campaigns</g)).toBeNull();
+		// The signpost names the screen on its burnt-in plank (game-ui S14); no title repeats it.
+		expect(html.match(/>Campaigns</g)).toEqual(['>Campaigns<']);
+		expect(html).toMatch(/<button[^>]*class="dromos-plank is-current"[^>]*>Campaigns<\/button>/);
 		expect(html).toMatch(/<button type="button" class="dromos-tab" aria-pressed="true">Kairos<\/button>/);
 	});
 
@@ -247,7 +249,7 @@ describe('HomeScreen on the campaigns screen (game-ui S8)', () => {
 		expect(levels).toEqual([
 			[2, 'Campaigns · Kairos'],
 			[3, 'Kairos'],
-			[3, 'The path'],
+			[3, 'The route'],
 			[3, 'Tasks by phase'],
 			[4, 'Phase design'],
 			[4, 'Phase mvp'],

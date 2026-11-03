@@ -4,7 +4,8 @@ import type { QuestPanelView } from '../presenters/questListView';
 
 /**
  * Today's quests (game-ui S6): the section title, then one panel with the header line about the
- * dailies and one list, dailies first, or an empty state.
+ * dailies and one list, dailies first, or an empty state. A quiet note under the panel says where
+ * quests are completed, since its rows are not buttons (game-ui S14).
  */
 export function QuestList({ view }: { readonly view: QuestPanelView }) {
 	const t = useT();
@@ -30,6 +31,7 @@ export function QuestList({ view }: { readonly view: QuestPanelView }) {
 					</>
 				)}
 			</div>
+			<p className="dromos-quest-note">{t('quests.note')}</p>
 		</section>
 	);
 }

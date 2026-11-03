@@ -2,16 +2,17 @@ import { useId, type ReactNode } from 'react';
 import { FAR_SCALE, GATE, GATE_SHAPE } from '../presenters/walkerView';
 
 export interface LandscapeProps {
-	/** Drawn last, over the road and in front of the gate: the walker (game-ui S16). */
+	/** Drawn last, over the road and in front of the gate: the campfire (game-ui S17) and the walker (S16). */
 	readonly children?: ReactNode;
 }
 
 /**
  * The scene at the top of the view (game-ui S1), drawn after the user's design: a sky with a sun
  * and three drifting clouds, birds, cypresses, a tree and a village, three hills and the path,
- * with a gate at the path's far end (S16) and the walker it is given. Every fill and stroke is a
- * `--dromos-scene-*` token, so the dark theme turns it into a night with stars, a moon, lit
- * windows and a lamp. It is a drawing: screen readers skip it.
+ * with a gate at the path's far end (S16) and what it is given: the walker, and the campfire of a
+ * complete day (S17). Every fill and stroke is a `--dromos-scene-*` token, so the dark theme turns
+ * it into a night with stars, a moon, lit windows and a lamp, and the time of day repaints the
+ * sky. It is a drawing: screen readers skip it.
  */
 export function Landscape({ children = null }: LandscapeProps) {
 	// Unique per view: two open Dromos tabs must not share one gradient, since Chromium stops
@@ -41,7 +42,10 @@ export function Landscape({ children = null }: LandscapeProps) {
 					<circle cx="820" cy="62" r="1" />
 					<circle cx="904" cy="30" r="1.2" />
 				</g>
-				<circle className="dromos-scene-sun" cx="150" cy="64" r="24" />
+				{/* The time of day raises or lowers the sun (game-ui S17); at night it is the moon. */}
+				<g className="dromos-scene-sun-height">
+					<circle className="dromos-scene-sun" cx="150" cy="64" r="24" />
+				</g>
 				<g transform="translate(250 54)">
 					<g className="dromos-scene-drift">
 						<path className="dromos-scene-cloud" d="M0 22c-10 0-14-12-5-17 1-10 15-12 20-4 7-6 20-1 19 9 8 1 9 12-1 12z" />

@@ -53,6 +53,7 @@ describe('CharacterCard', () => {
 		level: 3,
 		levelText: 'Level 3',
 		titleLine: 'Corredor · level 3',
+		titleParts: ['Corredor', 'level 3'],
 		xp: { current: 240, total: 520, percent: 46, text: '240 / 520 XP' },
 		nextLevelText: 'Level 4 in 280 XP',
 		stats: [{ id: 'fuerza' as const, label: 'Strength', value: 2, pips: [true, true, false, false, false, false], ariaLabel: 'Strength 2' }],

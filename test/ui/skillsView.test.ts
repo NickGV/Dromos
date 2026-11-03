@@ -84,7 +84,7 @@ describe('skillsPageView: earned skills', () => {
 				xp: { current: 50, total: 246, percent: 20, text: '50 / 246 XP' },
 				requirements: [],
 				progressPercent: 100,
-				earnedText: 'Ganada el 2026-11-03',
+				earnedText: 'Ganada el 3 nov',
 				recent: [],
 			},
 		]);

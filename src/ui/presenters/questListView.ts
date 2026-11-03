@@ -79,18 +79,21 @@ export interface QuestPanelView {
 	readonly doneText: string | null;
 	/** "+15 XP to earn", "Day complete" once every daily is done; `null` while nothing is priced or without dailies. */
 	readonly gainText: string | null;
+	/** Every daily is done: the panel says "Day complete" and the scene lights a campfire (game-ui S17). */
+	readonly dayComplete: boolean;
 	readonly rows: readonly QuestPanelRowView[];
 	readonly emptyText: string | null;
 }
 
 export function questPanelView(list: QuestListView, t: Translator): QuestPanelView {
 	const rows = [...list.dailies.map((row) => panelRow(row, 'quests.kind.daily', t)), ...list.todos.map((row) => panelRow(row, 'quests.kind.todo', t))];
-	if (list.dailies.length === 0) return { doneText: null, gainText: null, rows, emptyText: list.emptyText };
+	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, rows, emptyText: list.emptyText };
 	const pending = list.dailies.filter((row) => !row.completed);
 	const gain = pending.reduce((sum, row) => sum + (row.xp ?? 0), 0);
 	return {
 		doneText: t('quests.header.done', { done: list.dailies.length - pending.length, total: list.dailies.length }),
 		gainText: pending.length === 0 ? t('quests.header.complete') : gain > 0 ? t('quests.header.gain', { xp: gain }) : null,
+		dayComplete: pending.length === 0,
 		rows,
 		emptyText: list.emptyText,
 	};

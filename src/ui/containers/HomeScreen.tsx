@@ -12,6 +12,7 @@ import type { DromosScreen } from '../molecules/Signpost';
 import { StatusBanner } from '../molecules/StatusBanner';
 import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
+import { Chronicle } from '../organisms/Chronicle';
 import { LevelUpPanel } from '../organisms/LevelUpPanel';
 import { QuestList } from '../organisms/QuestList';
 import { Scene } from '../organisms/Scene';
@@ -20,6 +21,8 @@ import { SkillsRow } from '../organisms/SkillsRow';
 import { SkillsScreen } from '../organisms/SkillsScreen';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
+import { chronicleView } from '../presenters/chronicleView';
+import { dayPeriod } from '../presenters/dayPeriod';
 import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
 import { questListView, questPanelView } from '../presenters/questListView';
 import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinceVisitView';
@@ -111,6 +114,10 @@ let viewCount = 0;
  * the character is read again, they move to the new values and a line under the bar says what
  * changed, which a live region announces once. The new record is written then, and after every
  * later sync while the view stays open.
+ *
+ * The world reacts (game-ui S17): the scene's sky follows the hour of the clock, read on every
+ * render, so the periodic re-render turns it with no timer of its own, and a campfire burns once
+ * every daily is done. Under the skills, the chronicle lists the last deeds of the ledger (S18).
  */
 export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
@@ -241,6 +248,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 
 	const home = screen === 'home';
 	const offline = quests.status.kind === 'offline';
+	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t);
+	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t) : null;
 	const banner = syncBannerView(quests, deps.clock.now(), t);
 	const language = deps.language();
 	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
@@ -265,6 +274,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
 					walker={walker.fraction}
 					gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
+					period={dayPeriod(deps.clock.now())}
+					campfire={questPanel.dayComplete}
 				/>
 				<main className={`dromos-home is-${screen}`} lang={language} ref={main} tabIndex={-1}>
 					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted. */}
@@ -275,8 +286,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							visit={cardVisit}
 							footer={
 								<div className="dromos-sync-line">
-									{/* While offline the band above the scene says it (S10), so the line stays quiet. */}
-									<StatusBanner {...banner} prominent={banner.prominent && !offline} />
+									{/* While offline the band above the scene says it (S10), so the line shows only Sync (game-ui S14). */}
+									{offline ? null : <StatusBanner {...banner} />}
 									<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
 								</div>
 							}
@@ -297,7 +308,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							onFold={foldLetter}
 						/>
 					) : null}
-					{home ? <QuestList view={questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t)} /> : null}
+					{home ? <QuestList view={questPanel} /> : null}
 					{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
 					<CampaignsPanel
 						deps={deps.campaigns}
@@ -317,8 +328,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							renderIcon={deps.renderIcon}
 						/>
 					) : null}
+					{chronicle ? <Chronicle view={chronicle} /> : null}
 					{screen === 'skills' ? (
-						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, deps.clock.today(), t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
+						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
 				</main>
 				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}

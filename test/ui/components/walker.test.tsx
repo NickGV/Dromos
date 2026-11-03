@@ -73,7 +73,7 @@ describe('Scene marks the gate with the next level', () => {
 	it('still starts with the landscape and has no ribbon without one, plaque or not', () => {
 		const html = scene({ walker: 0.35, gateLabel: 'Level 6' });
 
-		expect(html).toMatch(/^<div class="dromos-scene is-home"><svg[^>]*class="dromos-landscape"/);
+		expect(html).toMatch(/^<div class="dromos-scene is-home" data-period="day"><svg[^>]*class="dromos-landscape"/);
 		expect(html).not.toContain('dromos-ribbon');
 	});
 

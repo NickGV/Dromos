@@ -132,6 +132,13 @@
 	--dromos-track: #3b3127;
 	--dromos-hover: rgba(237, 227, 207, 0.06);
 	--dromos-plank-hover: #352c22;
+	/* The edge of a plank: it must tell the plank from the hill as well as from the sky, at 3:1 or
+	   more at every hour (game-ui S17). */
+	--dromos-plank-edge: #b8916b;
+	/* The plank of the screen on show, burnt into the wood (game-ui S14). */
+	--dromos-plank-burnt: #4a3522;
+	--dromos-plank-scorch: rgba(0, 0, 0, 0.55);
+	--dromos-plank-burnt-ink: #f3dfb8;
 	--dromos-grain: rgba(237, 227, 207, 0.022);
 	--dromos-grain-soft: rgba(237, 227, 207, 0.015);
 	--dromos-shadow: rgba(0, 0, 0, 0.35);
@@ -245,6 +252,11 @@
 	--dromos-track: #e6d9bd;
 	--dromos-hover: rgba(139, 94, 60, 0.07);
 	--dromos-plank-hover: #e9d9ae;
+	/* The design's umber edge is 2.1:1 on the hill: a darker wood edge clears 3.8:1 there. */
+	--dromos-plank-edge: #5c3f2b;
+	--dromos-plank-burnt: #d9c095;
+	--dromos-plank-scorch: rgba(74, 46, 28, 0.5);
+	--dromos-plank-burnt-ink: #3a2414;
 	--dromos-grain: rgba(139, 94, 60, 0.035);
 	--dromos-grain-soft: rgba(139, 94, 60, 0.025);
 	--dromos-shadow: rgba(139, 94, 60, 0.16);
@@ -317,6 +329,13 @@
 	   and the sky. The outline of what marks the progress, the gate and the walker, is the scene's. */
 	--dromos-scene-gate: #cbb993;
 	--dromos-scene-marker-line: #0f1310;
+	/* The campfire of a complete day (game-ui S17): clay and ochre tongues, logs and stones. */
+	--dromos-scene-fire: #e0805f;
+	--dromos-scene-flame: #f0c36a;
+	--dromos-scene-log: #6e5038;
+	--dromos-scene-stone: #6f675e;
+	/* How far the time of day lowers the sun (S17); the dark theme's moon keeps its place. */
+	--dromos-sun-drop: 0px;
 }
 
 .theme-light .dromos-root {
@@ -338,7 +357,58 @@
 	   the hill: now that the walker's place is the progress, its shape must read (S2). */
 	--dromos-scene-gate: #4a3428;
 	--dromos-scene-marker-line: #3b2f2a;
+	--dromos-scene-fire: #c0532f;
+	--dromos-scene-flame: #f2c14e;
+	--dromos-scene-log: #7a4f30;
+	--dromos-scene-stone: #d6cdbf;
 }
+
+/* The time of day (game-ui S17): the scene's data-period sets only token values. By day the
+   light theme is the design's afternoon. Dawn and dusk warm the horizon and lower the sun. At
+   night the light theme turns to a deep-blue sky with the moon and no stars, the hills darken
+   and the gate becomes moonlit stone, so the gate, the walker's robe and the fire keep 3:1. The
+   dark theme keeps its night at every hour; only dawn and dusk warm its horizon a little. */
+.dromos-root .dromos-scene[data-period='dawn'] { --dromos-scene-sky-bottom: #393352; }
+.dromos-root .dromos-scene[data-period='dusk'] { --dromos-scene-sky-bottom: #44334c; }
+
+.theme-light .dromos-root .dromos-scene[data-period='dawn'] {
+	--dromos-scene-sky-top: #d4d9ea;
+	--dromos-scene-sky-bottom: #f4dcc6;
+	--dromos-scene-sun: #f8dfae;
+	--dromos-scene-cloud: #fcf1e6;
+	--dromos-sun-drop: 30px;
+}
+
+.theme-light .dromos-root .dromos-scene[data-period='dusk'] {
+	--dromos-scene-sky-top: #bcc4de;
+	--dromos-scene-sky-bottom: #f1caa6;
+	--dromos-scene-sun: #f3c48c;
+	--dromos-scene-cloud: #f7e4d4;
+	--dromos-sun-drop: 30px;
+}
+
+.theme-light .dromos-root .dromos-scene[data-period='night'] {
+	--dromos-scene-sky-top: #1a2646;
+	--dromos-scene-sky-bottom: #2c3f6e;
+	--dromos-scene-sun: #eee6cf;
+	--dromos-scene-cloud: #3a4a76;
+	--dromos-scene-hill: #3e5636;
+	--dromos-scene-leaf: #33492c;
+	--dromos-scene-gate: #cbb993;
+	--dromos-scene-fire: #f08a50;
+	--dromos-sun-drop: -14px;
+}
+
+/* Registered, so the period's colors and the sun's height turn over 2 s instead of jumping. */
+@property --dromos-scene-sky-top { syntax: '<color>'; inherits: true; initial-value: #cfe3e8; }
+@property --dromos-scene-sky-bottom { syntax: '<color>'; inherits: true; initial-value: #e6efeb; }
+@property --dromos-scene-sun { syntax: '<color>'; inherits: true; initial-value: #f3e9d2; }
+@property --dromos-scene-cloud { syntax: '<color>'; inherits: true; initial-value: #faf5ea; }
+@property --dromos-scene-hill { syntax: '<color>'; inherits: true; initial-value: #8fa66b; }
+@property --dromos-scene-leaf { syntax: '<color>'; inherits: true; initial-value: #6e8b4e; }
+@property --dromos-scene-gate { syntax: '<color>'; inherits: true; initial-value: #4a3428; }
+@property --dromos-scene-fire { syntax: '<color>'; inherits: true; initial-value: #c0532f; }
+@property --dromos-sun-drop { syntax: '<length>'; inherits: true; initial-value: 0px; }
 
 /* The scene, the offline band above it and the signpost bleed to the edges of the view:
    Obsidian pads it 12 px a side. */
@@ -385,6 +455,9 @@
 	height: 170px;
 	border-bottom: 1px solid var(--dromos-umber);
 	background: var(--dromos-scene-sky-bottom);
+	transition-property: --dromos-scene-sky-top, --dromos-scene-sky-bottom, --dromos-scene-sun, --dromos-scene-cloud, --dromos-scene-hill, --dromos-scene-leaf, --dromos-scene-gate, --dromos-scene-fire, --dromos-sun-drop;
+	transition-duration: 2s;
+	transition-timing-function: ease-in-out;
 }
 
 /* 300 px on the home screen; on panes wider than the drawing it grows with it, up to 380 px, so
@@ -448,6 +521,39 @@
 	to { transform: translateY(-1.6px); }
 }
 
+/* The sun's height for the time of day (game-ui S17). */
+.dromos-root .dromos-scene-sun-height { transform: translateY(var(--dromos-sun-drop)); }
+
+/* The campfire of a complete day (game-ui S17): drawn like the walker and the gate, with the ink
+   outline of what marks progress. It kindles once when it appears, then its flame flickers from
+   its base and its glow breathes; the re-render of the view keeps the same elements, so neither
+   restarts. */
+.dromos-root .dromos-campfire { stroke: var(--dromos-scene-marker-line); stroke-width: 1; stroke-linejoin: round; stroke-linecap: round; animation: dromos-kindle 1.2s ease-out both; }
+.dromos-root .dromos-campfire-glow { fill: var(--dromos-scene-flame); stroke: none; opacity: 0.2; animation: dromos-glow 2.8s ease-in-out infinite alternate; }
+.dromos-root .dromos-campfire-glow ellipse + ellipse { opacity: 0.8; }
+.dromos-root .dromos-campfire-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-flicker 1.9s ease-in-out infinite alternate; }
+.dromos-root .dromos-campfire-tongue.is-outer { fill: var(--dromos-scene-fire); }
+.dromos-root .dromos-campfire-tongue.is-inner { fill: var(--dromos-scene-flame); stroke: none; }
+.dromos-root .dromos-campfire-log { fill: none; stroke: var(--dromos-scene-log); stroke-width: 3.2; }
+.dromos-root .dromos-campfire-stones { fill: var(--dromos-scene-stone); }
+
+@keyframes dromos-kindle {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes dromos-flicker {
+	0% { transform: scale(1, 1) skewX(0deg); }
+	35% { transform: scale(0.95, 1.06) skewX(-2deg); }
+	70% { transform: scale(1.04, 0.94) skewX(1.5deg); }
+	100% { transform: scale(0.98, 1.03) skewX(-1deg); }
+}
+
+@keyframes dromos-glow {
+	from { opacity: 0.16; }
+	to { opacity: 0.24; }
+}
+
 /* Stars, the lamp and lit windows belong to the night. */
 .theme-light .dromos-root .dromos-scene-stars,
 .theme-light .dromos-root .dromos-scene-windows,
@@ -474,8 +580,9 @@
 	.dromos-root .dromos-scene-sun { transform: translateX(190px); }
 }
 
-/* The signpost (S1): a post with one plank per other screen, each a 44 px target. A plank is
-   36 px tall and its ::after reaches 4 px above and below; 8 px apart, targets never overlap. */
+/* The signpost (S1): a post with its four planks, each a 44 px target, the current screen's burnt
+   in (game-ui S14). A plank is 36 px tall and its ::after reaches 4 px above and below; 8 px
+   apart, targets never overlap. Shorter scenes take shorter planks (below). */
 .dromos-root .dromos-signpost {
 	position: absolute;
 	z-index: 2;
@@ -488,8 +595,6 @@
 	padding-left: 20px;
 }
 
-/* On the shorter scene the header card overlaps its last 30 px. */
-.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { bottom: 36px; }
 
 .dromos-root .dromos-signpost::before {
 	content: '';
@@ -509,7 +614,7 @@
 	min-width: 104px;
 	min-height: 36px;
 	padding: 5px 12px;
-	border: 1px solid var(--dromos-umber);
+	border: 1px solid var(--dromos-plank-edge);
 	border-radius: 3px;
 	background: var(--dromos-panel);
 	box-shadow: none;
@@ -531,13 +636,35 @@
 .dromos-root .dromos-plank:nth-of-type(1) { transform: rotate(-1.6deg); }
 .dromos-root .dromos-plank:nth-of-type(2) { transform: rotate(1.1deg); margin-left: 6px; }
 .dromos-root .dromos-plank:nth-of-type(3) { transform: rotate(-0.8deg); }
+.dromos-root .dromos-plank:nth-of-type(4) { transform: rotate(1.3deg); margin-left: 3px; }
 .dromos-root .dromos-plank:hover { background: var(--dromos-plank-hover); }
 
+/* The plank of the screen on show is burnt into the wood: darker, scorched at its edges, its
+   letters seared bolder. It takes no hover; aria-current says it to screen readers. */
+.dromos-root .dromos-plank.is-current,
+.dromos-root .dromos-plank.is-current:hover {
+	background: var(--dromos-plank-burnt);
+	box-shadow: inset 0 0 0 1px var(--dromos-plank-scorch), inset 0 0 8px var(--dromos-plank-scorch);
+	color: var(--dromos-plank-burnt-ink);
+	font-weight: 700;
+	cursor: default;
+}
+
+/* The focus ring sits on the scene, whose sky changes with the hour: a paper band on each side of
+   the ring keeps it 3:1 against what is next to it on any sky (game-ui S17). */
 .dromos-root .dromos-plank:focus-visible {
 	outline: 2px solid var(--dromos-focus);
 	outline-offset: 2px;
-	box-shadow: none;
+	box-shadow: 0 0 0 6px var(--dromos-paper);
 }
+
+.dromos-root .dromos-plank.is-current:focus-visible { box-shadow: inset 0 0 0 1px var(--dromos-plank-scorch), inset 0 0 8px var(--dromos-plank-scorch), 0 0 0 6px var(--dromos-paper); }
+
+/* The scenes of 170 px leave the signpost 134 px over the header card: its four planks are 28 px
+   tall there, their targets 34 px, 6 px apart. */
+.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { bottom: 34px; gap: 6px; }
+.dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 28px; padding: 3px 10px; font-size: 14px; }
+.dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -3px 0; }
 
 /* The plaque on the gate's lintel, "Level 6" (game-ui S16): text over the drawing, so it keeps
    its size and its contrast on any sky. It sits on the lintel at the gate's point in the view box
@@ -575,6 +702,10 @@
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-scene.is-home { --dromos-scene-h: 220px; height: 220px; }
 	.dromos-root .dromos-signpost { right: 14px; }
+	/* Four 44 px targets over the 220 px scene: 34 px planks reaching 5 px out, 10 px apart. */
+	.dromos-root .dromos-scene.is-home .dromos-signpost { bottom: 47px; gap: 10px; }
+	.dromos-root .dromos-scene.is-home .dromos-plank { min-height: 34px; padding-block: 4px; }
+	.dromos-root .dromos-scene.is-home .dromos-plank::after { inset: -5px 0; }
 	/* The drawing is framed at least 60 px further left, so the walker stands clear of the
 	   signpost instead of behind it, and the sun moves right with it. Below 400 px it is framed
 	   further, so the plaque of the gate does not reach the signpost; the sky moves back by as
@@ -586,11 +717,16 @@
 	.dromos-root .dromos-scene-sun { transform: translateX(230px); }
 }
 
-/* Reduced motion: the clouds and the spinner hold still, the scene changes color at once. */
+/* Reduced motion: the clouds, the fire and the spinner hold still, the scene changes color and
+   period at once, and the campfire is lit from the start. */
 @media (prefers-reduced-motion: reduce) {
 	.dromos-root .dromos-scene-drift,
 	.dromos-root .dromos-walker-body,
+	.dromos-root .dromos-campfire,
+	.dromos-root .dromos-campfire-glow,
+	.dromos-root .dromos-campfire-flame,
 	.dromos-root .dromos-spinner { animation: none; }
+	.dromos-root .dromos-scene,
 	.dromos-root .dromos-landscape,
 	.dromos-root .dromos-gate-plaque { transition: none; }
 }
@@ -827,8 +963,16 @@
 	overflow-wrap: anywhere;
 }
 
+/* The title and the level (game-ui S14): two phrases that each stay whole. Where they do not fit
+   on one line the level goes under the title, and the dot between them, placed in the gap, is
+   clipped away at the start of the line. Phones track the small caps tighter, so the usual title
+   fits beside its level. */
 .dromos-root .dromos-character-title {
+	display: flex;
+	flex-wrap: wrap;
+	column-gap: 1.1em;
 	margin: 2px 0 0;
+	overflow-x: clip;
 	color: var(--dromos-ink-muted);
 	font-size: 15px;
 	font-variant: small-caps;
@@ -836,6 +980,18 @@
 	line-height: 1.3;
 	overflow-wrap: anywhere;
 }
+
+.dromos-root .dromos-character-title-part { position: relative; min-width: 0; }
+
+.dromos-root .dromos-character-title-dot {
+	position: absolute;
+	right: 100%;
+	width: 1.1em;
+	text-align: center;
+}
+
+.is-mobile .dromos-root .dromos-character-title { column-gap: 0.9em; font-size: 14px; letter-spacing: 0.08em; }
+.is-mobile .dromos-root .dromos-character-title-dot { width: 0.9em; }
 
 .dromos-root .dromos-level-medal {
 	position: relative;
@@ -1123,6 +1279,16 @@
 }
 
 .dromos-root .dromos-quest-items:first-child > .dromos-quest:first-child { border-top: 0; }
+
+/* Under the panel, a quiet note on where quests are completed (game-ui S14). */
+.dromos-root .dromos-quest-note {
+	margin: 10px 4px 0;
+	color: var(--dromos-ink-muted);
+	font-size: 13px;
+	font-style: italic;
+	line-height: 1.4;
+	text-align: center;
+}
 
 .dromos-root .dromos-quest-mark { flex: 0 0 auto; margin-top: 1px; overflow: visible; }
 .dromos-root .dromos-quest-circle { fill: transparent; stroke: var(--dromos-umber); stroke-width: 1.4; }
@@ -2313,8 +2479,33 @@
 .dromos-root .dromos-skill-detail-none { margin: 0; color: var(--dromos-ink-muted); font-size: 14px; }
 .dromos-root .dromos-skill-detail-earned { margin: 18px 0 0; color: var(--dromos-ink-muted); font-size: 12px; }
 
+/* The chronicle of deeds (game-ui S18): journal lines on the parchment, newest first, the day in
+   small caps, the task in ink and what it gained in ochre ink. An undone deed says "Undone" in
+   clay ink, its task struck through and its XP muted. Parts stay whole when a line wraps. */
+.dromos-root .dromos-chronicle-panel { padding: 4px 18px; }
+.dromos-root .dromos-deeds { margin: 0; padding: 0; list-style: none; }
+
+.dromos-root .dromos-deed {
+	padding: 10px 0;
+	border-top: 1px dashed var(--dromos-rule-dashed);
+	color: var(--dromos-ink-muted);
+	font-family: var(--dromos-font-display);
+	font-size: 16px;
+	line-height: 1.4;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-deed:first-child { border-top: 0; }
+.dromos-root .dromos-deed-day { font-variant: small-caps; letter-spacing: 0.06em; white-space: nowrap; }
+.dromos-root .dromos-deed-text { color: var(--dromos-ink); }
+.dromos-root .dromos-deed-part.is-gain .dromos-deed-text { color: var(--dromos-ochre-ink); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.dromos-root .dromos-deed-part.is-undone .dromos-deed-text { color: var(--dromos-clay-ink); font-style: italic; }
+.dromos-root .dromos-deed.is-undone .dromos-deed-part.is-task .dromos-deed-text { text-decoration: line-through; text-decoration-color: var(--dromos-umber); text-decoration-thickness: 1px; }
+.dromos-root .dromos-deed.is-undone .dromos-deed-part.is-gain .dromos-deed-text { color: var(--dromos-ink-muted); }
+
 /* Narrow panes and phones: smaller display names and tighter panels. */
 @container dromos-view (max-width: 472px) {
+	.dromos-root .dromos-chronicle-panel { padding-inline: 16px; }
 	.dromos-root .dromos-campaign-hero-name { font-size: 36px; }
 	.dromos-root .dromos-campaign-hero-head,
 	.dromos-root .dromos-campaign-hero-body,

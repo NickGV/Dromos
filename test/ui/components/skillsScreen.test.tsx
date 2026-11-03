@@ -13,7 +13,6 @@ import { componentsOf } from './elements';
 import { IDLE_GAME, homeDeps, noop } from './homeDeps';
 
 const en = createTranslator('en');
-const TODAY = '2026-11-03';
 const reader: SkillEntry = {
 	skill: skill({ id: 'lector', name: 'Reader', icon: 'book-open', stat: 'inteligencia', description: 'You read books to the end.', unlocked: true, unlockedOn: '2026-10-20' }),
 	xp: 40,
@@ -38,7 +37,7 @@ const athlete: SkillEntry = {
 };
 const game: GameSnapshot = { ...IDLE_GAME, status: { kind: 'synced' }, skills: [athlete, reader], invalidSkills: [{ path: 'Skills/Cartographer.md', reason: 'the stat is missing' }] };
 const page = skillsPageView(game, en);
-const screen = (selected: string | null = null) => skillsScreenView(page, selected, TODAY, en);
+const screen = (selected: string | null = null) => skillsScreenView(page, selected, en);
 const detailOf = (selected: string): SkillDetailView => {
 	const detail = screen(selected).detail;
 	if (!detail) throw new Error('no detail');
@@ -77,8 +76,8 @@ describe('SkillDetail (game-ui S9)', () => {
 
 		expect(html).toContain('<h5 class="dromos-skill-detail-title">What counts</h5><p class="dromos-skill-detail-text">You read books to the end.</p>');
 		expect([...html.matchAll(/<li class="dromos-skill-entry">(.*?)<\/li>/g)].map((match) => (match[1] ?? '').replace(/<[^>]+>/g, ''))).toEqual([
-			'Clean Architecture · +15 XP · yesterday',
-			'Atomic Habits · −10 XP · 3 days ago',
+			'Clean Architecture · +15 XP · 2 Nov',
+			'Atomic Habits · −10 XP · 31 Oct',
 		]);
 		expect(html).not.toContain('No entries yet');
 	});
@@ -126,7 +125,7 @@ describe('SkillsScreen (game-ui S9)', () => {
 
 	it('keeps the empty states, with no detail', () => {
 		const empty = skillsPageView({ ...IDLE_GAME, status: { kind: 'synced' }, skills: [] }, en);
-		const html = renderToStaticMarkup(<SkillsScreen page={empty} view={skillsScreenView(empty, null, TODAY, en)} onSelect={noop} renderIcon={noop} />);
+		const html = renderToStaticMarkup(<SkillsScreen page={empty} view={skillsScreenView(empty, null, en)} onSelect={noop} renderIcon={noop} />);
 
 		expect(html).toContain('No skill notes found in the Skills folder.');
 		expect(html).not.toContain('dromos-skill-detail');

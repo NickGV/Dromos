@@ -136,13 +136,22 @@ describe('questPanelView: the header line counts dailies only (game-ui S6)', () 
 		expect([view.doneText, view.gainText]).toEqual(['2 of 2 dailies done', 'Day complete']);
 	});
 
+	it('flags the day complete, for the campfire of the scene, only when every daily is done (game-ui S17)', () => {
+		expect(panel([aQuest('d1', { completed: true }), aQuest('d2', { completed: true })]).dayComplete).toBe(true);
+		expect(panel([aQuest('d1', { completed: true }), aQuest('d2', { completed: true })], false).dayComplete).toBe(true);
+		expect(panel([aQuest('d1', { completed: true }), aQuest('d2')]).dayComplete).toBe(false);
+		expect(panel([aQuest('t1', { type: 'todo', dueDate: null, completed: true })]).dayComplete).toBe(false);
+		expect(questPanelView(questListView([], TODAY, en), en).dayComplete).toBe(false);
+		expect(questPanelView(questListView(null, TODAY, en), en).dayComplete).toBe(false);
+	});
+
 	it('promises no XP while the game has not priced the pending dailies', () => {
 		expect(panel([aQuest('d1'), aQuest('d2')], false).gainText).toBeNull();
 	});
 
 	it('has no header line without dailies, and none while the list is empty', () => {
 		expect(panel([aQuest('t1', { type: 'todo', dueDate: null })])).toMatchObject({ doneText: null, gainText: null });
-		expect(questPanelView(questListView(null, TODAY, en), en)).toEqual({ doneText: null, gainText: null, rows: [], emptyText: 'Quests will appear after syncing with Habitica.' });
+		expect(questPanelView(questListView(null, TODAY, en), en)).toEqual({ doneText: null, gainText: null, dayComplete: false, rows: [], emptyText: 'Quests will appear after syncing with Habitica.' });
 	});
 
 	it('says it in Spanish', () => {
@@ -186,6 +195,6 @@ describe('questPanelView: one list, dailies first, each row with its chips (game
 	});
 
 	it('keeps the empty state of a sync that returned nothing', () => {
-		expect(questPanelView(questListView([], TODAY, en), en)).toEqual({ doneText: null, gainText: null, rows: [], emptyText: 'No quests for today' });
+		expect(questPanelView(questListView([], TODAY, en), en)).toEqual({ doneText: null, gainText: null, dayComplete: false, rows: [], emptyText: 'No quests for today' });
 	});
 });

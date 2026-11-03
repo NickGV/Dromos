@@ -49,6 +49,8 @@ export interface CharacterCardView {
 	readonly levelText: string;
 	/** The small-caps line under the name: "<title> · level 3", or "Level 3" without a title. */
 	readonly titleLine: string;
+	/** The same line as its phrases, the title and the level, so a narrow card breaks only between them (game-ui S14). */
+	readonly titleParts: readonly string[];
 	readonly xp: XpBarView;
 	/** "Level 4 in 280 XP", under the bar: Dromos has no next title to name (game-ui S3). */
 	readonly nextLevelText: string;
@@ -66,6 +68,7 @@ export function characterCardView(character: Character, t: Translator): Characte
 		level,
 		levelText: t('character.level', { level }),
 		titleLine: title === null ? t('character.level', { level }) : `${title} · ${t('screen.level', { level })}`,
+		titleParts: title === null ? [t('character.level', { level })] : [title, t('screen.level', { level })],
 		xp: xpBarView(xpIntoLevel, xpToNext),
 		nextLevelText: t('character.nextLevel', { level: level + 1, xp: Math.max(0, xpToNext - xpIntoLevel) }),
 		stats: STAT_IDS.map((id) => statBadgeView(id, character.stats[id], t)),

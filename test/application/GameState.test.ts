@@ -13,16 +13,18 @@ function result(overrides: Partial<GameResult> = {}): GameResult {
 		invalidRules: null,
 		questPrices: new Map(),
 		completedQuests: 7,
+		deeds: [],
 		...overrides,
 	};
 }
 
 describe('GameState', () => {
-	it('shows what a sync recorded as before, and keeps its quest prices and its count of completions through later status changes (game-ui S6, S15)', () => {
+	it('shows what a sync recorded as before, and keeps its quest prices, its count of completions and its deeds through later status changes (game-ui S6, S15, S18)', () => {
 		const state = new GameState();
 		const questPrices = new Map([['a', { xp: 10, skills: [{ id: 'lector', name: 'Lector' }] }]]);
+		const deeds = [{ date: '2026-11-02', task: 'Read 20 pages', xp: 10, source: 'complete' as const, skills: [{ id: 'lector', name: 'Lector' }] }];
 
-		state.recordSuccess(result({ questPrices }), NOW);
+		state.recordSuccess(result({ questPrices, deeds }), NOW);
 		state.setStatus({ kind: 'syncing' });
 		state.dismissEvents();
 
@@ -37,6 +39,7 @@ describe('GameState', () => {
 			invalidRules: null,
 			questPrices,
 			completedQuests: 7,
+			deeds,
 		});
 	});
 });

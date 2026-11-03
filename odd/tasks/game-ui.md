@@ -165,8 +165,8 @@ The user's words are in L1 and L2. The items below describe the design boards. A
 | T4 | S8, S9 (screen) | Campaigns screen and skills screen | delegated W4, after T3 (sequential: it reuses T3's ring medallion and phase road, and both edit `styles.css`, `HomeScreen.tsx`, the i18n files and two presenters) | done: 74 tests (70 RED then GREEN, 4 pins of unchanged behavior), 1112/1112, lint 0 errors and 4 warnings, build ok, preview and a live click-through with counting fakes (L7). Risk: item 6 | `79d1698` |
 | T5 | S1-S12 | Independent verifier over the preview harness and Obsidian's real `app.css` (Risk item 6: CSS no test catches) | delegated verifier | done: PASS on S3-S11 and the rest of S12; two blockers, B1 fixed and rechecked PASS, B2 recorded as a departure (L8) | `98d8b82` |
 | T6 | S13, S14 (briefing parts: links and code, why, measure, phone seal) | Collapsible scroll, device-store port and its guarded adapter, link and code colors | delegated W6 (context backstop) | done: 9 rules RED then GREEN, 1157/1157, lint 0 errors and 4 warnings, build ok, preview with the real briefing and a live check (L12). Risk: item 6 | `7fdd81d` |
-| T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | done: RED then GREEN per rule, 1214/1214, lint 0 errors and 4 warnings, build ok, 102 geometry cases and a live run (L13). Risk: item 6 | this commit |
-| T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | pending | |
+| T7 | S15, S16 | Since the last visit and the walker on the path; uses T6's port | delegated W7, after T6 | done: RED then GREEN per rule, 1214/1214, lint 0 errors and 4 warnings, build ok, 102 geometry cases and a live run (L13). Risk: item 6 | `c1ee881` |
+| T8 | S17, S18, the rest of S14 | Campfire and time of day, chronicle strip and its data, fixed signpost planks, "The route", quest note, offline line, title wrap, short dates | delegated W8, after T7 | done: RED then GREEN per rule, 1256/1256, lint 0 errors and 4 warnings, build ok, 153 geometry cases, contrast at the four periods, a live check (L14). Risk: item 6 | this commit |
 | T9 | S13-S18 and no regression of S1-S12 | Independent verifier (Risk item 6) | delegated verifier | pending | |
 
 Route evidence: the parent context was about 120k tokens before T1, so the long-session backstop applies. T1 and T2 share no file. T3 and T4 share `styles.css`, `HomeScreen.tsx`, the i18n files and their components, so they run one after the other (L5).
@@ -298,3 +298,21 @@ Route evidence: the parent context was about 120k tokens before T1, so the long-
     - On wide 170 px scenes the plaque is clamped inside the top.
     - In light, the walker and the gate get an ink outline, because umber on the hill is 2.08:1.
     - The record is rewritten on every open.
+- **L14** (2026-11-03): T8 by W8.
+  - **S17.**
+    - A campfire is lit on "Day complete". It flickers, stays still under reduced motion, and shows on every screen.
+    - The time of day comes from the clock, with no new timer: dawn from 05, day from 08, dusk from 18, night from 21. Each period changes the scene tokens, registered with `@property`, over 2 s.
+    - Night in the light theme: a deep-blue sky, a moon, darker hills and a moonlit gate. The dark gate measured 1.3:1 on the blue sky.
+  - **S18.** `recentDeeds` in `recentRows.ts` shares the ordering and `uniqueRows`. Each deed is one transition, with all its skills. The chronicle goes after the skills and shows nothing when there are no deeds. The rows and notes the ledger writes are pinned unchanged.
+  - **Rest of S14.**
+    - The signpost keeps four fixed planks; the current one is burnt in and carries `aria-current="page"`.
+    - Labels and notes: "The route", the quest note, Sync only while offline, short skill dates.
+    - The title holds one line from 390 px. At 320-360 px the level drops under it.
+  - **Departures.**
+    - A new darker `--dromos-plank-edge`: the design's umber was 2.08:1 on the hill, already before T8.
+    - The focus ring has paper bands, keeping 5.13:1 on any background.
+    - On the 170 px screens the planks are 28 px with 34 px targets, because four 44 px targets do not fit in 134 px; WCAG AA asks for 24 px.
+  - **Measurements.**
+    - 153 geometry cases with no collision.
+    - Lowest contrast: plaque edge 3.35 (light dusk), campfire 3.22 (light night offline), text 4.85.
+  - **Commit.** About 1,250 authored lines in one commit. The data, the scene and the polish all meet in `HomeScreen.tsx`, `styles.css` and the i18n files.

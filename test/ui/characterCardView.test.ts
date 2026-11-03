@@ -25,6 +25,7 @@ describe('characterCardView', () => {
 			level: 3,
 			levelText: 'Nivel 3',
 			titleLine: 'Corredor · nivel 3',
+			titleParts: ['Corredor', 'nivel 3'],
 			xp: { current: 50, total: 150, percent: 33, text: '50 / 150 XP' },
 			nextLevelText: 'Nivel 4 en 100 XP',
 			stats: [
@@ -73,5 +74,10 @@ describe('characterCardView', () => {
 
 	it('names the level alone under the name when the note has no title', () => {
 		expect(characterCardView({ ...CHARACTER, title: '' }, t).titleLine).toBe('Nivel 3');
+		expect(characterCardView({ ...CHARACTER, title: '' }, t).titleParts).toEqual(['Nivel 3']);
+	});
+
+	it('splits the line into the title and the level, the phrases a narrow card may break between (game-ui S14)', () => {
+		expect(characterCardView({ ...CHARACTER, title: 'Apprentice scribe', level: 5 }, createTranslator('en')).titleParts).toEqual(['Apprentice scribe', 'level 5']);
 	});
 });

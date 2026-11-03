@@ -55,7 +55,9 @@ describe('CharacterCard after the design (game-ui S3)', () => {
 	it('names the title and the level in one line, and the next level under the bar', () => {
 		const html = card();
 
-		expect(html).toContain('<p class="dromos-character-title">Corredor · level 3</p>');
+		expect(html).toContain(
+			'<p class="dromos-character-title"><span class="dromos-character-title-part">Corredor</span><span class="dromos-character-title-part"><span class="dromos-character-title-dot"> · </span>level 3</span></p>',
+		);
 		expect(html).toMatch(/<span class="dromos-xp-text">240 \/ 520 XP<\/span><span class="dromos-xp-next">Level 4 in 280 XP<\/span>/);
 	});
 

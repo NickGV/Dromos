@@ -1,7 +1,8 @@
 import type { GameSnapshot, RecentEntry, SkillEntry } from '../../application';
-import { daysSince, type RequirementProgress } from '../../domain';
+import type { RequirementProgress } from '../../domain';
 import { plural, type Translator } from '../../i18n';
 import { statLabel, xpBarView, type XpBarView } from './characterCardView';
+import { dayMonth } from './dates';
 
 export interface RequirementRowView {
 	readonly text: string;
@@ -104,7 +105,7 @@ function cardOf(entry: SkillEntry, t: Translator): SkillCardView {
 		xp: skill.unlocked && standing.xpToNext !== null ? xpBarView(standing.xpIntoLevel, standing.xpToNext) : null,
 		requirements,
 		progressPercent: skill.unlocked ? 100 : meanPercent(requirements),
-		earnedText: skill.unlocked && skill.unlockedOn !== null ? t('skills.earnedOn', { date: skill.unlockedOn }) : null,
+		earnedText: skill.unlocked && skill.unlockedOn !== null ? t('skills.earnedOn', { date: dayMonth(skill.unlockedOn, t) }) : null,
 		recent: entry.recent,
 	};
 }
@@ -197,7 +198,7 @@ export interface SkillScreenRingView extends SkillRingView {
 	readonly selected: boolean;
 }
 
-/** One ledger row of a skill as its detail lists it: "Clean Architecture" and "+15 XP · yesterday". */
+/** One ledger row of a skill as its detail lists it: "Clean Architecture" and "+15 XP · 2 Nov". */
 export interface RecentEntryView {
 	readonly task: string;
 	readonly detail: string;
@@ -242,18 +243,18 @@ export interface SkillsScreenView {
 }
 
 /** The Skills screen with the skill `selectedId` in the detail; the first skill when it is `null` or gone. */
-export function skillsScreenView(page: SkillsPageView, selectedId: string | null, today: string, t: Translator): SkillsScreenView {
+export function skillsScreenView(page: SkillsPageView, selectedId: string | null, t: Translator): SkillsScreenView {
 	const cards = [...page.earned, ...page.locked];
 	const selected = cards.find((card) => card.id === selectedId) ?? cards[0] ?? null;
 	return {
 		gridTitle: t('skills.screen.medallions'),
 		detailTitle: t('skills.screen.detail'),
 		rings: cards.map((card) => ({ ...skillRingView(card, t), selected: card === selected })),
-		detail: selected ? skillDetailView(selected, today, t) : null,
+		detail: selected ? skillDetailView(selected, t) : null,
 	};
 }
 
-export function skillDetailView(card: SkillCardView, today: string, t: Translator): SkillDetailView {
+export function skillDetailView(card: SkillCardView, t: Translator): SkillDetailView {
 	const level = card.level ?? 0;
 	const recent = card.recent ?? [];
 	return {
@@ -274,7 +275,7 @@ export function skillDetailView(card: SkillCardView, today: string, t: Translato
 		countsTitle: t('skills.detail.counts'),
 		description: card.description || null,
 		recentTitle: t('skills.detail.recent'),
-		recent: recent.map((entry) => ({ task: entry.task, detail: `${entryXpText(entry.xp, t)} · ${entryDayText(entry.date, today, t)}` })),
+		recent: recent.map((entry) => ({ task: entry.task, detail: `${entryXpText(entry.xp, t)} · ${dayMonth(entry.date, t)}` })),
 		noRecentText: recent.length === 0 ? t('skills.detail.none') : null,
 		earnedText: card.earnedText,
 	};
@@ -285,14 +286,3 @@ function entryXpText(xp: number, t: Translator): string {
 	return xp < 0 ? t('skills.detail.revert', { xp: -xp }) : t('quests.xp', { xp });
 }
 
-/**
- * The day of a ledger row next to `today`: "today", "yesterday" or "N days ago". A day it cannot
- * place, one after today included, is shown as written.
- */
-export function entryDayText(date: string, today: string, t: Translator): string {
-	const days = daysSince(date, today);
-	if (!Number.isFinite(days) || days < 0) return date;
-	if (days === 0) return t('time.day.today');
-	if (days === 1) return t('time.day.yesterday');
-	return plural(t, 'time.ago.days', days);
-}
