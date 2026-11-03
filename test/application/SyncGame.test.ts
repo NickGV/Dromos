@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { GameState } from '../../src/application/GameState';
 import { SyncGame } from '../../src/application/SyncGame';
 import type { Campaign, Character, LedgerRow, Skill } from '../../src/domain';
@@ -66,18 +66,19 @@ function setup(options: Options = {}) {
 	const ledger = new InMemoryLedgerRepository(options.rows ?? [], options.unreadable ?? []);
 	const characters = new InMemoryGameStateRepository(options.character ?? { kind: 'found', character: NICO });
 	const source = new FakeGameTaskSource(options.tasks ?? []);
+	const rules = new InMemoryRulesRepository(options.rules);
 	const sync = new SyncGame({
 		skills,
 		ledger,
 		characters,
 		campaigns: new InMemoryCampaignRepository([], options.completed ?? []),
-		rules: new InMemoryRulesRepository(options.rules),
+		rules,
 		source,
 		clock: new FixedClock(NOW, options.day ?? TODAY),
 		state,
 		hasCredentials: () => options.credentials ?? true,
 	});
-	return { state, skills, ledger, characters, source, sync };
+	return { state, skills, ledger, characters, source, rules, sync };
 }
 
 describe('SyncGame: what stops it', () => {
@@ -798,5 +799,132 @@ describe('SyncGame: what is still to announce (S18)', () => {
 
 	it('starts empty', () => {
 		expect(setup().state.takeAnnouncements()).toEqual([]);
+	});
+});
+
+describe('SyncGame: what each quest pays (game-ui S6)', () => {
+	const TABLE = { todo: { trivial: 1, easy: 2, medium: 3, hard: 40 }, daily: { trivial: 6, easy: 7, medium: 8, hard: 9 }, streakBonus: { every: 7, xp: 10 } };
+	const priced: RulesLoadResult = { rules: { ...DEFAULT_RULES, xp: TABLE }, invalid: null };
+	const cuidador = skill({ id: 'cuidador', name: 'Cuidador', requirements: [] });
+
+	it('prices every task it read as the ledger pays it, naming each skill, with no request of its own', async () => {
+		const tasks = [
+			todo('a', { priority: 2, skills: ['lector', 'cuidador'] }),
+			todo('b', { priority: 0.1, skills: ['sin-nota'], completed: false }),
+			todo('d', { kind: 'daily', priority: 1, skills: [], completed: false, streak: 0 }),
+		];
+		const { sync, source, ledger } = setup({ skills: [owned(), cuidador], tasks, rules: priced });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.questPrices).toEqual(
+			new Map([
+				['a', { xp: 40, skills: [{ id: 'lector', name: 'Lector' }, { id: 'cuidador', name: 'Cuidador' }] }],
+				['b', { xp: 1, skills: [{ id: 'sin-nota', name: 'sin-nota' }] }],
+				['d', { xp: 7, skills: [] }],
+			]),
+		);
+		expect(ledger.appended.flat().map((paid) => [paid.habiticaId, paid.skill, paid.xp])).toEqual([
+			['a', 'lector', 40],
+			['a', 'cuidador', 40],
+		]);
+		expect(source.calls).toBe(1);
+	});
+
+	it('has no prices before the first game sync, and keeps the last ones when a sync fails', async () => {
+		const { sync, source, state } = setup({ skills: [owned()], tasks: [todo('a', { completed: false })] });
+		expect(state.snapshot().questPrices).toBeUndefined();
+
+		const good = await sync.execute();
+		source.failWith = new TaskSourceError('Offline', null, 'down');
+		const failed = await sync.execute();
+
+		expect(good.questPrices).toEqual(new Map([['a', { xp: 10, skills: [{ id: 'lector', name: 'Lector' }] }]]));
+		expect(failed.status).toEqual({ kind: 'offline' });
+		expect(failed.questPrices).toBe(good.questPrices);
+	});
+
+	it('a rebuild prices the tasks the last sync read by the rules it reads now, asking Habitica nothing', async () => {
+		const { sync, source, rules, state } = setup({ skills: [owned()], tasks: [todo('a', { completed: false })] });
+		await sync.execute();
+		rules.result = priced;
+
+		await sync.rebuild();
+
+		expect(state.snapshot().questPrices).toEqual(new Map([['a', { xp: 2, skills: [{ id: 'lector', name: 'Lector' }] }]]));
+		expect(source.calls).toBe(1);
+	});
+});
+
+describe('SyncGame: the recent entries of each skill (game-ui S9)', () => {
+	const cuidador = skill({ id: 'cuidador', name: 'Cuidador', requirements: [] });
+	const escritor = skill({ id: 'escritor', name: 'Escritor', requirements: [] });
+	const history = [
+		row({ habiticaId: 'h1', task: 'One', date: '2026-10-27' }),
+		row({ habiticaId: 'h2', task: 'Two', date: '2026-10-28' }),
+		row({ habiticaId: 'h3', task: 'Three', date: '2026-10-30', xp: 15 }),
+		row({ habiticaId: 'h3', task: 'Three', date: '2026-10-30', xp: -15, source: 'revert' }),
+		row({ habiticaId: 'h4', task: 'Four', date: '2026-10-29', xp: 25 }),
+		row({ habiticaId: 'h5', task: 'Five', date: '2026-10-31', xp: 5, kind: 'daily' }),
+		row({ habiticaId: 'h5', task: 'Five', date: '2026-10-31', xp: 5, kind: 'daily' }),
+		row({ habiticaId: 'h6', task: 'Care', skill: 'cuidador', date: '2026-11-01' }),
+		row({ habiticaId: 'h7', task: 'Plain', skill: null, date: '2026-11-02' }),
+	];
+
+	it('keeps the last five rows of each skill, newest first and signed, from the one read of the ledger', async () => {
+		const { sync, ledger } = setup({ skills: [owned(), cuidador, escritor], rows: history, tasks: [todo('a', { title: 'Read today' })] });
+		const reads = vi.spyOn(ledger, 'readAll');
+
+		const snapshot = await sync.execute();
+
+		const recent = new Map(snapshot.skills?.map((entry) => [entry.skill.id, entry.recent]));
+		expect(recent.get('lector')).toEqual([
+			{ date: '2026-11-03', task: 'Read today', xp: 10, source: 'complete' },
+			{ date: '2026-10-31', task: 'Five', xp: 5, source: 'complete' },
+			{ date: '2026-10-30', task: 'Three', xp: -15, source: 'revert' },
+			{ date: '2026-10-30', task: 'Three', xp: 15, source: 'complete' },
+			{ date: '2026-10-29', task: 'Four', xp: 25, source: 'complete' },
+		]);
+		expect(recent.get('cuidador')).toEqual([{ date: '2026-11-01', task: 'Care', xp: 10, source: 'complete' }]);
+		expect(recent.get('escritor')).toEqual([]);
+		expect(reads).toHaveBeenCalledTimes(1);
+	});
+
+	it('a rebuild shows them too, from the ledger alone', async () => {
+		const { sync, state } = setup({ skills: [owned()], rows: history.slice(0, 2) });
+
+		await sync.rebuild();
+
+		expect(state.snapshot().skills?.[0]?.recent).toEqual([
+			{ date: '2026-10-28', task: 'Two', xp: 10, source: 'complete' },
+			{ date: '2026-10-27', task: 'One', xp: 10, source: 'complete' },
+		]);
+	});
+});
+
+const PREVIOUS_CHARACTER = {
+	level: 1,
+	totalXp: 20,
+	xpToNext: 100,
+	stats: { fuerza: 0, vitalidad: 0, inteligencia: 1, sabiduria: 0, espiritu: 0, disciplina: 0 },
+	gameStart: '2026-11-02',
+	lastSync: NOW.toISOString(),
+};
+const PREVIOUS_PROJECTION = { unlocked: true, unlockedOn: '2026-11-01', level: 1, xp: 20, xpToNext: 100 };
+const PREVIOUS_STANDING = { level: 1, totalXp: 20, xpIntoLevel: 20, xpToNext: 100 };
+const PREVIOUS_SKILL_STANDING = { level: 1, xpIntoLevel: 20, xpToNext: 100, rankIndex: 0 };
+
+describe('SyncGame: what a sync showed and wrote before game-ui stays the same', () => {
+	it('writes the same rows and projection and shows the same character and skill', async () => {
+		const { sync, ledger, characters, skills } = setup({ skills: [owned()], rows: [row({ habiticaId: 'old', date: '2026-11-02' })], tasks: [todo('a')] });
+
+		const snapshot = await sync.execute();
+
+		expect(ledger.appended).toEqual([[row({ habiticaId: 'a', task: 'Task a', xp: 10 })]]);
+		expect(characters.saved).toEqual([PREVIOUS_CHARACTER]);
+		expect(skills.projections.get('lector')).toEqual(PREVIOUS_PROJECTION);
+		expect(snapshot).toMatchObject({ status: { kind: 'synced' }, lastSyncedAt: NOW, character: PREVIOUS_STANDING, events: [], invalidSkills: [], unreadable: [], invalidRules: null });
+		expect(snapshot.skills).toHaveLength(1);
+		expect(snapshot.skills?.[0]).toMatchObject({ skill: { id: 'lector', unlocked: true, unlockedOn: '2026-11-01' }, xp: 20, standing: PREVIOUS_SKILL_STANDING, rank: null, requirements: [{ done: 2, total: 2, met: true }] });
 	});
 });

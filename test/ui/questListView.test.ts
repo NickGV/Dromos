@@ -43,8 +43,8 @@ describe('questListView', () => {
 		const view = questListView([aQuest('d1', { title: 'Rutina', completed: true }), aQuest('d2')], TODAY, t);
 
 		expect(view.dailies).toEqual([
-			{ id: 'd1', title: 'Rutina', completed: true, due: null },
-			{ id: 'd2', title: 'Quest d2', completed: false, due: null },
+			{ id: 'd1', title: 'Rutina', completed: true, due: null, xp: null, skills: [] },
+			{ id: 'd2', title: 'Quest d2', completed: false, due: null, xp: null, skills: [] },
 		]);
 	});
 
@@ -75,5 +75,35 @@ describe('questListView', () => {
 		const view = questListView([aQuest('t1', { type: 'todo', dueDate: '2026-11-02', dueToday: false })], TODAY, t);
 
 		expect(view.todos[0]?.due).toBeNull();
+	});
+
+	it('gives each row the XP and the skills the game priced for its task, and nothing to a task it did not price (game-ui S6)', () => {
+		const prices = new Map([
+			['d1', { xp: 5, skills: [] }],
+			['t1', { xp: 25, skills: [{ id: 'lector', name: 'Lector' }, { id: 'cuidador', name: 'Cuidador' }] }],
+		]);
+		const quests = [aQuest('d1'), aQuest('t1', { type: 'todo', dueDate: TODAY }), aQuest('t2', { type: 'todo', dueDate: null })];
+
+		const view = questListView(quests, TODAY, t, prices);
+
+		expect(view).toEqual({
+			dailies: [{ id: 'd1', title: 'Quest d1', completed: false, due: null, xp: 5, skills: [] }],
+			todos: [
+				{ id: 't1', title: 'Quest t1', completed: false, due: { tone: 'today', label: 'Hoy' }, xp: 25, skills: [{ id: 'lector', name: 'Lector' }, { id: 'cuidador', name: 'Cuidador' }] },
+				{ id: 't2', title: 'Quest t2', completed: false, due: null, xp: null, skills: [] },
+			],
+			emptyText: null,
+		});
+	});
+
+	it('without prices (before the first game sync) keeps every row as before, with no XP and no skill', () => {
+		const quests = [aQuest('d1', { title: 'Rutina', completed: true }), aQuest('late', { type: 'todo', dueDate: '2026-10-28', dueToday: true })];
+
+		expect(questListView(quests, TODAY, t)).toEqual({
+			dailies: [{ id: 'd1', title: 'Rutina', completed: true, due: null, xp: null, skills: [] }],
+			todos: [{ id: 'late', title: 'Quest late', completed: false, due: { tone: 'overdue', label: 'Vencida' }, xp: null, skills: [] }],
+			emptyText: null,
+		});
+		expect(questListView(null, TODAY, t, new Map([['d1', { xp: 5, skills: [] }]]))).toEqual({ dailies: [], todos: [], emptyText: 'Las quests aparecerán después de sincronizar con Habitica.' });
 	});
 });

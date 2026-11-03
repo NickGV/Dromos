@@ -13,7 +13,7 @@ const RANKS = [0, 1, 2, 3, 4].map((index) => ({ name: `Rango ${index}`, descript
 function earned(overrides: Partial<Skill> = {}, xp = 0): SkillEntry {
 	const unlocked = skill({ id: 'lector', name: 'Lector', icon: '📖', stat: 'inteligencia', description: 'Leer libros.', ranks: RANKS, unlocked: true, unlockedOn: '2026-11-03', requirements: [], ...overrides });
 	const standing = skillStanding(true, xp);
-	return { skill: unlocked, xp, standing, rank: RANKS[standing.rankIndex ?? 0] ?? null, requirements: [] };
+	return { skill: unlocked, xp, standing, rank: RANKS[standing.rankIndex ?? 0] ?? null, requirements: [], recent: [] };
 }
 
 function locked(overrides: Partial<Skill> = {}, progress: SkillEntry['requirements'] = []): SkillEntry {
@@ -23,6 +23,7 @@ function locked(overrides: Partial<Skill> = {}, progress: SkillEntry['requiremen
 		standing: skillStanding(false, 0),
 		rank: null,
 		requirements: progress,
+		recent: [],
 	};
 }
 
@@ -84,8 +85,21 @@ describe('skillsPageView: earned skills', () => {
 				requirements: [],
 				progressPercent: 100,
 				earnedText: 'Ganada el 2026-11-03',
+				recent: [],
 			},
 		]);
+	});
+
+	it('lists the recent entries the game kept for the skill, as they are (game-ui S9)', () => {
+		const recent = [
+			{ date: '2026-11-03', task: 'Leer capítulo 4', xp: 10, source: 'complete' },
+			{ date: '2026-11-02', task: 'Leer capítulo 3', xp: -10, source: 'revert' },
+		] as const;
+
+		const view = skillsPageView(snapshot({ skills: [{ ...earned({}, 150), recent }, { ...locked(), recent: [recent[0]] }] }), es);
+
+		expect(view.earned[0]?.recent).toEqual(recent);
+		expect(view.locked[0]?.recent).toEqual([recent[0]]);
 	});
 
 	it('a skill just earned is level 1 with an empty bar', () => {

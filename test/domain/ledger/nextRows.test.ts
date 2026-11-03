@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LedgerRow } from '../../../src/domain/ledger/LedgerRow';
-import { nextRows, type TaskObservation } from '../../../src/domain/ledger/nextRows';
+import { nextRows, taskPrice, type TaskObservation } from '../../../src/domain/ledger/nextRows';
+import { XP_TABLE } from '../../../src/domain/rules/XpRules';
 import { row } from './ledgerFixtures';
 
 function observation(overrides: Partial<TaskObservation> = {}): TaskObservation {
@@ -145,5 +146,27 @@ describe('nextRows: dailies have one set of transitions per day', () => {
 		const rows = nextRows(history, daily({ completed: false, date: '2026-11-03' }));
 
 		expect(rows.map((item) => [item.date, item.source, item.n, item.xp])).toEqual([['2026-11-03', 'revert', 1, -5]]);
+	});
+});
+
+describe('taskPrice: what completing a task pays (game-ui S6)', () => {
+	it('is the XP and the skills of the rows its completion writes, by the same table', () => {
+		const table = { ...XP_TABLE, todo: { trivial: 1, easy: 2, medium: 3, hard: 40 } };
+		const task = observation({ priority: 2, skills: ['lector', 'cuidador', 'lector'], completed: false });
+
+		const rows = nextRows([], { ...task, completed: true }, table);
+
+		expect(taskPrice(task, table)).toEqual({ xp: 40, skills: ['lector', 'cuidador'] });
+		expect(rows.map((paid) => [paid.skill, paid.xp])).toEqual([
+			['lector', 40],
+			['cuidador', 40],
+		]);
+	});
+
+	it('feeds no skill when the task has none, while its row pays the character only', () => {
+		const task = observation({ kind: 'daily', priority: 1.5, skills: [] });
+
+		expect(taskPrice(task)).toEqual({ xp: 8, skills: [] });
+		expect(nextRows([], task).map((paid) => [paid.skill, paid.xp])).toEqual([[null, 8]]);
 	});
 });

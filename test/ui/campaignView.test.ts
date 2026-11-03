@@ -25,9 +25,9 @@ const kairos = campaign({
 describe('campaignCardView: the road of phases', () => {
 	it('draws one segment per phase: the done ones, the open one with its progress, and the ones ahead', () => {
 		expect(campaignCardView(kairos, ctx).segments).toEqual([
-			{ name: 'Phase design', state: 'done', percent: 100 },
-			{ name: 'Phase mvp', state: 'open', percent: 33 },
-			{ name: 'Phase ship', state: 'ahead', percent: 0 },
+			{ id: 'design', name: 'Phase design', state: 'done', percent: 100 },
+			{ id: 'mvp', name: 'Phase mvp', state: 'open', percent: 33 },
+			{ id: 'ship', name: 'Phase ship', state: 'ahead', percent: 0 },
 		]);
 	});
 
@@ -182,6 +182,75 @@ describe('campaignCardView: habits (S8)', () => {
 	it('has no habits for a campaign without them, and says so in English too', () => {
 		expect(campaignCardView(kairos, ctx).habits).toEqual([]);
 		expect(campaignCardView(salto, { ...ctx, t: createTranslator('en') }).habits[0]?.text).toBe('Streak: 12 of 21 days');
+	});
+});
+
+describe('campaignCardView: the deadline and the phase of each task (game-ui S8)', () => {
+	it('gives the deadline as stored and the whole days left from today, negative once it has passed', () => {
+		const left = (deadline: string | null) => {
+			const card = campaignCardView({ ...kairos, deadline }, ctx);
+			return [card.deadline, card.daysLeft];
+		};
+
+		expect(left('2026-11-10')).toEqual(['2026-11-10', 10]);
+		expect(left(TODAY)).toEqual([TODAY, 0]);
+		expect(left('2026-10-29')).toEqual(['2026-10-29', -2]);
+		expect(left(null)).toEqual([null, null]);
+	});
+
+	it('gives no days left, never NaN, for a deadline that is not a real day', () => {
+		const card = campaignCardView({ ...kairos, deadline: '2026-13-01' }, ctx);
+
+		expect([card.deadline, card.daysLeft]).toEqual(['2026-13-01', null]);
+	});
+
+	it('counts the days left from the given day, not the system clock', () => {
+		expect(campaignCardView({ ...kairos, deadline: '2026-12-01' }, { ...ctx, today: '2026-11-30' }).daysLeft).toBe(1);
+	});
+
+	it('gives each task row the id of its phase, as the segments carry it, and null to a task without phase', () => {
+		const loose = { ...kairos, tasks: [...kairos.tasks, task('Loose', null)] };
+
+		const card = campaignCardView(loose, ctx);
+
+		expect(card.tasks.map((row) => [row.title, row.phase])).toEqual([
+			['Design', 'design'],
+			['Timer', 'mvp'],
+			['Time screen', 'mvp'],
+			['Send gold', 'mvp'],
+			['Release', 'ship'],
+			['Loose', null],
+		]);
+		expect(card.segments.map((segment) => segment.id)).toEqual(['design', 'mvp', 'ship']);
+	});
+
+	it('keeps everything else a card showed before', () => {
+		const small = campaign({
+			path: 'P/Small/README.md',
+			title: 'Small',
+			created: '2026-10-01',
+			phases: [phase('a', 'active')],
+			tasks: [task('Uno', 'a', { habiticaId: 'h1', completed: true, completedOn: '2026-10-30' }), task('Dos', 'a')],
+		});
+
+		expect(campaignCardView(small, ctx)).toEqual({
+			path: 'P/Small/README.md',
+			title: 'Small',
+			kindLabel: 'Proyecto',
+			stale: null,
+			chip: 'Phase a 1/2',
+			next: 'Dos',
+			progress: { ratio: 0.5, percent: 50 },
+			segments: [{ id: 'a', name: 'Phase a', state: 'open', percent: 50 }],
+			tasks: [
+				{ title: 'Uno', state: 'completed', canSend: false, phase: 'a' },
+				{ title: 'Dos', state: 'unsent', canSend: true, phase: 'a' },
+			],
+			habits: [],
+			warnings: [],
+			deadline: null,
+			daysLeft: null,
+		});
 	});
 });
 

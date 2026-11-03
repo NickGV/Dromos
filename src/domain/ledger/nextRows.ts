@@ -36,10 +36,21 @@ export function nextRows(history: readonly LedgerRow[], observation: TaskObserva
 	return [];
 }
 
+/** What completing a task pays: the XP of each row its completion writes, and the skills those rows go to. */
+export interface TaskPrice {
+	readonly xp: number;
+	/** Without skills the completion writes one row with no skill: character XP only. */
+	readonly skills: readonly string[];
+}
+
+/** The price `nextRows` pays when the task becomes completed; it builds its rows from this, so the two always agree. */
+export function taskPrice(observation: Pick<TaskObservation, 'kind' | 'priority' | 'skills'>, table: XpTable = XP_TABLE): TaskPrice {
+	return { xp: xpForTask(observation.kind, observation.priority, table), skills: [...new Set(observation.skills)] };
+}
+
 function completeRows(observation: TaskObservation, n: number, table: XpTable): LedgerRow[] {
-	const xp = xpForTask(observation.kind, observation.priority, table);
-	const skills = observation.skills.length > 0 ? [...new Set(observation.skills)] : [null];
-	return skills.map((skill) => ({
+	const { xp, skills } = taskPrice(observation, table);
+	return (skills.length > 0 ? skills : [null]).map((skill) => ({
 		date: observation.date,
 		habiticaId: observation.habiticaId,
 		task: observation.title,

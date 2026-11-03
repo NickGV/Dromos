@@ -1,4 +1,4 @@
-import type { GameSnapshot, SkillEntry } from '../../application';
+import type { GameSnapshot, RecentEntry, SkillEntry } from '../../application';
 import type { RequirementProgress } from '../../domain';
 import { plural, type Translator } from '../../i18n';
 import { statLabel, xpBarView, type XpBarView } from './characterCardView';
@@ -33,6 +33,11 @@ export interface SkillCardView {
 	/** How close the skill is to unlocking, whole percent; 100 once earned. */
 	readonly progressPercent: number;
 	readonly earnedText: string | null;
+	/**
+	 * The skill's last ledger rows, newest first, as raw values (game-ui S9). `skillsPageView` always
+	 * sets it; it is optional only so cards built by hand stay valid.
+	 */
+	readonly recent?: readonly RecentEntry[];
 }
 
 /** What the Skills section shows (S5). */
@@ -104,6 +109,7 @@ function cardOf(entry: SkillEntry, t: Translator): SkillCardView {
 		requirements,
 		progressPercent: skill.unlocked ? 100 : meanPercent(requirements),
 		earnedText: skill.unlocked && skill.unlockedOn !== null ? t('skills.earnedOn', { date: skill.unlockedOn }) : null,
+		recent: entry.recent,
 	};
 }
 

@@ -1,4 +1,4 @@
-import type { Skill, SkillRank, SkillStanding, RequirementProgress } from '../domain';
+import type { LedgerSource, Skill, SkillRank, SkillStanding, RequirementProgress } from '../domain';
 import type { InvalidRules, InvalidSkillNote, UnreadableLedgerEvent } from '../ports';
 import type { GameEvent } from './gameEvents';
 import type { PendingOrFailedStatus, SyncStatus } from './QuestState';
@@ -14,6 +14,16 @@ export interface CharacterStanding {
 	readonly xpToNext: number;
 }
 
+/** One ledger row of a skill, as its recent entries list it. */
+export interface RecentEntry {
+	/** Local date as `YYYY-MM-DD`. */
+	readonly date: string;
+	readonly task: string;
+	/** Signed: a `revert` is negative. */
+	readonly xp: number;
+	readonly source: LedgerSource;
+}
+
 /** One skill as the Skills page shows it. `skill` already carries the unlock decided by the sync. */
 export interface SkillEntry {
 	readonly skill: Skill;
@@ -22,6 +32,22 @@ export interface SkillEntry {
 	/** The rank the skill holds, or `null` while locked. */
 	readonly rank: SkillRank | null;
 	readonly requirements: readonly RequirementProgress[];
+	/** The skill's last ledger rows, newest first (at most five); empty when it has none. */
+	readonly recent: readonly RecentEntry[];
+}
+
+/** A skill a quest feeds: the name of its note, or its id when the vault has no note for it. */
+export interface SkillRef {
+	readonly id: string;
+	readonly name: string;
+}
+
+/** What completing one Habitica task writes to the ledger, priced the way the ledger prices it (game-ui S6). */
+export interface QuestPrice {
+	/** The XP of each row; the character counts it once. */
+	readonly xp: number;
+	/** Empty when the task has no skill tag: character XP only. */
+	readonly skills: readonly SkillRef[];
 }
 
 export interface GameResult {
@@ -32,6 +58,8 @@ export interface GameResult {
 	readonly invalidSkills: readonly InvalidSkillNote[];
 	readonly unreadable: readonly UnreadableLedgerEvent[];
 	readonly invalidRules: InvalidRules | null;
+	/** Habitica task id to its price, for every task the last game sync read. */
+	readonly questPrices: ReadonlyMap<string, QuestPrice>;
 }
 
 /** Immutable view of the game; every change produces a new object. */
@@ -46,6 +74,11 @@ export interface GameSnapshot {
 	readonly invalidSkills: readonly InvalidSkillNote[];
 	readonly unreadable: readonly UnreadableLedgerEvent[];
 	readonly invalidRules: InvalidRules | null;
+	/**
+	 * Habitica task id to its price, for the tasks the last game sync read; absent until the game
+	 * first records a result. A task missing from it has no known price yet.
+	 */
+	readonly questPrices?: ReadonlyMap<string, QuestPrice>;
 }
 
 const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
@@ -84,6 +117,7 @@ export class GameState {
 			invalidSkills: [...result.invalidSkills],
 			unreadable: [...result.unreadable],
 			invalidRules: result.invalidRules,
+			questPrices: result.questPrices,
 		};
 	}
 

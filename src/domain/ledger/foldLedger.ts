@@ -64,8 +64,8 @@ export function foldLedger(rows: readonly LedgerRow[], skills: readonly SkillXpS
 	return { characterXp: Math.max(0, characterTotal(unique)), skillXp, statXp, stats };
 }
 
-/** The rows of the ledger without exact repeats of the same unique key. */
-function uniqueRows(rows: readonly LedgerRow[]): LedgerRow[] {
+/** The rows of the ledger without exact repeats of the same unique key; the first of each stays. */
+export function uniqueRows(rows: readonly LedgerRow[]): LedgerRow[] {
 	const seen = new Set<string>();
 	return rows.filter((row) => {
 		const key = `${row.habiticaId}|${row.source}|${row.n}|${row.skill ?? ''}|${row.date}`;
