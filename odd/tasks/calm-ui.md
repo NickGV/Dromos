@@ -1,7 +1,7 @@
 # Calm UI: accessibility fixes and a warm identity
 
 Objective: fix the accessibility defects found in the review of 2026-11-03, then make the home screen read as a calm RPG instead of a generic dashboard.
-Branch: `feat/calm-ui`, from `main` at `d3e4c16`. Delivery: `single-pr`, merged into `main` without squash as M3 to M5 were; T1 is released as 0.6.2 from the branch, the rest as 0.7.0, each tag with the user's go-ahead. Tests: Vitest (`npm test`). Forecast: about 1,600 authored lines.
+Branch: `feat/calm-ui`, from `main` at `d3e4c16`. Delivery: `single-pr`, merged into `main` without squash as M3 to M5 were; the plan was to release T1 as 0.6.2 and the rest as 0.7.0, but 0.6.2 was never tagged: everything shipped in 0.7.0 (L12). Tests: Vitest (`npm test`). Forecast: about 1,600 authored lines.
 
 ## Specs
 
@@ -53,3 +53,4 @@ The user accepted the review and one decision (L2). The items below come from th
 - **L9** (2026-11-03): User, on installing in this PC's Obsidian before tagging 0.7.0: "si dale porfavor". `npm run install:local` with `DROMOS_VAULT=~/Documents/Logos`, after copying the installed 0.6.1 files to a scratch backup: `main.js` and `styles.css` in the vault are byte-identical to the build of `25520e3`; `data.json` untouched. The manifest still says 0.6.1. The vault's `.obsidian` folder carries Syncthing conflict files, so the build may reach the phone the same way. Next: the user's look in Obsidian after a reload.
 - **L10** (2026-11-03): User, after looking at the install in Obsidian: "lo veo bien por el momento". Not confirmed item by item: the lock icon from `setIcon`, opening a medallion, and the phone. Next: the user's decision on tagging 0.7.0.
 - **L11** (2026-11-03): User: "publicala de una vez porfavor". Changelog dated (`1e272d1`), `chore(release): 0.7.0` (`d4f659f`), branch and tag pushed. The workflow ran every step, including the tag check, and published https://github.com/NickGV/Dromos/releases/tag/0.7.0 as the latest, not a draft; the branch CI is green; the three assets are byte-identical to the local build. The release files were copied into this PC's vault, so it reads 0.7.0. BRAT here keeps Dromos frozen at 0.6.1 (`pluginSubListFrozenVersion`), so it will not update this PC by itself until the user sets it back to the latest version. Not merged to `main`.
+- **L12** (2026-11-03): Correction raised by Esdras and checked here: there is no `0.6.2` tag and no 0.6.2 entry in the changelog. The accessibility fixes of T1 shipped in 0.7.0 with the rest. The header now says so.
