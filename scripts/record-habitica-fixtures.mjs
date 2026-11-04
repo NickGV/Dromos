@@ -48,7 +48,12 @@ for (const list of LISTS) {
 }
 
 const anonymizer = createAnonymizer();
-const fixtures = recorded.map((body) => anonymizer.response(body));
+let fixtures;
+try {
+	fixtures = recorded.map((body) => anonymizer.response(body));
+} catch {
+	fail('Habitica sent a response that is not a task list; nothing was written.');
+}
 const leaks = countLeaks(recorded, fixtures) + fixtures.reduce((sum, fixture) => sum + foreignStrings(fixture), 0);
 if (leaks > 0) fail(`Nothing was written: ${leaks} private strings would have reached the fixtures.`);
 
