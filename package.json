@@ -11,6 +11,7 @@
 		"test:watch": "vitest",
 		"lint": "eslint .",
 		"install:local": "bash scripts/install-local.sh",
+		"fixtures:habitica": "node scripts/record-habitica-fixtures.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [

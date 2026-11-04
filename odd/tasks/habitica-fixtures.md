@@ -25,9 +25,9 @@ Assumptions (the agent's, not the issue's; the user can overrule them):
 
 | ID | Specs | Scope | Route | Status | Commit |
 |---|---|---|---|---|---|
-| T1 | S1, S5 | Anonymizer `test/fixtures/habitica/anonymize.ts` and its unit tests on a synthetic payload | inline (no Writer trigger: one unit, about 200 lines). Risk: item 2 (the guard that keeps personal data out of a public repo) | done: 10 tests RED (module missing) then GREEN; breaking the id-key rule fails 1 of them; `tsc` and ESLint clean | this commit |
-| T2 | S1, S2, S3 | Script `scripts/record-habitica-fixtures.mjs`, `npm run fixtures:habitica`, README section, a test that its `x-client` matches `HABITICA_X_CLIENT` | inline. Risk: item 2 (reads credentials) | pending | |
-| T3 | S4, S6 | The user records; commit the recorded fixtures with tests that read them through the adapters and check they hold only fakes | inline; waits on the user | pending | |
+| T1 | S1, S5 | Anonymizer `test/fixtures/habitica/anonymize.ts` and its unit tests on a synthetic payload | inline (no Writer trigger: one unit, about 200 lines). Risk: item 2 (the guard that keeps personal data out of a public repo) | done: 10 tests RED (module missing) then GREEN; breaking the id-key rule fails 1 of them; `tsc` and ESLint clean | `76ab86b` |
+| T2 | S1, S2, S3 | Script `scripts/record-habitica-fixtures.mjs`, `npm run fixtures:habitica`, README section, a test that its `x-client` matches `HABITICA_X_CLIENT` | inline. Risk: item 2 (reads credentials) | done: the x-client test fails when the values differ; a scratch run against a stubbed `fetch` wrote 3 files with fakes only and printed counts only, and the 401, unreachable, non-JSON, `CI`, missing-credential and space-in-token paths each exit 1 with one line and no credential; 1276/1276, lint 0 errors and 4 warnings, build ok | this commit |
+| T3 | S4, S6 | The user records; commit the recorded fixtures with tests that read them through the adapters and check they hold only fakes | inline; waits on the user | waiting: the user runs `npm run fixtures:habitica` | |
 | T4 | S1-S6 | Independent verifier over the branch before any push (Risk item 2) | delegated (Verification trigger) | pending | |
 
 ## Log
