@@ -29,10 +29,51 @@ describe('minutesSince', () => {
 });
 
 describe('agoText', () => {
-	it('says "menos de 1 min" under one minute and "N min" otherwise', () => {
+	it('says "menos de 1 min" under one minute and "N min" up to an hour', () => {
 		expect(agoText(0, t)).toBe('hace menos de 1 min');
 		expect(agoText(1, t)).toBe('hace 1 min');
-		expect(agoText(75, t)).toBe('hace 75 min');
+		expect(agoText(59, t)).toBe('hace 59 min');
+	});
+
+	it('says hours from one hour and days from one day, rounding down', () => {
+		expect(agoText(60, t)).toBe('hace 1 h');
+		expect(agoText(185, t)).toBe('hace 3 h');
+		expect(agoText(24 * 60 - 1, t)).toBe('hace 23 h');
+		expect(agoText(24 * 60, t)).toBe('hace 1 día');
+		expect(agoText(3 * 24 * 60 + 5, t)).toBe('hace 3 días');
+	});
+});
+
+describe('the announcement of the banner', () => {
+	it('names a finished sync without the time, so it stays the same while the minutes go by', () => {
+		const atFive = syncBannerView(snapshot({ kind: 'synced' }, 5), NOW, t);
+		const atSix = syncBannerView(snapshot({ kind: 'synced' }, 6), NOW, t);
+		expect(atFive.message).toBe('Sincronizado hace 5 min');
+		expect(atFive.announcement).toBe('Misiones sincronizadas');
+		expect(atSix.announcement).toBe('Misiones sincronizadas');
+	});
+
+	it('is the message for every other status, which carries no time', () => {
+		const statuses: SyncStatus[] = [{ kind: 'idle' }, { kind: 'syncing' }, { kind: 'not-configured' }, { kind: 'offline' }, { kind: 'unauthorized' }, { kind: 'rate-limited', retryAfterSeconds: 30 }, { kind: 'error' }];
+		for (const status of statuses) {
+			const view = syncBannerView(snapshot(status, 12), NOW, t);
+			expect(view.announcement).toBe(view.message);
+		}
+	});
+});
+
+describe('the prominence of the banner', () => {
+	it('is quiet while nothing needs the user', () => {
+		for (const status of [{ kind: 'idle' }, { kind: 'syncing' }, { kind: 'synced' }] as SyncStatus[]) {
+			expect(syncBannerView(snapshot(status, 3), NOW, t).prominent).toBe(false);
+		}
+	});
+
+	it('is prominent when Habitica could not be reached or the account is not set', () => {
+		const statuses: SyncStatus[] = [{ kind: 'not-configured' }, { kind: 'offline' }, { kind: 'unauthorized' }, { kind: 'rate-limited', retryAfterSeconds: 30 }, { kind: 'error' }];
+		for (const status of statuses) {
+			expect(syncBannerView(snapshot(status, 3), NOW, t).prominent).toBe(true);
+		}
 	});
 });
 
@@ -41,6 +82,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'synced' }, 5), NOW, t)).toEqual({
 			tone: 'success',
 			message: 'Sincronizado hace 5 min',
+			announcement: 'Misiones sincronizadas',
+			prominent: false,
 			detail: null,
 		});
 	});
@@ -53,6 +96,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'syncing' }, 3), NOW, t)).toEqual({
 			tone: 'neutral',
 			message: 'Sincronizando…',
+			announcement: 'Sincronizando…',
+			prominent: false,
 			detail: null,
 		});
 	});
@@ -61,6 +106,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'offline' }), NOW, t)).toEqual({
 			tone: 'warning',
 			message: 'Sin conexión',
+			announcement: 'Sin conexión',
+			prominent: true,
 			detail: null,
 		});
 	});
@@ -69,6 +116,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'offline' }, 12), NOW, t)).toEqual({
 			tone: 'warning',
 			message: 'Sin conexión',
+			announcement: 'Sin conexión',
+			prominent: true,
 			detail: `${STALE_NOTE} (hace 12 min).`,
 		});
 	});
@@ -77,6 +126,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'unauthorized' }), NOW, t)).toEqual({
 			tone: 'error',
 			message: 'Token inválido',
+			announcement: 'Token inválido',
+			prominent: true,
 			detail: 'Revisa el ID de usuario y el token de API de Habitica en los ajustes de Dromos.',
 		});
 	});
@@ -91,6 +142,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'not-configured' }), NOW, t)).toEqual({
 			tone: 'neutral',
 			message: 'Conecta tu cuenta de Habitica',
+			announcement: 'Conecta tu cuenta de Habitica',
+			prominent: true,
 			detail: 'Escribe tu ID de usuario y tu token de API de Habitica en los ajustes de Dromos.',
 		});
 	});
@@ -99,6 +152,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'rate-limited', retryAfterSeconds: 42 }), NOW, t)).toEqual({
 			tone: 'warning',
 			message: 'Demasiadas solicitudes a Habitica',
+			announcement: 'Demasiadas solicitudes a Habitica',
+			prominent: true,
 			detail: 'Espera 42 segundos antes de volver a sincronizar.',
 		});
 		expect(syncBannerView(snapshot({ kind: 'rate-limited', retryAfterSeconds: 1 }), NOW, t).detail).toBe(
@@ -116,6 +171,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'error' }), NOW, t)).toEqual({
 			tone: 'error',
 			message: 'No se pudo sincronizar con Habitica',
+			announcement: 'No se pudo sincronizar con Habitica',
+			prominent: true,
 			detail: 'Inténtalo de nuevo en unos minutos.',
 		});
 		expect(syncBannerView(snapshot({ kind: 'error' }, 7), NOW, t).detail).toBe(
@@ -127,6 +184,8 @@ describe('syncBannerView', () => {
 		expect(syncBannerView(snapshot({ kind: 'idle' }), NOW, t)).toEqual({
 			tone: 'neutral',
 			message: 'Sin sincronizar todavía',
+			announcement: 'Sin sincronizar todavía',
+			prominent: false,
 			detail: null,
 		});
 	});

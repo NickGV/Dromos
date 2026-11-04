@@ -25,6 +25,17 @@ export interface HabitRowView {
 	readonly text: string;
 }
 
+/** Where a phase stands on the road of its campaign. */
+export type PhaseSegmentState = 'done' | 'open' | 'ahead';
+
+/** One phase drawn as a stretch of road: completed, the open one with its progress, or still ahead. */
+export interface PhaseSegmentView {
+	readonly name: string;
+	readonly state: PhaseSegmentState;
+	/** Whole percent, 0..100. */
+	readonly percent: number;
+}
+
 /** One campaign as `CampaignCard` renders it (S5). */
 export interface CampaignCardView {
 	readonly path: string;
@@ -37,6 +48,8 @@ export interface CampaignCardView {
 	/** The next task (project) or phase (research), or `null` when nothing is left. */
 	readonly next: string | null;
 	readonly progress: { readonly ratio: number; readonly percent: number };
+	/** Every phase in order; empty for a campaign without phases. */
+	readonly segments: readonly PhaseSegmentView[];
 	readonly tasks: readonly TaskRowView[];
 	readonly habits: readonly HabitRowView[];
 	readonly warnings: readonly string[];
@@ -80,6 +93,7 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 		chip,
 		next: next === null ? null : next.kind === 'task' ? next.task.title : next.phase.name,
 		progress: { ratio: progress.ratio, percent: Math.round(progress.ratio * 100) },
+		segments: segmentsOf(campaign),
 		tasks: campaign.tasks.map((task) => {
 			const state: TaskRowState = task.completed
 				? 'completed'
@@ -122,6 +136,17 @@ export function campaignListView(snapshot: CampaignSnapshot, context: Omit<Campa
 // its tasks read as pending only because nobody has looked yet.
 function progressUnknown(campaign: Campaign, context: CampaignViewContext): boolean {
 	return campaign.kind === 'project' && !context.habiticaKnown && campaign.tasks.some((task) => task.habiticaId !== null);
+}
+
+// The open phase is the first one not completed, as in the headline; a completed phase is
+// done wherever it sits.
+function segmentsOf(campaign: Campaign): PhaseSegmentView[] {
+	const open = campaign.phases.find((phase) => phase.status !== 'completed');
+	return campaign.phases.map((phase) => {
+		if (phase.status === 'completed') return { name: phase.name, state: 'done', percent: 100 };
+		if (phase === open) return { name: phase.name, state: 'open', percent: Math.round(phaseProgress(campaign, phase.id).ratio * 100) };
+		return { name: phase.name, state: 'ahead', percent: 0 };
+	});
 }
 
 // The bar of a project follows its open phase (the card), the total only when no phase is open.

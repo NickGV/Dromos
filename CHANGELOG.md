@@ -2,6 +2,30 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-11-03
+
+### Changed
+
+- **A warm palette of its own.** Dromos now has its colors, from its visual design, over the theme's surfaces and text: ochre for XP, levels and progress, clay for the stalled seal, olive for a built habit, umber for rules and outlines. Section titles are serif small caps between two short rules, and every title uses a serif your device already has. Light and dark themes both get their own values.
+- **A landscape** heads the character card: hills, two cypresses and a robed figure under a pale sky, and a starry night with a lamp in the dark theme. It is drawn with the palette, so it follows the theme.
+- **The character comes first.** The sync status and the **Sync** button moved to the foot of the character card, as a quiet line while all is well and a band only when there is something to do. A level-up is a ribbon under the name instead of a banner above the card. On phones the six stats stay three per row, so the card is shorter.
+- **Calmer campaigns.** A stalled campaign is marked by its clay seal only, without a red border or bar. The phases are drawn as a road, one stretch per phase. The next step is in italics, the campaigns sit as rows instead of cards inside a card, and the name is underlined because it opens the note. A task or habit that can be sent shows only **Send to Habitica**, without a "Not linked" label beside it.
+- **Skills as medallions.** Every skill is a medallion: earned in ochre with its level and rank, locked as a grey silhouette with a lock and the requirement closest to done. Choosing one opens its card.
+- On wide panes, today's quests and the campaigns sit side by side.
+- **Ask for a briefing** is now **Copy briefing command**, which is what it does. The settings say where Habitica shows the user ID and the token, the phone keyboard no longer capitalizes or corrects them, and the days of the stalled threshold get a number pad.
+
+### Fixed
+
+- Screen readers heard the sync status again every minute, because its "N min ago" changed while the view was open. Now they hear a change of status only.
+- The campaign name lost its keyboard focus ring, and on phones its touch area was smaller than a button's.
+- Text that fell under the WCAG AA contrast ratio in Obsidian's default themes now reaches it: the Dailies and To-dos headings, a briefing of another day, locked skills, warnings, and the Overdue and Stalled labels. Nothing is dimmed with transparency anymore.
+- "Synced 185 min ago" now reads "Synced 3 h ago", and days after a day.
+- The task and skill toggles are touch-sized on phones.
+- The view declares its language, so a screen reader reads the Spanish interface with a Spanish voice.
+- Headings nest: skill names sit under Earned and To unlock, and the panel of Esdras has a heading.
+- Sync and Send to Habitica keep keyboard focus while they work.
+- With reduced motion, the spinner holds still.
+
 ## [0.6.1] - 2026-11-02
 
 ### Added

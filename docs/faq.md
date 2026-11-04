@@ -78,7 +78,7 @@ Obsidian Sync runs only while the app is open on both ends. A briefing written o
 
 ### It says "Esdras has not written today"
 
-No briefing is dated today. On desktop, **Ask for a briefing** copies `/dromos-briefing`; run it in OpenCode from your vault folder, then select **Sync**.
+No briefing is dated today. On desktop, **Copy briefing command** copies `/dromos-briefing`; run it in OpenCode from your vault folder, then select **Sync**.
 
 ### The button is missing on my phone
 

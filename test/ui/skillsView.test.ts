@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { GameSnapshot, SkillEntry } from '../../src/application';
 import { skillStanding, type Skill } from '../../src/domain';
 import { createTranslator, type Translator } from '../../src/i18n';
-import { skillsPageView } from '../../src/ui/presenters/skillsView';
+import { nextSkillSelection, skillsPageView } from '../../src/ui/presenters/skillsView';
 import { skill } from '../domain/skill/skillFixtures';
 
 const es = createTranslator('es');
@@ -75,9 +75,11 @@ describe('skillsPageView: earned skills', () => {
 				statLabel: 'Inteligencia',
 				description: 'Leer libros.',
 				unlocked: true,
+				level: 2,
 				levelText: 'Nivel 2',
 				rankName: 'Rango 0',
 				rankDescription: 'Descripción 0',
+				caption: 'Rango 0',
 				xp: { current: 50, total: 246, percent: 20, text: '50 / 246 XP' },
 				requirements: [],
 				progressPercent: 100,
@@ -220,5 +222,37 @@ describe('skillsPageView: titles, notices and problems', () => {
 			'and 2 more unreadable ledger rows',
 		]);
 		expect(skillsPageView(snapshot({ skills: [earned()], unreadable: unreadable.slice(0, 6) }), en).problems.at(-1)).toBe('and 1 more unreadable ledger row');
+	});
+});
+
+describe('skillsPageView: medallions', () => {
+	const quests = { requirement: { kind: 'quests', count: 5 }, done: 3, total: 5, met: false } as const;
+	const habit = { requirement: { kind: 'habit', days: 21 }, done: 12, total: 21, met: false } as const;
+	const campaigns = { requirement: { kind: 'campaigns', count: 1 }, done: 0, total: 1, met: false } as const;
+
+	it('captions a locked skill with the unmet requirement closest to done, and gives it no level', () => {
+		const card = skillsPageView(snapshot({ skills: [locked({}, [campaigns, habit, quests])] }), en).locked[0];
+		expect(card?.caption).toBe('Quests with this skill: 3 of 5');
+		expect(card?.level).toBeNull();
+	});
+
+	it('leaves met requirements out of the caption', () => {
+		const met = { requirement: { kind: 'quests', count: 5 }, done: 5, total: 5, met: true } as const;
+		const card = skillsPageView(snapshot({ skills: [locked({}, [met, campaigns])] }), en).locked[0];
+		expect(card?.caption).toBe('Campaigns completed: 0 of 1');
+	});
+
+	it('captions an earned skill with its rank and gives its level as a number', () => {
+		const card = skillsPageView(snapshot({ skills: [earned({}, 0)] }), en).earned[0];
+		expect(card?.caption).toBe(card?.rankName);
+		expect(card?.levelText).toBe(`Level ${String(card?.level)}`);
+	});
+});
+
+describe('nextSkillSelection', () => {
+	it('opens a skill, switches to another, and closes the open one when it is chosen again', () => {
+		expect(nextSkillSelection(null, 'lector')).toBe('lector');
+		expect(nextSkillSelection('lector', 'atleta')).toBe('atleta');
+		expect(nextSkillSelection('lector', 'lector')).toBeNull();
 	});
 });

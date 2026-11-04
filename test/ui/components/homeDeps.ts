@@ -1,0 +1,52 @@
+import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src/application';
+import { createTranslator, type Language } from '../../../src/i18n';
+import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
+import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
+
+export const noop = (): void => undefined;
+export const renderNothing = (): (() => void) => noop;
+const never = <T>(): Promise<T> => new Promise<T>(noop);
+
+const clock = { today: () => '2026-11-03', now: () => new Date('2026-11-03T14:00:00Z') };
+
+export const IDLE_QUESTS: QuestSnapshot = { quests: null, lastSyncedAt: null, status: { kind: 'idle' } };
+export const IDLE_GAME: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
+const IDLE_CAMPAIGNS: CampaignSnapshot = { campaigns: null, issues: [], lastSyncedAt: null, status: { kind: 'idle' } };
+
+/**
+ * Dependencies for rendering `HomeScreen` on the server: effects never run there, so the
+ * screen shows its first render (the character loading) with the snapshots given here.
+ */
+export function homeDeps(options: { readonly language?: Language; readonly quests?: QuestSnapshot; readonly game?: GameSnapshot } = {}): HomeScreenDeps {
+	const language = options.language ?? 'en';
+	const quests = options.quests ?? IDLE_QUESTS;
+	const game = options.game ?? IDLE_GAME;
+	const campaigns: CampaignsDeps = {
+		syncCampaigns: { execute: never, reload: never },
+		linkTask: { execute: never },
+		linkHabit: { execute: never },
+		campaignSnapshot: () => IDLE_CAMPAIGNS,
+		staleAfterDays: () => 14,
+		openNote: noop,
+		clock,
+	};
+	return {
+		loadHome: { execute: never },
+		syncQuests: { execute: never },
+		syncGame: { execute: never },
+		gameSnapshot: () => game,
+		dismissGameEvents: noop,
+		takeGameAnnouncements: () => [],
+		notify: noop,
+		renderMarkdown: renderNothing,
+		renderIcon: noop,
+		requestBriefing: null,
+		questSnapshot: () => quests,
+		clock,
+		campaigns,
+		translator: () => createTranslator(language),
+		language: () => language,
+		subscribeSettings: () => noop,
+		subscribeGame: () => noop,
+	};
+}

@@ -1,11 +1,107 @@
-/* Dromos — home view (M1). Colors come only from Obsidian theme variables, so the
-   view follows light and dark themes. Every rule is scoped under .dromos-root. */
+/* Dromos — home view. Surfaces and text come from Obsidian theme variables, so the view
+   follows light and dark themes; Dromos owns only the --dromos-* tokens below (D4 as amended
+   in odd/tasks/calm-ui.md). Every rule is scoped under .dromos-root. */
 .dromos-root {
+	/* Ink for warning and error text. Obsidian's orange and red fall under 4.5:1 on its light
+	   backgrounds, and its red under 4.5:1 on the dark secondary one. */
+	--dromos-ink-warning: var(--text-warning);
+	--dromos-ink-error: var(--text-error);
+	/* The palette of 08-Visual-Design.md, deepened where a fill needs 3:1 against its track or
+	   text needs 4.5:1: ochre for XP, levels and progress, clay for the stalled seal, olive for
+	   what is built, umber for rules and outlines, warm stone for what is locked. */
+	--dromos-ochre: #d4a64a;
+	--dromos-ochre-ink: #d9ad55;
+	--dromos-clay: #e0805f;
+	--dromos-clay-ink: #e0805f;
+	--dromos-olive: #9fb57a;
+	--dromos-umber: #a07a5a;
+	--dromos-stone: #8a8279;
+	/* A serif every platform has, so titles look alike without loading a font. */
+	--dromos-font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', P052, 'URW Palladio L', Georgia, 'Noto Serif', serif;
+	container: dromos-view / inline-size;
 	background: var(--background-primary);
 	color: var(--text-normal);
 	padding: 0;
 	overflow-y: auto;
 }
+
+.theme-light .dromos-root {
+	--dromos-ink-warning: #8f5300;
+	--dromos-ink-error: #a33f25;
+	--dromos-ochre: #a8781a;
+	--dromos-ochre-ink: #7a5a12;
+	--dromos-clay: #b5593c;
+	--dromos-clay-ink: #a33f25;
+	--dromos-olive: #5f7a42;
+	--dromos-umber: #8b5e3c;
+	--dromos-stone: #b8afa3;
+}
+
+.theme-dark .dromos-root { --dromos-ink-error: #ff7a70; }
+
+/* On phones in the light theme Obsidian's button color is the card's own, so a button on a
+   card had no shape: give it the page color there. */
+.is-mobile.theme-light .dromos-root .dromos-card { --interactive-normal: var(--background-primary); }
+
+/* The landscape at the head of the character card: a summer afternoon in the light theme, a
+   night with stars and a lamp in the dark one. Flat fills, no gradient. */
+.dromos-root {
+	--dromos-sky: #1f2440;
+	--dromos-sun: #e8ddb5;
+	--dromos-cloud: #2c3152;
+	--dromos-hill-far: #2f3d2c;
+	--dromos-hill-mid: #26331f;
+	--dromos-hill-near: #1d2818;
+	--dromos-cypress: #141d10;
+	--dromos-robe: #cbb993;
+	--dromos-skin: #8e6446;
+	--dromos-star: #e8ddb5;
+}
+
+.theme-light .dromos-root {
+	--dromos-sky: #cfe3e8;
+	--dromos-sun: #f6e7b8;
+	--dromos-cloud: #faf5ea;
+	--dromos-hill-far: #a9bd86;
+	--dromos-hill-mid: #8fa66b;
+	--dromos-hill-near: #6e8b4e;
+	--dromos-cypress: #4f6b3a;
+	--dromos-robe: #f3e9d2;
+	--dromos-skin: #b9835a;
+}
+
+.dromos-root .dromos-landscape {
+	display: block;
+	width: calc(100% + 32px);
+	height: 120px;
+	margin: -16px -16px 14px;
+	border-radius: var(--radius-m) var(--radius-m) 0 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.dromos-root .dromos-landscape-sky { fill: var(--dromos-sky); }
+.dromos-root .dromos-landscape-sun { fill: var(--dromos-sun); }
+.dromos-root .dromos-landscape-cloud { fill: var(--dromos-cloud); stroke: var(--dromos-umber); stroke-width: 1.2; stroke-linejoin: round; }
+.dromos-root .dromos-landscape-hill-far { fill: var(--dromos-hill-far); }
+.dromos-root .dromos-landscape-hill-mid { fill: var(--dromos-hill-mid); }
+.dromos-root .dromos-landscape-hill-near { fill: var(--dromos-hill-near); }
+.dromos-root .dromos-landscape-cypress { fill: var(--dromos-cypress); }
+.dromos-root .dromos-landscape-robe { fill: var(--dromos-robe); stroke: var(--dromos-umber); stroke-width: 0.8; }
+.dromos-root .dromos-landscape-head { fill: var(--dromos-skin); }
+.dromos-root .dromos-landscape-staff { stroke: var(--dromos-umber); stroke-width: 1.2; stroke-linecap: round; }
+.dromos-root .dromos-landscape-stars { fill: var(--dromos-star); }
+.dromos-root .dromos-landscape-lamp { fill: var(--dromos-ochre); }
+
+/* Stars and the lamp belong to the night. */
+.theme-light .dromos-root .dromos-landscape-stars,
+.theme-light .dromos-root .dromos-landscape-lamp { display: none; }
+
+/* A busy button keeps its focus (aria-disabled, not disabled) and ignores clicks. Obsidian
+   already dims it as it dims a disabled one; a muted color on top would fall under 4.5:1. */
+.dromos-root button[aria-disabled="true"] { cursor: progress; }
+
+/* Disclosure toggles: touch-sized on phones. */
+.is-mobile .dromos-root summary { padding-block: 12px; }
 
 .dromos-root .dromos-home {
 	container-type: inline-size;
@@ -17,35 +113,43 @@
 	padding: 12px 16px 32px;
 }
 
-/* Status band and sync button */
-.dromos-root .dromos-toolbar {
+/* Sync line at the foot of the character card: a quiet line while all is well, a band
+   when the user has something to do (Habitica not reached, or the account not set). */
+.dromos-root .dromos-sync-line {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
+	margin-top: 14px;
+	padding-top: 10px;
+	border-top: 1px solid var(--background-modifier-border);
 }
 
 .dromos-root .dromos-banner {
-	flex: 1 1 auto;
+	flex: 1 1 14em;
 	min-width: 0;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
 	gap: 2px 8px;
-	padding: 6px 12px;
-	border-left: 3px solid var(--text-faint);
-	border-radius: var(--radius-s);
-	background: var(--background-secondary);
+	color: var(--text-muted);
 	font-size: var(--font-ui-small);
 }
 
-.dromos-root .dromos-banner.is-success { border-left-color: var(--text-success); }
-.dromos-root .dromos-banner.is-warning { border-left-color: var(--text-warning); }
-.dromos-root .dromos-banner.is-error { border-left-color: var(--text-error); }
-.dromos-root .dromos-banner.is-error .dromos-banner-message { color: var(--text-error); }
+.dromos-root .dromos-banner.is-prominent {
+	padding: 6px 12px;
+	border-left: 3px solid var(--text-faint);
+	border-radius: var(--radius-s);
+	background: var(--background-primary);
+	color: var(--text-normal);
+}
 
-.dromos-root .dromos-banner-message { font-weight: var(--font-semibold); }
+.dromos-root .dromos-banner.is-prominent .dromos-banner-message { font-weight: var(--font-semibold); }
+.dromos-root .dromos-banner.is-prominent.is-warning { border-left-color: var(--text-warning); }
+.dromos-root .dromos-banner.is-prominent.is-error { border-left-color: var(--text-error); }
+.dromos-root .dromos-banner.is-prominent.is-error .dromos-banner-message { color: var(--dromos-ink-error); }
 .dromos-root .dromos-banner-detail { color: var(--text-muted); }
-.dromos-root .dromos-sync-button { flex: 0 0 auto; }
+.dromos-root .dromos-sync-button { flex: 0 0 auto; margin-left: auto; }
 
 /* Cards */
 .dromos-root .dromos-card {
@@ -55,13 +159,29 @@
 	padding: 16px;
 }
 
+/* Section titles: serif small caps between two short rules, like the heading of a chapter. */
 .dromos-root .dromos-card-title {
-	margin: 0 0 8px;
-	font-size: var(--font-ui-medium);
-	font-weight: var(--font-semibold);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin: 0 0 12px;
+	font-family: var(--dromos-font-display);
+	font-size: 1.1em;
+	font-weight: 600;
 	font-variant: small-caps;
-	letter-spacing: 0.04em;
-	color: var(--text-muted);
+	letter-spacing: 0.06em;
+	line-height: 1.2;
+	color: var(--text-normal);
+	text-align: center;
+}
+
+.dromos-root .dromos-card-title::before,
+.dromos-root .dromos-card-title::after {
+	content: '';
+	flex: 0 0 28px;
+	height: 1px;
+	background: var(--dromos-umber);
 }
 
 .dromos-root .dromos-empty {
@@ -82,7 +202,7 @@
 
 .dromos-root .dromos-character-name {
 	margin: 0;
-	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+	font-family: var(--dromos-font-display);
 	font-size: 1.8em;
 	font-weight: 500;
 	line-height: 1.15;
@@ -98,9 +218,9 @@
 .dromos-root .dromos-character-level {
 	flex: 0 0 auto;
 	padding: 2px 10px;
-	border: 1px solid var(--interactive-accent);
+	border: 1px solid var(--dromos-ochre);
 	border-radius: var(--radius-l);
-	color: var(--text-accent);
+	color: var(--dromos-ochre-ink);
 	font-size: var(--font-ui-small);
 	font-weight: var(--font-semibold);
 	white-space: nowrap;
@@ -123,7 +243,7 @@
 
 .dromos-root .dromos-xp-fill {
 	height: 100%;
-	background: var(--interactive-accent);
+	background: var(--dromos-ochre);
 }
 
 .dromos-root .dromos-xp-text {
@@ -169,7 +289,7 @@
 	margin: 0 0 4px;
 	font-size: var(--font-ui-small);
 	font-weight: var(--font-semibold);
-	color: var(--text-faint);
+	color: var(--text-muted);
 }
 
 .dromos-root .dromos-quest-items {
@@ -192,7 +312,7 @@
 	flex: 0 0 auto;
 	width: 14px;
 	height: 14px;
-	border: 1.5px solid var(--text-muted);
+	border: 1.5px solid var(--dromos-umber);
 	border-radius: 50%;
 }
 
@@ -203,12 +323,12 @@
 }
 
 .dromos-root .dromos-quest.is-completed .dromos-quest-check {
-	border-color: var(--text-faint);
-	background: var(--text-faint);
+	border-color: var(--dromos-stone);
+	background: var(--dromos-stone);
 }
 
 .dromos-root .dromos-quest.is-completed .dromos-quest-title {
-	color: var(--text-faint);
+	color: var(--text-muted);
 	text-decoration: line-through;
 }
 
@@ -220,8 +340,9 @@
 	font-size: var(--font-ui-smaller);
 }
 
-.dromos-root .dromos-quest-due.is-overdue { color: var(--text-error); }
-.dromos-root .dromos-quest-due.is-today { color: var(--text-accent); }
+.dromos-root .dromos-quest-due.is-overdue { color: var(--dromos-ink-error); }
+/* The accent stays on the border: as text it falls under 4.5:1 on light backgrounds. */
+.dromos-root .dromos-quest-due.is-today { border-color: var(--dromos-ochre); }
 
 .dromos-root .dromos-visually-hidden {
 	position: absolute;
@@ -235,14 +356,26 @@
 	border: 0;
 }
 
-/* Narrow panes and phones (Android): stack the toolbar, two stats per row. */
-@container (max-width: 440px) {
-	.dromos-root .dromos-toolbar {
-		flex-direction: column;
-		align-items: stretch;
+/* Wide panes (760 px and more): quests and campaigns side by side, the rest across both
+   columns. Obsidian pads the view 12 px on each side and the query measures inside that
+   padding, so 760 px reads as 736. */
+@container dromos-view (min-width: 736px) {
+	.dromos-root .dromos-home {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start;
+		max-width: 1100px;
 	}
 
+	.dromos-root .dromos-home > * { grid-column: 1 / -1; }
+	.dromos-root .dromos-home > .dromos-quests,
+	.dromos-root .dromos-home > .dromos-campaigns { grid-column: auto; }
+}
+
+/* Narrow panes and phones (Android): two stats per row, a lower landscape. */
+@container (max-width: 440px) {
 	.dromos-root .dromos-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.dromos-root .dromos-landscape { height: 88px; }
 }
 
 /* Campaigns (M2) */
@@ -260,25 +393,24 @@
 .dromos-root .dromos-campaign-notice { border-left-color: var(--text-warning); }
 .dromos-root .dromos-campaign-message.is-success { border-left-color: var(--text-success); }
 .dromos-root .dromos-campaign-message.is-warning { border-left-color: var(--text-warning); }
-.dromos-root .dromos-campaign-message.is-error { border-left-color: var(--text-error); color: var(--text-error); }
+.dromos-root .dromos-campaign-message.is-error { border-left-color: var(--text-error); color: var(--dromos-ink-error); }
 
+/* Campaigns sit on the card as rows split by a rule, not as cards inside a card. A stalled
+   one is marked by its clay seal only. */
 .dromos-root .dromos-campaign-items {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
 }
 
 .dromos-root .dromos-campaign {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-	padding: 12px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-m);
-	background: var(--background-primary);
+	padding: 14px 0;
 }
 
-.dromos-root .dromos-campaign.is-stale { border-color: var(--text-error); }
+.dromos-root .dromos-campaign:first-child { padding-top: 0; }
+.dromos-root .dromos-campaign + .dromos-campaign { border-top: 1px solid var(--background-modifier-border); }
 
 .dromos-root .dromos-campaign-head {
 	display: flex;
@@ -291,7 +423,7 @@
 	margin: 0;
 	flex: 0 1 auto;
 	min-width: 0;
-	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+	font-family: var(--dromos-font-display);
 	font-size: 1.25em;
 	font-weight: 600;
 	line-height: 1.2;
@@ -304,13 +436,22 @@
 	background: none;
 	box-shadow: none;
 	height: auto;
+	white-space: normal;
 	font: inherit;
 	color: inherit;
 	text-align: left;
 	cursor: pointer;
 }
 
-.dromos-root .dromos-link-button:hover { color: var(--text-accent); }
+.dromos-root .dromos-link-button:hover { color: var(--dromos-ochre-ink); }
+
+/* The rule above drops Obsidian's button shadow, and with it the focus ring: put the ring back. */
+.dromos-root .dromos-link-button:focus-visible {
+	border-radius: var(--radius-s);
+	box-shadow: 0 0 0 3px var(--background-modifier-border-focus);
+}
+
+.is-mobile .dromos-root .dromos-link-button { min-height: var(--touch-size-m, 44px); }
 
 .dromos-root .dromos-chip {
 	flex: 0 0 auto;
@@ -322,15 +463,15 @@
 }
 
 .dromos-root .dromos-chip.is-mono { font-variant-numeric: tabular-nums; }
-.dromos-root .dromos-chip.is-warning { background: transparent; border: 1px solid var(--text-warning); color: var(--text-warning); }
+.dromos-root .dromos-chip.is-warning { background: transparent; border: 1px solid var(--text-warning); color: var(--dromos-ink-warning); }
 
 .dromos-root .dromos-stamp {
 	flex: 0 0 auto;
 	margin-left: auto;
 	padding: 1px 8px;
-	border: 1px solid var(--text-error);
+	border: 1px solid var(--dromos-clay);
 	border-radius: var(--radius-s);
-	color: var(--text-error);
+	color: var(--dromos-clay-ink);
 	font-size: var(--font-ui-smaller);
 	font-variant: small-caps;
 	font-weight: var(--font-semibold);
@@ -339,16 +480,51 @@
 
 .dromos-root .dromos-campaign-next {
 	margin: 0;
-	padding: 4px 8px;
-	border: 1px dashed var(--background-modifier-border);
-	border-radius: var(--radius-s);
+	font-style: italic;
 	overflow-wrap: anywhere;
 }
 
 .dromos-root .dromos-campaign-next-label {
-	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
-	font-weight: 600;
+	font-family: var(--dromos-font-display);
+	font-style: normal;
+	font-variant: small-caps;
+	letter-spacing: 0.04em;
 	color: var(--text-muted);
+}
+
+/* The name opens the note: underlined, so it reads as a link without a hover. */
+.dromos-root .dromos-campaign-title .dromos-link-button {
+	text-decoration: underline;
+	text-decoration-color: var(--dromos-umber);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+/* The phases as a road: one stretch per phase, the open one a little taller. */
+.dromos-root .dromos-road {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+}
+
+.dromos-root .dromos-road-segment {
+	flex: 1 1 0;
+	min-width: 0;
+	height: 6px;
+	overflow: hidden;
+	border-radius: var(--radius-s);
+	background: var(--background-modifier-border);
+}
+
+.dromos-root .dromos-road-segment.is-open {
+	height: 9px;
+	box-shadow: inset 0 0 0 1px var(--dromos-ochre);
+}
+
+.dromos-root .dromos-road-fill {
+	display: block;
+	height: 100%;
+	background: var(--dromos-ochre);
 }
 
 .dromos-root .dromos-progress-track {
@@ -360,14 +536,13 @@
 
 .dromos-root .dromos-progress-fill {
 	height: 100%;
-	background: var(--interactive-accent);
+	background: var(--dromos-ochre);
 }
 
-.dromos-root .dromos-campaign.is-stale .dromos-progress-fill { background: var(--text-error); }
 
 .dromos-root .dromos-campaign-warning {
 	margin: 0;
-	color: var(--text-warning);
+	color: var(--dromos-ink-warning);
 	font-size: var(--font-ui-small);
 }
 
@@ -401,12 +576,12 @@
 }
 
 .dromos-root .dromos-campaign-task.is-completed .dromos-quest-check {
-	border-color: var(--text-faint);
-	background: var(--text-faint);
+	border-color: var(--dromos-stone);
+	background: var(--dromos-stone);
 }
 
 .dromos-root .dromos-campaign-task.is-completed .dromos-campaign-task-title {
-	color: var(--text-faint);
+	color: var(--text-muted);
 	text-decoration: line-through;
 }
 
@@ -432,14 +607,15 @@
 
 @keyframes dromos-spin { to { transform: rotate(360deg); } }
 
+/* Reduced motion: the spinner holds still; the label beside it already says what is happening. */
 @media (prefers-reduced-motion: reduce) {
-	.dromos-root .dromos-spinner { animation-duration: 3s; }
+	.dromos-root .dromos-spinner { animation: none; }
 }
 
 /* Panel of Esdras (M4): an open scroll, its rods at the top and the bottom */
 .dromos-root .dromos-briefing {
-	border-top: 3px double var(--text-faint);
-	border-bottom: 3px double var(--text-faint);
+	border-top: 3px double var(--dromos-umber);
+	border-bottom: 3px double var(--dromos-umber);
 }
 
 .dromos-root .dromos-briefing-head {
@@ -456,7 +632,8 @@
 
 .dromos-root .dromos-briefing-icon { font-size: var(--font-ui-medium); }
 
-.dromos-root .dromos-briefing-content.is-dimmed { opacity: 0.6; }
+.dromos-root .dromos-briefing-content.is-dimmed,
+.dromos-root .dromos-briefing-content.is-dimmed strong { color: var(--text-muted); }
 
 .dromos-root .dromos-briefing-mission,
 .dromos-root .dromos-briefing-near {
@@ -489,16 +666,17 @@
 	color: var(--text-muted);
 }
 
-/* Level-up banner and Skills (M3) */
+/* Level-up ribbon under the name in the character card, and Skills (M3) */
 .dromos-root .dromos-levelup {
 	display: flex;
 	align-items: flex-start;
 	gap: 12px;
+	margin: 0 0 12px;
 	padding: 8px 12px;
-	border: 1px solid var(--interactive-accent);
+	border: 1px solid var(--dromos-ochre);
 	border-left-width: 3px;
-	border-radius: var(--radius-m);
-	background: var(--background-secondary);
+	border-radius: var(--radius-s);
+	background: var(--background-primary);
 }
 
 .dromos-root .dromos-levelup-list {
@@ -530,13 +708,132 @@
 	color: var(--text-muted);
 }
 
-.dromos-root .dromos-skills-locked summary { cursor: pointer; }
-.dromos-root .dromos-skills-locked summary.dromos-skills-subtitle { display: list-item; }
+.dromos-root .dromos-skills-toggle {
+	margin: 12px 0 8px;
+	cursor: pointer;
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+	color: var(--text-muted);
+}
 
-.dromos-root .dromos-skill-items {
+.dromos-root .dromos-skills-toggle .dromos-skills-subtitle {
+	display: inline;
+	margin: 0;
+}
+
+/* Skills as medallions: earned in ochre with their level, locked in stone with a lock. The card
+   of the chosen one opens under the medallions of its group. */
+.dromos-root .dromos-medallions {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+	gap: 10px 8px;
+	margin-bottom: 10px;
+}
+
+.dromos-root .dromos-medallion {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	align-items: center;
+	gap: 4px;
+	height: auto;
+	min-width: 0;
+	padding: 8px 4px;
+	border: 0;
+	border-radius: var(--radius-m);
+	background: none;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	text-align: center;
+	white-space: normal;
+	cursor: pointer;
+}
+
+.dromos-root .dromos-medallion:hover { background: var(--background-modifier-hover); }
+.dromos-root .dromos-medallion:focus-visible { box-shadow: 0 0 0 3px var(--background-modifier-border-focus); }
+.dromos-root .dromos-medallion[aria-expanded="true"] { background: var(--background-primary); }
+
+.dromos-root .dromos-medallion-face {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 56px;
+	margin-bottom: 2px;
+	border: 2px solid var(--dromos-ochre);
+	border-radius: 50%;
+	background: var(--background-primary);
+	font-size: 26px;
+	line-height: 1;
+}
+
+.dromos-root .dromos-medallion.is-locked .dromos-medallion-face {
+	border-style: dashed;
+	border-color: var(--dromos-stone);
+}
+
+/* A locked skill shows its icon as a grey silhouette. */
+.dromos-root .dromos-medallion.is-locked .dromos-medallion-icon { filter: grayscale(1); }
+
+.dromos-root .dromos-medallion[aria-expanded="true"] .dromos-medallion-face {
+	outline: 2px solid var(--dromos-ochre);
+	outline-offset: 3px;
+}
+
+.dromos-root .dromos-medallion.is-locked[aria-expanded="true"] .dromos-medallion-face { outline-color: var(--dromos-stone); }
+
+.dromos-root .dromos-medallion-badge,
+.dromos-root .dromos-medallion-lock {
+	position: absolute;
+	right: -7px;
+	bottom: -5px;
+	display: grid;
+	place-items: center;
+	min-width: 24px;
+	height: 24px;
+	padding: 0 5px;
+	border: 2px solid var(--background-secondary);
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+}
+
+.dromos-root .dromos-medallion-badge {
+	background: var(--dromos-ochre-ink);
+	color: var(--background-primary);
+}
+
+.dromos-root .dromos-medallion-lock {
+	background: var(--dromos-stone);
+	color: #1e1e1e;
+}
+
+.dromos-root .dromos-medallion-lock svg {
+	width: 12px;
+	height: 12px;
+}
+
+.dromos-root .dromos-medallion-name {
+	font-family: var(--dromos-font-display);
+	font-size: 0.95em;
+	font-weight: 600;
+	line-height: 1.2;
+	overflow-wrap: anywhere;
+}
+
+.dromos-root .dromos-medallion.is-locked .dromos-medallion-name { color: var(--text-muted); }
+
+.dromos-root .dromos-medallion-caption {
+	display: -webkit-box;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	line-height: 1.25;
+	overflow-wrap: anywhere;
 }
 
 .dromos-root .dromos-skill {
@@ -549,7 +846,7 @@
 	background: var(--background-primary);
 }
 
-.dromos-root .dromos-skill.is-locked { opacity: 0.8; }
+.dromos-root .dromos-skill.is-locked .dromos-skill-name { color: var(--text-muted); }
 
 .dromos-root .dromos-skill-head {
 	display: flex;
@@ -561,7 +858,7 @@
 .dromos-root .dromos-skill-name {
 	margin: 0;
 	min-width: 0;
-	font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+	font-family: var(--dromos-font-display);
 	font-size: 1.25em;
 	font-weight: 600;
 	line-height: 1.2;
@@ -596,13 +893,13 @@
 }
 
 .dromos-root .dromos-skill-requirement-text { font-size: var(--font-ui-small); overflow-wrap: anywhere; }
-.dromos-root .dromos-skill-requirements li.is-met .dromos-skill-requirement-text { color: var(--text-faint); text-decoration: line-through; }
-.dromos-root .dromos-skill-requirements li.is-met .dromos-progress-fill { background: var(--text-faint); }
+.dromos-root .dromos-skill-requirements li.is-met .dromos-skill-requirement-text { color: var(--text-muted); text-decoration: line-through; }
+.dromos-root .dromos-skill-requirements li.is-met .dromos-progress-fill { background: var(--dromos-stone); }
 
 .dromos-root .dromos-skills-problems {
 	margin: 12px 0 0;
 	padding: 0 0 0 18px;
-	color: var(--text-warning);
+	color: var(--dromos-ink-warning);
 	font-size: var(--font-ui-small);
 	overflow-wrap: anywhere;
 }
@@ -638,4 +935,4 @@
 
 .dromos-root .dromos-habit-title { flex: 1 1 8em; min-width: 0; overflow-wrap: anywhere; }
 .dromos-root .dromos-habit-text { color: var(--text-muted); font-size: var(--font-ui-small); }
-.dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--text-success); }
+.dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--dromos-olive); }

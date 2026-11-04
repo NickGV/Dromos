@@ -17,5 +17,5 @@
 		"esModuleInterop": true,
 		"lib": ["ES2021", "DOM"]
 	},
-	"include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts"]
+	"include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx"]
 }

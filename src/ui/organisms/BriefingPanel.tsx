@@ -5,6 +5,7 @@ import type { BriefingView } from '../presenters/briefingView';
 export function BriefingPanel({ view, renderMarkdown, onRequest }: { readonly view: BriefingView; readonly renderMarkdown: MarkdownRender; readonly onRequest: (() => void) | null }) {
 	return (
 		<section className="dromos-card dromos-briefing" aria-label={view.ariaLabel}>
+			<h2 className="dromos-visually-hidden">{view.ariaLabel}</h2>
 			<div className="dromos-briefing-head">
 				<span className="dromos-briefing-icon" aria-hidden="true">
 					📜

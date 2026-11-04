@@ -38,15 +38,17 @@ export class DromosSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName(t('settings.userId.name'))
 			.setDesc(t('settings.userId.desc'))
-			.addText((text) =>
-				text.setValue(settings.habiticaUserId).onChange((value) => void update({ habiticaUserId: value })),
-			);
+			.addText((text) => {
+				plainCode(text.inputEl);
+				text.setValue(settings.habiticaUserId).onChange((value) => void update({ habiticaUserId: value }));
+			});
 
 		new Setting(containerEl)
 			.setName(t('settings.token.name'))
 			.setDesc(t('settings.token.desc'))
 			.addText((text) => {
 				text.inputEl.type = 'password';
+				plainCode(text.inputEl);
 				text.setValue(settings.habiticaApiToken).onChange((value) => void update({ habiticaApiToken: value }));
 			});
 
@@ -63,7 +65,9 @@ export class DromosSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName(t('settings.stale.name'))
 			.setDesc(t('settings.stale.desc'))
-			.addText((text) =>
+			.addText((text) => {
+				// A number pad on phones; the type stays text so a half-typed value can be ignored.
+				text.inputEl.inputMode = 'numeric';
 				text
 					.setPlaceholder(String(DEFAULT_SETTINGS.staleAfterDays))
 					.setValue(String(settings.staleAfterDays))
@@ -71,8 +75,8 @@ export class DromosSettingTab extends PluginSettingTab {
 						// Ignore half-typed or invalid values; the last valid one stays.
 						const days = Number(value);
 						if (Number.isInteger(days) && days > 0) void update({ staleAfterDays: days });
-					}),
-			);
+					});
+			});
 
 		new Setting(containerEl)
 			.setName(t('settings.language.name'))
@@ -85,4 +89,11 @@ export class DromosSettingTab extends PluginSettingTab {
 				});
 			});
 	}
+}
+
+/** An input that holds a code: no capital letter, spelling fix or autofill added by the device. */
+function plainCode(input: HTMLInputElement): void {
+	input.autocapitalize = 'off';
+	input.spellcheck = false;
+	input.autocomplete = 'off';
 }

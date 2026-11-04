@@ -1,5 +1,6 @@
 import { plural } from '../../i18n';
 import { PhaseProgress } from '../atoms/PhaseProgress';
+import { PhaseRoad } from '../atoms/PhaseRoad';
 import { useT } from '../i18n';
 import { CampaignTaskRow } from '../molecules/CampaignTaskRow';
 import { HabitRow } from '../molecules/HabitRow';
@@ -24,8 +25,8 @@ export interface Sending {
 }
 
 /**
- * One campaign (S5): name and kind, the "detenida" stamp when stale, the open phase with
- * its bar, the next step and, folded, its tasks. The name opens the note.
+ * One campaign (S5): name and kind, the "detenida" stamp when stale, the next step, its
+ * phases as a road and, folded, its tasks. The name opens the note.
  */
 export function CampaignCard({ view, sending, message, onOpen, onSend, onSendHabit }: CampaignCardProps) {
 	const t = useT();
@@ -51,7 +52,11 @@ export function CampaignCard({ view, sending, message, onOpen, onSend, onSendHab
 					{message.message}
 				</p>
 			) : null}
-			<PhaseProgress percent={view.progress.percent} label={t('campaign.progress.aria', { title: view.title })} />
+			{view.segments.length > 0 ? (
+				<PhaseRoad segments={view.segments} percent={view.progress.percent} label={t('campaign.progress.aria', { title: view.title })} valueText={view.chip} />
+			) : (
+				<PhaseProgress percent={view.progress.percent} label={t('campaign.progress.aria', { title: view.title })} />
+			)}
 			{view.warnings.map((warning) => (
 				<p key={warning} className="dromos-campaign-warning" role="status">
 					{warning}

@@ -2,20 +2,25 @@ import { PhaseProgress } from '../atoms/PhaseProgress';
 import { XpBar } from '../atoms/XpBar';
 import type { SkillCardView } from '../presenters/skillsView';
 
+/** The id of a skill's card, which its medallion controls. */
+export function skillDetailId(skillId: string): string {
+	return `dromos-skill-${skillId}`;
+}
+
 /**
  * One skill. Earned: level, rank with its description and the XP bar. Still locked: the
  * description and what it asks, requirement by requirement, with the progress of each.
  */
 export function SkillCard({ view }: { readonly view: SkillCardView }) {
 	return (
-		<article className={`dromos-skill ${view.unlocked ? 'is-earned' : 'is-locked'}`}>
+		<article id={skillDetailId(view.id)} className={`dromos-skill ${view.unlocked ? 'is-earned' : 'is-locked'}`}>
 			<header className="dromos-skill-head">
 				{view.icon ? (
 					<span className="dromos-skill-icon" aria-hidden="true">
 						{view.icon}
 					</span>
 				) : null}
-				<h3 className="dromos-skill-name">{view.name}</h3>
+				<h4 className="dromos-skill-name">{view.name}</h4>
 				<span className="dromos-chip">{view.statLabel}</span>
 				{view.levelText ? <span className="dromos-chip is-mono">{view.levelText}</span> : null}
 			</header>

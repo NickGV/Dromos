@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 // sign that logic leaked out of the domain.
 export default defineConfig({
 	test: {
-		include: ['test/**/*.test.ts'],
+		include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
 		environment: 'node',
 	},
 });

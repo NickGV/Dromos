@@ -9,6 +9,10 @@ export interface SyncBannerView {
 	readonly tone: BannerTone;
 	readonly message: string;
 	readonly detail: string | null;
+	/** What a screen reader announces: the status without the time, so it changes only when the status does. */
+	readonly announcement: string;
+	/** True when the user has something to do or to know: Habitica was not reached, or the account is not set. */
+	readonly prominent: boolean;
 }
 
 /** Whole minutes from `since` to `now`, rounded down; never negative. */
@@ -16,9 +20,15 @@ export function minutesSince(since: Date, now: Date): number {
 	return Math.max(0, Math.floor((now.getTime() - since.getTime()) / 60_000));
 }
 
-/** "N min ago", or "less than 1 min ago" under one minute (in the language of `t`). */
+const MINUTES_PER_HOUR = 60;
+const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
+
+/** "less than 1 min ago" under one minute, then minutes, hours and days, rounded down (in the language of `t`). */
 export function agoText(minutes: number, t: Translator): string {
-	return minutes < 1 ? t('time.ago.now') : t('time.ago.minutes', { minutes });
+	if (minutes < 1) return t('time.ago.now');
+	if (minutes < MINUTES_PER_HOUR) return t('time.ago.minutes', { minutes });
+	if (minutes < MINUTES_PER_DAY) return t('time.ago.hours', { hours: Math.floor(minutes / MINUTES_PER_HOUR) });
+	return plural(t, 'time.ago.days', Math.floor(minutes / MINUTES_PER_DAY));
 }
 
 /**
@@ -41,22 +51,27 @@ function baseView(status: SyncStatus, ago: string | null, t: Translator): SyncBa
 		case 'syncing':
 			return view('neutral', t('sync.syncing'));
 		case 'synced':
-			return view('success', t('sync.synced', { ago: ago ?? agoText(0, t) }));
+			return { ...view('success', t('sync.synced', { ago: ago ?? agoText(0, t) })), announcement: t('sync.synced.announce') };
 		case 'not-configured':
-			return view('neutral', t('sync.notConfigured'), t('sync.notConfigured.detail'));
+			return prominent(view('neutral', t('sync.notConfigured'), t('sync.notConfigured.detail')));
 		case 'offline':
-			return view('warning', t('sync.offline'));
+			return prominent(view('warning', t('sync.offline')));
 		case 'unauthorized':
-			return view('error', t('sync.unauthorized'), t('sync.unauthorized.detail'));
+			return prominent(view('error', t('sync.unauthorized'), t('sync.unauthorized.detail')));
 		case 'rate-limited':
-			return view('warning', t('sync.rateLimited'), t('sync.rateLimited.detail', { wait: waitText(status.retryAfterSeconds, t) }));
+			return prominent(view('warning', t('sync.rateLimited'), t('sync.rateLimited.detail', { wait: waitText(status.retryAfterSeconds, t) })));
 		case 'error':
-			return view('error', t('sync.error'), t('sync.error.detail'));
+			return prominent(view('error', t('sync.error'), t('sync.error.detail')));
 	}
 }
 
+// Only the synced message carries a time; every other one can be announced as it is.
 function view(tone: BannerTone, message: string, detail: string | null = null): SyncBannerView {
-	return { tone, message, detail };
+	return { tone, message, detail, announcement: message, prominent: false };
+}
+
+function prominent(banner: SyncBannerView): SyncBannerView {
+	return { ...banner, prominent: true };
 }
 
 function waitText(seconds: number | null, t: Translator): string {

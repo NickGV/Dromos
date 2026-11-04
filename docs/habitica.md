@@ -70,6 +70,8 @@ Habitica allows 30 requests per minute. A request with no answer after 15 second
 
 ## Status band
 
+The sync status sits at the foot of the character card, next to **Sync**. While all is well it is a quiet line ("Synced 3 min ago", "Syncing…"). It becomes a band when there is something to do:
+
 | It says | What to do |
 |---|---|
 | Connect your Habitica account | Enter both credentials in the settings |

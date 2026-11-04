@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
-import type { Translator } from '../../i18n';
+import type { Language, Translator } from '../../i18n';
 import type { Clock } from '../../ports';
+import type { IconRender } from '../atoms/Icon';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
@@ -15,7 +16,7 @@ import { briefingRequestMessage, briefingView } from '../presenters/briefingView
 import { characterCardView } from '../presenters/characterCardView';
 import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
 import { questListView } from '../presenters/questListView';
-import { skillsPageView } from '../presenters/skillsView';
+import { nextSkillSelection, skillsPageView } from '../presenters/skillsView';
 import { syncBannerView } from '../presenters/syncBanner';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 
@@ -35,6 +36,8 @@ export interface HomeScreenDeps {
 	readonly notify: (message: string) => void;
 	/** Renders the text of the briefing as a note. */
 	readonly renderMarkdown: MarkdownRender;
+	/** Draws a line icon of the host app. */
+	readonly renderIcon: IconRender;
 	/** Copies the command of the job; `null` where it cannot be run, and the button does not show. */
 	readonly requestBriefing: Pick<RequestBriefing, 'execute'> | null;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
@@ -43,6 +46,8 @@ export interface HomeScreenDeps {
 	readonly campaigns: CampaignsDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
 	readonly translator: () => Translator;
+	/** The interface language, for the `lang` of the screen; read on every render. */
+	readonly language: () => Language;
 	/** Calls `onChange` whenever the settings change, so the open view re-renders (a language switch applies at once). Returns the unsubscribe function. */
 	readonly subscribeSettings: (onChange: () => void) => () => void;
 	/** Calls `onChange` when something other than this screen changed the game (the rebuild command). Returns the unsubscribe function. */
@@ -69,6 +74,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [quests, setQuests] = useState<QuestSnapshot>(deps.questSnapshot);
 	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
+	const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 	const mounted = useRef(false);
 	useClockTick();
 	useSettingsChange(deps.subscribeSettings);
@@ -140,17 +146,21 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 
 	return (
 		<I18nProvider t={t}>
-		<main className="dromos-home">
-			<div className="dromos-toolbar">
-				<StatusBanner {...syncBannerView(quests, deps.clock.now(), t)} />
-				<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
-			</div>
-			{levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
-			<CharacterPanel state={panelState(character, t)} />
+		<main className="dromos-home" lang={deps.language()}>
+			<CharacterPanel
+				state={panelState(character, t)}
+				ribbon={levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
+				footer={
+					<div className="dromos-sync-line">
+						<StatusBanner {...syncBannerView(quests, deps.clock.now(), t)} />
+						<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
+					</div>
+				}
+			/>
 			{briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} /> : null}
 			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
 			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
-			<SkillsPanel view={skills} />
+			<SkillsPanel view={skills} selectedId={selectedSkill} onSelect={(skillId) => setSelectedSkill((current) => nextSkillSelection(current, skillId))} renderIcon={deps.renderIcon} />
 		</main>
 		</I18nProvider>
 	);

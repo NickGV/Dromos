@@ -1,7 +1,7 @@
 import { useT } from '../i18n';
 
 export interface SyncButtonProps {
-	/** Disables the button while a sync runs. */
+	/** Marks the button busy while a sync runs; it keeps focus and ignores clicks. */
 	readonly syncing: boolean;
 	readonly onSync: () => void;
 }
@@ -10,7 +10,7 @@ export interface SyncButtonProps {
 export function SyncButton({ syncing, onSync }: SyncButtonProps) {
 	const t = useT();
 	return (
-		<button type="button" className="dromos-sync-button" disabled={syncing} aria-busy={syncing} onClick={onSync}>
+		<button type="button" className="dromos-sync-button" aria-disabled={syncing} aria-busy={syncing} onClick={syncing ? undefined : onSync}>
 			{t('action.sync')}
 		</button>
 	);

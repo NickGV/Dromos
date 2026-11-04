@@ -7,6 +7,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'sync.idle': 'Not synced yet',
 	'sync.syncing': 'Syncing…',
 	'sync.synced': 'Synced {ago}',
+	'sync.synced.announce': 'Quests synced',
 	'sync.notConfigured': 'Connect your Habitica account',
 	'sync.notConfigured.detail': 'Enter your Habitica user ID and API token in the Dromos settings.',
 	'sync.offline': 'Offline',
@@ -20,6 +21,9 @@ export const en: Readonly<Record<MessageKey, string>> = {
 
 	'time.ago.now': 'less than 1 min ago',
 	'time.ago.minutes': '{minutes} min ago',
+	'time.ago.hours': '{hours} h ago',
+	'time.ago.days.one': '1 day ago',
+	'time.ago.days.other': '{count} days ago',
 	'time.wait.moment': 'a moment',
 	'time.wait.one': '1 second',
 	'time.wait.other': '{count} seconds',
@@ -46,7 +50,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'briefing.mission': 'Mission of the day',
 	'briefing.nearSkill': 'Closest skill',
 	'briefing.signature': '— Esdras',
-	'briefing.request': 'Ask for a briefing',
+	'briefing.request': 'Copy briefing command',
 	'briefing.request.copied': 'Command copied: {command}. Run it in OpenCode from your vault folder.',
 	'briefing.request.failed': 'Could not copy it. The command is {command}: run it in OpenCode from your vault folder.',
 
@@ -59,6 +63,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'skills.empty.none': 'No skill notes found in the Skills folder.',
 	'skills.notice.error': 'The skills could not be updated. Showing the last known state.',
 	'skills.level': 'Level {level}',
+	'skills.medallion.locked': 'Locked',
 	'skills.earnedOn': 'Earned on {date}',
 	'skills.req.quests': 'Quests with this skill: {done} of {total}',
 	'skills.req.campaigns': 'Campaigns completed: {done} of {total}',
@@ -135,7 +140,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'link.writeFailed': 'The task was created in Habitica but its id could not be saved in the note. Id: {id}',
 
 	'settings.userId.name': 'Habitica user ID',
-	'settings.userId.desc': 'Identifies your account when your tasks are fetched.',
+	'settings.userId.desc': 'Identifies your account when your tasks are fetched. You find it, with the API token, in Habitica under Settings → Site Data.',
 	'settings.token.name': 'Habitica API token',
 	'settings.token.desc': "Stored only in the plugin's data on this device.",
 	'settings.folder.name': 'Dromos folder',
