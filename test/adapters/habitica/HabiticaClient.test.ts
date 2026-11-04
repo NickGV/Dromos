@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { HABITICA_X_CLIENT, HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
+import { HabiticaTaskSource } from '../../../src/adapters/habitica/HabiticaTaskSource';
+import { QuestState } from '../../../src/application/QuestState';
+import { SyncQuests } from '../../../src/application/SyncQuests';
 import { TaskSourceError } from '../../../src/ports/TaskSourceError';
+import { FixedClock } from '../../fakes/FixedClock';
 import { FakeHttp, respond, type FakeOutcome } from './FakeHttp';
 
 const USER_ID = '00000000-0000-4000-8000-000000000000';
@@ -133,5 +137,58 @@ describe('HabiticaClient: typed errors (S5)', () => {
 			expect(`${error.message} ${String(error)} ${error.stack ?? ''}`).not.toContain(TOKEN);
 			expect(Object.values(error).map(String).join(' ')).not.toContain(TOKEN);
 		}
+	});
+});
+
+describe('HabiticaClient: credentials a header cannot carry (issue #9, S3)', () => {
+	// What a careless paste leaves: a zero-width space, an inner space, a line break, an accent.
+	const MALFORMED = [`${TOKEN.slice(0, 8)}\u200b${TOKEN.slice(8)}`, 'secret token', 'secret\ntoken', 'contraseña'];
+
+	async function outcomeWith(credentials: { userId: string; apiToken: string }): Promise<{ error: unknown; http: FakeHttp }> {
+		const http = new FakeHttp().on(URL, respond(200, { success: true, data: [] }));
+		const client = new HabiticaClient(http.send, () => credentials);
+		const error: unknown = await client.get('/tasks/user?type=dailys').then(
+			() => null,
+			(reason: unknown) => reason,
+		);
+		return { error, http };
+	}
+
+	it('refuses such a token as Unauthorized without sending any request, and never echoes it', async () => {
+		for (const apiToken of MALFORMED) {
+			const { error, http } = await outcomeWith({ userId: USER_ID, apiToken });
+
+			expect(error).toBeInstanceOf(TaskSourceError);
+			expect((error as TaskSourceError).kind).toBe('Unauthorized');
+			expect(`${String(error)} ${(error as Error).stack ?? ''}`).not.toContain(apiToken);
+			expect(http.requests).toEqual([]);
+		}
+	});
+
+	it('refuses such a user ID the same way', async () => {
+		for (const userId of MALFORMED) {
+			const { error, http } = await outcomeWith({ userId, apiToken: TOKEN });
+
+			expect((error as TaskSourceError).kind).toBe('Unauthorized');
+			expect(http.requests).toEqual([]);
+		}
+	});
+
+	it('still sends a request with an empty credential, as before: the use cases report it as not configured first', async () => {
+		const { http } = await outcomeWith({ userId: USER_ID, apiToken: '' });
+
+		expect(http.requests).toHaveLength(1);
+	});
+
+	it('leaves the sync showing the invalid-token state, not offline, after no request at all', async () => {
+		const http = new FakeHttp();
+		const client = new HabiticaClient(http.send, () => ({ userId: USER_ID, apiToken: 'secret token' }));
+		const clock = new FixedClock(new Date('2026-11-04T15:00:00Z'), '2026-11-04');
+		const state = new QuestState();
+
+		await new SyncQuests({ source: new HabiticaTaskSource(client, clock), clock, state, hasCredentials: () => true }).execute();
+
+		expect(state.snapshot().status).toEqual({ kind: 'unauthorized' });
+		expect(http.requests).toEqual([]);
 	});
 });

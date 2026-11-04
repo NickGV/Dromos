@@ -75,7 +75,7 @@ The sync status sits at the foot of the character card, next to **Sync**. While 
 | It says | What to do |
 |---|---|
 | Connect your Habitica account | Enter both credentials in the settings |
-| Invalid token | Check the user ID and the token |
+| Invalid token | Check the user ID and the token. It also shows, with no request to Habitica, when either one has a space, a line break, an accent or an invisible character inside, which a paste can leave |
 | Last known state · N ago (a band above the landscape; the line shows only **Sync**) | Check your connection, then select **Sync** |
 | Too many requests to Habitica | Wait the time it shows, then select **Sync** |
 | Could not sync with Habitica | Try again in a few minutes |

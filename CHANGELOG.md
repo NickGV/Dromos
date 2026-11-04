@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- A Habitica user ID or token with a space, a line break, an accent or an invisible character inside shows **Invalid token** instead of **Offline**, and Dromos sends nothing to Habitica with it.
+
 ## [0.8.0] - 2026-11-03
 
 ### Added
