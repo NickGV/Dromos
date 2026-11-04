@@ -7,6 +7,12 @@ import { DEFAULT_SETTINGS, type Settings, type SettingsStore } from '../../ports
  * interface language. Every change
  * is saved through the `SettingsStore` and then reported to `onChange`. The token
  * input is masked and its value is never logged.
+ *
+ * The lint warning `obsidianmd/settings-tab/prefer-setting-definitions` stays on purpose (issue #9):
+ * `getSettingDefinitions()` arrived in Obsidian 1.13.0, and the installed typings are 1.12.3. With
+ * `minAppVersion` at 1.7.2, `display()` would still be needed, so every setting would be written twice,
+ * and the declarative token field (`secret`) keeps the token in `app.secretStorage`, while ADR-007 keeps it
+ * in `data.json`. All it would give is Dromos's settings in Obsidian's settings search on 1.13 or later.
  */
 export class DromosSettingTab extends PluginSettingTab {
 	constructor(

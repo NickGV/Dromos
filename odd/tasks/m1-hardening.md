@@ -19,8 +19,8 @@ Quoted from issue #9 (Scope, Acceptance criteria, Tests).
 |---|---|---|---|---|---|
 | T1 | S1, S5 | One module holds the time zone and the date conversion; `SystemClock` and `questMapper` use it | inline (no Writer trigger: about 40 lines) | done: `src/adapters/localDate.ts`; 2 tests RED (module missing) then GREEN; 1261/1261, lint 0 errors and 4 warnings, build ok. Risk: none (same conversion, one copy) | `c496062` |
 | T2 | S2, S5 | Pin the UTC-midnight case with a test; compare one real to-do with the Habitica app | inline | test added and passing (it pins the current behavior); pending: the user's comparison | `c496062` (test) |
-| T3 | S3, S5 | `HabiticaClient` refuses credentials with characters outside visible ASCII before any request, as `Unauthorized` | inline. Risk: item 2 (a guard on credentials), so an independent verifier at the end | done: 3 tests RED then GREEN (token, user ID, the sync's state with no request), 1 test pins that an empty credential is still sent; 1265/1265, lint 0 errors and 4 warnings, build ok; `docs/habitica.md` and the changelog updated. Verifier pending | this commit |
-| T4 | S4, S5 | Document why `getSettingDefinitions()` is not adopted | inline | pending | |
+| T3 | S3, S5 | `HabiticaClient` refuses credentials with characters outside visible ASCII before any request, as `Unauthorized` | inline. Risk: item 2 (a guard on credentials), so an independent verifier at the end | done: 3 tests RED then GREEN (token, user ID, the sync's state with no request), 1 test pins that an empty credential is still sent; 1265/1265, lint 0 errors and 4 warnings, build ok; `docs/habitica.md` and the changelog updated. Verifier pending | `91015bf` |
+| T4 | S4, S5 | Document why `getSettingDefinitions()` is not adopted | inline | done: the reasons sit on `DromosSettingTab` where the warning points; no runnable RED (a comment), lint still 4 warnings by design, build ok. Risk: none | this commit |
 
 ## Log
 
