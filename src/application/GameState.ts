@@ -1,4 +1,4 @@
-import type { Skill, SkillRank, SkillStanding, RequirementProgress } from '../domain';
+import type { LedgerSource, Skill, SkillRank, SkillStanding, RequirementProgress } from '../domain';
 import type { InvalidRules, InvalidSkillNote, UnreadableLedgerEvent } from '../ports';
 import type { GameEvent } from './gameEvents';
 import type { PendingOrFailedStatus, SyncStatus } from './QuestState';
@@ -14,6 +14,16 @@ export interface CharacterStanding {
 	readonly xpToNext: number;
 }
 
+/** One ledger row of a skill, as its recent entries list it. */
+export interface RecentEntry {
+	/** Local date as `YYYY-MM-DD`. */
+	readonly date: string;
+	readonly task: string;
+	/** Signed: a `revert` is negative. */
+	readonly xp: number;
+	readonly source: LedgerSource;
+}
+
 /** One skill as the Skills page shows it. `skill` already carries the unlock decided by the sync. */
 export interface SkillEntry {
 	readonly skill: Skill;
@@ -22,6 +32,37 @@ export interface SkillEntry {
 	/** The rank the skill holds, or `null` while locked. */
 	readonly rank: SkillRank | null;
 	readonly requirements: readonly RequirementProgress[];
+	/** The skill's last ledger rows, newest first (at most five); empty when it has none. */
+	readonly recent: readonly RecentEntry[];
+}
+
+/** A skill a quest feeds: the name of its note, or its id when the vault has no note for it. */
+export interface SkillRef {
+	readonly id: string;
+	readonly name: string;
+}
+
+/**
+ * One deed of the chronicle (game-ui S18): one transition of a Habitica task in the ledger, its
+ * rows grouped with all their skills.
+ */
+export interface DeedEntry {
+	/** Local date as `YYYY-MM-DD`. */
+	readonly date: string;
+	readonly task: string;
+	/** Signed, as the character counts it once: a `revert` is negative, and so is a streak bonus taken back. */
+	readonly xp: number;
+	readonly source: LedgerSource;
+	/** In the order the rows were written; empty for a task without skill. */
+	readonly skills: readonly SkillRef[];
+}
+
+/** What completing one Habitica task writes to the ledger, priced the way the ledger prices it (game-ui S6). */
+export interface QuestPrice {
+	/** The XP of each row; the character counts it once. */
+	readonly xp: number;
+	/** Empty when the task has no skill tag: character XP only. */
+	readonly skills: readonly SkillRef[];
 }
 
 export interface GameResult {
@@ -32,6 +73,12 @@ export interface GameResult {
 	readonly invalidSkills: readonly InvalidSkillNote[];
 	readonly unreadable: readonly UnreadableLedgerEvent[];
 	readonly invalidRules: InvalidRules | null;
+	/** Habitica task id to its price, for every task the last game sync read. */
+	readonly questPrices: ReadonlyMap<string, QuestPrice>;
+	/** Task completions in the ledger that still stand: completions less reverts (game-ui S15). */
+	readonly completedQuests: number;
+	/** The last deeds of the ledger, newest first (at most five) (game-ui S18). */
+	readonly deeds: readonly DeedEntry[];
 }
 
 /** Immutable view of the game; every change produces a new object. */
@@ -46,6 +93,21 @@ export interface GameSnapshot {
 	readonly invalidSkills: readonly InvalidSkillNote[];
 	readonly unreadable: readonly UnreadableLedgerEvent[];
 	readonly invalidRules: InvalidRules | null;
+	/**
+	 * Habitica task id to its price, for the tasks the last game sync read; absent until the game
+	 * first records a result. A task missing from it has no known price yet.
+	 */
+	readonly questPrices?: ReadonlyMap<string, QuestPrice>;
+	/**
+	 * Task completions in the ledger that still stand, completions less reverts, as the last game
+	 * result counted them; absent until the game first records a result (game-ui S15).
+	 */
+	readonly completedQuests?: number;
+	/**
+	 * The last deeds of the ledger, newest first, as the last game result read them; absent until
+	 * the game first records a result (game-ui S18).
+	 */
+	readonly deeds?: readonly DeedEntry[];
 }
 
 const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
@@ -84,6 +146,9 @@ export class GameState {
 			invalidSkills: [...result.invalidSkills],
 			unreadable: [...result.unreadable],
 			invalidRules: result.invalidRules,
+			questPrices: result.questPrices,
+			completedQuests: result.completedQuests,
+			deeds: result.deeds,
 		};
 	}
 

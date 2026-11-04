@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { GameSnapshot, SkillEntry } from '../../src/application';
 import { skillStanding, type Skill } from '../../src/domain';
 import { createTranslator, type Translator } from '../../src/i18n';
-import { nextSkillSelection, skillsPageView } from '../../src/ui/presenters/skillsView';
+import { isIconName, skillRingView, skillsPageView } from '../../src/ui/presenters/skillsView';
 import { skill } from '../domain/skill/skillFixtures';
 
 const es = createTranslator('es');
@@ -13,7 +13,7 @@ const RANKS = [0, 1, 2, 3, 4].map((index) => ({ name: `Rango ${index}`, descript
 function earned(overrides: Partial<Skill> = {}, xp = 0): SkillEntry {
 	const unlocked = skill({ id: 'lector', name: 'Lector', icon: '📖', stat: 'inteligencia', description: 'Leer libros.', ranks: RANKS, unlocked: true, unlockedOn: '2026-11-03', requirements: [], ...overrides });
 	const standing = skillStanding(true, xp);
-	return { skill: unlocked, xp, standing, rank: RANKS[standing.rankIndex ?? 0] ?? null, requirements: [] };
+	return { skill: unlocked, xp, standing, rank: RANKS[standing.rankIndex ?? 0] ?? null, requirements: [], recent: [] };
 }
 
 function locked(overrides: Partial<Skill> = {}, progress: SkillEntry['requirements'] = []): SkillEntry {
@@ -23,6 +23,7 @@ function locked(overrides: Partial<Skill> = {}, progress: SkillEntry['requiremen
 		standing: skillStanding(false, 0),
 		rank: null,
 		requirements: progress,
+		recent: [],
 	};
 }
 
@@ -83,9 +84,22 @@ describe('skillsPageView: earned skills', () => {
 				xp: { current: 50, total: 246, percent: 20, text: '50 / 246 XP' },
 				requirements: [],
 				progressPercent: 100,
-				earnedText: 'Ganada el 2026-11-03',
+				earnedText: 'Ganada el 3 nov',
+				recent: [],
 			},
 		]);
+	});
+
+	it('lists the recent entries the game kept for the skill, as they are (game-ui S9)', () => {
+		const recent = [
+			{ date: '2026-11-03', task: 'Leer capítulo 4', xp: 10, source: 'complete' },
+			{ date: '2026-11-02', task: 'Leer capítulo 3', xp: -10, source: 'revert' },
+		] as const;
+
+		const view = skillsPageView(snapshot({ skills: [{ ...earned({}, 150), recent }, { ...locked(), recent: [recent[0]] }] }), es);
+
+		expect(view.earned[0]?.recent).toEqual(recent);
+		expect(view.locked[0]?.recent).toEqual([recent[0]]);
 	});
 
 	it('a skill just earned is level 1 with an empty bar', () => {
@@ -167,12 +181,6 @@ describe('skillsPageView: skills still to earn', () => {
 });
 
 describe('skillsPageView: titles, notices and problems', () => {
-	it('counts earned and locked skills in the section titles', () => {
-		const view = skillsPageView(snapshot({ skills: [earned(), locked(), locked({ id: 'other', name: 'Other' })] }), es);
-
-		expect(view).toMatchObject({ earnedTitle: 'Ganadas (1)', lockedTitle: 'Por desbloquear (2)' });
-	});
-
 	it('warns when the last sync failed in the vault but keeps what it knew', () => {
 		const view = skillsPageView(snapshot({ status: { kind: 'error' }, skills: [earned()] }), es);
 
@@ -249,10 +257,53 @@ describe('skillsPageView: medallions', () => {
 	});
 });
 
-describe('nextSkillSelection', () => {
-	it('opens a skill, switches to another, and closes the open one when it is chosen again', () => {
-		expect(nextSkillSelection(null, 'lector')).toBe('lector');
-		expect(nextSkillSelection('lector', 'atleta')).toBe('atleta');
-		expect(nextSkillSelection('lector', 'lector')).toBeNull();
+describe('skillRingView: the ring medallion of the home screen (game-ui S9)', () => {
+	const cardOf = (entry: SkillEntry, t: Translator = en) => {
+		const page = skillsPageView(snapshot({ skills: [entry] }), t);
+		const found = page.earned[0] ?? page.locked[0];
+		if (!found) throw new Error('no card');
+		return found;
+	};
+
+	it('draws the ring of an earned skill as its progress through the level', () => {
+		const card = cardOf(earned({}, 40));
+
+		expect(card.xp).toMatchObject({ current: 40, total: 100 });
+		expect(skillRingView(card, en)).toEqual({ id: 'lector', name: 'Lector', icon: '📖', earned: true, level: 1, percent: 40, caption: 'Level 1 · 40/100', ariaLabel: 'Lector, Level 1 · 40/100' });
+	});
+
+	it('draws the ring of a locked skill as its progress towards unlocking, captioned by the closest requirement', () => {
+		const card = cardOf(locked({}, [{ requirement: { kind: 'quests', count: 4 }, done: 3, total: 4, met: false }]), es);
+
+		expect(skillRingView(card, es)).toEqual({
+			id: 'cuidador',
+			name: 'Cuidador',
+			icon: '🩺',
+			earned: false,
+			level: null,
+			percent: 75,
+			caption: 'Quests con esta skill: 3 de 4',
+			ariaLabel: 'Cuidador, bloqueada, Quests con esta skill: 3 de 4',
+		});
+	});
+
+	it('fills the ring and names the level alone when the curve has no next level', () => {
+		const card = { ...cardOf(earned({}, 40)), xp: null };
+
+		expect(skillRingView(card, en)).toMatchObject({ percent: 100, caption: 'Level 1', ariaLabel: 'Lector, Level 1' });
+	});
+
+	it('names a locked skill without requirements as locked only', () => {
+		expect(skillRingView(cardOf(locked()), en)).toMatchObject({ percent: 0, caption: null, ariaLabel: 'Cuidador, locked' });
+	});
+});
+
+describe('isIconName: which icons the host app draws (game-ui S9)', () => {
+	it('takes lowercase letters, digits and dashes as an icon name', () => {
+		expect(['book-open', 'dumbbell', 'heart-pulse', 'flag-2'].map(isIconName)).toEqual([true, true, true, true]);
+	});
+
+	it('leaves anything else as text, emoji included', () => {
+		expect(['📖', 'Book', 'book open', '', 'a_b', '🏃‍♂️'].map(isIconName)).toEqual([false, false, false, false, false, false]);
 	});
 });

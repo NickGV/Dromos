@@ -2,8 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CampaignSnapshot, LinkHabitToCampaign, LinkTaskToCampaign, SyncCampaigns } from '../../application';
 import type { Clock } from '../../ports';
 import { useT } from '../i18n';
-import type { Sending } from '../organisms/CampaignCard';
-import { CampaignList } from '../organisms/CampaignList';
+import { CampaignBoard } from '../organisms/CampaignBoard';
+import { CampaignScreen, type Sending } from '../organisms/CampaignScreen';
+import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
+import { campaignHomeCardView } from '../presenters/campaignHomeView';
+import { campaignScreenView } from '../presenters/campaignScreenView';
 import { campaignListView } from '../presenters/campaignView';
 import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcomeView';
 
@@ -21,11 +24,40 @@ export interface CampaignsDeps {
 	readonly clock: Clock;
 }
 
+export interface CampaignsPanelProps {
+	readonly deps: CampaignsDeps;
+	readonly syncKey: number;
+	/**
+	 * Draws nothing while true, but stays mounted: a screen without campaigns keeps the panel's
+	 * state, and showing it again spends no Habitica request (game-ui S1).
+	 */
+	readonly hidden?: boolean;
+	/**
+	 * Given on the home screen: the panel draws the compact cards (game-ui S7), each opening the
+	 * campaigns screen on its campaign through this.
+	 */
+	readonly onOpenCampaign?: (path: string) => void;
+	/**
+	 * Given on the campaigns screen (game-ui S8): the panel draws the header card, named after the
+	 * campaign shown, then its tabs, tasks, habits and send buttons. Choosing a tab only asks the
+	 * screen to change `selected`: it spends no request.
+	 */
+	readonly screen?: CampaignsScreenProps;
+}
+
+export interface CampaignsScreenProps {
+	/** The campaign to show, or `null` for the first one. */
+	readonly selected: string | null;
+	readonly onSelect: (path: string) => void;
+	/** The character the header card names, or `null` while there is none. */
+	readonly character: ScreenHeaderCharacter | null;
+}
+
 /**
  * Container of the campaigns (S5, S6): syncs when it mounts and whenever `syncKey` changes
  * (the home's "Sincronizar"), and sends a task to Habitica on request. It never polls (S4).
  */
-export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps; readonly syncKey: number }) {
+export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, screen }: CampaignsPanelProps) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
 	const [sending, setSending] = useState<Sending | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
@@ -68,15 +100,28 @@ export function CampaignsPanel({ deps, syncKey }: { readonly deps: CampaignsDeps
 		[deps, sync, t],
 	);
 
+	if (hidden) return null;
 	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
+	if (onOpenCampaign) return <CampaignBoard list={view} cards={view.cards.map((card) => campaignHomeCardView(card, t))} onOpen={onOpenCampaign} />;
+	if (!screen) return null;
+	const page = campaignScreenView(view, screen.selected, t);
+	const shown = page.campaign?.path ?? null;
 	return (
-		<CampaignList
-			view={view}
-			sending={sending}
-			message={message}
-			onOpen={deps.openNote}
-			onSend={(path, taskTitle) => void send(path, 'task', taskTitle)}
-			onSendHabit={(path, habitTitle) => void send(path, 'habit', habitTitle)}
-		/>
+		<>
+			<ScreenHeader title={page.title} character={screen.character} />
+			<CampaignScreen
+				view={page}
+				sending={sending}
+				message={message !== null && message.path === shown ? message : null}
+				onSelect={screen.onSelect}
+				onOpenNote={deps.openNote}
+				onSend={(taskTitle) => {
+					if (shown !== null) void send(shown, 'task', taskTitle);
+				}}
+				onSendHabit={(habitTitle) => {
+					if (shown !== null) void send(shown, 'habit', habitTitle);
+				}}
+			/>
+		</>
 	);
 }

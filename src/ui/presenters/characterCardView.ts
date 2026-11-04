@@ -16,10 +16,17 @@ export function statLabel(id: StatId, t: Translator): string {
 	return t(STAT_KEYS[id]);
 }
 
+/** Pips a stat is drawn with; a value above it shows as its number (game-ui S3). */
+export const STAT_PIPS = 6;
+
 export interface StatBadgeView {
 	readonly id: StatId;
 	readonly label: string;
 	readonly value: number;
+	/** One entry per pip, `true` where filled; `null` when the value is above six and its number shows instead. */
+	readonly pips: readonly boolean[] | null;
+	/** What the pips say to a screen reader, such as "Strength 3". */
+	readonly ariaLabel: string;
 }
 
 /** XP into the current level against the XP the level needs. */
@@ -31,26 +38,51 @@ export interface XpBarView {
 	readonly text: string;
 }
 
-/** What `CharacterCard` shows (S8). */
+/** What `CharacterCard` shows (S8, game-ui S3). */
 export interface CharacterCardView {
 	readonly name: string;
 	/** `null` when the note has no title. */
 	readonly title: string | null;
+	/** The number on the level medallion. */
+	readonly level: number;
+	/** "Level 3": the medallion's name for screen readers. */
 	readonly levelText: string;
+	/** The small-caps line under the name: "<title> · level 3", or "Level 3" without a title. */
+	readonly titleLine: string;
+	/** The same line as its phrases, the title and the level, so a narrow card breaks only between them (game-ui S14). */
+	readonly titleParts: readonly string[];
 	readonly xp: XpBarView;
+	/** "Level 4 in 280 XP", under the bar: Dromos has no next title to name (game-ui S3). */
+	readonly nextLevelText: string;
 	/** Always the six stats, in `STAT_IDS` order. */
 	readonly stats: readonly StatBadgeView[];
 }
 
 /** Maps a character read from `Character.md` to the card's display values. */
 export function characterCardView(character: Character, t: Translator): CharacterCardView {
-	const { xpIntoLevel, xpToNext } = character;
+	const { level, xpIntoLevel, xpToNext } = character;
+	const title = character.title === '' ? null : character.title;
 	return {
 		name: character.name === '' ? t('character.unnamed') : character.name,
-		title: character.title === '' ? null : character.title,
-		levelText: t('character.level', { level: character.level }),
+		title,
+		level,
+		levelText: t('character.level', { level }),
+		titleLine: title === null ? t('character.level', { level }) : `${title} · ${t('screen.level', { level })}`,
+		titleParts: title === null ? [t('character.level', { level })] : [title, t('screen.level', { level })],
 		xp: xpBarView(xpIntoLevel, xpToNext),
-		stats: STAT_IDS.map((id) => ({ id, label: t(STAT_KEYS[id]), value: character.stats[id] })),
+		nextLevelText: t('character.nextLevel', { level: level + 1, xp: Math.max(0, xpToNext - xpIntoLevel) }),
+		stats: STAT_IDS.map((id) => statBadgeView(id, character.stats[id], t)),
+	};
+}
+
+function statBadgeView(id: StatId, value: number, t: Translator): StatBadgeView {
+	const label = t(STAT_KEYS[id]);
+	return {
+		id,
+		label,
+		value,
+		pips: value > STAT_PIPS ? null : Array.from({ length: STAT_PIPS }, (_, index) => index < value),
+		ariaLabel: t('character.stat.aria', { stat: label, value }),
 	};
 }
 

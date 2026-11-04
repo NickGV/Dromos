@@ -2,6 +2,7 @@ import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src
 import { createTranslator, type Language } from '../../../src/i18n';
 import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
 import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
+import { InMemoryDeviceStore } from '../../fakes/InMemoryDeviceStore';
 
 export const noop = (): void => undefined;
 export const renderNothing = (): (() => void) => noop;
@@ -17,7 +18,9 @@ const IDLE_CAMPAIGNS: CampaignSnapshot = { campaigns: null, issues: [], lastSync
  * Dependencies for rendering `HomeScreen` on the server: effects never run there, so the
  * screen shows its first render (the character loading) with the snapshots given here.
  */
-export function homeDeps(options: { readonly language?: Language; readonly quests?: QuestSnapshot; readonly game?: GameSnapshot } = {}): HomeScreenDeps {
+export function homeDeps(
+	options: { readonly language?: Language; readonly quests?: QuestSnapshot; readonly game?: GameSnapshot; readonly campaigns?: CampaignSnapshot; readonly openSettings?: (() => void) | null } = {},
+): HomeScreenDeps {
 	const language = options.language ?? 'en';
 	const quests = options.quests ?? IDLE_QUESTS;
 	const game = options.game ?? IDLE_GAME;
@@ -25,7 +28,7 @@ export function homeDeps(options: { readonly language?: Language; readonly quest
 		syncCampaigns: { execute: never, reload: never },
 		linkTask: { execute: never },
 		linkHabit: { execute: never },
-		campaignSnapshot: () => IDLE_CAMPAIGNS,
+		campaignSnapshot: () => options.campaigns ?? IDLE_CAMPAIGNS,
 		staleAfterDays: () => 14,
 		openNote: noop,
 		clock,
@@ -41,8 +44,10 @@ export function homeDeps(options: { readonly language?: Language; readonly quest
 		renderMarkdown: renderNothing,
 		renderIcon: noop,
 		requestBriefing: null,
+		openSettings: options.openSettings ?? null,
 		questSnapshot: () => quests,
 		clock,
+		deviceStore: new InMemoryDeviceStore(),
 		campaigns,
 		translator: () => createTranslator(language),
 		language: () => language,

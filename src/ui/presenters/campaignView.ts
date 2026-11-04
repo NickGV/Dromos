@@ -1,5 +1,5 @@
 import type { CampaignSnapshot, CampaignIssue } from '../../application';
-import { plural, type Translator } from '../../i18n';
+import type { Translator } from '../../i18n';
 import { campaignProgress, daysSince, habitProgress, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignHabit, type Progress } from '../../domain';
 
 /** How one task is shown in a campaign card. */
@@ -10,6 +10,11 @@ export interface TaskRowView {
 	readonly state: TaskRowState;
 	/** Only a project task that was never sent to Habitica can be sent. */
 	readonly canSend: boolean;
+	/**
+	 * The id of the task's phase as stored, matching `PhaseSegmentView.id`; `null` when it has none.
+	 * `campaignCardView` always sets it; it is optional only so rows built by hand stay valid.
+	 */
+	readonly phase?: string | null;
 }
 
 /** How one habit is shown in a campaign card (S8). */
@@ -30,6 +35,8 @@ export type PhaseSegmentState = 'done' | 'open' | 'ahead';
 
 /** One phase drawn as a stretch of road: completed, the open one with its progress, or still ahead. */
 export interface PhaseSegmentView {
+	/** The phase id, which the task rows name in `phase`. */
+	readonly id: string;
 	readonly name: string;
 	readonly state: PhaseSegmentState;
 	/** Whole percent, 0..100. */
@@ -53,6 +60,10 @@ export interface CampaignCardView {
 	readonly tasks: readonly TaskRowView[];
 	readonly habits: readonly HabitRowView[];
 	readonly warnings: readonly string[];
+	/** The delivery date as stored (`YYYY-MM-DD`), or `null` when the campaign has none. */
+	readonly deadline: string | null;
+	/** Whole days from today to the deadline, 0 on the day and negative once past; `null` without a deadline. */
+	readonly daysLeft: number | null;
 }
 
 export interface CampaignViewContext {
@@ -68,14 +79,13 @@ export interface CampaignViewContext {
 	readonly t: Translator;
 }
 
-/** What `CampaignList` renders. */
+/** The campaigns as the home cards and the campaigns screen show them. */
 export interface CampaignListView {
 	readonly cards: readonly CampaignCardView[];
 	/** Shown instead of the list when there is nothing to show, else `null`. */
 	readonly emptyText: string | null;
 	/** Why Habitica's progress may be old or missing, else `null`. */
 	readonly notice: string | null;
-	readonly footer: string;
 }
 
 export function campaignCardView(campaign: Campaign, context: CampaignViewContext): CampaignCardView {
@@ -102,11 +112,20 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 					: campaign.kind === 'project' && task.habiticaId === null
 						? 'unsent'
 						: 'pending';
-			return { title: task.title, state, canSend: state === 'unsent' && context.canSend };
+			return { title: task.title, state, canSend: state === 'unsent' && context.canSend, phase: task.phase };
 		}),
 		habits: campaign.habits.map((habit) => habitRow(habit, missing.has(habit.title), context)),
 		warnings: [...missing].map((title) => t('campaign.warning.missing', { title })),
+		deadline: campaign.deadline,
+		daysLeft: daysLeft(campaign.deadline, context.today),
 	};
+}
+
+// A stored date can still be no real day (month 13), and the card never shows NaN.
+function daysLeft(deadline: string | null, today: string): number | null {
+	if (deadline === null) return null;
+	const days = daysSince(today, deadline);
+	return Number.isFinite(days) ? days : null;
 }
 
 function habitRow(habit: CampaignHabit, missing: boolean, { canSend, t }: CampaignViewContext): HabitRowView {
@@ -128,7 +147,6 @@ export function campaignListView(snapshot: CampaignSnapshot, context: Omit<Campa
 		cards: campaigns.map((campaign) => campaignCardView(campaign, { ...context, issues: snapshot.issues, canSend, habiticaKnown: snapshot.lastSyncedAt !== null })),
 		emptyText: snapshot.campaigns === null ? t('campaign.empty.beforeSync') : campaigns.length === 0 ? t('campaign.empty.none') : null,
 		notice: noticeFor(snapshot.status.kind, t),
-		footer: plural(t, 'campaign.footer', campaigns.length),
 	};
 }
 
@@ -143,9 +161,9 @@ function progressUnknown(campaign: Campaign, context: CampaignViewContext): bool
 function segmentsOf(campaign: Campaign): PhaseSegmentView[] {
 	const open = campaign.phases.find((phase) => phase.status !== 'completed');
 	return campaign.phases.map((phase) => {
-		if (phase.status === 'completed') return { name: phase.name, state: 'done', percent: 100 };
-		if (phase === open) return { name: phase.name, state: 'open', percent: Math.round(phaseProgress(campaign, phase.id).ratio * 100) };
-		return { name: phase.name, state: 'ahead', percent: 0 };
+		if (phase.status === 'completed') return { id: phase.id, name: phase.name, state: 'done', percent: 100 };
+		if (phase === open) return { id: phase.id, name: phase.name, state: 'open', percent: Math.round(phaseProgress(campaign, phase.id).ratio * 100) };
+		return { id: phase.id, name: phase.name, state: 'ahead', percent: 0 };
 	});
 }
 

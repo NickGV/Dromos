@@ -1,24 +1,38 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
 import type { Language, Translator } from '../../i18n';
-import type { Clock } from '../../ports';
+import type { Clock, DeviceStore } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
+import { LevelRibbon } from '../atoms/LevelRibbon';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
-import { LevelUpBanner } from '../molecules/LevelUpBanner';
+import { OfflineBand } from '../molecules/OfflineBand';
+import type { DromosScreen } from '../molecules/Signpost';
 import { StatusBanner } from '../molecules/StatusBanner';
 import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
+import { Chronicle } from '../organisms/Chronicle';
+import { LevelUpPanel } from '../organisms/LevelUpPanel';
 import { QuestList } from '../organisms/QuestList';
-import { SkillsPanel } from '../organisms/SkillsPanel';
+import { Scene } from '../organisms/Scene';
+import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
+import { SkillsRow } from '../organisms/SkillsRow';
+import { SkillsScreen } from '../organisms/SkillsScreen';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
-import { levelUpBannerView, unlockNotices } from '../presenters/levelUpView';
-import { questListView } from '../presenters/questListView';
-import { nextSkillSelection, skillsPageView } from '../presenters/skillsView';
-import { syncBannerView } from '../presenters/syncBanner';
+import { chronicleView } from '../presenters/chronicleView';
+import { dayPeriod } from '../presenters/dayPeriod';
+import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
+import { questListView, questPanelView } from '../presenters/questListView';
+import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinceVisitView';
+import { skillRingView, skillsPageView, skillsScreenView } from '../presenters/skillsView';
+import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
+import { walkerView } from '../presenters/walkerView';
+import { openLetter, storedLetterMark } from './briefingLetter';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
+import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
+import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
 export interface HomeScreenDeps {
@@ -28,7 +42,7 @@ export interface HomeScreenDeps {
 	readonly syncGame: Pick<SyncGame, 'execute'>;
 	/** The session's game state right now; reads `syncing` as soon as `syncGame.execute()` returns. */
 	readonly gameSnapshot: () => GameSnapshot;
-	/** The level-up banner was closed. */
+	/** The level-up ceremony was closed. */
 	readonly dismissGameEvents: () => void;
 	/** The game events not toasted yet; each one comes out once. */
 	readonly takeGameAnnouncements: () => readonly GameEvent[];
@@ -40,9 +54,13 @@ export interface HomeScreenDeps {
 	readonly renderIcon: IconRender;
 	/** Copies the command of the job; `null` where it cannot be run, and the button does not show. */
 	readonly requestBriefing: Pick<RequestBriefing, 'execute'> | null;
+	/** Opens the plugin's own settings tab; `null` where it cannot be opened, and the signpost has no settings plank. */
+	readonly openSettings: (() => void) | null;
 	/** The session's quests right now; reads `syncing` as soon as `syncQuests.execute()` returns. */
 	readonly questSnapshot: () => QuestSnapshot;
 	readonly clock: Clock;
+	/** This device's own small state: the mark of the last letter of Esdras opened here (game-ui S13), and what it last saw of the game (S15). */
+	readonly deviceStore: DeviceStore;
 	readonly campaigns: CampaignsDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
 	readonly translator: () => Translator;
@@ -56,8 +74,26 @@ export interface HomeScreenDeps {
 
 type CharacterShown = CharacterState | { readonly kind: 'loading' };
 
+/**
+ * Since the last visit on this device (game-ui S15): `waiting` until the open sync settles, then
+ * what changed, `null` on a first visit or when nothing did. It stays so until the next open.
+ */
+type Visit = { readonly kind: 'waiting' } | { readonly kind: 'settled'; readonly delta: VisitDelta | null };
+
+/**
+ * Where the view is: the screen on show, and the campaign the campaigns screen shows, which a
+ * home card or a tab chose (game-ui S7, S8); `null` shows the first one.
+ */
+interface Place {
+	readonly screen: DromosScreen;
+	readonly campaign: string | null;
+}
+
 /** Re-render period that keeps "Sincronizado hace N min" current. Local only: it sends no request. */
 const CLOCK_TICK_MS = 30_000;
+
+/** Numbers the open views, so each one's letter has its own ids in the window (aria-controls). */
+let viewCount = 0;
 
 /**
  * The only UI component that calls `application/` (S8). On mount and on
@@ -66,8 +102,24 @@ const CLOCK_TICK_MS = 30_000;
  * snapshot first and the outcome when the sync settles. The game sync runs next to it and,
  * when it finishes, the character is read again because the sync rewrites its note. Each run
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
+ *
+ * It holds the three screens of the view (game-ui S1): home, campaigns and skills, under one
+ * scene with a signpost. Changing screen, campaign tab or skill spends no request: they are only
+ * state here, and the campaigns panel stays mounted in its slot on every screen.
+ * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
+ * here, and the card, the ribbon and the panel are drawn from the step it is at.
+ *
+ * Since the last visit (game-ui S15): the record this device kept is read once on open. While the
+ * open sync runs, the bar and the walker wait where that record left them; once it settles and
+ * the character is read again, they move to the new values and a line under the bar says what
+ * changed, which a live region announces once. The new record is written then, and after every
+ * later sync while the view stays open.
+ *
+ * The world reacts (game-ui S17): the scene's sky follows the hour of the clock, read on every
+ * render, so the periodic re-render turns it with no timer of its own, and a campfire burns once
+ * every daily is done. Under the skills, the chronicle lists the last deeds of the ledger (S18).
  */
-export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
+export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
 	// `null` until the first read: saying Esdras has not written would be a guess.
 	const [briefing, setBriefing] = useState<BriefingState | null>(null);
@@ -75,22 +127,55 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
 	const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
+	// The letter folds on every open of the view and stays as it was while the screen changes (S13).
+	const [letterOpen, setLetterOpen] = useState(false);
+	const [readMark, setReadMark] = useState<unknown>(() => storedLetterMark(deps.deviceStore));
+	const [letterId] = useState(() => `dromos-letter-${(viewCount += 1)}`);
+	const [lastSeen] = useState(() => storedLastSeen(deps.deviceStore));
+	const [visit, setVisit] = useState<Visit>({ kind: 'waiting' });
+	const visitSettled = useRef(false);
+	const { screen } = place;
 	const mounted = useRef(false);
+	const frame = useRef<HTMLDivElement>(null);
+	const main = useRef<HTMLElement>(null);
+	useScreenFocus(screen, frame, main);
 	useClockTick();
 	useSettingsChange(deps.subscribeSettings);
 	const t = deps.translator();
+	const skills = skillsPageView(game, t);
+	const ceremony = ceremonyView(game.events, [...skills.earned, ...skills.locked], t);
+	const phase = useCeremonyPhase(ceremony?.level ?? null);
+	const go = useCallback((next: DromosScreen): void => setPlace((current) => ({ ...current, screen: next })), []);
+	const selectCampaign = useCallback((path: string): void => setPlace((current) => ({ ...current, campaign: path })), []);
+	// Closing the panel takes its button away: the focus goes back to the character's name.
 	const dismissEvents = useCallback((): void => {
 		deps.dismissGameEvents();
 		setGame(deps.gameSnapshot());
+		main.current?.querySelector<HTMLElement>('[data-screen-heading]')?.focus({ preventScroll: true });
 	}, [deps]);
-	const levelUp = levelUpBannerView(game.events, t);
-	const skills = skillsPageView(game, t);
 	const { requestBriefing } = deps;
 	const onRequestBriefing = requestBriefing
 		? (): void => {
 				void requestBriefing.execute().then((request) => deps.notify(briefingRequestMessage(request, deps.translator())));
 			}
 		: null;
+	// Opening the letter marks it read on this device, which takes the wax seal off.
+	const toggleLetter = (): void => {
+		if (!letterOpen) {
+			const mark = openLetter(briefing, deps.deviceStore);
+			if (mark) setReadMark(mark);
+		}
+		setLetterOpen(!letterOpen);
+	};
+	// The fold button at the letter's end: the focus goes back to the top toggle and the panel's head
+	// comes into view, as the letter rolls up under it.
+	const foldLetter = (): void => {
+		setLetterOpen(false);
+		const toggle = main.current?.querySelector<HTMLElement>(`#${letterId}-toggle`);
+		toggle?.focus({ preventScroll: true });
+		toggle?.closest('.dromos-briefing')?.querySelector('.dromos-briefing-head')?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+	};
 	const announce = useCallback((): void => {
 		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
 	}, [deps]);
@@ -100,6 +185,17 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		if (home.character.kind !== 'unreadable') setCharacter(home.character);
 		if (home.briefing.kind !== 'unreadable') setBriefing(home.briefing);
 	}, []);
+
+	// The first settled sync of this open tells what changed since the record; every one keeps the new record.
+	const seeVisit = useCallback((): void => {
+		const snapshot = deps.gameSnapshot();
+		if (visitSettled.current) {
+			noteSeen(deps.deviceStore, snapshot, deps.clock);
+			return;
+		}
+		visitSettled.current = true;
+		setVisit({ kind: 'settled', delta: settleVisit(deps.deviceStore, lastSeen, snapshot, deps.clock) });
+	}, [deps, lastSeen]);
 
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await deps.loadHome.execute();
@@ -120,9 +216,14 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			setGame(deps.gameSnapshot());
 			announce();
 		}
-		const updated = await deps.loadHome.execute();
-		if (mounted.current) showLaterRead(updated);
-	}, [deps, announce, showLaterRead]);
+		try {
+			const updated = await deps.loadHome.execute();
+			if (mounted.current) showLaterRead(updated);
+		} finally {
+			// After the character is read again, so the bar and the walker set off once, to the new values.
+			if (mounted.current) seeVisit();
+		}
+	}, [deps, announce, showLaterRead, seeVisit]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -137,6 +238,7 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 			deps.subscribeGame(() => {
 				setGame(deps.gameSnapshot());
 				announce();
+				if (visitSettled.current) noteSeen(deps.deviceStore, deps.gameSnapshot(), deps.clock);
 				void deps.loadHome.execute().then((updated) => {
 					if (mounted.current) showLaterRead(updated);
 				});
@@ -144,30 +246,142 @@ export function HomeScreen({ deps }: { readonly deps: HomeScreenDeps }) {
 		[deps, announce, showLaterRead],
 	);
 
+	const home = screen === 'home';
+	const offline = quests.status.kind === 'offline';
+	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t);
+	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t) : null;
+	const banner = syncBannerView(quests, deps.clock.now(), t);
+	const language = deps.language();
+	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
+	const showCeremony = home && ceremony !== null && (ceremony.level === null || phase === 'final');
+	const characterCeremony = ceremony?.level != null ? { level: ceremony.level, phase } : null;
+	const standing = character.kind === 'found' ? character.character : null;
+	const motion = canAnimate();
+	// While the open sync runs the bar and the walker wait at the record's place, if they may move later.
+	const held = visit.kind === 'waiting' && motion && standing ? heldProgress(lastSeen, standing) : null;
+	const cardVisit = visitCardView({ delta: visit.kind === 'settled' ? visit.delta : null, held, ceremony: characterCeremony?.phase ?? null, motion }, t);
+	const walker = walkerView(standing, characterCeremony === null ? (held?.fraction ?? null) : null, characterCeremony);
 	return (
 		<I18nProvider t={t}>
-		<main className="dromos-home" lang={deps.language()}>
-			<CharacterPanel
-				state={panelState(character, t)}
-				ribbon={levelUp ? <LevelUpBanner view={levelUp} onDismiss={dismissEvents} /> : null}
-				footer={
-					<div className="dromos-sync-line">
-						<StatusBanner {...syncBannerView(quests, deps.clock.now(), t)} />
-						<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
-					</div>
-				}
-			/>
-			{briefing ? <BriefingPanel view={briefingView(briefing, deps.clock.today(), skills.locked, t)} renderMarkdown={deps.renderMarkdown} onRequest={onRequestBriefing} /> : null}
-			<QuestList view={questListView(quests.quests, deps.clock.today(), t)} />
-			<CampaignsPanel deps={deps.campaigns} syncKey={syncKey} />
-			<SkillsPanel view={skills} selectedId={selectedSkill} onSelect={(skillId) => setSelectedSkill((current) => nextSkillSelection(current, skillId))} renderIcon={deps.renderIcon} />
-		</main>
+			{/* `lang` on the frame covers the signpost; the one on <main> stays for the content. */}
+			<div className="dromos-frame" lang={language} ref={frame}>
+				{offline ? <OfflineBand text={offlineBandText(quests, deps.clock.now(), t)} /> : null}
+				<Scene
+					screen={screen}
+					offline={offline}
+					onGo={go}
+					onSettings={deps.openSettings}
+					ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
+					walker={walker.fraction}
+					gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
+					period={dayPeriod(deps.clock.now())}
+					campfire={questPanel.dayComplete}
+				/>
+				<main className={`dromos-home is-${screen}`} lang={language} ref={main} tabIndex={-1}>
+					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted. */}
+					{home ? (
+						<CharacterPanel
+							state={panelState(character, t)}
+							ceremony={characterCeremony?.phase ?? null}
+							visit={cardVisit}
+							footer={
+								<div className="dromos-sync-line">
+									{/* While offline the band above the scene says it (S10), so the line shows only Sync (game-ui S14);
+									    the banner stays mounted and quiet, so its live region only changes text (S12). */}
+									<StatusBanner {...banner} quiet={offline} />
+									<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
+								</div>
+							}
+						/>
+					) : screen === 'skills' ? (
+						<ScreenHeader title={t('screen.skills')} character={headerCharacter(character, t)} />
+					) : null}
+					{showCeremony ? <LevelUpPanel view={ceremony} onDismiss={dismissEvents} renderIcon={deps.renderIcon} /> : null}
+					{home && briefing ? (
+						<BriefingPanel
+							view={briefingView(briefing, deps.clock.today(), skills.locked, t, readMark)}
+							renderMarkdown={deps.renderMarkdown}
+							onRequest={onRequestBriefing}
+							renderIcon={deps.renderIcon}
+							open={letterOpen}
+							letterId={letterId}
+							onToggle={toggleLetter}
+							onFold={foldLetter}
+						/>
+					) : null}
+					{home ? <QuestList view={questPanel} /> : null}
+					{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
+					<CampaignsPanel
+						deps={deps.campaigns}
+						syncKey={syncKey}
+						hidden={screen === 'skills'}
+						onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
+						screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign, character: headerCharacter(character, t) } : undefined}
+					/>
+					{home ? (
+						<SkillsRow
+							page={skills}
+							rings={[...skills.earned, ...skills.locked].map((card) => skillRingView(card, t))}
+							onOpen={(skillId) => {
+								setSelectedSkill(skillId);
+								go('skills');
+							}}
+							renderIcon={deps.renderIcon}
+						/>
+					) : null}
+					{chronicle ? <Chronicle view={chronicle} /> : null}
+					{screen === 'skills' ? (
+						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
+					) : null}
+				</main>
+				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
+				<p className="dromos-visually-hidden dromos-since-news" role="status">
+					{cardVisit.line ?? ''}
+				</p>
+			</div>
 		</I18nProvider>
 	);
 }
 
 function panelState(character: CharacterShown, t: Translator): CharacterPanelState {
 	return character.kind === 'found' ? { kind: 'found', view: characterCardView(character.character, t) } : character;
+}
+
+/** The character as the header card of the other screens names it, or `null` while there is none. */
+function headerCharacter(character: CharacterShown, t: Translator): ScreenHeaderCharacter | null {
+	if (character.kind !== 'found') return null;
+	const view = characterCardView(character.character, t);
+	return { name: view.name, title: view.title, level: character.character.level, xpText: view.xp.text };
+}
+
+/** "Last known state · 2 h ago", with the time of the last quests fetched this session when there is one. */
+function offlineBandText(quests: QuestSnapshot, now: Date, t: Translator): string {
+	return quests.lastSyncedAt ? t('offline.band', { ago: agoText(minutesSince(quests.lastSyncedAt, now), t) }) : t('offline.band.never');
+}
+
+/**
+ * After a change of screen (not on the first paint), scrolls the view back to the top and moves
+ * the focus to the new screen's heading, or to `<main>` while that heading is not drawn yet.
+ */
+function useScreenFocus(screen: DromosScreen, frame: RefObject<HTMLElement>, main: RefObject<HTMLElement>): void {
+	const shown = useRef(screen);
+	useEffect(() => {
+		if (shown.current === screen) return;
+		shown.current = screen;
+		const scroller = frame.current?.closest<HTMLElement>('.dromos-root');
+		if (scroller) scroller.scrollTop = 0;
+		const heading = main.current?.querySelector<HTMLElement>('[data-screen-heading]') ?? main.current;
+		heading?.focus({ preventScroll: true });
+	}, [screen, frame, main]);
+}
+
+/** Whether the bar and the walker may move: not under reduced motion, nor where nothing runs (server rendering). */
+function canAnimate(): boolean {
+	return typeof window !== 'undefined' && !prefersReducedMotion();
+}
+
+function prefersReducedMotion(): boolean {
+	return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function useClockTick(): void {

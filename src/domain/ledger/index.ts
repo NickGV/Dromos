@@ -4,3 +4,4 @@ export * from './nextRows';
 export * from './questCounts';
 export * from './streakRows';
 export * from './planRows';
+export * from './recentRows';
