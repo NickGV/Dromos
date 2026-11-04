@@ -23,7 +23,8 @@ export type CredentialsProvider = () => HabiticaCredentials | Promise<HabiticaCr
 /**
  * Habitica API v3 client over an injected `HttpFunction` (S4). Unwraps the
  * `{ success, data }` envelope and turns every HTTP failure into a
- * `TaskSourceError` (S5). Error messages never carry credentials (S9).
+ * `TaskSourceError` (S5). Error messages never carry credentials (S9). Credentials a header
+ * cannot carry fail as `Unauthorized` before any request is sent (issue #9).
  */
 export class HabiticaClient {
 	constructor(
@@ -52,6 +53,10 @@ export class HabiticaClient {
 
 	private async request(method: 'GET' | 'POST', path: string, body?: unknown): Promise<HttpResponse> {
 		const { userId, apiToken } = await this.credentials();
+		// A value a header cannot carry makes the HTTP layer throw, which would read as offline.
+		if (!isHeaderSafe(userId) || !isHeaderSafe(apiToken)) {
+			throw new TaskSourceError('Unauthorized', null, 'Habitica credentials contain characters that cannot be sent');
+		}
 		try {
 			return await this.http({
 				url: `${HABITICA_BASE_URL}${path}`,
@@ -69,6 +74,12 @@ export class HabiticaClient {
 			throw new TaskSourceError('Offline', null, 'Habitica could not be reached');
 		}
 	}
+}
+
+// Visible ASCII only, what Habitica's user IDs and API tokens are made of: no space, line break, accent
+// or invisible character. An empty value passes; the use cases report it as not configured first.
+function isHeaderSafe(value: string): boolean {
+	return !/[^\x21-\x7e]/.test(value);
 }
 
 // Maps the status and body to the envelope's data or a typed error (S5).

@@ -57,6 +57,12 @@ describe('localDate (America/Bogota)', () => {
 		expect(localDate('2026-10-30T05:00:00.000Z')).toBe('2026-10-30');
 	});
 
+	// Habitica's web client shows a due date as `moment(task.date)`, the device's local day (task.vue,
+	// formatDueDate), so on a device in Bogota a date stored at midnight UTC reads as the day before there too.
+	it('reads a due date stored at midnight UTC as the day before in Bogota, as Habitica shows it there (S2)', () => {
+		expect(localDate('2026-10-30T00:00:00.000Z')).toBe('2026-10-29');
+	});
+
 	it('treats a missing, null, empty or unreadable date as undated', () => {
 		expect(localDate(undefined)).toBeNull();
 		expect(localDate(null)).toBeNull();
