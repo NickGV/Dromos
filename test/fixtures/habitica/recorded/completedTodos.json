@@ -1,0 +1,1056 @@
+{
+	"success": true,
+	"data": [
+		{
+			"_id": "00000000-0000-4000-8000-000000000069",
+			"type": "todo",
+			"text": "text 68",
+			"notes": "notes 11",
+			"tags": [],
+			"value": -4.129174475435187,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-25T17:52:50.919Z",
+			"updatedAt": "2026-11-01T00:36:14.837Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-11-01T00:36:14.831Z",
+			"id": "00000000-0000-4000-8000-000000000069"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000070",
+			"type": "todo",
+			"text": "text 69",
+			"notes": "notes 12",
+			"tags": [],
+			"value": 0.025956704627064786,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-30T20:26:57.054Z",
+			"updatedAt": "2026-11-01T00:36:05.348Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-11-01T00:36:05.344Z",
+			"id": "00000000-0000-4000-8000-000000000070"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000071",
+			"type": "todo",
+			"text": "text 70",
+			"notes": "notes 13",
+			"tags": [],
+			"value": 1,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"reminders": [],
+			"createdAt": "2026-10-31T16:29:47.530Z",
+			"updatedAt": "2026-10-31T16:36:11.358Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-31T16:36:11.349Z",
+			"id": "00000000-0000-4000-8000-000000000071"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000072",
+			"type": "todo",
+			"text": "text 71",
+			"notes": "notes 14",
+			"tags": [],
+			"value": -20.08645147644699,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-11T15:19:00.340Z",
+			"updatedAt": "2026-10-27T12:18:46.407Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-27T12:18:46.403Z",
+			"id": "00000000-0000-4000-8000-000000000072"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000073",
+			"type": "todo",
+			"text": "text 72",
+			"notes": "",
+			"tags": [],
+			"value": -29.230679848693768,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-04T13:03:45.017Z",
+			"updatedAt": "2026-10-27T12:18:44.820Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-27T12:18:44.816Z",
+			"id": "00000000-0000-4000-8000-000000000073"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000074",
+			"type": "todo",
+			"text": "text 73",
+			"notes": "notes 15",
+			"tags": [],
+			"value": -0.695062702522188,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 74",
+					"id": "00000000-0000-4000-8000-000000000075"
+				},
+				{
+					"completed": true,
+					"text": "text 75",
+					"id": "00000000-0000-4000-8000-000000000076"
+				},
+				{
+					"completed": true,
+					"text": "text 76",
+					"id": "00000000-0000-4000-8000-000000000077"
+				}
+			],
+			"createdAt": "2026-10-22T21:19:09.369Z",
+			"updatedAt": "2026-10-27T12:13:07.151Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"date": null,
+			"dateCompleted": "2026-10-27T12:13:07.099Z",
+			"id": "00000000-0000-4000-8000-000000000074"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000078",
+			"type": "todo",
+			"text": "text 77",
+			"notes": "",
+			"tags": [],
+			"value": -8.771383837406706,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-19T03:51:30.775Z",
+			"updatedAt": "2026-10-27T12:13:00.151Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-27T12:13:00.148Z",
+			"id": "00000000-0000-4000-8000-000000000078"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000079",
+			"type": "todo",
+			"text": "text 78",
+			"notes": "",
+			"tags": [],
+			"value": 0.16706785250397482,
+			"priority": 2,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 79",
+					"id": "00000000-0000-4000-8000-000000000080"
+				},
+				{
+					"completed": true,
+					"text": "text 80",
+					"id": "00000000-0000-4000-8000-000000000081"
+				}
+			],
+			"createdAt": "2026-10-19T13:06:03.669Z",
+			"updatedAt": "2026-10-22T21:19:13.017Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-22T21:19:13.012Z",
+			"id": "00000000-0000-4000-8000-000000000079"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000082",
+			"type": "todo",
+			"text": "text 81",
+			"notes": "",
+			"tags": [],
+			"value": -1.9971402029437662,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-16T23:22:14.490Z",
+			"updatedAt": "2026-10-19T13:07:28.229Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-19T13:07:28.226Z",
+			"id": "00000000-0000-4000-8000-000000000082"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000083",
+			"type": "todo",
+			"text": "text 82",
+			"notes": "notes 16",
+			"tags": [],
+			"value": 3.103826818508259,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 83",
+					"id": "00000000-0000-4000-8000-000000000084"
+				},
+				{
+					"completed": true,
+					"text": "text 84",
+					"id": "00000000-0000-4000-8000-000000000085"
+				},
+				{
+					"completed": true,
+					"text": "text 85",
+					"id": "00000000-0000-4000-8000-000000000086"
+				}
+			],
+			"createdAt": "2026-10-17T22:00:11.208Z",
+			"updatedAt": "2026-10-18T16:21:38.757Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-18T16:21:38.752Z",
+			"id": "00000000-0000-4000-8000-000000000083"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000087",
+			"type": "todo",
+			"text": "text 86",
+			"notes": "",
+			"tags": [],
+			"value": 2.077870113881194,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 87",
+					"id": "00000000-0000-4000-8000-000000000088"
+				},
+				{
+					"completed": true,
+					"text": "text 88",
+					"id": "00000000-0000-4000-8000-000000000089"
+				}
+			],
+			"createdAt": "2026-10-18T01:54:08.580Z",
+			"updatedAt": "2026-10-18T16:21:34.654Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-18T16:21:34.649Z",
+			"id": "00000000-0000-4000-8000-000000000087"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000090",
+			"type": "todo",
+			"text": "text 89",
+			"notes": "",
+			"tags": [],
+			"value": -0.9726691785864934,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-17T00:50:12.814Z",
+			"updatedAt": "2026-10-18T14:20:50.300Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-18T14:20:50.296Z",
+			"id": "00000000-0000-4000-8000-000000000090"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000091",
+			"type": "todo",
+			"text": "text 90",
+			"notes": "notes 17",
+			"tags": [],
+			"value": -0.972668642128274,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": false,
+					"text": "text 91",
+					"id": "00000000-0000-4000-8000-000000000092"
+				},
+				{
+					"completed": false,
+					"text": "text 92",
+					"id": "00000000-0000-4000-8000-000000000093"
+				},
+				{
+					"completed": false,
+					"text": "text 93",
+					"id": "00000000-0000-4000-8000-000000000094"
+				},
+				{
+					"completed": false,
+					"text": "text 94",
+					"id": "00000000-0000-4000-8000-000000000095"
+				},
+				{
+					"completed": false,
+					"text": "text 95",
+					"id": "00000000-0000-4000-8000-000000000096"
+				},
+				{
+					"completed": false,
+					"text": "text 96",
+					"id": "00000000-0000-4000-8000-000000000097"
+				},
+				{
+					"completed": false,
+					"text": "text 97",
+					"id": "00000000-0000-4000-8000-000000000098"
+				},
+				{
+					"completed": false,
+					"text": "text 98",
+					"id": "00000000-0000-4000-8000-000000000099"
+				},
+				{
+					"completed": false,
+					"text": "text 99",
+					"id": "00000000-0000-4000-8000-000000000100"
+				},
+				{
+					"completed": false,
+					"text": "text 100",
+					"id": "00000000-0000-4000-8000-000000000101"
+				}
+			],
+			"reminders": [],
+			"createdAt": "2026-10-17T04:08:20.417Z",
+			"updatedAt": "2026-10-18T14:20:44.939Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-18T14:20:44.933Z",
+			"id": "00000000-0000-4000-8000-000000000091"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000102",
+			"type": "todo",
+			"text": "text 101",
+			"notes": "notes 18",
+			"tags": [],
+			"value": 0.025956704627064786,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-16T01:30:19.069Z",
+			"updatedAt": "2026-10-17T00:50:20.942Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-17T00:50:20.938Z",
+			"id": "00000000-0000-4000-8000-000000000102"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000103",
+			"type": "todo",
+			"text": "text 102",
+			"notes": "notes 19",
+			"tags": [],
+			"value": 1,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-16T16:25:08.806Z",
+			"updatedAt": "2026-10-17T00:50:16.779Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-17T00:50:16.775Z",
+			"id": "00000000-0000-4000-8000-000000000103"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000104",
+			"type": "todo",
+			"text": "text 103",
+			"notes": "notes 20",
+			"tags": [],
+			"value": -4.129174475435187,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-08T23:37:49.928Z",
+			"updatedAt": "2026-10-14T15:00:47.142Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-14T15:00:47.137Z",
+			"id": "00000000-0000-4000-8000-000000000104"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000105",
+			"type": "todo",
+			"text": "text 104",
+			"notes": "notes 21",
+			"tags": [],
+			"value": -2.984470551130854,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 105",
+					"id": "00000000-0000-4000-8000-000000000106"
+				}
+			],
+			"createdAt": "2026-10-08T23:36:04.993Z",
+			"updatedAt": "2026-10-14T15:00:46.485Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-14T15:00:46.477Z",
+			"id": "00000000-0000-4000-8000-000000000105"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000107",
+			"type": "todo",
+			"text": "text 106",
+			"notes": "notes 22",
+			"tags": [],
+			"value": -302.4772689350968,
+			"priority": 2,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": "2026-12-31T13:27:37.429Z",
+			"completed": true,
+			"collapseChecklist": true,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 107",
+					"id": "00000000-0000-4000-8000-000000000108"
+				},
+				{
+					"completed": true,
+					"text": "text 108",
+					"id": "00000000-0000-4000-8000-000000000109"
+				},
+				{
+					"completed": true,
+					"text": "text 109",
+					"id": "00000000-0000-4000-8000-000000000110"
+				},
+				{
+					"completed": true,
+					"text": "text 110",
+					"id": "00000000-0000-4000-8000-000000000111"
+				},
+				{
+					"completed": true,
+					"text": "text 111",
+					"id": "00000000-0000-4000-8000-000000000112"
+				},
+				{
+					"completed": true,
+					"text": "text 112",
+					"id": "00000000-0000-4000-8000-000000000113"
+				},
+				{
+					"completed": true,
+					"text": "text 113",
+					"id": "00000000-0000-4000-8000-000000000114"
+				},
+				{
+					"completed": true,
+					"text": "text 114",
+					"id": "00000000-0000-4000-8000-000000000115"
+				},
+				{
+					"completed": true,
+					"text": "text 115",
+					"id": "00000000-0000-4000-8000-000000000116"
+				},
+				{
+					"completed": true,
+					"text": "text 116",
+					"id": "00000000-0000-4000-8000-000000000117"
+				},
+				{
+					"completed": true,
+					"text": "text 117",
+					"id": "00000000-0000-4000-8000-000000000118"
+				},
+				{
+					"completed": true,
+					"text": "text 118",
+					"id": "00000000-0000-4000-8000-000000000119"
+				},
+				{
+					"completed": true,
+					"text": "text 119",
+					"id": "00000000-0000-4000-8000-000000000120"
+				}
+			],
+			"createdAt": "2026-05-18T13:04:43.439Z",
+			"updatedAt": "2026-10-13T13:56:18.458Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-13T13:56:18.451Z",
+			"id": "00000000-0000-4000-8000-000000000107"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000121",
+			"type": "todo",
+			"text": "text 120",
+			"notes": "",
+			"tags": [],
+			"value": -7.558942264622539,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-03T23:44:39.382Z",
+			"updatedAt": "2026-10-13T00:33:33.259Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-13T00:33:33.253Z",
+			"id": "00000000-0000-4000-8000-000000000121"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000122",
+			"type": "todo",
+			"text": "text 121",
+			"notes": "notes 23",
+			"tags": [],
+			"value": -13.086779501464553,
+			"priority": 1.5,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": true,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 122",
+					"id": "00000000-0000-4000-8000-000000000123"
+				},
+				{
+					"completed": true,
+					"text": "text 123",
+					"id": "00000000-0000-4000-8000-000000000124"
+				},
+				{
+					"completed": true,
+					"text": "text 124",
+					"id": "00000000-0000-4000-8000-000000000125"
+				},
+				{
+					"completed": true,
+					"text": "text 125",
+					"id": "00000000-0000-4000-8000-000000000126"
+				},
+				{
+					"completed": false,
+					"text": "text 126",
+					"id": "00000000-0000-4000-8000-000000000127"
+				},
+				{
+					"completed": false,
+					"text": "text 127",
+					"id": "00000000-0000-4000-8000-000000000128"
+				},
+				{
+					"completed": false,
+					"text": "text 128",
+					"id": "00000000-0000-4000-8000-000000000129"
+				},
+				{
+					"completed": false,
+					"text": "text 129",
+					"id": "00000000-0000-4000-8000-000000000130"
+				}
+			],
+			"reminders": [],
+			"createdAt": "2026-09-25T03:23:11.979Z",
+			"updatedAt": "2026-10-13T00:32:55.608Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-13T00:32:55.604Z",
+			"id": "00000000-0000-4000-8000-000000000122"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000131",
+			"type": "todo",
+			"text": "text 130",
+			"notes": "notes 24",
+			"tags": [],
+			"value": 1,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-08T23:44:22.004Z",
+			"updatedAt": "2026-10-11T00:24:03.635Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-11T00:24:03.630Z",
+			"id": "00000000-0000-4000-8000-000000000131"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000132",
+			"type": "todo",
+			"text": "text 131",
+			"notes": "",
+			"tags": [],
+			"value": -21.756112569471348,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-09-20T14:25:35.977Z",
+			"updatedAt": "2026-10-08T23:37:58.644Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-08T23:37:58.638Z",
+			"id": "00000000-0000-4000-8000-000000000132"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000133",
+			"type": "todo",
+			"text": "text 132",
+			"notes": "",
+			"tags": [],
+			"value": -2.8822434493477367,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 133",
+					"id": "00000000-0000-4000-8000-000000000134"
+				},
+				{
+					"completed": true,
+					"text": "text 134",
+					"id": "00000000-0000-4000-8000-000000000135"
+				},
+				{
+					"completed": false,
+					"text": "text 135",
+					"id": "00000000-0000-4000-8000-000000000136"
+				},
+				{
+					"completed": false,
+					"text": "text 136",
+					"id": "00000000-0000-4000-8000-000000000137"
+				}
+			],
+			"createdAt": "2026-10-03T03:32:49.164Z",
+			"updatedAt": "2026-10-08T23:32:56.085Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-08T23:32:56.078Z",
+			"id": "00000000-0000-4000-8000-000000000133"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000138",
+			"type": "todo",
+			"text": "text 137",
+			"notes": "",
+			"tags": [],
+			"value": -3.0488181170434956,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-04T17:41:29.681Z",
+			"updatedAt": "2026-10-08T23:32:46.883Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-08T23:32:46.878Z",
+			"id": "00000000-0000-4000-8000-000000000138"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000139",
+			"type": "todo",
+			"text": "text 138",
+			"notes": "",
+			"tags": [],
+			"value": -0.9726691785864934,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-06T23:15:04.761Z",
+			"updatedAt": "2026-10-08T23:32:45.200Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-08T23:32:45.197Z",
+			"id": "00000000-0000-4000-8000-000000000139"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000140",
+			"type": "todo",
+			"text": "text 139",
+			"notes": "",
+			"tags": [],
+			"value": -0.9726691785864934,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-07T00:49:19.455Z",
+			"updatedAt": "2026-10-08T23:32:43.623Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-08T23:32:43.620Z",
+			"id": "00000000-0000-4000-8000-000000000140"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000141",
+			"type": "todo",
+			"text": "text 140",
+			"notes": "",
+			"tags": [],
+			"value": -0.9726691785864934,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [],
+			"createdAt": "2026-10-07T00:49:12.932Z",
+			"updatedAt": "2026-10-08T23:32:41.671Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-08T23:32:41.667Z",
+			"id": "00000000-0000-4000-8000-000000000141"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000142",
+			"type": "todo",
+			"text": "text 141",
+			"notes": "",
+			"tags": [],
+			"value": -14.02865229366684,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": false,
+					"text": "text 142",
+					"id": "00000000-0000-4000-8000-000000000143"
+				},
+				{
+					"completed": false,
+					"text": "text 143",
+					"id": "00000000-0000-4000-8000-000000000144"
+				},
+				{
+					"completed": false,
+					"text": "text 144",
+					"id": "00000000-0000-4000-8000-000000000145"
+				}
+			],
+			"createdAt": "2026-09-23T00:34:34.822Z",
+			"updatedAt": "2026-10-05T21:37:15.047Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-05T21:37:15.043Z",
+			"id": "00000000-0000-4000-8000-000000000142"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000146",
+			"type": "todo",
+			"text": "text 145",
+			"notes": "",
+			"tags": [],
+			"value": -5.239802699145147,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": true,
+			"checklist": [
+				{
+					"completed": false,
+					"text": "text 146",
+					"id": "00000000-0000-4000-8000-000000000147"
+				},
+				{
+					"completed": false,
+					"text": "text 147",
+					"id": "00000000-0000-4000-8000-000000000148"
+				}
+			],
+			"createdAt": "2026-09-30T00:01:00.435Z",
+			"updatedAt": "2026-10-05T21:37:12.408Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-05T21:37:12.401Z",
+			"id": "00000000-0000-4000-8000-000000000146"
+		},
+		{
+			"_id": "00000000-0000-4000-8000-000000000149",
+			"type": "todo",
+			"text": "text 148",
+			"notes": "",
+			"tags": [],
+			"value": -2.8822434493477367,
+			"priority": 1,
+			"attribute": "str",
+			"challenge": {},
+			"group": {
+				"completedBy": {},
+				"assignedUsers": []
+			},
+			"reminders": [],
+			"byHabitica": false,
+			"date": null,
+			"completed": true,
+			"collapseChecklist": false,
+			"checklist": [
+				{
+					"completed": true,
+					"text": "text 149",
+					"id": "00000000-0000-4000-8000-000000000150"
+				},
+				{
+					"completed": true,
+					"text": "text 150",
+					"id": "00000000-0000-4000-8000-000000000151"
+				}
+			],
+			"createdAt": "2026-09-30T00:29:38.855Z",
+			"updatedAt": "2026-10-05T21:37:10.554Z",
+			"userId": "00000000-0000-4000-8000-000000000008",
+			"dateCompleted": "2026-10-05T21:37:10.549Z",
+			"id": "00000000-0000-4000-8000-000000000149"
+		}
+	]
+}

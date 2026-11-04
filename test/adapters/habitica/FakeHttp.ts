@@ -39,6 +39,10 @@ export function respond(status: number, json: unknown, headers: Record<string, s
 const FIXTURE_PATHS = {
 	dailys: '../../fixtures/habitica/dailys.json',
 	todos: '../../fixtures/habitica/todos.json',
+	// Recorded from a real account by `npm run fixtures:habitica`, every id and text replaced (issue #8).
+	recordedDailys: '../../fixtures/habitica/recorded/dailys.json',
+	recordedTodos: '../../fixtures/habitica/recorded/todos.json',
+	recordedCompletedTodos: '../../fixtures/habitica/recorded/completedTodos.json',
 } as const;
 
 /** Loads an anonymized Habitica API v3 response from `test/fixtures/habitica`. */

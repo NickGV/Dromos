@@ -151,6 +151,25 @@ npm run install:local
 
 Then enable **Dromos** under *Settings → Community plugins* and open it from the ribbon icon or the command palette (`Dromos: Open`).
 
+### Recording Habitica fixtures
+
+`test/fixtures/habitica/recorded/` holds real Habitica responses with every id and text replaced by a fake, so tests run against the shape Habitica really sends. To record them again, by hand and never in CI (Node 22.18 or newer):
+
+```bash
+HABITICA_USER_ID=... HABITICA_API_TOKEN=... npm run fixtures:habitica
+```
+
+The script fetches your dailies, to-dos and completed to-dos, keeps the structure and the values Dromos reads (type, completion, due flags and dates, priority, streak), and turns ids into `00000000-0000-4000-8000-…` and texts into `text 1`, `notes 1` and so on. It writes nothing if any of your strings would reach the files. The raw responses never touch the disk, and the script prints counts only.
+
+To keep the token out of your shell history and off the screen, read both values from the plugin's settings:
+
+```bash
+DATA="${DROMOS_VAULT:-$HOME/Documents/second_brain}/.obsidian/plugins/dromos/data.json"
+HABITICA_USER_ID=$(node -p "require('$DATA').habiticaUserId") HABITICA_API_TOKEN=$(node -p "require('$DATA').habiticaApiToken") npm run fixtures:habitica
+```
+
+Review the diff before committing the new files.
+
 ## Architecture
 
 Hexagonal. The domain is plain TypeScript and never imports `obsidian` or `react`; that is what makes the game rules testable in milliseconds.
