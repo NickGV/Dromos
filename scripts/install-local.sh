@@ -3,7 +3,7 @@
 # be tested without BRAT. Override the vault with DROMOS_VAULT=/path/to/vault.
 set -euo pipefail
 
-VAULT="${DROMOS_VAULT:-$HOME/Documents/second_brain}"
+VAULT="${DROMOS_VAULT:-$HOME/Documents/logos}"
 TARGET="$VAULT/.obsidian/plugins/dromos"
 
 if [ ! -d "$VAULT/.obsidian" ]; then

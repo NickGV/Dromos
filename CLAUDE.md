@@ -9,7 +9,7 @@ Generic Obsidian plugin rules (manifest, releases, privacy, mobile, listeners) l
 - `npm test` — Vitest (`test/`). `npm run test:watch` while iterating.
 - `npm run lint` — ESLint with `eslint-plugin-obsidianmd`.
 - `npm run build` — `tsc -noEmit` then production esbuild. Run it before saying a change is done.
-- `npm run install:local` — builds and copies `main.js`, `manifest.json`, `styles.css` into `$DROMOS_VAULT/.obsidian/plugins/dromos`. The default vault is `~/Documents/second_brain`; set `DROMOS_VAULT` to the real vault path.
+- `npm run install:local` — builds and copies `main.js`, `manifest.json`, `styles.css` into `$DROMOS_VAULT/.obsidian/plugins/dromos`. The default vault is `~/Documents/logos` (the Logos vault); set `DROMOS_VAULT` to use another one.
 - `npm run fixtures:habitica` — records anonymized Habitica fixtures into `test/fixtures/habitica/recorded/` (README, "Recording Habitica fixtures"). Only the user runs it, with their credentials; never run it on their behalf.
 
 ## Architecture (hexagonal)
