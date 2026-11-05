@@ -11,6 +11,8 @@ export interface Settings {
 	readonly staleAfterDays: number;
 	/** Language of the interface; English by default. */
 	readonly language: Language;
+	/** Reveals the Dromos view once Obsidian's layout is ready; off by default (opt-in). */
+	readonly openOnStartup: boolean;
 }
 
 /** Values used for any setting that was never saved. */
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	vaultFolder: 'Dromos',
 	staleAfterDays: DEFAULT_STALE_AFTER_DAYS,
 	language: DEFAULT_LANGUAGE,
+	openOnStartup: false,
 };
 
 /** Persists settings. `load()` fills missing fields from `DEFAULT_SETTINGS`. */

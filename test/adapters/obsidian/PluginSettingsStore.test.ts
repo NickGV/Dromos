@@ -25,6 +25,7 @@ const STORED: Settings = {
 	vaultFolder: 'Notas/Dromos',
 	staleAfterDays: 21,
 	language: 'es',
+	openOnStartup: true,
 };
 
 describe('PluginSettingsStore.load', () => {
@@ -69,7 +70,7 @@ describe('PluginSettingsStore.load', () => {
 });
 
 describe('PluginSettingsStore.save', () => {
-	it('writes exactly the three settings to the plugin data', async () => {
+	it('writes exactly the settings to the plugin data, nothing else', async () => {
 		const plugin = new FakePlugin(null);
 		const extended = { ...STORED, extra: 'not a setting' } as Settings;
 		await new PluginSettingsStore(plugin).save(extended);
@@ -124,5 +125,33 @@ describe('PluginSettingsStore: language', () => {
 		await new PluginSettingsStore(plugin).save(STORED);
 
 		expect(plugin.saved[0]).toMatchObject({ language: 'es' });
+	});
+});
+
+describe('PluginSettingsStore: openOnStartup', () => {
+	it('defaults to off on first run', async () => {
+		expect(DEFAULT_SETTINGS.openOnStartup).toBe(false);
+		expect((await new PluginSettingsStore(new FakePlugin(null)).load()).openOnStartup).toBe(false);
+		expect((await new PluginSettingsStore(new FakePlugin({})).load()).openOnStartup).toBe(false);
+	});
+
+	it('falls back to off for any stored value that is not a boolean', async () => {
+		for (const bad of ['true', 1, null]) {
+			expect((await new PluginSettingsStore(new FakePlugin({ openOnStartup: bad })).load()).openOnStartup).toBe(false);
+		}
+	});
+
+	it('keeps a stored true', async () => {
+		expect((await new PluginSettingsStore(new FakePlugin({ openOnStartup: true })).load()).openOnStartup).toBe(true);
+	});
+
+	it('saves it with the other settings, and it round-trips through load', async () => {
+		const plugin = new FakePlugin(null);
+		const store = new PluginSettingsStore(plugin);
+
+		await store.save({ ...DEFAULT_SETTINGS, openOnStartup: true });
+
+		expect(plugin.saved[0]).toMatchObject({ openOnStartup: true });
+		expect((await store.load()).openOnStartup).toBe(true);
 	});
 });

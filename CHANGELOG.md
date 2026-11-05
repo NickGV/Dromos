@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Open Dromos on startup**, off by default: when on, Obsidian shows the Dromos view each time it opens, even if you closed the tab or Sync brought the layout of another device.
+
 ## [0.8.1] - 2026-11-04
 
 ### Fixed

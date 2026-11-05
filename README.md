@@ -100,6 +100,7 @@ Under *Settings → Community plugins → Dromos*:
 | Habitica API token | Your Habitica API token; the field is masked |
 | Dromos folder | Vault folder holding `Character.md`; default `Dromos` |
 | Days before a campaign counts as stalled | Days without a completed task before an active campaign is stamped; default 14. A campaign can set its own with `stale_after_days` |
+| Open Dromos on startup | Shows the Dromos view when Obsidian opens; off by default |
 | Language | Interface language, English by default; choose Español to see the interface in Spanish. It changes only Dromos' own text, never your notes, and applies at once |
 
 ## Network use and privacy
