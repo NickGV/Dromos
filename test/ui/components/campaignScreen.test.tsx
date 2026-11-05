@@ -265,3 +265,19 @@ describe('HomeScreen on the campaigns screen (game-ui S8)', () => {
 		expect(html).not.toContain('dromos-campaign-tabs');
 	});
 });
+
+describe('missions on campaign tasks (missions S2)', () => {
+	it('chips a task with 3 or more subtasks as a mission, after its state', () => {
+		const withMission = campaign({ path: 'P/M/README.md', title: 'M', phases: [phase('one', 'active')], tasks: [task('Plan', 'one', { habiticaId: 'h1', checklist: { done: 2, total: 5 } })] });
+
+		expect(screenOf({ ...snapshot, campaigns: [withMission] }).campaign?.groups[0]?.tasks[0]?.mission).toBe('Mission · 2/5');
+		expect(renderToStaticMarkup(<CampaignTaskRow row={row({ mission: 'Mission · 2/5' })} sending={false} onSend={noop} />)).toContain(
+			'<span class="dromos-task-chip is-pending">Pending</span><span class="dromos-task-chip is-mission">Mission · 2/5</span>',
+		);
+	});
+
+	it('gives a plain task no mission chip', () => {
+		expect(detail.groups.flatMap((group) => group.tasks).every((row) => row.mission === undefined)).toBe(true);
+		expect(renderToStaticMarkup(<CampaignTaskRow row={row()} sending={false} onSend={noop} />)).not.toContain('is-mission');
+	});
+});

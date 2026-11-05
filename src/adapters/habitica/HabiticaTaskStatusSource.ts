@@ -1,7 +1,7 @@
 import { TaskSourceError, type TaskStatus, type TaskStatusSource } from '../../ports';
 import type { HabiticaClient } from './HabiticaClient';
 import { readHabiticaTask, readHabiticaTasks, type HabiticaTaskDto } from './habiticaTask';
-import { localDate } from './questMapper';
+import { checklistOf, localDate } from './questMapper';
 
 const TODOS_PATH = '/tasks/user?type=todos';
 /** Habitica returns only the 30 most recently completed to-dos here. */
@@ -53,5 +53,6 @@ export class HabiticaTaskStatusSource implements TaskStatusSource {
 
 function statusOf(dto: HabiticaTaskDto): TaskStatus {
 	if (dto.type === 'daily') return { kind: 'daily', streak: typeof dto.streak === 'number' && Number.isFinite(dto.streak) && dto.streak > 0 ? Math.floor(dto.streak) : 0 };
-	return dto.completed === true ? { kind: 'completed', completedOn: localDate(dto.dateCompleted) } : { kind: 'open' };
+	const subtasks = checklistOf(dto.checklist);
+	return dto.completed === true ? { kind: 'completed', completedOn: localDate(dto.dateCompleted), ...subtasks } : { kind: 'open', ...subtasks };
 }

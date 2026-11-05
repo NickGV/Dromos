@@ -1429,6 +1429,7 @@
 .dromos-root .dromos-task-chip.is-next { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-tint); }
 .dromos-root .dromos-chip.is-warning,
 .dromos-root .dromos-task-chip.is-missing { border-color: var(--dromos-ink-warning); color: var(--dromos-ink-warning); }
+.dromos-root .dromos-task-chip.is-mission { font-weight: 600; }
 
 .dromos-root .dromos-progress-track {
 	height: 6px;

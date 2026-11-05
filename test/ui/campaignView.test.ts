@@ -324,3 +324,17 @@ describe('campaignListView', () => {
 		expect(view(snapshot()).emptyText).toBeNull();
 	});
 });
+
+describe('campaignCardView: missions (missions S2)', () => {
+	it('gives a task with 3 or more subtasks in Habitica its mission progress, and none to the others', () => {
+		const card = campaignCardView(
+			campaign({
+				phases: [phase('mvp', 'active')],
+				tasks: [task('Plan', 'mvp', { habiticaId: 'h1', checklist: { done: 2, total: 5 } }), task('Small', 'mvp', { habiticaId: 'h2', checklist: { done: 0, total: 2 } }), task('Plain', 'mvp', { habiticaId: 'h3' })],
+			}),
+			ctx,
+		);
+
+		expect(card.tasks.map((row) => row.mission)).toEqual([{ done: 2, total: 5 }, undefined, undefined]);
+	});
+});

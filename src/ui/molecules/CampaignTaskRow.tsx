@@ -24,6 +24,7 @@ export function CampaignTaskRow({ row, sending, onSend }: CampaignTaskRowProps) 
 				<span className="dromos-task-title">{row.title}</span>
 				<span className="dromos-task-chips">
 					<span className={`dromos-task-chip is-${row.chip.tone}`}>{row.chip.label}</span>
+					{row.mission ? <span className="dromos-task-chip is-mission">{row.mission}</span> : null}
 				</span>
 			</span>
 			{row.canSend ? <SendButton sending={sending} onSend={onSend} label={t('task.send')} sendingLabel={t('task.sending')} /> : null}

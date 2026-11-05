@@ -6,7 +6,7 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- A quest with 3 or more subtasks in Habitica reads as a mission: **Mission · 2/5** under its title shows how many are done.
+- A quest or a campaign task with 3 or more subtasks in Habitica reads as a mission: **Mission · 2/5** under its title shows how many are done. It pays no extra XP and does not move the campaign's progress.
 
 ### Fixed
 

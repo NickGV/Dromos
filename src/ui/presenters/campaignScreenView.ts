@@ -13,6 +13,8 @@ export interface CampaignTaskView {
 	readonly chip: { readonly label: string; readonly tone: TaskChipTone };
 	/** Only a project task never sent to Habitica can be sent, and only while Habitica is set up. */
 	readonly canSend: boolean;
+	/** "Mission · 2/5", present only for a task whose subtasks make it a mission (missions S2). */
+	readonly mission?: string;
 }
 
 /** One panel of "Tasks by phase": a phase and its tasks, or the tasks without a known phase. */
@@ -143,7 +145,8 @@ function group(key: string, name: string, tasks: CampaignTaskView[]): TaskGroupV
 // can be sent shows the button, never "Not linked" beside it (calm-ui S4).
 function taskView(row: TaskRowView, isNext: boolean, t: Translator): CampaignTaskView {
 	const chip = (label: MessageKey, tone: TaskChipTone) => ({ label: t(label), tone });
-	const view = (value: CampaignTaskView['chip']): CampaignTaskView => ({ title: row.title, completed: row.state === 'completed', chip: value, canSend: row.canSend });
+	const mission = row.mission ? { mission: t('quests.mission', { done: row.mission.done, total: row.mission.total }) } : {};
+	const view = (value: CampaignTaskView['chip']): CampaignTaskView => ({ title: row.title, completed: row.state === 'completed', chip: value, canSend: row.canSend, ...mission });
 	if (row.state === 'completed') return view(chip('task.state.done', 'done'));
 	if (row.state === 'missing') return view(chip('task.missing', 'missing'));
 	if (row.state === 'unsent' && !row.canSend) return view(chip('task.unsent', 'unsent'));

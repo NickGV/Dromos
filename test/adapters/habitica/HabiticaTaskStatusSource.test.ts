@@ -176,3 +176,26 @@ describe('HabiticaTaskStatusSource.fetchStatuses: failures', () => {
 		expect(error.message).not.toContain(TOKEN);
 	});
 });
+
+describe('HabiticaTaskStatusSource.fetchStatuses: subtasks (missions S2)', () => {
+	const checklist = [
+		{ completed: true, text: 'a', id: 'c1' },
+		{ completed: false, text: 'b', id: 'c2' },
+		{ completed: false, text: 'c', id: 'c3' },
+	];
+
+	it('answers the subtasks of a linked to-do, open or completed', async () => {
+		const { source } = setup(envelope([todo(id(1), { checklist })]), envelope([todo(id(2), { completed: true, checklist })]));
+
+		const statuses = await source.fetchStatuses([id(1), id(2)]);
+
+		expect(statuses.get(id(1))).toEqual({ kind: 'open', checklist: { done: 1, total: 3 } });
+		expect(statuses.get(id(2))).toEqual({ kind: 'completed', completedOn: null, checklist: { done: 1, total: 3 } });
+	});
+
+	it('answers a to-do without subtasks exactly as before', async () => {
+		const { source } = setup(envelope([todo(id(1))]));
+
+		expect((await source.fetchStatuses([id(1)])).get(id(1))).toEqual({ kind: 'open' });
+	});
+});
