@@ -1,6 +1,8 @@
 import type { QuestPrice, SkillRef } from '../../application';
-import type { Quest } from '../../domain';
+import { isMission, type Checklist, type Quest } from '../../domain';
 import type { Translator } from '../../i18n';
+import { limitRows, type ListToggleView } from './listLimit';
+import { subtasksView, type SubtasksView } from './missionView';
 
 /** Whether a to-do is late or due today. */
 export type DueTone = 'overdue' | 'today';
@@ -17,6 +19,8 @@ export interface QuestRowView {
 	readonly xp: number | null;
 	/** The skills that XP goes to; empty when the task has none or is not priced yet. */
 	readonly skills: readonly SkillRef[];
+	/** Its subtasks, present only when they make it a mission (missions S1). */
+	readonly mission?: Checklist;
 }
 
 /** Today's quests split for the list (S8): dailies first, then to-dos. */
@@ -46,7 +50,8 @@ export function questListView(quests: readonly Quest[] | null, today: string, t:
 
 function row(quest: Quest, due: QuestRowView['due'], prices: ReadonlyMap<string, QuestPrice> | undefined): QuestRowView {
 	const price = prices?.get(quest.id);
-	return { id: quest.id, title: quest.title, completed: quest.completed, due, xp: price?.xp ?? null, skills: price?.skills ?? [] };
+	const view = { id: quest.id, title: quest.title, completed: quest.completed, due, xp: price?.xp ?? null, skills: price?.skills ?? [] };
+	return isMission(quest.checklist) ? { ...view, mission: quest.checklist } : view;
 }
 
 // ISO dates compare as plain strings; future dates get no label.
@@ -57,7 +62,7 @@ function dueOf(dueDate: string | null, today: string, t: Translator): QuestRowVi
 
 /** One chip under a quest's title (game-ui S6). */
 export type QuestChipView =
-	| { readonly kind: 'type' | 'skill' | 'xp'; readonly label: string }
+	| { readonly kind: 'type' | 'mission' | 'skill' | 'xp'; readonly label: string }
 	| { readonly kind: 'due'; readonly label: string; readonly tone: DueTone };
 
 /** One row of today's quests panel: the drawn circle, the title and its chips. Rows are not buttons. */
@@ -65,8 +70,10 @@ export interface QuestPanelRowView {
 	readonly id: string;
 	readonly title: string;
 	readonly completed: boolean;
-	/** The kind, each skill, "+X XP" when priced and the due label, in that order. */
+	/** The kind, "Mission · 2/5" for a mission, each skill, "+X XP" when priced and the due label, in that order. */
 	readonly chips: readonly QuestChipView[];
+	/** A mission's toggle and, once open, its subtasks (missions S5); absent on a plain quest. */
+	readonly subtasks?: SubtasksView;
 }
 
 /**
@@ -83,25 +90,93 @@ export interface QuestPanelView {
 	readonly dayComplete: boolean;
 	readonly rows: readonly QuestPanelRowView[];
 	readonly emptyText: string | null;
+	/** "View more (N)" or "View less", only on a list longer than 6 (missions S3). */
+	readonly more?: ListToggleView;
+	/** The filters above the panel (missions S6); absent while there is no quest to filter. */
+	readonly filters?: QuestFiltersView;
+	/** "No quests of this kind today", only when the chosen filter leaves no row. */
+	readonly filteredEmptyText?: string;
 }
 
-export function questPanelView(list: QuestListView, t: Translator): QuestPanelView {
-	const rows = [...list.dailies.map((row) => panelRow(row, 'quests.kind.daily', t)), ...list.todos.map((row) => panelRow(row, 'quests.kind.todo', t))];
-	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, rows, emptyText: list.emptyText };
+/** The filters above today's quests (missions S6), by Habitica's type: a mission is also a to-do or a daily. */
+export type QuestFilter = 'all' | 'missions' | 'todos' | 'dailies';
+export const QUEST_FILTERS: readonly QuestFilter[] = ['all', 'missions', 'todos', 'dailies'];
+
+export interface QuestFilterView {
+	readonly id: QuestFilter;
+	readonly label: string;
+	/** How many of today's quests it shows. */
+	readonly count: number;
+	readonly selected: boolean;
+}
+
+export interface QuestFiltersView {
+	/** The group's accessible name. */
+	readonly label: string;
+	readonly options: readonly QuestFilterView[];
+}
+
+/** What the reader chose on the panel; every choice starts off on each open of the view. */
+export interface QuestPanelOptions {
+	/** The long list is expanded; folded, it shows 6 rows (missions S3). */
+	readonly expanded?: boolean;
+	/** Ids of the missions whose subtasks are open (missions S5). */
+	readonly openMissions?: ReadonlySet<string>;
+	/** The filter chosen above the list; All by default (missions S6). The header ignores it. */
+	readonly filter?: QuestFilter;
+}
+
+export function questPanelView(list: QuestListView, t: Translator, options: QuestPanelOptions = {}): QuestPanelView {
+	const { expanded = false, openMissions = new Set<string>(), filter = 'all' } = options;
+	const entries: QuestEntry[] = [...list.dailies.map((quest) => ({ quest, kind: 'quests.kind.daily' as const })), ...list.todos.map((quest) => ({ quest, kind: 'quests.kind.todo' as const }))];
+	const filtered = entries.filter((entry) => kept(entry, filter)).map((entry) => panelRow(entry.quest, entry.kind, t, openMissions.has(entry.quest.id)));
+	const { rows, more } = limitRows(filtered, expanded, t, (row) => row.completed);
+	const hasQuests = list.emptyText === null;
+	const shown = {
+		rows,
+		...(more ? { more } : {}),
+		...(hasQuests ? { filters: filtersView(entries, filter, t) } : {}),
+		...(hasQuests && filtered.length === 0 ? { filteredEmptyText: t('quests.filter.empty') } : {}),
+	};
+	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, ...shown, emptyText: list.emptyText };
 	const pending = list.dailies.filter((row) => !row.completed);
 	const gain = pending.reduce((sum, row) => sum + (row.xp ?? 0), 0);
 	return {
 		doneText: t('quests.header.done', { done: list.dailies.length - pending.length, total: list.dailies.length }),
 		gainText: pending.length === 0 ? t('quests.header.complete') : gain > 0 ? t('quests.header.gain', { xp: gain }) : null,
 		dayComplete: pending.length === 0,
-		rows,
+		...shown,
 		emptyText: list.emptyText,
 	};
 }
 
-function panelRow(row: QuestRowView, kind: 'quests.kind.daily' | 'quests.kind.todo', t: Translator): QuestPanelRowView {
-	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }, ...row.skills.map((skill) => ({ kind: 'skill' as const, label: skill.name }))];
+type QuestKindKey = 'quests.kind.daily' | 'quests.kind.todo';
+
+interface QuestEntry {
+	readonly quest: QuestRowView;
+	readonly kind: QuestKindKey;
+}
+
+function kept({ quest, kind }: QuestEntry, filter: QuestFilter): boolean {
+	if (filter === 'missions') return quest.mission !== undefined;
+	if (filter === 'todos') return kind === 'quests.kind.todo';
+	if (filter === 'dailies') return kind === 'quests.kind.daily';
+	return true;
+}
+
+function filtersView(entries: readonly QuestEntry[], filter: QuestFilter, t: Translator): QuestFiltersView {
+	return {
+		label: t('quests.filter.label'),
+		options: QUEST_FILTERS.map((id) => ({ id, label: t(`quests.filter.${id}`), count: entries.filter((entry) => kept(entry, id)).length, selected: id === filter })),
+	};
+}
+
+function panelRow(row: QuestRowView, kind: QuestKindKey, t: Translator, open: boolean): QuestPanelRowView {
+	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }];
+	if (row.mission) chips.push({ kind: 'mission', label: t('quests.mission', { done: row.mission.done, total: row.mission.total }) });
+	chips.push(...row.skills.map((skill) => ({ kind: 'skill' as const, label: skill.name })));
 	if (row.xp !== null) chips.push({ kind: 'xp', label: t('quests.xp', { xp: row.xp }) });
 	if (row.due) chips.push({ kind: 'due', label: row.due.label, tone: row.due.tone });
-	return { id: row.id, title: row.title, completed: row.completed, chips };
+	const subtasks = subtasksView(row.mission, open, row.title, t);
+	return subtasks ? { id: row.id, title: row.title, completed: row.completed, chips, subtasks } : { id: row.id, title: row.title, completed: row.completed, chips };
 }

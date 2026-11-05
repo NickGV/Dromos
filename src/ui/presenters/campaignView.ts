@@ -1,6 +1,6 @@
 import type { CampaignSnapshot, CampaignIssue } from '../../application';
 import type { Translator } from '../../i18n';
-import { campaignProgress, daysSince, habitProgress, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignHabit, type Progress } from '../../domain';
+import { campaignProgress, daysSince, habitProgress, isMission, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignHabit, type Checklist, type Progress } from '../../domain';
 
 /** How one task is shown in a campaign card. */
 export type TaskRowState = 'completed' | 'pending' | 'unsent' | 'missing';
@@ -15,6 +15,8 @@ export interface TaskRowView {
 	 * `campaignCardView` always sets it; it is optional only so rows built by hand stay valid.
 	 */
 	readonly phase?: string | null;
+	/** Its subtasks, present only when they make it a mission (missions S2). */
+	readonly mission?: Checklist;
 }
 
 /** How one habit is shown in a campaign card (S8). */
@@ -112,7 +114,8 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 					: campaign.kind === 'project' && task.habiticaId === null
 						? 'unsent'
 						: 'pending';
-			return { title: task.title, state, canSend: state === 'unsent' && context.canSend, phase: task.phase };
+			const row = { title: task.title, state, canSend: state === 'unsent' && context.canSend, phase: task.phase };
+			return isMission(task.checklist) ? { ...row, mission: task.checklist } : row;
 		}),
 		habits: campaign.habits.map((habit) => habitRow(habit, missing.has(habit.title), context)),
 		warnings: [...missing].map((title) => t('campaign.warning.missing', { title })),

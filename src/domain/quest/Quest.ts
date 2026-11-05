@@ -1,6 +1,20 @@
 /** Habitica task kinds Dromos shows as quests. */
 export type QuestType = 'daily' | 'todo';
 
+/** One subtask of a task (an item of Habitica's checklist). */
+export interface Subtask {
+	readonly title: string;
+	readonly completed: boolean;
+}
+
+/** A task's subtasks (Habitica's checklist), counted. */
+export interface Checklist {
+	readonly done: number;
+	readonly total: number;
+	/** Every subtask in Habitica's order (missions S5); absent where a source sent only the counts. */
+	readonly items?: readonly Subtask[];
+}
+
 /**
  * A Habitica task as Dromos reads it. Read-only: it comes from a `TaskSource`
  * and Dromos never edits it in M1.
@@ -24,4 +38,6 @@ export interface Quest {
 	 * `Clock.today()`, or `null` when undated. Always `null` for dailies.
 	 */
 	readonly dueDate: string | null;
+	/** Its subtasks; absent when the task has none. */
+	readonly checklist?: Checklist;
 }

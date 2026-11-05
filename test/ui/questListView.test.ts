@@ -198,3 +198,122 @@ describe('questPanelView: one list, dailies first, each row with its chips (game
 		expect(questPanelView(questListView([], TODAY, en), en)).toEqual({ doneText: null, gainText: null, dayComplete: false, rows: [], emptyText: 'No quests for today' });
 	});
 });
+
+describe('questListView: missions (missions S1)', () => {
+	it('gives a quest with 3 or more subtasks its mission progress, and none to the others', () => {
+		const view = questListView(
+			[aQuest('d1', { checklist: { done: 1, total: 3 } }), aQuest('t1', { type: 'todo', checklist: { done: 0, total: 2 } }), aQuest('t2', { type: 'todo' })],
+			TODAY,
+			t,
+		);
+
+		expect(view.dailies[0]?.mission).toEqual({ done: 1, total: 3 });
+		expect(view.todos.map((row) => row.mission)).toEqual([undefined, undefined]);
+	});
+
+	it('chips a mission right after its kind, with its subtasks done out of the total', () => {
+		const panel = questPanelView(questListView([aQuest('t1', { type: 'todo', checklist: { done: 2, total: 5 } }), aQuest('t2', { type: 'todo', checklist: { done: 1, total: 2 } })], TODAY, t), t);
+
+		expect(panel.rows[0]?.chips.slice(0, 2)).toEqual([
+			{ kind: 'type', label: 'Tarea' },
+			{ kind: 'mission', label: 'Misión · 2/5' },
+		]);
+		expect(panel.rows[1]?.chips.some((chip) => chip.kind === 'mission')).toBe(false);
+	});
+});
+
+describe('questPanelView: "View more" (missions S3)', () => {
+	const many = Array.from({ length: 8 }, (_, index) => aQuest(`t${index}`, { type: 'todo' }));
+
+	it('folds a list of more than 6 quests to 6, and shows them all once expanded', () => {
+		const folded = questPanelView(questListView(many, TODAY, t), t);
+		const expanded = questPanelView(questListView(many, TODAY, t), t, { expanded: true });
+
+		expect(folded.rows).toHaveLength(6);
+		expect(folded.more).toEqual({ label: 'Ver más (2)', expanded: false });
+		expect(expanded.rows).toHaveLength(8);
+		expect(expanded.more).toEqual({ label: 'Ver menos', expanded: true });
+	});
+
+	it('gives a list of 6 or fewer no toggle', () => {
+		expect(questPanelView(questListView(many.slice(0, 6), TODAY, t), t)).not.toHaveProperty('more');
+	});
+});
+
+describe('questPanelView: open a mission (missions S5)', () => {
+	const items = [
+		{ title: 'Uno', completed: true },
+		{ title: 'Dos', completed: false },
+		{ title: 'Tres', completed: false },
+	];
+	const list = questListView([aQuest('m1', { title: 'Viaje', type: 'todo', checklist: { done: 1, total: 3, items } }), aQuest('t1', { type: 'todo' })], TODAY, t);
+
+	it('gives a mission its folded toggle, and a plain quest none', () => {
+		const panel = questPanelView(list, t);
+
+		expect(panel.rows[0]?.subtasks).toEqual({ open: false, toggleLabel: 'Ver las subtareas de Viaje', items: [] });
+		expect(panel.rows[1]).not.toHaveProperty('subtasks');
+	});
+
+	it('lists the subtasks of the missions the reader opened', () => {
+		expect(questPanelView(list, t, { openMissions: new Set(['m1']) }).rows[0]?.subtasks).toEqual({ open: true, toggleLabel: 'Ocultar las subtareas de Viaje', items });
+	});
+});
+
+describe('questPanelView: filters (missions S6)', () => {
+	const three = { done: 0, total: 3 };
+	const quests = [
+		aQuest('d1', { checklist: three }),
+		aQuest('t1', { type: 'todo', checklist: three }),
+		aQuest('t2', { type: 'todo' }),
+		aQuest('t3', { type: 'todo' }),
+	];
+	const list = questListView(quests, TODAY, t);
+	const ids = (filter: 'all' | 'missions' | 'todos' | 'dailies') => questPanelView(list, t, { filter }).rows.map((row) => row.id);
+
+	it('offers All, Missions, To-dos and Dailies with their counts, All selected at first', () => {
+		expect(questPanelView(list, t).filters).toEqual({
+			label: 'Filtrar quests',
+			options: [
+				{ id: 'all', label: 'Todas', count: 4, selected: true },
+				{ id: 'missions', label: 'Misiones', count: 2, selected: false },
+				{ id: 'todos', label: 'Tareas', count: 3, selected: false },
+				{ id: 'dailies', label: 'Diarias', count: 1, selected: false },
+			],
+		});
+	});
+
+	it("filters by Habitica's type, so a to-do with subtasks is both a mission and a to-do", () => {
+		expect(ids('all')).toEqual(['d1', 't1', 't2', 't3']);
+		expect(ids('missions')).toEqual(['d1', 't1']);
+		expect(ids('todos')).toEqual(['t1', 't2', 't3']);
+		expect(ids('dailies')).toEqual(['d1']);
+		expect(questPanelView(list, t, { filter: 'missions' }).filters?.options.map((option) => option.selected)).toEqual([false, true, false, false]);
+	});
+
+	it('keeps the header about the dailies whatever the filter', () => {
+		const header = (filter: 'all' | 'missions' | 'todos' | 'dailies') => {
+			const { doneText, gainText, dayComplete } = questPanelView(list, t, { filter });
+			return { doneText, gainText, dayComplete };
+		};
+
+		expect(header('todos')).toEqual(header('all'));
+		expect(header('missions')).toEqual(header('all'));
+	});
+
+	it('folds the filtered rows under "View more", counting only what the filter shows', () => {
+		const many = questListView([aQuest('d1'), ...Array.from({ length: 8 }, (_, index) => aQuest(`t${index}`, { type: 'todo' }))], TODAY, t);
+
+		expect(questPanelView(many, t, { filter: 'todos' }).more).toEqual({ label: 'Ver más (2)', expanded: false });
+		expect(questPanelView(many, t, { filter: 'dailies' })).not.toHaveProperty('more');
+	});
+
+	it('says so when a filter leaves nothing, and offers no filter before the first sync', () => {
+		const panel = questPanelView(questListView([aQuest('t1', { type: 'todo' })], TODAY, t), t, { filter: 'dailies' });
+
+		expect(panel.rows).toEqual([]);
+		expect(panel.filteredEmptyText).toBe('No hay quests de este tipo hoy');
+		expect(questPanelView(questListView(null, TODAY, t), t)).not.toHaveProperty('filters');
+		expect(questPanelView(list, t)).not.toHaveProperty('filteredEmptyText');
+	});
+});

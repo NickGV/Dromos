@@ -93,3 +93,21 @@ describe('mergeTaskStatuses: habits (S8)', () => {
 		expect(mergeTaskStatuses([salto], statuses({ d1: { kind: 'open' } })).campaigns[0]?.habits[0]?.streak).toBe(5);
 	});
 });
+
+describe('mergeTaskStatuses: subtasks (missions S2)', () => {
+	it('puts the subtasks Habitica answered on the task, open or completed, and leaves the others without', () => {
+		const kairos = campaign({
+			phases: [phase('mvp', 'active')],
+			tasks: [task('plan', 'mvp', { habiticaId: 'h1' }), task('ship', 'mvp', { habiticaId: 'h2' }), task('plain', 'mvp', { habiticaId: 'h3' })],
+		});
+
+		const [merged] = mergeTaskStatuses(
+			[kairos],
+			statuses({ h1: { kind: 'open', checklist: { done: 2, total: 5 } }, h2: { kind: 'completed', completedOn: '2026-11-01', checklist: { done: 3, total: 3 } }, h3: { kind: 'open' } }),
+		).campaigns;
+
+		expect(merged?.tasks[0]).toMatchObject({ completed: false, checklist: { done: 2, total: 5 } });
+		expect(merged?.tasks[1]).toMatchObject({ completed: true, completedOn: '2026-11-01', checklist: { done: 3, total: 3 } });
+		expect(merged?.tasks[2]).not.toHaveProperty('checklist');
+	});
+});

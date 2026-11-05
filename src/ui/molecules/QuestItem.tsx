@@ -1,12 +1,13 @@
 import { HandDrawnCheck } from '../atoms/HandDrawnCheck';
 import { useT } from '../i18n';
 import type { QuestPanelRowView } from '../presenters/questListView';
+import { SubtaskList, SubtasksToggle } from './Subtasks';
 
 /**
  * One quest row: the drawn circle, with its check and a struck title once completed, and the
  * chips under the title. Not a button: Dromos does not complete quests (game-ui L2).
  */
-export function QuestItem({ row }: { readonly row: QuestPanelRowView }) {
+export function QuestItem({ row, onToggleSubtasks }: { readonly row: QuestPanelRowView; readonly onToggleSubtasks?: () => void }) {
 	const t = useT();
 	return (
 		<li className={row.completed ? 'dromos-quest is-completed' : 'dromos-quest'}>
@@ -23,7 +24,9 @@ export function QuestItem({ row }: { readonly row: QuestPanelRowView }) {
 						</span>
 					))}
 				</span>
+				{row.subtasks ? <SubtaskList view={row.subtasks} /> : null}
 			</span>
+			{row.subtasks ? <SubtasksToggle view={row.subtasks} onToggle={onToggleSubtasks} /> : null}
 		</li>
 	);
 }

@@ -34,9 +34,11 @@ export function mergeTaskStatuses(campaigns: readonly Campaign[], statuses: Read
 		const tasks = campaign.tasks.map((task) => {
 			const status = task.habiticaId === null ? undefined : statuses.get(task.habiticaId);
 			if (!status) return task;
-			if (status.kind === 'completed') return { ...task, completed: true, completedOn: status.completedOn };
+			// Its subtasks only change how the task is shown (missions S2), never whether it is done.
+			const subtasks = (status.kind === 'open' || status.kind === 'completed') && status.checklist ? { checklist: status.checklist } : {};
+			if (status.kind === 'completed') return { ...task, completed: true, completedOn: status.completedOn, ...subtasks };
 			if (status.kind === 'missing') issues.push({ campaignPath: campaign.path, taskTitle: task.title, kind: 'habitica-task-missing' });
-			return { ...task, completed: false, completedOn: null };
+			return { ...task, completed: false, completedOn: null, ...subtasks };
 		});
 		return { ...campaign, tasks, habits };
 	});

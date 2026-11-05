@@ -1,3 +1,5 @@
+import type { Checklist } from '../quest/Quest';
+
 /** Lifecycle status of work notes (ADR-012). Dromos never reads knowledge maturity. */
 export type LifecycleStatus = 'planning' | 'active' | 'paused' | 'completed' | 'archived';
 
@@ -29,6 +31,8 @@ export interface CampaignTask {
 	readonly completed: boolean;
 	/** Local completion date as `YYYY-MM-DD`, or `null` when unknown. */
 	readonly completedOn: string | null;
+	/** Its subtasks in Habitica, once Habitica has answered; absent when it has none (missions S2). */
+	readonly checklist?: Checklist;
 }
 
 /**

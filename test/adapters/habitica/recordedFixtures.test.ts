@@ -3,6 +3,7 @@ import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { HabiticaGameTaskSource } from '../../../src/adapters/habitica/HabiticaGameTaskSource';
 import { HabiticaTaskSource } from '../../../src/adapters/habitica/HabiticaTaskSource';
 import { HabiticaTaskStatusSource } from '../../../src/adapters/habitica/HabiticaTaskStatusSource';
+import { isMission } from '../../../src/domain';
 import type { Clock } from '../../../src/ports/Clock';
 import { foreignStrings } from '../../fixtures/habitica/anonymize';
 import { FakeHttp, habiticaFixture, respond } from './FakeHttp';
@@ -77,6 +78,13 @@ describe('recorded Habitica fixtures (issue #8)', () => {
 		expect(new Set(quests.map((quest) => quest.id))).toEqual(new Set(tasksOf(recorded.todos).map((task) => task.id)));
 	});
 
+	it("today's quests carry their subtasks: 7 of the 17 recorded to-dos have 3 or more, so they read as missions (missions S1)", async () => {
+		const quests = await new HabiticaTaskSource(recordedHabitica().client, clock).fetchToday();
+
+		expect(quests.filter((quest) => quest.checklist !== undefined)).toHaveLength(11);
+		expect(quests.filter((quest) => isMission(quest.checklist))).toHaveLength(7);
+	});
+
 	it('game observations: open to-dos dated today, completed ones dated with their Bogota completion day', async () => {
 		const observations = await new HabiticaGameTaskSource(recordedHabitica().client).fetchObservations(RECORDED_ON);
 		const lateEvening = completedAt('2026-11-01T00:36:14.831Z');
@@ -97,7 +105,9 @@ describe('recorded Habitica fixtures (issue #8)', () => {
 
 		const statuses = await new HabiticaTaskStatusSource(client).fetchStatuses([open.id, done.id]);
 
-		expect(statuses.get(open.id)).toEqual({ kind: 'open' });
+		// The first recorded to-do has 6 subtasks, none done; they travel with its status (missions S2).
+		expect(statuses.get(open.id)).toMatchObject({ kind: 'open', checklist: { done: 0, total: 6 } });
+		expect(statuses.get(open.id)?.kind === 'open' && statuses.get(open.id)).toHaveProperty('checklist.items.length', 6);
 		expect(statuses.get(done.id)).toEqual({ kind: 'completed', completedOn: '2026-10-31' });
 		expect(http.requests.map((request) => request.url)).toEqual([URLS.todos, URLS.completedTodos]);
 	});

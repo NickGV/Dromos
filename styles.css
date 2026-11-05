@@ -1355,6 +1355,8 @@
 }
 
 .dromos-root .dromos-quest-chip.is-xp { background: var(--dromos-ochre-tint); }
+/* A mission (a task with several subtasks) carries its progress in a slightly heavier chip. */
+.dromos-root .dromos-quest-chip.is-mission { font-weight: 600; }
 .dromos-root .dromos-quest-chip.is-overdue { border-color: var(--dromos-ink-error); color: var(--dromos-ink-error); }
 
 /* A completed quest's chips step back: stone hairlines, muted words. */
@@ -1427,6 +1429,50 @@
 .dromos-root .dromos-task-chip.is-next { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-tint); }
 .dromos-root .dromos-chip.is-warning,
 .dromos-root .dromos-task-chip.is-missing { border-color: var(--dromos-ink-warning); color: var(--dromos-ink-warning); }
+.dromos-root .dromos-task-chip.is-mission { font-weight: 600; }
+
+/* "View more (N)" under a folded list, set apart from its last row (missions S3). */
+.dromos-root .dromos-list-toggle { margin-top: 8px; }
+
+/* The filters above today's quests (missions S6): small pills, the chosen one inked in ochre. */
+.dromos-root .dromos-quest-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.dromos-root .dromos-quest-filter {
+	padding: 2px 10px;
+	border: 1px solid var(--dromos-stone-mark);
+	border-radius: 999px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--dromos-ink-muted);
+	font-size: 12px;
+	cursor: pointer;
+}
+.dromos-root .dromos-quest-filter.is-selected { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-tint); color: var(--dromos-ink); }
+.dromos-root .dromos-quest-filter-count { font-variant-numeric: tabular-nums; opacity: 0.8; }
+
+/* A mission's chevron, turned down while its subtasks are open (missions S5). */
+.dromos-root .dromos-subtasks-toggle {
+	flex: none;
+	align-self: flex-start;
+	width: 32px;
+	height: 32px;
+	padding: 8px;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--dromos-ink-muted);
+	cursor: pointer;
+}
+.dromos-root .dromos-subtasks-toggle svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s ease; }
+.dromos-root .dromos-subtasks-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-subtasks-toggle svg { transition: none; }
+}
+
+/* An open mission's subtasks: smaller circles under the title, struck through once done. */
+.dromos-root .dromos-subtasks { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 0; padding: 0; list-style: none; }
+.dromos-root .dromos-subtask { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.dromos-root .dromos-subtask .dromos-quest-mark { width: 18px; height: 18px; flex: none; }
+.dromos-root .dromos-subtask.is-completed .dromos-subtask-title { color: var(--dromos-ink-muted); text-decoration: line-through; }
 
 .dromos-root .dromos-progress-track {
 	height: 6px;
