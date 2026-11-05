@@ -144,7 +144,7 @@ npm run lint         # eslint with the Obsidian plugin rules
 npm run build        # type-check + production bundle
 ```
 
-Install into a local vault for manual testing (defaults to `~/Documents/second_brain`, override with `DROMOS_VAULT`):
+Install into a local vault for manual testing (defaults to `~/Documents/logos`, override with `DROMOS_VAULT`):
 
 ```bash
 npm run install:local
@@ -165,7 +165,7 @@ The script fetches your dailies, to-dos and completed to-dos, keeps the structur
 To keep the token out of your shell history and off the screen, read both values from the plugin's settings:
 
 ```bash
-DATA="${DROMOS_VAULT:-$HOME/Documents/second_brain}/.obsidian/plugins/dromos/data.json"
+DATA="${DROMOS_VAULT:-$HOME/Documents/logos}/.obsidian/plugins/dromos/data.json"
 HABITICA_USER_ID=$(node -p "require('$DATA').habiticaUserId") HABITICA_API_TOKEN=$(node -p "require('$DATA').habiticaApiToken") npm run fixtures:habitica
 ```
 
