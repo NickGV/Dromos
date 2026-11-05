@@ -24,7 +24,9 @@ describe('QuestList as one panel (game-ui S6)', () => {
 	it('lists dailies first, then to-dos, in one list of rows that are not buttons', () => {
 		expect(html.match(/<ul/g)).toHaveLength(1);
 		expect(rows.map((row) => /class="dromos-quest-title">([^<]*)/.exec(row)?.[1])).toEqual(['Morning routine', 'Read 20 pages', 'Call the dentist']);
-		expect(html).not.toContain('<button');
+		// The filters above the panel are buttons (missions S6); the rows and the list never are.
+		expect(/<ul class="dromos-quest-items">.*<\/ul>/.exec(html)?.[0]).not.toContain('<button');
+		expect(rows.some((row) => row.includes('<button'))).toBe(false);
 	});
 
 	it('draws the hand-drawn circle on every row, and the check only on a completed one', () => {
@@ -99,5 +101,25 @@ describe('QuestList: open a mission (missions S5)', () => {
 		expect([...open.matchAll(/<li class="(dromos-subtask[^"]*)">/g)].map((match) => match[1])).toEqual(['dromos-subtask is-completed', 'dromos-subtask', 'dromos-subtask']);
 		expect(open).toContain('<span class="dromos-subtask-title">Book the bus<span class="dromos-visually-hidden"> (completed)</span></span>');
 		expect(open).toContain('<span class="dromos-subtask-title">Pack</span>');
+	});
+});
+
+describe('QuestList: filters (missions S6)', () => {
+	it('draws the filters above the panel, the chosen one pressed, each with its count', () => {
+		const filtered = renderToStaticMarkup(
+			<QuestList view={questPanelView(questListView([aQuest('d1'), aQuest('t1', { type: 'todo', checklist: { done: 0, total: 3 } })], TODAY, en), en, { filter: 'missions' })} />,
+		);
+
+		expect(filtered).toContain('<div class="dromos-quest-filters" role="group" aria-label="Filter quests">');
+		expect(filtered).toContain('<button type="button" class="dromos-quest-filter" aria-pressed="false">All <span class="dromos-quest-filter-count">2</span></button>');
+		expect(filtered).toContain('<button type="button" class="dromos-quest-filter is-selected" aria-pressed="true">Missions <span class="dromos-quest-filter-count">1</span></button>');
+		expect(filtered.indexOf('dromos-quest-filters')).toBeLessThan(filtered.indexOf('dromos-quest-panel'));
+	});
+
+	it('says so inside the panel when the filter leaves nothing', () => {
+		const empty = renderToStaticMarkup(<QuestList view={questPanelView(questListView([aQuest('t1', { type: 'todo' })], TODAY, en), en, { filter: 'dailies' })} />);
+
+		expect(empty).toContain('<p class="dromos-empty">No quests of this kind today</p>');
+		expect(empty).not.toContain('<ul');
 	});
 });

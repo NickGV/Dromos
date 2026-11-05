@@ -92,6 +92,28 @@ export interface QuestPanelView {
 	readonly emptyText: string | null;
 	/** "View more (N)" or "View less", only on a list longer than 6 (missions S3). */
 	readonly more?: ListToggleView;
+	/** The filters above the panel (missions S6); absent while there is no quest to filter. */
+	readonly filters?: QuestFiltersView;
+	/** "No quests of this kind today", only when the chosen filter leaves no row. */
+	readonly filteredEmptyText?: string;
+}
+
+/** The filters above today's quests (missions S6), by Habitica's type: a mission is also a to-do or a daily. */
+export type QuestFilter = 'all' | 'missions' | 'todos' | 'dailies';
+export const QUEST_FILTERS: readonly QuestFilter[] = ['all', 'missions', 'todos', 'dailies'];
+
+export interface QuestFilterView {
+	readonly id: QuestFilter;
+	readonly label: string;
+	/** How many of today's quests it shows. */
+	readonly count: number;
+	readonly selected: boolean;
+}
+
+export interface QuestFiltersView {
+	/** The group's accessible name. */
+	readonly label: string;
+	readonly options: readonly QuestFilterView[];
 }
 
 /** What the reader chose on the panel; every choice starts off on each open of the view. */
@@ -100,14 +122,22 @@ export interface QuestPanelOptions {
 	readonly expanded?: boolean;
 	/** Ids of the missions whose subtasks are open (missions S5). */
 	readonly openMissions?: ReadonlySet<string>;
+	/** The filter chosen above the list; All by default (missions S6). The header ignores it. */
+	readonly filter?: QuestFilter;
 }
 
 export function questPanelView(list: QuestListView, t: Translator, options: QuestPanelOptions = {}): QuestPanelView {
-	const { expanded = false, openMissions = new Set<string>() } = options;
-	const row = (quest: QuestRowView, kind: QuestKindKey) => panelRow(quest, kind, t, openMissions.has(quest.id));
-	const all = [...list.dailies.map((quest) => row(quest, 'quests.kind.daily')), ...list.todos.map((quest) => row(quest, 'quests.kind.todo'))];
-	const { rows, more } = limitRows(all, expanded, t, (row) => row.completed);
-	const shown = more ? { rows, more } : { rows };
+	const { expanded = false, openMissions = new Set<string>(), filter = 'all' } = options;
+	const entries: QuestEntry[] = [...list.dailies.map((quest) => ({ quest, kind: 'quests.kind.daily' as const })), ...list.todos.map((quest) => ({ quest, kind: 'quests.kind.todo' as const }))];
+	const filtered = entries.filter((entry) => kept(entry, filter)).map((entry) => panelRow(entry.quest, entry.kind, t, openMissions.has(entry.quest.id)));
+	const { rows, more } = limitRows(filtered, expanded, t, (row) => row.completed);
+	const hasQuests = list.emptyText === null;
+	const shown = {
+		rows,
+		...(more ? { more } : {}),
+		...(hasQuests ? { filters: filtersView(entries, filter, t) } : {}),
+		...(hasQuests && filtered.length === 0 ? { filteredEmptyText: t('quests.filter.empty') } : {}),
+	};
 	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, ...shown, emptyText: list.emptyText };
 	const pending = list.dailies.filter((row) => !row.completed);
 	const gain = pending.reduce((sum, row) => sum + (row.xp ?? 0), 0);
@@ -121,6 +151,25 @@ export function questPanelView(list: QuestListView, t: Translator, options: Ques
 }
 
 type QuestKindKey = 'quests.kind.daily' | 'quests.kind.todo';
+
+interface QuestEntry {
+	readonly quest: QuestRowView;
+	readonly kind: QuestKindKey;
+}
+
+function kept({ quest, kind }: QuestEntry, filter: QuestFilter): boolean {
+	if (filter === 'missions') return quest.mission !== undefined;
+	if (filter === 'todos') return kind === 'quests.kind.todo';
+	if (filter === 'dailies') return kind === 'quests.kind.daily';
+	return true;
+}
+
+function filtersView(entries: readonly QuestEntry[], filter: QuestFilter, t: Translator): QuestFiltersView {
+	return {
+		label: t('quests.filter.label'),
+		options: QUEST_FILTERS.map((id) => ({ id, label: t(`quests.filter.${id}`), count: entries.filter((entry) => kept(entry, id)).length, selected: id === filter })),
+	};
+}
 
 function panelRow(row: QuestRowView, kind: QuestKindKey, t: Translator, open: boolean): QuestPanelRowView {
 	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }];
