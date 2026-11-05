@@ -20,12 +20,12 @@ export class PluginSettingsStore implements SettingsStore {
 	}
 
 	async save(settings: Settings): Promise<void> {
-		const { habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays, language } = settings;
-		await this.plugin.saveData({ habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays, language });
+		const { habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays, language, openOnStartup } = settings;
+		await this.plugin.saveData({ habiticaUserId, habiticaApiToken, vaultFolder, staleAfterDays, language, openOnStartup });
 	}
 }
 
-/** Merges stored data over `DEFAULT_SETTINGS`: a field that is missing or not a string keeps its default. */
+/** Merges stored data over `DEFAULT_SETTINGS`: a field that is missing or of the wrong type keeps its default. */
 function settingsFromData(data: unknown): Settings {
 	const stored = typeof data === 'object' && data !== null && !Array.isArray(data) ? (data as Record<string, unknown>) : {};
 	return {
@@ -34,11 +34,16 @@ function settingsFromData(data: unknown): Settings {
 		vaultFolder: normalizeVaultFolder(textOr(stored.vaultFolder, DEFAULT_SETTINGS.vaultFolder)),
 		staleAfterDays: positiveIntegerOr(stored.staleAfterDays, DEFAULT_SETTINGS.staleAfterDays),
 		language: languageOrDefault(stored.language),
+		openOnStartup: booleanOr(stored.openOnStartup, DEFAULT_SETTINGS.openOnStartup),
 	};
 }
 
 function textOr(value: unknown, fallback: string): string {
 	return typeof value === 'string' ? value : fallback;
+}
+
+function booleanOr(value: unknown, fallback: boolean): boolean {
+	return typeof value === 'boolean' ? value : fallback;
 }
 
 function positiveIntegerOr(value: unknown, fallback: number): number {

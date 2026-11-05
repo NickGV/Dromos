@@ -13,6 +13,7 @@ import {
 import { createMarkdownRender, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
 
@@ -22,6 +23,8 @@ export interface Dromos {
 	readonly settingTab: DromosSettingTab;
 	/** Recomputes the notes from the ledger and answers with a toast; the open view follows. */
 	readonly rebuildGame: () => Promise<void>;
+	/** The live settings: reflects every change saved from the settings tab. */
+	readonly settings: () => Settings;
 }
 
 /**
@@ -122,6 +125,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				clock,
 			},
 		},
+		settings: () => settings,
 		rebuildGame: async () => {
 			const outcome = await syncGame.rebuild();
 			showNotice(rebuildMessage(outcome, createTranslator(settings.language)));

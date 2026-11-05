@@ -241,6 +241,8 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'settings.stale.name': 'Days before a campaign counts as stalled',
 	'settings.stale.desc':
 		'Days without a completed task before an active campaign is marked as stalled. Each campaign can set its own with stale_after_days.',
+	'settings.openOnStartup.name': 'Open Dromos on startup',
+	'settings.openOnStartup.desc': 'Shows the Dromos view when Obsidian opens. Leave it off to open Obsidian where you left it.',
 	'settings.language.name': 'Language',
 	'settings.language.desc': "Language of Dromos' interface. The notes in your vault do not change.",
 	'settings.language.en': 'English',

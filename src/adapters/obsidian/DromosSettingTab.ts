@@ -3,8 +3,8 @@ import { createTranslator, LANGUAGES, languageOrDefault } from '../../i18n';
 import { DEFAULT_SETTINGS, type Settings, type SettingsStore } from '../../ports';
 
 /**
- * Settings tab (S3): Habitica credentials, the Dromos vault folder, the stale threshold and the
- * interface language. Every change
+ * Settings tab (S3): Habitica credentials, the Dromos vault folder, the stale threshold, opening
+ * Dromos on startup and the interface language. Every change
  * is saved through the `SettingsStore` and then reported to `onChange`. The token
  * input is masked and its value is never logged.
  *
@@ -83,6 +83,13 @@ export class DromosSettingTab extends PluginSettingTab {
 						if (Number.isInteger(days) && days > 0) void update({ staleAfterDays: days });
 					});
 			});
+
+		new Setting(containerEl)
+			.setName(t('settings.openOnStartup.name'))
+			.setDesc(t('settings.openOnStartup.desc'))
+			.addToggle((toggle) =>
+				toggle.setValue(settings.openOnStartup).onChange((value) => void update({ openOnStartup: value })),
+			);
 
 		new Setting(containerEl)
 			.setName(t('settings.language.name'))

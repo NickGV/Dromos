@@ -3,10 +3,19 @@ import { createDromos } from './composition/createDromos';
 import { DromosView, VIEW_TYPE_DROMOS } from './ui/DromosView';
 
 export default class DromosPlugin extends Plugin {
+	private unloaded = false;
+
 	async onload(): Promise<void> {
-		const { home, settingTab, rebuildGame } = await createDromos(this);
+		const { home, settingTab, rebuildGame, settings } = await createDromos(this);
 		this.addSettingTab(settingTab);
 		this.registerView(VIEW_TYPE_DROMOS, (leaf) => new DromosView(leaf, home));
+
+		// Opt-in: the restored layout may not hold the Dromos tab (closed, or another device's layout via Sync).
+		this.app.workspace.onLayoutReady(() => {
+			// The callback can still fire after an unload that happened before the layout was ready.
+			if (this.unloaded) return;
+			if (settings().openOnStartup) void this.activateView();
+		});
 
 		this.addRibbonIcon('footprints', 'Dromos', () => {
 			void this.activateView();
@@ -30,6 +39,7 @@ export default class DromosPlugin extends Plugin {
 	}
 
 	onunload(): void {
+		this.unloaded = true;
 		// Leaves are left in place on purpose: Obsidian restores them on reload.
 	}
 

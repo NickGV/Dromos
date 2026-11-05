@@ -242,6 +242,8 @@ export const es = {
 	'settings.stale.name': 'Días para marcar una campaña como detenida',
 	'settings.stale.desc':
 		'Días sin completar ninguna tarea antes de marcar una campaña activa como detenida. Cada campaña puede fijar el suyo con stale_after_days.',
+	'settings.openOnStartup.name': 'Abrir Dromos al iniciar',
+	'settings.openOnStartup.desc': 'Muestra la vista de Dromos al abrir Obsidian. Déjalo apagado para abrir Obsidian donde lo dejaste.',
 	'settings.language.name': 'Idioma',
 	'settings.language.desc': 'Idioma de la interfaz de Dromos. Las notas de tu bóveda no cambian.',
 	'settings.language.en': 'English',
