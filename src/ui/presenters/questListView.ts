@@ -1,6 +1,7 @@
 import type { QuestPrice, SkillRef } from '../../application';
 import { isMission, type Checklist, type Quest } from '../../domain';
 import type { Translator } from '../../i18n';
+import { limitRows, type ListToggleView } from './listLimit';
 
 /** Whether a to-do is late or due today. */
 export type DueTone = 'overdue' | 'today';
@@ -86,18 +87,23 @@ export interface QuestPanelView {
 	readonly dayComplete: boolean;
 	readonly rows: readonly QuestPanelRowView[];
 	readonly emptyText: string | null;
+	/** "View more (N)" or "View less", only on a list longer than 6 (missions S3). */
+	readonly more?: ListToggleView;
 }
 
-export function questPanelView(list: QuestListView, t: Translator): QuestPanelView {
-	const rows = [...list.dailies.map((row) => panelRow(row, 'quests.kind.daily', t)), ...list.todos.map((row) => panelRow(row, 'quests.kind.todo', t))];
-	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, rows, emptyText: list.emptyText };
+/** `expanded` is the reader's choice under a long list; folded, it shows 6 rows (missions S3). */
+export function questPanelView(list: QuestListView, t: Translator, expanded = false): QuestPanelView {
+	const all = [...list.dailies.map((row) => panelRow(row, 'quests.kind.daily', t)), ...list.todos.map((row) => panelRow(row, 'quests.kind.todo', t))];
+	const { rows, more } = limitRows(all, expanded, t, (row) => row.completed);
+	const shown = more ? { rows, more } : { rows };
+	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, ...shown, emptyText: list.emptyText };
 	const pending = list.dailies.filter((row) => !row.completed);
 	const gain = pending.reduce((sum, row) => sum + (row.xp ?? 0), 0);
 	return {
 		doneText: t('quests.header.done', { done: list.dailies.length - pending.length, total: list.dailies.length }),
 		gainText: pending.length === 0 ? t('quests.header.complete') : gain > 0 ? t('quests.header.gain', { xp: gain }) : null,
 		dayComplete: pending.length === 0,
-		rows,
+		...shown,
 		emptyText: list.emptyText,
 	};
 }

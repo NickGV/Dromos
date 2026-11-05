@@ -6,7 +6,7 @@ import { CampaignBoard } from '../organisms/CampaignBoard';
 import { CampaignScreen, type Sending } from '../organisms/CampaignScreen';
 import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
 import { campaignHomeCardView } from '../presenters/campaignHomeView';
-import { campaignScreenView } from '../presenters/campaignScreenView';
+import { campaignScreenView, groupToggleKey } from '../presenters/campaignScreenView';
 import { campaignListView } from '../presenters/campaignView';
 import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcomeView';
 
@@ -61,6 +61,8 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, 
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
 	const [sending, setSending] = useState<Sending | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
+	// The phase panels the reader expanded, by `groupToggleKey` (missions S3).
+	const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(() => new Set());
 	const mounted = useRef(false);
 	const t = useT();
 
@@ -104,7 +106,7 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, 
 	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
 	if (onOpenCampaign) return <CampaignBoard list={view} cards={view.cards.map((card) => campaignHomeCardView(card, t))} onOpen={onOpenCampaign} />;
 	if (!screen) return null;
-	const page = campaignScreenView(view, screen.selected, t);
+	const page = campaignScreenView(view, screen.selected, t, expandedGroups);
 	const shown = page.campaign?.path ?? null;
 	return (
 		<>
@@ -120,6 +122,15 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, 
 				}}
 				onSendHabit={(habitTitle) => {
 					if (shown !== null) void send(shown, 'habit', habitTitle);
+				}}
+				onToggleGroup={(groupKey) => {
+					if (shown === null) return;
+					const key = groupToggleKey(shown, groupKey);
+					setExpandedGroups((current) => {
+						const next = new Set(current);
+						if (!next.delete(key)) next.add(key);
+						return next;
+					});
 				}}
 			/>
 		</>

@@ -221,3 +221,21 @@ describe('questListView: missions (missions S1)', () => {
 		expect(panel.rows[1]?.chips.some((chip) => chip.kind === 'mission')).toBe(false);
 	});
 });
+
+describe('questPanelView: "View more" (missions S3)', () => {
+	const many = Array.from({ length: 8 }, (_, index) => aQuest(`t${index}`, { type: 'todo' }));
+
+	it('folds a list of more than 6 quests to 6, and shows them all once expanded', () => {
+		const folded = questPanelView(questListView(many, TODAY, t), t);
+		const expanded = questPanelView(questListView(many, TODAY, t), t, true);
+
+		expect(folded.rows).toHaveLength(6);
+		expect(folded.more).toEqual({ label: 'Ver más (2)', expanded: false });
+		expect(expanded.rows).toHaveLength(8);
+		expect(expanded.more).toEqual({ label: 'Ver menos', expanded: true });
+	});
+
+	it('gives a list of 6 or fewer no toggle', () => {
+		expect(questPanelView(questListView(many.slice(0, 6), TODAY, t), t)).not.toHaveProperty('more');
+	});
+});

@@ -158,6 +158,8 @@ export const es = {
 	'quests.kind.todo': 'Tarea',
 	'quests.xp': '+{xp} XP',
 	'quests.mission': 'Misión · {done}/{total}',
+	'list.more': 'Ver más ({count})',
+	'list.less': 'Ver menos',
 	'quests.header.done': '{done} de {total} diarias cumplidas',
 	'quests.header.gain': '+{xp} XP por ganar',
 	'quests.header.complete': 'Jornada completa',

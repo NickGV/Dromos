@@ -10,7 +10,7 @@ import { CampaignTabs } from '../../../src/ui/molecules/CampaignTabs';
 import { CampaignTaskRow } from '../../../src/ui/molecules/CampaignTaskRow';
 import { HabitRow } from '../../../src/ui/molecules/HabitRow';
 import { CampaignScreen } from '../../../src/ui/organisms/CampaignScreen';
-import { campaignScreenView, type CampaignDetailView, type CampaignTaskView } from '../../../src/ui/presenters/campaignScreenView';
+import { campaignScreenView, groupToggleKey, type CampaignDetailView, type CampaignTaskView } from '../../../src/ui/presenters/campaignScreenView';
 import { campaignListView } from '../../../src/ui/presenters/campaignView';
 import { campaign, habit, phase, task } from '../../domain/campaign/campaignFixtures';
 import { clickOf, componentsOf, elementsOf } from './elements';
@@ -279,5 +279,32 @@ describe('missions on campaign tasks (missions S2)', () => {
 	it('gives a plain task no mission chip', () => {
 		expect(detail.groups.flatMap((group) => group.tasks).every((row) => row.mission === undefined)).toBe(true);
 		expect(renderToStaticMarkup(<CampaignTaskRow row={row()} sending={false} onSend={noop} />)).not.toContain('is-mission');
+	});
+});
+
+describe('"View more" in a phase panel (missions S3)', () => {
+	const long = campaign({ path: 'P/Long/README.md', title: 'Long', phases: [phase('one', 'active')], tasks: Array.from({ length: 8 }, (_, index) => pending(`Task ${index}`, 'one')) });
+	const longSnapshot: CampaignSnapshot = { ...snapshot, campaigns: [long] };
+
+	it('folds a phase of more than 6 tasks to 6 and keeps the full count', () => {
+		const group = screenOf(longSnapshot).campaign?.groups[0];
+
+		expect(group?.tasks).toHaveLength(6);
+		expect(group?.countText).toBe('0/8');
+		expect(group?.more).toEqual({ label: 'View more (2)', expanded: false });
+	});
+
+	it('shows every task of a phase once its panel is expanded', () => {
+		const page = campaignScreenView(campaignListView(longSnapshot, { today: TODAY, defaultStaleAfterDays: 14, t: en }), null, en, new Set([groupToggleKey('P/Long/README.md', 'one')]));
+
+		expect(page.campaign?.groups[0]?.tasks).toHaveLength(8);
+		expect(page.campaign?.groups[0]?.more).toEqual({ label: 'View less', expanded: true });
+	});
+
+	it('draws the toggle inside the folded panel, and none in a short one', () => {
+		const html = renderToStaticMarkup(<CampaignScreen view={screenOf(longSnapshot)} sending={null} message={null} onSelect={noop} onOpenNote={noop} onSend={noop} onSendHabit={noop} />);
+
+		expect(html).toContain('<button type="button" class="dromos-btn is-small dromos-list-toggle" aria-expanded="false">View more (2)</button>');
+		expect(render()).not.toContain('dromos-list-toggle');
 	});
 });

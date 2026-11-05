@@ -1,3 +1,4 @@
+import { ListToggle } from '../atoms/ListToggle';
 import { useT } from '../i18n';
 import { QuestItem } from '../molecules/QuestItem';
 import type { QuestPanelView } from '../presenters/questListView';
@@ -7,7 +8,7 @@ import type { QuestPanelView } from '../presenters/questListView';
  * dailies and one list, dailies first, or an empty state. A quiet note under the panel says where
  * quests are completed, since its rows are not buttons (game-ui S14).
  */
-export function QuestList({ view }: { readonly view: QuestPanelView }) {
+export function QuestList({ view, onToggleMore }: { readonly view: QuestPanelView; readonly onToggleMore?: () => void }) {
 	const t = useT();
 	return (
 		<section className="dromos-section dromos-quests" aria-label={t('quests.title')}>
@@ -28,6 +29,7 @@ export function QuestList({ view }: { readonly view: QuestPanelView }) {
 								<QuestItem key={row.id} row={row} />
 							))}
 						</ul>
+						{view.more ? <ListToggle view={view.more} onToggle={onToggleMore} /> : null}
 					</>
 				)}
 			</div>

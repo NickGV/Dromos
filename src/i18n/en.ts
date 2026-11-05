@@ -157,6 +157,8 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'quests.kind.todo': 'To-do',
 	'quests.xp': '+{xp} XP',
 	'quests.mission': 'Mission · {done}/{total}',
+	'list.more': 'View more ({count})',
+	'list.less': 'View less',
 	'quests.header.done': '{done} of {total} dailies done',
 	'quests.header.gain': '+{xp} XP to earn',
 	'quests.header.complete': 'Day complete',

@@ -2,6 +2,7 @@ import { plural, type MessageKey, type Translator } from '../../i18n';
 import { nextTaskIndex, overallCountText, overallProgress, roadView, type RoadView } from './campaignHomeView';
 import type { CampaignCardView, CampaignListView, HabitRowView, TaskRowView } from './campaignView';
 import { dayMonth } from './dates';
+import { limitRows, type ListToggleView } from './listLimit';
 
 /** What a task's chip says about it; the tone colors the chip. */
 export type TaskChipTone = 'done' | 'next' | 'pending' | 'unsent' | 'missing';
@@ -22,9 +23,16 @@ export interface TaskGroupView {
 	/** The phase id; `''` for the tasks without a known phase. */
 	readonly key: string;
 	readonly name: string;
-	/** "2/5": its tasks done over its tasks. */
+	/** "2/5": its tasks done over its tasks, all of them, also when the panel is folded. */
 	readonly countText: string;
 	readonly tasks: readonly CampaignTaskView[];
+	/** "View more (N)" or "View less", only on a panel of more than 6 tasks (missions S3). */
+	readonly more?: ListToggleView;
+}
+
+/** What identifies one phase panel among every campaign, for the set of expanded panels. */
+export function groupToggleKey(campaignPath: string, groupKey: string): string {
+	return `${campaignPath}#${groupKey}`;
 }
 
 export interface CampaignTabView {
@@ -79,8 +87,9 @@ export interface CampaignScreenView {
 /**
  * The campaigns screen for the campaign at `selected`; the first one when nothing is selected or
  * the selected one is gone. Choosing another tab only changes `selected`: nothing is fetched.
+ * `expanded` holds the `groupToggleKey` of every phase panel the reader expanded (missions S3).
  */
-export function campaignScreenView(list: CampaignListView, selected: string | null, t: Translator): CampaignScreenView {
+export function campaignScreenView(list: CampaignListView, selected: string | null, t: Translator, expanded: ReadonlySet<string> = new Set()): CampaignScreenView {
 	const shown = list.cards.find((card) => card.path === selected) ?? list.cards[0] ?? null;
 	return {
 		title: shown ? t('screen.campaigns.named', { name: shown.title }) : t('screen.campaigns'),
@@ -88,11 +97,11 @@ export function campaignScreenView(list: CampaignListView, selected: string | nu
 		tabs: list.cards.map((card) => ({ path: card.path, title: card.title, selected: card === shown })),
 		notice: list.notice,
 		emptyText: list.emptyText,
-		campaign: shown ? detailOf(shown, t) : null,
+		campaign: shown ? detailOf(shown, t, expanded) : null,
 	};
 }
 
-function detailOf(card: CampaignCardView, t: Translator): CampaignDetailView {
+function detailOf(card: CampaignCardView, t: Translator, expanded: ReadonlySet<string>): CampaignDetailView {
 	const overall = overallProgress(card);
 	const road = roadView(card);
 	return {
@@ -118,7 +127,10 @@ function detailOf(card: CampaignCardView, t: Translator): CampaignDetailView {
 		},
 		roadProgress: { label: t('campaign.screen.road.aria', { title: card.title }), percent: card.progress.percent, valueText: card.chip },
 		tasksTitle: t('campaign.screen.tasks'),
-		groups: groupsOf(card, t),
+		groups: groupsOf(card, t).map((item) => {
+			const { rows, more } = limitRows(item.tasks, expanded.has(groupToggleKey(card.path, item.key)), t, (row) => row.completed);
+			return more ? { ...item, tasks: rows, more } : item;
+		}),
 		habitsTitle: t('campaign.screen.habits'),
 		habits: card.habits,
 		warnings: card.warnings,

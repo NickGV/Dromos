@@ -1,3 +1,4 @@
+import { ListToggle } from '../atoms/ListToggle';
 import { CampaignHeaderPanel } from '../molecules/CampaignHeaderPanel';
 import { CampaignRoad } from '../molecules/CampaignRoad';
 import { CampaignTabs } from '../molecules/CampaignTabs';
@@ -23,13 +24,15 @@ export interface CampaignScreenProps {
 	readonly onOpenNote: (path: string) => void;
 	readonly onSend: (taskTitle: string) => void;
 	readonly onSendHabit: (habitTitle: string) => void;
+	/** Expands or folds the phase panel with this key (missions S3). */
+	readonly onToggleGroup?: (groupKey: string) => void;
 }
 
 /**
  * The campaigns screen under its header card (game-ui S8): a tab per campaign, the header panel
  * of the one shown, its path, its tasks by phase and its habits, with its notices and problems.
  */
-export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit }: CampaignScreenProps) {
+export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onToggleGroup }: CampaignScreenProps) {
 	const { campaign } = view;
 	return (
 		<div className="dromos-campaign-screen dromos-campaigns">
@@ -72,6 +75,7 @@ export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, o
 												<CampaignTaskRow key={`${index}:${row.title}`} row={row} sending={sending?.kind === 'task' && sending.title === row.title} onSend={() => onSend(row.title)} />
 											))}
 										</ul>
+										{group.more ? <ListToggle view={group.more} onToggle={() => onToggleGroup?.(group.key)} /> : null}
 									</div>
 								))}
 							</div>

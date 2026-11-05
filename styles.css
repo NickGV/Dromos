@@ -1431,6 +1431,9 @@
 .dromos-root .dromos-task-chip.is-missing { border-color: var(--dromos-ink-warning); color: var(--dromos-ink-warning); }
 .dromos-root .dromos-task-chip.is-mission { font-weight: 600; }
 
+/* "View more (N)" under a folded list, set apart from its last row (missions S3). */
+.dromos-root .dromos-list-toggle { margin-top: 8px; }
+
 .dromos-root .dromos-progress-track {
 	height: 6px;
 	overflow: hidden;
