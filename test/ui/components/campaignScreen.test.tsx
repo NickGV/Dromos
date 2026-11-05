@@ -10,7 +10,7 @@ import { CampaignTabs } from '../../../src/ui/molecules/CampaignTabs';
 import { CampaignTaskRow } from '../../../src/ui/molecules/CampaignTaskRow';
 import { HabitRow } from '../../../src/ui/molecules/HabitRow';
 import { CampaignScreen } from '../../../src/ui/organisms/CampaignScreen';
-import { campaignScreenView, groupToggleKey, type CampaignDetailView, type CampaignTaskView } from '../../../src/ui/presenters/campaignScreenView';
+import { campaignScreenView, groupToggleKey, taskToggleKey, type CampaignDetailView, type CampaignTaskView } from '../../../src/ui/presenters/campaignScreenView';
 import { campaignListView } from '../../../src/ui/presenters/campaignView';
 import { campaign, habit, phase, task } from '../../domain/campaign/campaignFixtures';
 import { clickOf, componentsOf, elementsOf } from './elements';
@@ -306,5 +306,32 @@ describe('"View more" in a phase panel (missions S3)', () => {
 
 		expect(html).toContain('<button type="button" class="dromos-btn is-small dromos-list-toggle" aria-expanded="false">View more (2)</button>');
 		expect(render()).not.toContain('dromos-list-toggle');
+	});
+});
+
+describe('open a mission among the campaign tasks (missions S5)', () => {
+	const items = [
+		{ title: 'Sketch', completed: true },
+		{ title: 'Build', completed: false },
+		{ title: 'Ship', completed: false },
+	];
+	const withMission = campaign({ path: 'P/M/README.md', title: 'M', phases: [phase('one', 'active')], tasks: [task('Plan', 'one', { habiticaId: 'h1', checklist: { done: 1, total: 3, items } })] });
+	const missionSnapshot: CampaignSnapshot = { ...snapshot, campaigns: [withMission] };
+	const list = campaignListView(missionSnapshot, { today: TODAY, defaultStaleAfterDays: 14, t: en });
+
+	it('folds the mission to its toggle, and lists its subtasks once the reader opens it', () => {
+		expect(campaignScreenView(list, null, en).campaign?.groups[0]?.tasks[0]?.subtasks).toEqual({ open: false, toggleLabel: 'Show the subtasks of Plan', items: [] });
+		expect(campaignScreenView(list, null, en, new Set(), new Set([taskToggleKey('P/M/README.md', 'Plan')])).campaign?.groups[0]?.tasks[0]?.subtasks).toEqual({
+			open: true,
+			toggleLabel: 'Hide the subtasks of Plan',
+			items,
+		});
+	});
+
+	it('draws the toggle on the row, and the subtasks under its title once open', () => {
+		const open = renderToStaticMarkup(<CampaignTaskRow row={row({ subtasks: { open: true, toggleLabel: 'Hide the subtasks of Report', items } })} sending={false} onSend={noop} />);
+
+		expect(open).toContain('<button type="button" class="dromos-subtasks-toggle" aria-expanded="true" aria-label="Hide the subtasks of Report">');
+		expect([...open.matchAll(/<li class="(dromos-subtask[^"]*)">/g)].map((match) => match[1])).toEqual(['dromos-subtask is-completed', 'dromos-subtask', 'dromos-subtask']);
 	});
 });

@@ -78,9 +78,9 @@ describe('questFromHabiticaTask: checklist (missions S1)', () => {
 		{ completed: false, text: 'c', id: 'c3' },
 	];
 
-	it('counts the subtasks of a to-do or a daily: how many are done out of how many', () => {
-		expect(questFromHabiticaTask(task({ checklist }))?.checklist).toEqual({ done: 1, total: 3 });
-		expect(questFromHabiticaTask(task({ type: 'daily', checklist }))?.checklist).toEqual({ done: 1, total: 3 });
+	it('counts the subtasks of a to-do or a daily, and keeps the title and state of each, in order (missions S1, S5)', () => {
+		expect(questFromHabiticaTask(task({ checklist }))?.checklist).toEqual({ done: 1, total: 3, items: [{ title: 'a', completed: true }, { title: 'b', completed: false }, { title: 'c', completed: false }] });
+		expect(questFromHabiticaTask(task({ type: 'daily', checklist }))?.checklist).toEqual({ done: 1, total: 3, items: [{ title: 'a', completed: true }, { title: 'b', completed: false }, { title: 'c', completed: false }] });
 	});
 
 	it('leaves the checklist out when the task has none, an empty one, or one that is not a list (missions A3)', () => {
@@ -90,6 +90,13 @@ describe('questFromHabiticaTask: checklist (missions S1)', () => {
 	});
 
 	it('counts only the subtasks it can read, so a malformed one never rejects the task (missions A3)', () => {
-		expect(questFromHabiticaTask(task({ checklist: [{ completed: true }, 'junk', null, { completed: 'yes' }] }))?.checklist).toEqual({ done: 1, total: 2 });
+		expect(questFromHabiticaTask(task({ checklist: [{ completed: true }, 'junk', null, { completed: 'yes', text: 7 }] }))?.checklist).toEqual({
+			done: 1,
+			total: 2,
+			items: [
+				{ title: '', completed: true },
+				{ title: '', completed: false },
+			],
+		});
 	});
 });

@@ -227,7 +227,7 @@ describe('questPanelView: "View more" (missions S3)', () => {
 
 	it('folds a list of more than 6 quests to 6, and shows them all once expanded', () => {
 		const folded = questPanelView(questListView(many, TODAY, t), t);
-		const expanded = questPanelView(questListView(many, TODAY, t), t, true);
+		const expanded = questPanelView(questListView(many, TODAY, t), t, { expanded: true });
 
 		expect(folded.rows).toHaveLength(6);
 		expect(folded.more).toEqual({ label: 'Ver más (2)', expanded: false });
@@ -237,5 +237,25 @@ describe('questPanelView: "View more" (missions S3)', () => {
 
 	it('gives a list of 6 or fewer no toggle', () => {
 		expect(questPanelView(questListView(many.slice(0, 6), TODAY, t), t)).not.toHaveProperty('more');
+	});
+});
+
+describe('questPanelView: open a mission (missions S5)', () => {
+	const items = [
+		{ title: 'Uno', completed: true },
+		{ title: 'Dos', completed: false },
+		{ title: 'Tres', completed: false },
+	];
+	const list = questListView([aQuest('m1', { title: 'Viaje', type: 'todo', checklist: { done: 1, total: 3, items } }), aQuest('t1', { type: 'todo' })], TODAY, t);
+
+	it('gives a mission its folded toggle, and a plain quest none', () => {
+		const panel = questPanelView(list, t);
+
+		expect(panel.rows[0]?.subtasks).toEqual({ open: false, toggleLabel: 'Ver las subtareas de Viaje', items: [] });
+		expect(panel.rows[1]).not.toHaveProperty('subtasks');
+	});
+
+	it('lists the subtasks of the missions the reader opened', () => {
+		expect(questPanelView(list, t, { openMissions: new Set(['m1']) }).rows[0]?.subtasks).toEqual({ open: true, toggleLabel: 'Ocultar las subtareas de Viaje', items });
 	});
 });

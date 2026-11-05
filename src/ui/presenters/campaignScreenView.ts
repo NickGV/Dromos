@@ -3,6 +3,7 @@ import { nextTaskIndex, overallCountText, overallProgress, roadView, type RoadVi
 import type { CampaignCardView, CampaignListView, HabitRowView, TaskRowView } from './campaignView';
 import { dayMonth } from './dates';
 import { limitRows, type ListToggleView } from './listLimit';
+import { subtasksView, type SubtasksView } from './missionView';
 
 /** What a task's chip says about it; the tone colors the chip. */
 export type TaskChipTone = 'done' | 'next' | 'pending' | 'unsent' | 'missing';
@@ -16,6 +17,8 @@ export interface CampaignTaskView {
 	readonly canSend: boolean;
 	/** "Mission · 2/5", present only for a task whose subtasks make it a mission (missions S2). */
 	readonly mission?: string;
+	/** A mission's toggle and, once open, its subtasks (missions S5); absent on a plain task. */
+	readonly subtasks?: SubtasksView;
 }
 
 /** One panel of "Tasks by phase": a phase and its tasks, or the tasks without a known phase. */
@@ -33,6 +36,11 @@ export interface TaskGroupView {
 /** What identifies one phase panel among every campaign, for the set of expanded panels. */
 export function groupToggleKey(campaignPath: string, groupKey: string): string {
 	return `${campaignPath}#${groupKey}`;
+}
+
+/** What identifies one task among every campaign, for the set of open missions (missions S5). */
+export function taskToggleKey(campaignPath: string, taskTitle: string): string {
+	return `${campaignPath}#task:${taskTitle}`;
 }
 
 export interface CampaignTabView {
@@ -87,9 +95,16 @@ export interface CampaignScreenView {
 /**
  * The campaigns screen for the campaign at `selected`; the first one when nothing is selected or
  * the selected one is gone. Choosing another tab only changes `selected`: nothing is fetched.
- * `expanded` holds the `groupToggleKey` of every phase panel the reader expanded (missions S3).
+ * `expanded` holds the `groupToggleKey` of every phase panel the reader expanded (missions S3), and
+ * `openMissions` the `taskToggleKey` of every mission whose subtasks are open (missions S5).
  */
-export function campaignScreenView(list: CampaignListView, selected: string | null, t: Translator, expanded: ReadonlySet<string> = new Set()): CampaignScreenView {
+export function campaignScreenView(
+	list: CampaignListView,
+	selected: string | null,
+	t: Translator,
+	expanded: ReadonlySet<string> = new Set(),
+	openMissions: ReadonlySet<string> = new Set(),
+): CampaignScreenView {
 	const shown = list.cards.find((card) => card.path === selected) ?? list.cards[0] ?? null;
 	return {
 		title: shown ? t('screen.campaigns.named', { name: shown.title }) : t('screen.campaigns'),
@@ -97,11 +112,11 @@ export function campaignScreenView(list: CampaignListView, selected: string | nu
 		tabs: list.cards.map((card) => ({ path: card.path, title: card.title, selected: card === shown })),
 		notice: list.notice,
 		emptyText: list.emptyText,
-		campaign: shown ? detailOf(shown, t, expanded) : null,
+		campaign: shown ? detailOf(shown, t, expanded, openMissions) : null,
 	};
 }
 
-function detailOf(card: CampaignCardView, t: Translator, expanded: ReadonlySet<string>): CampaignDetailView {
+function detailOf(card: CampaignCardView, t: Translator, expanded: ReadonlySet<string>, openMissions: ReadonlySet<string>): CampaignDetailView {
 	const overall = overallProgress(card);
 	const road = roadView(card);
 	return {
@@ -127,7 +142,7 @@ function detailOf(card: CampaignCardView, t: Translator, expanded: ReadonlySet<s
 		},
 		roadProgress: { label: t('campaign.screen.road.aria', { title: card.title }), percent: card.progress.percent, valueText: card.chip },
 		tasksTitle: t('campaign.screen.tasks'),
-		groups: groupsOf(card, t).map((item) => {
+		groups: groupsOf(card, t, openMissions).map((item) => {
 			const { rows, more } = limitRows(item.tasks, expanded.has(groupToggleKey(card.path, item.key)), t, (row) => row.completed);
 			return more ? { ...item, tasks: rows, more } : item;
 		}),
@@ -139,9 +154,9 @@ function detailOf(card: CampaignCardView, t: Translator, expanded: ReadonlySet<s
 
 // By each row's `phase` and the segment `id`, in road order; a phase with no tasks has no panel,
 // and the tasks whose phase is unknown, or missing, go in a last group so none is hidden.
-function groupsOf(card: CampaignCardView, t: Translator): TaskGroupView[] {
+function groupsOf(card: CampaignCardView, t: Translator, openMissions: ReadonlySet<string>): TaskGroupView[] {
 	const next = nextTaskIndex(card);
-	const rows = card.tasks.map((row, index) => ({ phase: row.phase ?? null, view: taskView(row, index === next, t) }));
+	const rows = card.tasks.map((row, index) => ({ phase: row.phase ?? null, view: taskView(row, index === next, openMissions.has(taskToggleKey(card.path, row.title)), t) }));
 	const known = new Set(card.segments.map((segment) => segment.id));
 	const groups = card.segments.map((segment) => group(segment.id, segment.name, rows.filter((row) => row.phase === segment.id).map((row) => row.view)));
 	groups.push(group('', t('campaign.screen.noPhase'), rows.filter((row) => row.phase === null || !known.has(row.phase)).map((row) => row.view)));
@@ -155,9 +170,10 @@ function group(key: string, name: string, tasks: CampaignTaskView[]): TaskGroupV
 // A problem says more than the order of the road: a task Habitica lost, or one that cannot be
 // sent while Habitica is not set up, is chipped as such even when it is the next one. A task that
 // can be sent shows the button, never "Not linked" beside it (calm-ui S4).
-function taskView(row: TaskRowView, isNext: boolean, t: Translator): CampaignTaskView {
+function taskView(row: TaskRowView, isNext: boolean, open: boolean, t: Translator): CampaignTaskView {
 	const chip = (label: MessageKey, tone: TaskChipTone) => ({ label: t(label), tone });
-	const mission = row.mission ? { mission: t('quests.mission', { done: row.mission.done, total: row.mission.total }) } : {};
+	const subtasks = subtasksView(row.mission, open, row.title, t);
+	const mission = row.mission ? { mission: t('quests.mission', { done: row.mission.done, total: row.mission.total }), ...(subtasks ? { subtasks } : {}) } : {};
 	const view = (value: CampaignTaskView['chip']): CampaignTaskView => ({ title: row.title, completed: row.state === 'completed', chip: value, canSend: row.canSend, ...mission });
 	if (row.state === 'completed') return view(chip('task.state.done', 'done'));
 	if (row.state === 'missing') return view(chip('task.missing', 'missing'));

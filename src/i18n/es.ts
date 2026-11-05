@@ -160,6 +160,8 @@ export const es = {
 	'quests.mission': 'Misión · {done}/{total}',
 	'list.more': 'Ver más ({count})',
 	'list.less': 'Ver menos',
+	'mission.subtasks.show': 'Ver las subtareas de {title}',
+	'mission.subtasks.hide': 'Ocultar las subtareas de {title}',
 	'quests.header.done': '{done} de {total} diarias cumplidas',
 	'quests.header.gain': '+{xp} XP por ganar',
 	'quests.header.complete': 'Jornada completa',

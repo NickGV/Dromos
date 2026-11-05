@@ -8,7 +8,15 @@ import type { QuestPanelView } from '../presenters/questListView';
  * dailies and one list, dailies first, or an empty state. A quiet note under the panel says where
  * quests are completed, since its rows are not buttons (game-ui S14).
  */
-export function QuestList({ view, onToggleMore }: { readonly view: QuestPanelView; readonly onToggleMore?: () => void }) {
+export interface QuestListProps {
+	readonly view: QuestPanelView;
+	/** Expands or folds the long list (missions S3). */
+	readonly onToggleMore?: () => void;
+	/** Opens or folds the subtasks of the mission with this id (missions S5). */
+	readonly onToggleSubtasks?: (questId: string) => void;
+}
+
+export function QuestList({ view, onToggleMore, onToggleSubtasks }: QuestListProps) {
 	const t = useT();
 	return (
 		<section className="dromos-section dromos-quests" aria-label={t('quests.title')}>
@@ -26,7 +34,7 @@ export function QuestList({ view, onToggleMore }: { readonly view: QuestPanelVie
 						) : null}
 						<ul className="dromos-quest-items">
 							{view.rows.map((row) => (
-								<QuestItem key={row.id} row={row} />
+								<QuestItem key={row.id} row={row} onToggleSubtasks={() => onToggleSubtasks?.(row.id)} />
 							))}
 						</ul>
 						{view.more ? <ListToggle view={view.more} onToggle={onToggleMore} /> : null}

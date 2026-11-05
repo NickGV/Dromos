@@ -159,6 +159,8 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'quests.mission': 'Mission · {done}/{total}',
 	'list.more': 'View more ({count})',
 	'list.less': 'View less',
+	'mission.subtasks.show': 'Show the subtasks of {title}',
+	'mission.subtasks.hide': 'Hide the subtasks of {title}',
 	'quests.header.done': '{done} of {total} dailies done',
 	'quests.header.gain': '+{xp} XP to earn',
 	'quests.header.complete': 'Day complete',

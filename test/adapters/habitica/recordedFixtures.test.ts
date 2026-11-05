@@ -106,7 +106,8 @@ describe('recorded Habitica fixtures (issue #8)', () => {
 		const statuses = await new HabiticaTaskStatusSource(client).fetchStatuses([open.id, done.id]);
 
 		// The first recorded to-do has 6 subtasks, none done; they travel with its status (missions S2).
-		expect(statuses.get(open.id)).toEqual({ kind: 'open', checklist: { done: 0, total: 6 } });
+		expect(statuses.get(open.id)).toMatchObject({ kind: 'open', checklist: { done: 0, total: 6 } });
+		expect(statuses.get(open.id)?.kind === 'open' && statuses.get(open.id)).toHaveProperty('checklist.items.length', 6);
 		expect(statuses.get(done.id)).toEqual({ kind: 'completed', completedOn: '2026-10-31' });
 		expect(http.requests.map((request) => request.url)).toEqual([URLS.todos, URLS.completedTodos]);
 	});

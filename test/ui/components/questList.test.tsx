@@ -76,3 +76,28 @@ describe('QuestList: "View more" (missions S3)', () => {
 		expect(html).not.toContain('dromos-list-toggle');
 	});
 });
+
+describe('QuestList: open a mission (missions S5)', () => {
+	const items = [
+		{ title: 'Book the bus', completed: true },
+		{ title: 'Pack', completed: false },
+		{ title: 'Leave', completed: false },
+	];
+	const quests = [aQuest('m1', { title: 'Plan the trip', type: 'todo', checklist: { done: 1, total: 3, items } })];
+
+	it('draws a toggle on a mission row, folded at first', () => {
+		const folded = renderToStaticMarkup(<QuestList view={questPanelView(questListView(quests, TODAY, en), en)} />);
+
+		expect(folded).toContain('<button type="button" class="dromos-subtasks-toggle" aria-expanded="false" aria-label="Show the subtasks of Plan the trip">');
+		expect(folded).not.toContain('dromos-subtask"');
+	});
+
+	it('lists the subtasks under the title once open, a done one checked, struck and announced', () => {
+		const open = renderToStaticMarkup(<QuestList view={questPanelView(questListView(quests, TODAY, en), en, { openMissions: new Set(['m1']) })} />);
+
+		expect(open).toContain('aria-expanded="true" aria-label="Hide the subtasks of Plan the trip"');
+		expect([...open.matchAll(/<li class="(dromos-subtask[^"]*)">/g)].map((match) => match[1])).toEqual(['dromos-subtask is-completed', 'dromos-subtask', 'dromos-subtask']);
+		expect(open).toContain('<span class="dromos-subtask-title">Book the bus<span class="dromos-visually-hidden"> (completed)</span></span>');
+		expect(open).toContain('<span class="dromos-subtask-title">Pack</span>');
+	});
+});

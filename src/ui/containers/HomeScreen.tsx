@@ -25,6 +25,7 @@ import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
 import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
 import { questListView, questPanelView } from '../presenters/questListView';
+import { toggled } from '../presenters/toggled';
 import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinceVisitView';
 import { skillRingView, skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
@@ -132,6 +133,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [letterOpen, setLetterOpen] = useState(false);
 	// Today's quests fold to 6 rows on every open of the view (missions S3).
 	const [questsExpanded, setQuestsExpanded] = useState(false);
+	const [openMissions, setOpenMissions] = useState<ReadonlySet<string>>(() => new Set());
 	const [readMark, setReadMark] = useState<unknown>(() => storedLetterMark(deps.deviceStore));
 	const [letterId] = useState(() => `dromos-letter-${(viewCount += 1)}`);
 	const [lastSeen] = useState(() => storedLastSeen(deps.deviceStore));
@@ -250,7 +252,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 
 	const home = screen === 'home';
 	const offline = quests.status.kind === 'offline';
-	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t, questsExpanded);
+	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t, { expanded: questsExpanded, openMissions });
 	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t) : null;
 	const banner = syncBannerView(quests, deps.clock.now(), t);
 	const language = deps.language();
@@ -311,7 +313,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							onFold={foldLetter}
 						/>
 					) : null}
-					{home ? <QuestList view={questPanel} onToggleMore={() => setQuestsExpanded((current) => !current)} /> : null}
+					{home ? (
+						<QuestList view={questPanel} onToggleMore={() => setQuestsExpanded((current) => !current)} onToggleSubtasks={(questId) => setOpenMissions((current) => toggled(current, questId))} />
+					) : null}
 					{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
 					<CampaignsPanel
 						deps={deps.campaigns}

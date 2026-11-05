@@ -189,8 +189,8 @@ describe('HabiticaTaskStatusSource.fetchStatuses: subtasks (missions S2)', () =>
 
 		const statuses = await source.fetchStatuses([id(1), id(2)]);
 
-		expect(statuses.get(id(1))).toEqual({ kind: 'open', checklist: { done: 1, total: 3 } });
-		expect(statuses.get(id(2))).toEqual({ kind: 'completed', completedOn: null, checklist: { done: 1, total: 3 } });
+		expect(statuses.get(id(1))).toEqual({ kind: 'open', checklist: { done: 1, total: 3, items: [{ title: 'a', completed: true }, { title: 'b', completed: false }, { title: 'c', completed: false }] } });
+		expect(statuses.get(id(2))).toEqual({ kind: 'completed', completedOn: null, checklist: { done: 1, total: 3, items: [{ title: 'a', completed: true }, { title: 'b', completed: false }, { title: 'c', completed: false }] } });
 	});
 
 	it('answers a to-do without subtasks exactly as before', async () => {

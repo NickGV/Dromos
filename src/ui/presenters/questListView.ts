@@ -2,6 +2,7 @@ import type { QuestPrice, SkillRef } from '../../application';
 import { isMission, type Checklist, type Quest } from '../../domain';
 import type { Translator } from '../../i18n';
 import { limitRows, type ListToggleView } from './listLimit';
+import { subtasksView, type SubtasksView } from './missionView';
 
 /** Whether a to-do is late or due today. */
 export type DueTone = 'overdue' | 'today';
@@ -71,6 +72,8 @@ export interface QuestPanelRowView {
 	readonly completed: boolean;
 	/** The kind, "Mission · 2/5" for a mission, each skill, "+X XP" when priced and the due label, in that order. */
 	readonly chips: readonly QuestChipView[];
+	/** A mission's toggle and, once open, its subtasks (missions S5); absent on a plain quest. */
+	readonly subtasks?: SubtasksView;
 }
 
 /**
@@ -91,9 +94,18 @@ export interface QuestPanelView {
 	readonly more?: ListToggleView;
 }
 
-/** `expanded` is the reader's choice under a long list; folded, it shows 6 rows (missions S3). */
-export function questPanelView(list: QuestListView, t: Translator, expanded = false): QuestPanelView {
-	const all = [...list.dailies.map((row) => panelRow(row, 'quests.kind.daily', t)), ...list.todos.map((row) => panelRow(row, 'quests.kind.todo', t))];
+/** What the reader chose on the panel; every choice starts off on each open of the view. */
+export interface QuestPanelOptions {
+	/** The long list is expanded; folded, it shows 6 rows (missions S3). */
+	readonly expanded?: boolean;
+	/** Ids of the missions whose subtasks are open (missions S5). */
+	readonly openMissions?: ReadonlySet<string>;
+}
+
+export function questPanelView(list: QuestListView, t: Translator, options: QuestPanelOptions = {}): QuestPanelView {
+	const { expanded = false, openMissions = new Set<string>() } = options;
+	const row = (quest: QuestRowView, kind: QuestKindKey) => panelRow(quest, kind, t, openMissions.has(quest.id));
+	const all = [...list.dailies.map((quest) => row(quest, 'quests.kind.daily')), ...list.todos.map((quest) => row(quest, 'quests.kind.todo'))];
 	const { rows, more } = limitRows(all, expanded, t, (row) => row.completed);
 	const shown = more ? { rows, more } : { rows };
 	if (list.dailies.length === 0) return { doneText: null, gainText: null, dayComplete: false, ...shown, emptyText: list.emptyText };
@@ -108,11 +120,14 @@ export function questPanelView(list: QuestListView, t: Translator, expanded = fa
 	};
 }
 
-function panelRow(row: QuestRowView, kind: 'quests.kind.daily' | 'quests.kind.todo', t: Translator): QuestPanelRowView {
+type QuestKindKey = 'quests.kind.daily' | 'quests.kind.todo';
+
+function panelRow(row: QuestRowView, kind: QuestKindKey, t: Translator, open: boolean): QuestPanelRowView {
 	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }];
 	if (row.mission) chips.push({ kind: 'mission', label: t('quests.mission', { done: row.mission.done, total: row.mission.total }) });
 	chips.push(...row.skills.map((skill) => ({ kind: 'skill' as const, label: skill.name })));
 	if (row.xp !== null) chips.push({ kind: 'xp', label: t('quests.xp', { xp: row.xp }) });
 	if (row.due) chips.push({ kind: 'due', label: row.due.label, tone: row.due.tone });
-	return { id: row.id, title: row.title, completed: row.completed, chips };
+	const subtasks = subtasksView(row.mission, open, row.title, t);
+	return subtasks ? { id: row.id, title: row.title, completed: row.completed, chips, subtasks } : { id: row.id, title: row.title, completed: row.completed, chips };
 }

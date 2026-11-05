@@ -26,13 +26,15 @@ export interface CampaignScreenProps {
 	readonly onSendHabit: (habitTitle: string) => void;
 	/** Expands or folds the phase panel with this key (missions S3). */
 	readonly onToggleGroup?: (groupKey: string) => void;
+	/** Opens or folds the subtasks of the mission with this title (missions S5). */
+	readonly onToggleMission?: (taskTitle: string) => void;
 }
 
 /**
  * The campaigns screen under its header card (game-ui S8): a tab per campaign, the header panel
  * of the one shown, its path, its tasks by phase and its habits, with its notices and problems.
  */
-export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onToggleGroup }: CampaignScreenProps) {
+export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onToggleGroup, onToggleMission }: CampaignScreenProps) {
 	const { campaign } = view;
 	return (
 		<div className="dromos-campaign-screen dromos-campaigns">
@@ -72,7 +74,13 @@ export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, o
 										</div>
 										<ul className="dromos-task-list">
 											{group.tasks.map((row, index) => (
-												<CampaignTaskRow key={`${index}:${row.title}`} row={row} sending={sending?.kind === 'task' && sending.title === row.title} onSend={() => onSend(row.title)} />
+												<CampaignTaskRow
+														key={`${index}:${row.title}`}
+														row={row}
+														sending={sending?.kind === 'task' && sending.title === row.title}
+														onSend={() => onSend(row.title)}
+														onToggleSubtasks={() => onToggleMission?.(row.title)}
+													/>
 											))}
 										</ul>
 										{group.more ? <ListToggle view={group.more} onToggle={() => onToggleGroup?.(group.key)} /> : null}

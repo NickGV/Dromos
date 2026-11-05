@@ -2,12 +2,15 @@ import { HandDrawnCheck } from '../atoms/HandDrawnCheck';
 import { SendButton } from '../atoms/SendButton';
 import { useT } from '../i18n';
 import type { CampaignTaskView } from '../presenters/campaignScreenView';
+import { SubtaskList, SubtasksToggle } from './Subtasks';
 
 export interface CampaignTaskRowProps {
 	readonly row: CampaignTaskView;
 	/** True while this task is being sent to Habitica. */
 	readonly sending: boolean;
 	readonly onSend: () => void;
+	/** Opens or folds a mission's subtasks (missions S5). */
+	readonly onToggleSubtasks?: () => void;
 }
 
 /**
@@ -15,7 +18,7 @@ export interface CampaignTaskRowProps {
  * done, its title, its state chip and, when it can go to Habitica, the send button. The circle
  * is a status, not a button: Dromos does not complete tasks.
  */
-export function CampaignTaskRow({ row, sending, onSend }: CampaignTaskRowProps) {
+export function CampaignTaskRow({ row, sending, onSend, onToggleSubtasks }: CampaignTaskRowProps) {
 	const t = useT();
 	return (
 		<li className={row.completed ? 'dromos-task is-completed' : 'dromos-task'}>
@@ -26,7 +29,9 @@ export function CampaignTaskRow({ row, sending, onSend }: CampaignTaskRowProps) 
 					<span className={`dromos-task-chip is-${row.chip.tone}`}>{row.chip.label}</span>
 					{row.mission ? <span className="dromos-task-chip is-mission">{row.mission}</span> : null}
 				</span>
+				{row.subtasks ? <SubtaskList view={row.subtasks} /> : null}
 			</span>
+			{row.subtasks ? <SubtasksToggle view={row.subtasks} onToggle={onToggleSubtasks} /> : null}
 			{row.canSend ? <SendButton sending={sending} onSend={onSend} label={t('task.send')} sendingLabel={t('task.sending')} /> : null}
 		</li>
 	);
