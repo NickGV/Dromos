@@ -70,3 +70,26 @@ describe('localDate (America/Bogota)', () => {
 		expect(localDate('not a date')).toBeNull();
 	});
 });
+
+describe('questFromHabiticaTask: checklist (missions S1)', () => {
+	const checklist = [
+		{ completed: true, text: 'a', id: 'c1' },
+		{ completed: false, text: 'b', id: 'c2' },
+		{ completed: false, text: 'c', id: 'c3' },
+	];
+
+	it('counts the subtasks of a to-do or a daily: how many are done out of how many', () => {
+		expect(questFromHabiticaTask(task({ checklist }))?.checklist).toEqual({ done: 1, total: 3 });
+		expect(questFromHabiticaTask(task({ type: 'daily', checklist }))?.checklist).toEqual({ done: 1, total: 3 });
+	});
+
+	it('leaves the checklist out when the task has none, an empty one, or one that is not a list (missions A3)', () => {
+		for (const value of [undefined, [], 'three', null, {}]) {
+			expect(questFromHabiticaTask(task({ checklist: value }))).not.toHaveProperty('checklist');
+		}
+	});
+
+	it('counts only the subtasks it can read, so a malformed one never rejects the task (missions A3)', () => {
+		expect(questFromHabiticaTask(task({ checklist: [{ completed: true }, 'junk', null, { completed: 'yes' }] }))?.checklist).toEqual({ done: 1, total: 2 });
+	});
+});

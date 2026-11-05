@@ -198,3 +198,26 @@ describe('questPanelView: one list, dailies first, each row with its chips (game
 		expect(questPanelView(questListView([], TODAY, en), en)).toEqual({ doneText: null, gainText: null, dayComplete: false, rows: [], emptyText: 'No quests for today' });
 	});
 });
+
+describe('questListView: missions (missions S1)', () => {
+	it('gives a quest with 3 or more subtasks its mission progress, and none to the others', () => {
+		const view = questListView(
+			[aQuest('d1', { checklist: { done: 1, total: 3 } }), aQuest('t1', { type: 'todo', checklist: { done: 0, total: 2 } }), aQuest('t2', { type: 'todo' })],
+			TODAY,
+			t,
+		);
+
+		expect(view.dailies[0]?.mission).toEqual({ done: 1, total: 3 });
+		expect(view.todos.map((row) => row.mission)).toEqual([undefined, undefined]);
+	});
+
+	it('chips a mission right after its kind, with its subtasks done out of the total', () => {
+		const panel = questPanelView(questListView([aQuest('t1', { type: 'todo', checklist: { done: 2, total: 5 } }), aQuest('t2', { type: 'todo', checklist: { done: 1, total: 2 } })], TODAY, t), t);
+
+		expect(panel.rows[0]?.chips.slice(0, 2)).toEqual([
+			{ kind: 'type', label: 'Tarea' },
+			{ kind: 'mission', label: 'Misión · 2/5' },
+		]);
+		expect(panel.rows[1]?.chips.some((chip) => chip.kind === 'mission')).toBe(false);
+	});
+});

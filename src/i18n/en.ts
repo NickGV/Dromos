@@ -156,6 +156,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'quests.kind.daily': 'Daily',
 	'quests.kind.todo': 'To-do',
 	'quests.xp': '+{xp} XP',
+	'quests.mission': 'Mission · {done}/{total}',
 	'quests.header.done': '{done} of {total} dailies done',
 	'quests.header.gain': '+{xp} XP to earn',
 	'quests.header.complete': 'Day complete',

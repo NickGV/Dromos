@@ -57,3 +57,11 @@ describe('QuestList as one panel (game-ui S6)', () => {
 		expect(empty).toMatch(/<h2[^>]*>Today&#x27;s quests<\/h2>/);
 	});
 });
+
+describe('QuestList: missions (missions S1)', () => {
+	it('shows a mission chip with its progress in English', () => {
+		const mission = renderToStaticMarkup(<QuestList view={questPanelView(questListView([aQuest('t1', { title: 'Plan the trip', type: 'todo', checklist: { done: 1, total: 4 } })], TODAY, en), en)} />);
+
+		expect(mission).toContain('<span class="dromos-quest-chip is-mission">Mission · 1/4</span>');
+	});
+});

@@ -20,6 +20,8 @@ export interface HabiticaTaskDto {
 	readonly date?: string | null;
 	readonly priority?: number;
 	readonly streak?: number;
+	/** Dailies and to-dos: subtasks as `{ completed, text, id }`. Not validated: it is display only (missions A3). */
+	readonly checklist?: unknown;
 }
 
 /** Checks that an envelope's `data` is a task list; rejects anything else as `Unknown` (S5). */

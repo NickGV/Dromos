@@ -1,5 +1,5 @@
 import type { QuestPrice, SkillRef } from '../../application';
-import type { Quest } from '../../domain';
+import { isMission, type Checklist, type Quest } from '../../domain';
 import type { Translator } from '../../i18n';
 
 /** Whether a to-do is late or due today. */
@@ -17,6 +17,8 @@ export interface QuestRowView {
 	readonly xp: number | null;
 	/** The skills that XP goes to; empty when the task has none or is not priced yet. */
 	readonly skills: readonly SkillRef[];
+	/** Its subtasks, present only when they make it a mission (missions S1). */
+	readonly mission?: Checklist;
 }
 
 /** Today's quests split for the list (S8): dailies first, then to-dos. */
@@ -46,7 +48,8 @@ export function questListView(quests: readonly Quest[] | null, today: string, t:
 
 function row(quest: Quest, due: QuestRowView['due'], prices: ReadonlyMap<string, QuestPrice> | undefined): QuestRowView {
 	const price = prices?.get(quest.id);
-	return { id: quest.id, title: quest.title, completed: quest.completed, due, xp: price?.xp ?? null, skills: price?.skills ?? [] };
+	const view = { id: quest.id, title: quest.title, completed: quest.completed, due, xp: price?.xp ?? null, skills: price?.skills ?? [] };
+	return isMission(quest.checklist) ? { ...view, mission: quest.checklist } : view;
 }
 
 // ISO dates compare as plain strings; future dates get no label.
@@ -57,7 +60,7 @@ function dueOf(dueDate: string | null, today: string, t: Translator): QuestRowVi
 
 /** One chip under a quest's title (game-ui S6). */
 export type QuestChipView =
-	| { readonly kind: 'type' | 'skill' | 'xp'; readonly label: string }
+	| { readonly kind: 'type' | 'mission' | 'skill' | 'xp'; readonly label: string }
 	| { readonly kind: 'due'; readonly label: string; readonly tone: DueTone };
 
 /** One row of today's quests panel: the drawn circle, the title and its chips. Rows are not buttons. */
@@ -65,7 +68,7 @@ export interface QuestPanelRowView {
 	readonly id: string;
 	readonly title: string;
 	readonly completed: boolean;
-	/** The kind, each skill, "+X XP" when priced and the due label, in that order. */
+	/** The kind, "Mission · 2/5" for a mission, each skill, "+X XP" when priced and the due label, in that order. */
 	readonly chips: readonly QuestChipView[];
 }
 
@@ -100,7 +103,9 @@ export function questPanelView(list: QuestListView, t: Translator): QuestPanelVi
 }
 
 function panelRow(row: QuestRowView, kind: 'quests.kind.daily' | 'quests.kind.todo', t: Translator): QuestPanelRowView {
-	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }, ...row.skills.map((skill) => ({ kind: 'skill' as const, label: skill.name }))];
+	const chips: QuestChipView[] = [{ kind: 'type', label: t(kind) }];
+	if (row.mission) chips.push({ kind: 'mission', label: t('quests.mission', { done: row.mission.done, total: row.mission.total }) });
+	chips.push(...row.skills.map((skill) => ({ kind: 'skill' as const, label: skill.name })));
 	if (row.xp !== null) chips.push({ kind: 'xp', label: t('quests.xp', { xp: row.xp }) });
 	if (row.due) chips.push({ kind: 'due', label: row.due.label, tone: row.due.tone });
 	return { id: row.id, title: row.title, completed: row.completed, chips };

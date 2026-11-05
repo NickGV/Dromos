@@ -4,6 +4,10 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- A quest with 3 or more subtasks in Habitica reads as a mission: **Mission · 2/5** under its title shows how many are done.
+
 ### Fixed
 
 - With **Open Dromos on startup** on, reloading or updating the plugin no longer switches to the Dromos tab: the view opens only when Obsidian starts.

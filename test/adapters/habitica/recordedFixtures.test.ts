@@ -3,6 +3,7 @@ import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { HabiticaGameTaskSource } from '../../../src/adapters/habitica/HabiticaGameTaskSource';
 import { HabiticaTaskSource } from '../../../src/adapters/habitica/HabiticaTaskSource';
 import { HabiticaTaskStatusSource } from '../../../src/adapters/habitica/HabiticaTaskStatusSource';
+import { isMission } from '../../../src/domain';
 import type { Clock } from '../../../src/ports/Clock';
 import { foreignStrings } from '../../fixtures/habitica/anonymize';
 import { FakeHttp, habiticaFixture, respond } from './FakeHttp';
@@ -75,6 +76,13 @@ describe('recorded Habitica fixtures (issue #8)', () => {
 		expect(quests[0]).toMatchObject({ id: dueThatDay?.id, type: 'todo', dueDate: RECORDED_ON, dueToday: true });
 		expect(quests.slice(1).every((quest) => quest.type === 'todo' && quest.dueDate === null && !quest.dueToday)).toBe(true);
 		expect(new Set(quests.map((quest) => quest.id))).toEqual(new Set(tasksOf(recorded.todos).map((task) => task.id)));
+	});
+
+	it("today's quests carry their subtasks: 7 of the 17 recorded to-dos have 3 or more, so they read as missions (missions S1)", async () => {
+		const quests = await new HabiticaTaskSource(recordedHabitica().client, clock).fetchToday();
+
+		expect(quests.filter((quest) => quest.checklist !== undefined)).toHaveLength(11);
+		expect(quests.filter((quest) => isMission(quest.checklist))).toHaveLength(7);
 	});
 
 	it('game observations: open to-dos dated today, completed ones dated with their Bogota completion day', async () => {

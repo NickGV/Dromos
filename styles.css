@@ -1355,6 +1355,8 @@
 }
 
 .dromos-root .dromos-quest-chip.is-xp { background: var(--dromos-ochre-tint); }
+/* A mission (a task with several subtasks) carries its progress in a slightly heavier chip. */
+.dromos-root .dromos-quest-chip.is-mission { font-weight: 600; }
 .dromos-root .dromos-quest-chip.is-overdue { border-color: var(--dromos-ink-error); color: var(--dromos-ink-error); }
 
 /* A completed quest's chips step back: stone hairlines, muted words. */
