@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- With **Open Dromos on startup** on, reloading or updating the plugin no longer switches to the Dromos tab: the view opens only when Obsidian starts.
+
 ## [0.9.0] - 2026-11-05
 
 ### Added
