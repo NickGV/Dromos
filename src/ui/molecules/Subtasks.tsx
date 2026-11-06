@@ -2,10 +2,13 @@ import { HandDrawnCheck } from '../atoms/HandDrawnCheck';
 import { useT } from '../i18n';
 import type { SubtasksView } from '../presenters/missionView';
 
-/** The chevron that opens or folds a mission's subtasks (missions S5). */
+/**
+ * The chevron that opens or folds a mission's subtasks (missions S5). `clickable-icon` is Obsidian's
+ * icon button: its padded button rules skip it, and on tablets they would leave the icon no room.
+ */
 export function SubtasksToggle({ view, onToggle }: { readonly view: SubtasksView; readonly onToggle?: () => void }) {
 	return (
-		<button type="button" className="dromos-subtasks-toggle" aria-expanded={view.open} aria-label={view.toggleLabel} onClick={onToggle}>
+		<button type="button" className="clickable-icon dromos-subtasks-toggle" aria-expanded={view.open} aria-label={view.toggleLabel} onClick={onToggle}>
 			<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
 				<path d="M6 4l4 4-4 4" />
 			</svg>

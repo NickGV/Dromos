@@ -1462,7 +1462,18 @@
 	color: var(--dromos-ink-muted);
 	cursor: pointer;
 }
-.dromos-root .dromos-subtasks-toggle svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s ease; }
+/* A fixed size that never shrinks: Obsidian pads buttons on tablets enough to squeeze a flexible icon to nothing. */
+.dromos-root .dromos-subtasks-toggle svg {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	transition: transform 0.15s ease;
+}
 .dromos-root .dromos-subtasks-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
 @media (prefers-reduced-motion: reduce) {
 	.dromos-root .dromos-subtasks-toggle svg { transition: none; }

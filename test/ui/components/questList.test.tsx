@@ -90,7 +90,7 @@ describe('QuestList: open a mission (missions S5)', () => {
 	it('draws a toggle on a mission row, folded at first', () => {
 		const folded = renderToStaticMarkup(<QuestList view={questPanelView(questListView(quests, TODAY, en), en)} />);
 
-		expect(folded).toContain('<button type="button" class="dromos-subtasks-toggle" aria-expanded="false" aria-label="Show the subtasks of Plan the trip">');
+		expect(folded).toContain('<button type="button" class="clickable-icon dromos-subtasks-toggle" aria-expanded="false" aria-label="Show the subtasks of Plan the trip">');
 		expect(folded).not.toContain('dromos-subtask"');
 	});
 
