@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- On Android, the chevron that opens a mission's subtasks now shows: Obsidian's tablet layout gave the button enough padding to hide its icon, though tapping it worked.
+
 ## [0.10.0] - 2026-11-05
 
 ### Added

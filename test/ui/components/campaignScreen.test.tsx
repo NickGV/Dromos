@@ -331,7 +331,7 @@ describe('open a mission among the campaign tasks (missions S5)', () => {
 	it('draws the toggle on the row, and the subtasks under its title once open', () => {
 		const open = renderToStaticMarkup(<CampaignTaskRow row={row({ subtasks: { open: true, toggleLabel: 'Hide the subtasks of Report', items } })} sending={false} onSend={noop} />);
 
-		expect(open).toContain('<button type="button" class="dromos-subtasks-toggle" aria-expanded="true" aria-label="Hide the subtasks of Report">');
+		expect(open).toContain('<button type="button" class="clickable-icon dromos-subtasks-toggle" aria-expanded="true" aria-label="Hide the subtasks of Report">');
 		expect([...open.matchAll(/<li class="(dromos-subtask[^"]*)">/g)].map((match) => match[1])).toEqual(['dromos-subtask is-completed', 'dromos-subtask', 'dromos-subtask']);
 	});
 });
