@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Timers } from '../../../src/adapters/vault/cacheWait';
 import { VaultBookRepository } from '../../../src/adapters/vault/VaultBookRepository';
 import { fakeVaultApp, type FakeCache } from '../../fakes/fakeVaultApp';
-import { templateMetadata, writtenMetadata } from '../../fakes/noteMetadata';
+import { headingsOf, templateMetadata, writtenMetadata } from '../../fakes/noteMetadata';
 
 function repository(notes: Readonly<Record<string, FakeCache>>): VaultBookRepository {
 	return repositoryOver(fakeVaultApp(notes));
@@ -73,6 +73,72 @@ describe('VaultBookRepository: the books, read through the metadata cache (S1, S
 
 	it('skips a note the cache has not read yet; the next read sees it', async () => {
 		expect(await repository({ 'a.md': null }).list()).toEqual([]);
+	});
+});
+
+describe('VaultBookRepository: the text of the reflection, for the card (S5, S2)', () => {
+	const TEXT = [
+		'---',
+		'type: book',
+		'title: Klara y el Sol',
+		'---',
+		'',
+		'# Klara y el Sol',
+		'',
+		'> [!tip] La reflexión',
+		'> Al terminar el libro, escribe las cuatro partes.',
+		'',
+		'## De qué trata',
+		'',
+		'Una AA que observa.',
+		'',
+		'## Qué me quedó',
+		'',
+		'### Cita',
+		'',
+		'> "Algo muy especial."',
+		'',
+		'## Qué cambia en mí',
+		'',
+		'## Con qué lo conecto',
+		'',
+		'- [[Esperanza]]',
+	].join('\n');
+	const cached = (frontmatter: unknown): FakeCache => ({ frontmatter, headings: headingsOf(TEXT), sections: [] });
+
+	it('reads the note and cuts the four parts at the cached headings', async () => {
+		const app = fakeVaultApp({ [PATH]: cached({ type: 'book' }) }, { bodies: { [PATH]: TEXT } });
+
+		expect(await repositoryOver(app).readReflection(PATH)).toEqual({
+			about: 'Una AA que observa.',
+			kept: '### Cita\n\n> "Algo muy especial."',
+			changes: '',
+			connects: '- [[Esperanza]]',
+		});
+	});
+
+	it('answers null for a path with no note', async () => {
+		const app = fakeVaultApp({ [PATH]: cached({ type: 'book' }) }, { bodies: { [PATH]: TEXT } });
+
+		expect(await repositoryOver(app).readReflection('03 - Areas/Bibliotheke/Otro.md')).toBeNull();
+	});
+
+	it('answers null for a note that is not a book, without reading it', async () => {
+		const app = fakeVaultApp({ [PATH]: cached({ type: 'resource' }) }, { bodies: { [PATH]: TEXT }, failReadsWith: new Error('read') });
+
+		expect(await repositoryOver(app).readReflection(PATH)).toBeNull();
+	});
+
+	it('answers null for a note the cache has not read yet: without its headings, no part can be cut', async () => {
+		const app = fakeVaultApp({ [PATH]: null }, { bodies: { [PATH]: TEXT } });
+
+		expect(await repositoryOver(app).readReflection(PATH)).toBeNull();
+	});
+
+	it('rejects when the note cannot be read', async () => {
+		const app = fakeVaultApp({ [PATH]: cached({ type: 'book' }) }, { failReadsWith: new Error('disk') });
+
+		await expect(repositoryOver(app).readReflection(PATH)).rejects.toThrow('disk');
 	});
 });
 

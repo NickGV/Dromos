@@ -124,10 +124,22 @@ describe('reflectionFrom: which reflection sections have text, from the cache on
 		expect(written(metadata)).toEqual([true, false, true, true]);
 	});
 
-	it('content under a sub-heading belongs to the sub-heading, not to the section', () => {
-		const metadata = metadataOf(heading(2, 'De qué trata'), heading(3, 'Notas'), block('paragraph'));
+	it('a sub-heading belongs to its section: a `### Cita` with a paragraph under `## Qué me quedó` makes that part written', () => {
+		const metadata = metadataOf(heading(2, 'De qué trata'), block('paragraph'), heading(2, 'Qué me quedó'), heading(3, 'Cita'), block('paragraph'), heading(2, 'Qué cambia en mí'));
 
-		expect(written(metadata)[0]).toBe(false);
+		expect(written(metadata)).toEqual([true, true, false, false]);
+	});
+
+	it('the next heading of the same level still ends the part', () => {
+		const metadata = metadataOf(heading(2, 'Qué me quedó'), heading(2, 'Otra cosa'), block('paragraph'));
+
+		expect(written(metadata)[1]).toBe(false);
+	});
+
+	it('a heading of a higher level ends the part too', () => {
+		const metadata = metadataOf(heading(2, 'Con qué lo conecto'), heading(1, 'Apéndice'), block('paragraph'));
+
+		expect(written(metadata)[3]).toBe(false);
 	});
 
 	it('the last section runs to the end of the note', () => {

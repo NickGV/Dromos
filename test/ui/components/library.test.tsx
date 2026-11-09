@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { Book } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
+import type { ReflectionText } from '../../../src/ports';
+import { MarkdownBlock, type MarkdownRender } from '../../../src/ui/atoms/MarkdownBlock';
 import { AlcoveButton } from '../../../src/ui/molecules/AlcoveButton';
 import { DeskScroll } from '../../../src/ui/molecules/DeskScroll';
 import { ShelfScrollButton } from '../../../src/ui/molecules/ShelfScrollButton';
@@ -11,8 +13,8 @@ import { LibraryShelf } from '../../../src/ui/organisms/LibraryShelf';
 import { bookCardView, type BookCardActions } from '../../../src/ui/presenters/bookCardView';
 import { libraryRoomView, libraryShelfView, shelfId } from '../../../src/ui/presenters/libraryView';
 import { aBook, aReflection } from '../../fakes/books';
-import { clickOf } from './elements';
-import { noop } from './homeDeps';
+import { clickOf, componentsOf, elementsOf } from './elements';
+import { noop, renderNothing } from './homeDeps';
 
 const en = createTranslator('en');
 const es = createTranslator('es');
@@ -37,8 +39,8 @@ const shelf = (name: string | null, t = es) => {
 	if (!view) throw new Error(`no shelf ${String(name)}`);
 	return renderToStaticMarkup(<LibraryShelf view={view} onOpenCard={noop} />);
 };
-const card = (entry: Book, actions: BookCardActions = { start: true, finish: true }, busy: BookCardBusy = null, t = es) =>
-	renderToStaticMarkup(<BookCard view={bookCardView(entry, TODAY, t, actions)} busy={busy} onStart={noop} onFinish={noop} onOpenNote={noop} />);
+const card = (entry: Book, actions: BookCardActions = { start: true, finish: true }, busy: BookCardBusy = null, t = es, reflection: ReflectionText | null = null) =>
+	renderToStaticMarkup(<BookCard view={bookCardView(entry, TODAY, t, actions, reflection)} busy={busy} onStart={noop} onFinish={noop} onOpenNote={noop} renderMarkdown={renderNothing} />);
 
 /** The visible text of every `<button>`, tags stripped. */
 const buttonTexts = (html: string): string[] => [...html.matchAll(/<button[^>]*>(.*?)<\/button>/g)].map((match) => (match[1] ?? '').replace(/<[^>]+>/g, '').trim());
@@ -238,5 +240,55 @@ describe('BookCard: the card in the modal (M7 S5)', () => {
 		const html = card(mere({ status: 'planning', started: null }), { start: true, finish: true }, null, en);
 		expect(buttonTexts(html)).toEqual(['Start reading', 'Open the note']);
 		expect(html).toContain('Creates the reading to-do in Habitica');
+	});
+});
+
+describe('BookCard: the text of the reflection, read-only (M7 S5, S2)', () => {
+	const PATH = 'Bibliotheke/Mero cristianismo.md';
+	const TEXT: ReflectionText = { about: 'Un caso para *creer*.', kept: '### Cita\n\n> [[Aslan]]', changes: 'No contada.', connects: '' };
+	const mere = (overrides: Partial<Book> = {}) => book('Mero cristianismo', { shelf: 'Teología', status: 'active', started: '2026-10-28', reflection: aReflection(['about', 'kept']), ...overrides });
+	const render: MarkdownRender = () => noop;
+
+	it('renders one MarkdownBlock per written part, with the book\'s path so its links resolve', () => {
+		const tree = BookCard({ view: bookCardView(mere(), TODAY, es, { start: true, finish: true }, TEXT), busy: null, onStart: noop, onFinish: noop, onOpenNote: noop, renderMarkdown: render });
+		const blocks = componentsOf(tree, MarkdownBlock).map((element) => element.props);
+
+		expect(blocks.map((props) => [props.markdown, props.sourcePath])).toEqual([
+			['Un caso para *creer*.', PATH],
+			['### Cita\n\n> [[Aslan]]', PATH],
+		]);
+		for (const props of blocks) {
+			expect(props.render).toBe(render);
+			expect(props.className).toBe('dromos-book-section-text');
+		}
+	});
+
+	it('draws the text box of a written part in place of its label, and keeps the label of an unwritten one', () => {
+		const html = card(mere(), { start: true, finish: true }, null, es, TEXT);
+
+		expect(html).toContain('<h3 class="dromos-book-section-heading">De qué trata</h3><div class="dromos-book-section-text markdown-rendered"></div>');
+		expect(html).toContain('<h3 class="dromos-book-section-heading">Qué cambia en mí</h3><p class="dromos-book-section-status">Sin escribir todavía</p>');
+		expect(html).not.toContain('Escrita');
+		expect(html).toContain('<ul class="dromos-book-sections has-text"');
+	});
+
+	it('draws no MarkdownBlock while the text loads: the written parts say "Escrita"', () => {
+		const tree = BookCard({ view: bookCardView(mere(), TODAY, es, { start: true, finish: true }), busy: null, onStart: noop, onFinish: noop, onOpenNote: noop, renderMarkdown: render });
+
+		expect(componentsOf(tree, MarkdownBlock)).toEqual([]);
+		expect(card(mere())).toContain('<ul class="dromos-book-sections"');
+	});
+	it('closes the card when a link in the text is followed, so the note it opens is in view', () => {
+		let closed = 0;
+		const tree = BookCard({ view: bookCardView(mere(), TODAY, es, { start: true, finish: true }, TEXT), busy: null, onStart: noop, onFinish: noop, onOpenNote: noop, renderMarkdown: render, onFollowLink: () => (closed += 1) });
+		const list = elementsOf(tree).find((element) => element.type === 'ul');
+		const click = list?.props.onClick as ((event: { target: unknown }) => void) | undefined;
+		const target = (link: boolean) => ({ closest: (selector: string) => (link && selector === 'a.internal-link' ? {} : null) });
+
+		expect(click).toBeTypeOf('function');
+		click?.({ target: target(false) });
+		expect(closed).toBe(0);
+		click?.({ target: target(true) });
+		expect(closed).toBe(1);
 	});
 });

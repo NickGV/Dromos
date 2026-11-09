@@ -12,7 +12,7 @@ import {
 } from '../adapters/habitica';
 import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, FinishReading, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { CampaignState, FinishReading, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { readingOutcomeView, readingTodo } from '../ui/presenters/readingView';
@@ -74,6 +74,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		readingTodo: (book) => readingTodo(book, createTranslator(settings.language), sendDeps.noteLink),
 	});
 	const finishReading = new FinishReading({ repository: books, clock });
+	// One renderer for the briefing and the book card: both draw note text as Obsidian does.
+	const renderMarkdown = createMarkdownRender(plugin.app);
 	// Opens a note in another tab; the campaigns' "Open note" and the book card's "Abrir la nota".
 	const openNote = (path: string): void => {
 		const file = plugin.app.vault.getFileByPath(path);
@@ -101,7 +103,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,
-			renderMarkdown: createMarkdownRender(plugin.app),
+			renderMarkdown,
 			renderIcon,
 			// The job runs in OpenCode on the desktop: on a phone there is nowhere to paste the command.
 			requestBriefing: isDesktopApp() ? new RequestBriefing(new SystemClipboard()) : null,
@@ -139,6 +141,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			// "Empezar a leer" and "Terminar" (M7 S3, S4) toast their outcome; the card reads the books again after.
 			library: {
 				loadLibrary: new LoadLibrary({ books }),
+				readReflection: new ReadReflection({ books }),
+				renderMarkdown,
 				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),
 				finishReading: async (path) => showNotice(readingOutcomeView(await finishReading.execute(path), createTranslator(settings.language)).message),
 				openCard: createOpenCardModal(plugin.app),

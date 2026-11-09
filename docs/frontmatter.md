@@ -167,7 +167,9 @@ Four sections, with these headings at any level, in this order:
 3. `## Qué cambia en mí`
 4. `## Con qué lo conecto`
 
-A section has text when a paragraph, list, quote, callout, table, code block, math or HTML sits between its heading and the next heading of any level. A comment (`%% %%`) or a horizontal rule alone does not count, and neither does text under a sub-heading. A missing heading, or one spelled another way, is an empty section; if a heading appears twice, the first one counts. Dromos reads this from Obsidian's cache of the note, never the text itself, so the other sections of the note never count.
+A section runs from its heading to the next heading of the same or a higher level (`##` or `#` after a `##`), so its sub-headings belong to it: a `### Cita` with its quote under `## Qué me quedó` is part of that section. A section has text when a paragraph, list, quote, callout, table, code block, math or HTML sits in it. A comment (`%% %%`) or a horizontal rule alone does not count. A missing heading, or one spelled another way, is an empty section; if a heading appears twice, the first one counts. Whether a section has text, and so the seal, comes from Obsidian's cache of the note, never the text itself, so the other sections of the note never count.
+
+The book card shows what you wrote in each section, read-only and rendered as the note (links open the note they point to), but the seal still comes from the headings in the cache: a section the cache does not count says "Sin escribir todavía" whatever it holds.
 
 **A book is sealed** when its `status` is `completed` and all four sections have text. A `completed` book with any section empty shows as missing its reflection ("Falta la reflexión"), not sealed.
 

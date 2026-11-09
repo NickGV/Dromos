@@ -35,6 +35,20 @@ export function metadataOf(...blocks: Block[]): NoteMetadata {
 	return { headings, sections };
 }
 
+/**
+ * The cache's `headings` for the whole text of a note, frontmatter included: every ATX heading line
+ * (`#` to `######`, then a space) with its level and its 0-based line, as Obsidian lists them. It
+ * knows nothing of code blocks or setext headings, which the notes of these tests do not have.
+ */
+export function headingsOf(text: string): NoteMetadata['headings'] {
+	return text.split(/\r?\n/).flatMap((line, index) => {
+		const match = /^(#{1,6})[ \t]+(.*?)[ \t]*$/.exec(line);
+		if (!match) return [];
+		const position: Position = { start: { line: index, col: 0, offset: 0 }, end: { line: index, col: line.length, offset: 0 } };
+		return [{ heading: match[2] ?? '', level: (match[1] ?? '').length, position }];
+	});
+}
+
 /** The shape of `Templates/book.md`: frontmatter, a title, the guide callout, and four empty sections. */
 export function templateMetadata(): NoteMetadata {
 	return metadataOf(

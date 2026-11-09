@@ -10,6 +10,7 @@ export * from './LoadHome';
 export * from './LoadLibrary';
 export * from './RequestBriefing';
 export * from './QuestState';
+export * from './ReadReflection';
 export * from './SyncCampaigns';
 export * from './SyncGame';
 export * from './StartReading';

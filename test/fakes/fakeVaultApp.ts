@@ -6,7 +6,7 @@ export type FakeCache = (Partial<NoteMetadata> & { readonly frontmatter?: unknow
 type FakeFile = { readonly path: string };
 
 export interface FakeVaultOptions {
-	/** The text of each note below its frontmatter, by path. Nothing in the fake can write it. */
+	/** The text of each note, by path, as `vault.cachedRead` answers it. Nothing in the fake can write it. */
 	readonly bodies?: Readonly<Record<string, string>>;
 	/**
 	 * False keeps the cache's old frontmatter after a write until `refreshCache` is called, as
@@ -15,6 +15,8 @@ export interface FakeVaultOptions {
 	readonly cacheFollowsWrites?: boolean;
 	/** `processFrontMatter` rejects with it, as a save that fails does. */
 	readonly failWritesWith?: Error;
+	/** `cachedRead` rejects with it, as a note that cannot be read does. */
+	readonly failReadsWith?: Error;
 }
 
 /**
@@ -41,6 +43,10 @@ export function fakeVaultApp(notes: Readonly<Record<string, FakeCache>>, options
 		vault: {
 			getMarkdownFiles: () => files,
 			getFileByPath: (path: string) => files.find((file) => file.path === path) ?? null,
+			cachedRead: (file: FakeFile): Promise<string> => {
+				if (options.failReadsWith) return Promise.reject(options.failReadsWith);
+				return Promise.resolve(bodies.get(file.path) ?? '');
+			},
 		},
 		metadataCache: {
 			getFileCache: (file: FakeFile) => caches.get(file.path) ?? null,
@@ -62,7 +68,7 @@ export function fakeVaultApp(notes: Readonly<Record<string, FakeCache>>, options
 		},
 		/** The frontmatter saved in the note, as `processFrontMatter` left it. */
 		savedFrontmatter: (path: string) => saved.get(path),
-		/** The note's text below its frontmatter. */
+		/** The note's text. */
 		bodyOf: (path: string) => bodies.get(path),
 		refreshCache,
 		/** How many "changed" listeners are still registered. */

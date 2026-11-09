@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LibraryState } from '../../src/application';
-import { runBookAction } from '../../src/ui/containers/libraryActions';
+import type { ReflectionText } from '../../src/ports';
+import { reflectionLoader, runBookAction } from '../../src/ui/containers/libraryActions';
 import { aBook } from '../fakes/books';
 
 const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })] };
@@ -54,5 +55,75 @@ describe('runBookAction (M7 S5)', () => {
 		const state = await runBookAction(() => Promise.reject(new Error('offline')), 'a.md', { execute: () => Promise.resolve(after) });
 
 		expect(state).toBe(after);
+	});
+});
+
+describe('reflectionLoader: the text of the open card (M7 S5)', () => {
+	const textOf = (about: string): ReflectionText => ({ about, kept: '', changes: '', connects: '' });
+
+	/** A reader whose reads settle by hand, in any order. */
+	function manualReader() {
+		const pending: { path: string; settle: (text: ReflectionText | null) => void; fail: (error: Error) => void }[] = [];
+		const reader = {
+			execute: (path: string) =>
+				new Promise<ReflectionText | null>((resolve, reject) => {
+					pending.push({ path, settle: resolve, fail: reject });
+				}),
+		};
+		return { reader, pending };
+	}
+
+	/** Lets the reads that settled hand their text over: each one is a single `then` away. */
+	const settled = async (): Promise<void> => {
+		for (let tick = 0; tick < 3; tick += 1) await Promise.resolve();
+	};
+
+	it('reads the text of the path and hands it over with that path', async () => {
+		const delivered: [string, ReflectionText | null][] = [];
+		const loader = reflectionLoader({ execute: (path) => Promise.resolve(textOf(path)) }, (path, text) => delivered.push([path, text]));
+
+		loader.load('a.md');
+		await settled();
+
+		expect(delivered).toEqual([['a.md', textOf('a.md')]]);
+	});
+
+	it('drops a slow read once a later one started, so an old card never replaces the text of the open one', async () => {
+		const delivered: string[] = [];
+		const { reader, pending } = manualReader();
+		const loader = reflectionLoader(reader, (path) => delivered.push(path));
+
+		loader.load('a.md');
+		loader.load('b.md');
+		pending[1]?.settle(textOf('b'));
+		pending[0]?.settle(textOf('a'));
+		await settled();
+
+		expect(delivered).toEqual(['b.md']);
+	});
+
+	it('hands nothing over after stop, as for a screen that closed', async () => {
+		const delivered: string[] = [];
+		const { reader, pending } = manualReader();
+		const loader = reflectionLoader(reader, (path) => delivered.push(path));
+
+		loader.load('a.md');
+		loader.stop();
+		pending[0]?.settle(textOf('a'));
+		await settled();
+
+		expect(delivered).toEqual([]);
+	});
+
+	it('hands over null when the read rejects, so the card keeps its labels', async () => {
+		const delivered: [string, ReflectionText | null][] = [];
+		const { reader, pending } = manualReader();
+		const loader = reflectionLoader(reader, (path, text) => delivered.push([path, text]));
+
+		loader.load('a.md');
+		pending[0]?.fail(new Error('disk'));
+		await settled();
+
+		expect(delivered).toEqual([['a.md', null]]);
 	});
 });

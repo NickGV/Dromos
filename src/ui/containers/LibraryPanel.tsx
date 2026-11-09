@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
-import type { LibraryState, LoadLibrary } from '../../application';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
+import type { LibraryState, LoadLibrary, ReadReflection } from '../../application';
 import type { Language } from '../../i18n';
-import type { Clock } from '../../ports';
+import type { Clock, ReflectionText } from '../../ports';
+import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { useT } from '../i18n';
 import { BookCard, type BookCardBusy } from '../organisms/BookCard';
 import { LibraryRoom } from '../organisms/LibraryRoom';
@@ -10,7 +11,7 @@ import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHea
 import { bookCardView } from '../presenters/bookCardView';
 import type { DayPeriod } from '../presenters/dayPeriod';
 import { libraryRoomView, libraryShelfView } from '../presenters/libraryView';
-import { runBookAction, type BookAction } from './libraryActions';
+import { reflectionLoader, runBookAction, type BookAction } from './libraryActions';
 
 /** A card open over the workspace (an Obsidian `Modal`, built in `src/adapters`). */
 export interface CardModal {
@@ -30,6 +31,10 @@ export interface CardModalOptions {
 /** What the library needs from the application layer; built in `src/composition`. */
 export interface LibraryDeps {
 	readonly loadLibrary: Pick<LoadLibrary, 'execute'>;
+	/** Reads what was written in each part of a book's reflection, for the card; never rejects. */
+	readonly readReflection: Pick<ReadReflection, 'execute'>;
+	/** Draws that text in the card as Obsidian renders the note. */
+	readonly renderMarkdown: MarkdownRender;
 	/** Opens the book card over the workspace. */
 	readonly openCard: (options: CardModalOptions) => CardModal;
 	/** Opens a note in another tab. */
@@ -60,7 +65,9 @@ let libraryCount = 0;
  * network. It holds which level is on show: the room, or one shelf in its place with "←
  * Biblioteca" in the header card. A card opens through `deps.openCard` and is drawn again on every
  * render here, so it follows the books; a state action runs once at a time, and the books are read
- * again when it settles. "Abrir la nota" closes the card and opens the note in another tab.
+ * again when it settles. The text of the reflection is read each time a card opens and after each
+ * state action, and the card is drawn again when it arrives; until then its written parts say
+ * "Escrita". "Abrir la nota", or a link followed in that text, closes the card and opens the note.
  */
 export function LibraryPanel({ deps, character, language, period }: LibraryPanelProps) {
 	const t = useT();
@@ -69,6 +76,8 @@ export function LibraryPanel({ deps, character, language, period }: LibraryPanel
 	const [shelf, setShelf] = useState<string | null>(null);
 	const [cardPath, setCardPath] = useState<string | null>(null);
 	const [busy, setBusy] = useState<BookCardBusy>(null);
+	// The text of the open card's reflection, with the path it was read for; `null` while none is read.
+	const [reflection, setReflection] = useState<{ readonly path: string; readonly text: ReflectionText | null } | null>(null);
 	const [idPrefix] = useState(() => `dromos-library-${(libraryCount += 1)}`);
 	const acting = useRef(false);
 	const focusNote = useRef(false);
@@ -82,6 +91,16 @@ export function LibraryPanel({ deps, character, language, period }: LibraryPanel
 		const next = await deps.loadLibrary.execute();
 		if (mounted.current) setLibrary(next);
 	}, [deps]);
+
+	const reflections = useMemo(() => reflectionLoader(deps.readReflection, (path, text) => setReflection({ path, text })), [deps.readReflection]);
+	useEffect(() => () => reflections.stop(), [reflections]);
+
+	// Every open reads the note again: the reflection may have been written since the card last closed.
+	const openCard = (path: string): void => {
+		setReflection(null);
+		setCardPath(path);
+		reflections.load(path);
+	};
 
 	useEffect(() => {
 		mounted.current = true;
@@ -104,6 +123,8 @@ export function LibraryPanel({ deps, character, language, period }: LibraryPanel
 			focusNote.current = kind === 'finish';
 			setLibrary(next);
 			setBusy(null);
+			// The text shown stays until the new read arrives, so the card does not flicker.
+			reflections.load(path);
 		});
 	};
 
@@ -121,7 +142,8 @@ export function LibraryPanel({ deps, character, language, period }: LibraryPanel
 			modal.current?.close();
 			return;
 		}
-		const view = bookCardView(book, today, t, { start: deps.startReading !== undefined, finish: deps.finishReading !== undefined });
+		const text = reflection !== null && reflection.path === book.path ? reflection.text : null;
+		const view = bookCardView(book, today, t, { start: deps.startReading !== undefined, finish: deps.finishReading !== undefined }, text);
 		const content = (
 			<BookCard
 				view={view}
@@ -129,6 +151,8 @@ export function LibraryPanel({ deps, character, language, period }: LibraryPanel
 				onStart={() => act('start', book.path)}
 				onFinish={() => act('finish', book.path)}
 				onOpenNote={() => openNote(book.path)}
+				renderMarkdown={deps.renderMarkdown}
+				onFollowLink={() => modal.current?.close()}
 				focusNote={focusNote.current}
 				idPrefix={idPrefix}
 			/>
@@ -167,9 +191,9 @@ export function LibraryPanel({ deps, character, language, period }: LibraryPanel
 				) : library.kind === 'unreadable' ? (
 					<p className="dromos-library-note is-error">{t('library.unreadable')}</p>
 				) : shelfView ? (
-					<LibraryShelf view={shelfView} onOpenCard={setCardPath} idPrefix={idPrefix} />
+					<LibraryShelf view={shelfView} onOpenCard={openCard} idPrefix={idPrefix} />
 				) : (
-					<LibraryRoom view={libraryRoomView(library.books, today, t)} onOpenShelf={setShelf} onOpenCard={setCardPath} idPrefix={idPrefix} />
+					<LibraryRoom view={libraryRoomView(library.books, today, t)} onOpenShelf={setShelf} onOpenCard={openCard} idPrefix={idPrefix} />
 				)}
 			</div>
 		</>

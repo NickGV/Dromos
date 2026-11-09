@@ -1,5 +1,6 @@
 import { REFLECTION_SECTIONS, type Book, type ReflectionSectionId } from '../../domain';
 import type { MessageKey, Translator } from '../../i18n';
+import type { ReflectionText } from '../../ports';
 import { longDate } from './dates';
 import { readingSince, shelfName, shownBooks, stateLabel, type ShownBookState } from './libraryView';
 
@@ -21,7 +22,7 @@ export interface BookCardView {
 	readonly dates: string | null;
 	/** The accessible name of the list of sections. */
 	readonly sectionsLabel: string;
-	/** The four sections of the reflection, whether each has text: the card never shows the text (Q026). */
+	/** The four sections of the reflection, each with its text once read, or whether it is written. */
 	readonly sections: readonly BookCardSectionView[];
 	readonly seal: { readonly sealed: boolean; readonly text: string };
 	readonly actions: BookCardActionsView;
@@ -32,9 +33,12 @@ export interface BookCardView {
 export interface BookCardSectionView {
 	readonly id: ReflectionSectionId;
 	readonly heading: string;
+	/** From the cache, as the seal counts it (Q026); the text never changes it. */
 	readonly written: boolean;
-	/** "Escrita" or "Sin escribir todavía". */
+	/** "Escrita" or "Sin escribir todavía": what the card says while it shows no text. */
 	readonly status: string;
+	/** The markdown the user wrote in a written part, shown read-only in place of `status`; `null` shows `status`. */
+	readonly text: string | null;
 }
 
 export interface BookCardActionsView {
@@ -54,13 +58,16 @@ const SECTION_HEADINGS: Readonly<Record<ReflectionSectionId, MessageKey>> = {
 };
 
 /**
- * The card of `book` (M7 S5): its byline, state and dates, the four sections of the reflection with
- * whether each is written, the seal, and the buttons its state allows. Only "Empezar a leer" and
- * "Terminar" change a book, and only when wired in `actions`; "Abrir la nota" is always there,
- * because the reflection is written in the note. An archived book reads as pending: the library
- * never opens one, so this is only a fallback.
+ * The card of `book` (M7 S5): its byline, state and dates, the four sections of the reflection, the
+ * seal, and the buttons its state allows. A written part shows the text of `reflection` (S2);
+ * while that is not there yet, or could not be read (`null`), or came back empty, it says
+ * "Escrita". A part the cache does not count as written says "Sin escribir todavía", whatever the
+ * note holds there: what is written, the state and the seal come from the cache alone (Q026).
+ * Only "Empezar a leer" and "Terminar" change a book, and only when wired in `actions`; "Abrir la
+ * nota" is always there, because the reflection is written in the note. An archived book reads as
+ * pending: the library never opens one, so this is only a fallback.
  */
-export function bookCardView(book: Book, today: string, t: Translator, actions: BookCardActions): BookCardView {
+export function bookCardView(book: Book, today: string, t: Translator, actions: BookCardActions, reflection: ReflectionText | null = null): BookCardView {
 	const state = shownBooks([book])[0]?.state ?? 'pending';
 	const written = new Set(book.reflection.filter((section) => section.written).map((section) => section.id));
 	return {
@@ -71,7 +78,13 @@ export function bookCardView(book: Book, today: string, t: Translator, actions: 
 		stateLabel: stateLabel(state, t),
 		dates: datesText(book, state, today, t),
 		sectionsLabel: t('library.card.reflection'),
-		sections: REFLECTION_SECTIONS.map(({ id }) => ({ id, heading: t(SECTION_HEADINGS[id]), written: written.has(id), status: t(written.has(id) ? 'library.section.written' : 'library.section.unwritten') })),
+		sections: REFLECTION_SECTIONS.map(({ id }) => ({
+			id,
+			heading: t(SECTION_HEADINGS[id]),
+			written: written.has(id),
+			status: t(written.has(id) ? 'library.section.written' : 'library.section.unwritten'),
+			text: written.has(id) && reflection !== null && reflection[id] !== '' ? reflection[id] : null,
+		})),
 		seal: sealView(state, t),
 		actions: {
 			start: state === 'pending' && actions.start ? { label: t('library.card.start'), hint: t('library.card.start.hint'), busyLabel: t('library.card.starting') } : null,

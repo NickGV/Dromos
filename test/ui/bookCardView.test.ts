@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Book } from '../../src/domain';
 import { createTranslator } from '../../src/i18n';
+import type { ReflectionText } from '../../src/ports';
 import { bookCardView, type BookCardActions } from '../../src/ui/presenters/bookCardView';
 import { aBook, aReflection } from '../fakes/books';
 
@@ -117,5 +118,49 @@ describe('bookCardView: the book card (M7 S5)', () => {
 		expect(bookCardView(mere({ author: null }), TODAY, es, BOTH).byline).toBe('Teología');
 		expect(bookCardView(mere({ shelf: null }), TODAY, es, BOTH).byline).toBe('C. S. Lewis · Sin estante');
 		expect(bookCardView(mere({ shelf: null }), TODAY, en, BOTH).byline).toBe('C. S. Lewis · No shelf');
+	});
+});
+
+describe('bookCardView: the text of each part of the reflection (M7 S5, S2)', () => {
+	/** What the note holds: text in every part, even the two the cache does not count as written. */
+	const TEXT: ReflectionText = { about: 'Un caso para *creer*.', kept: '### Cita\n\n> [[Aslan]]', changes: '%% luego %%', connects: '- [[Narnia]]' };
+	const parts = (reflection?: ReflectionText | null) =>
+		bookCardView(mere(), TODAY, es, BOTH, reflection).sections.map((section) => [section.id, section.written, section.text, section.status]);
+
+	it('shows the markdown of each written part once the text arrives', () => {
+		expect(parts(TEXT).slice(0, 2)).toEqual([
+			['about', true, 'Un caso para *creer*.', 'Escrita'],
+			['kept', true, '### Cita\n\n> [[Aslan]]', 'Escrita'],
+		]);
+	});
+
+	it('keeps "Sin escribir todavía" for a part the cache does not count, whatever the note holds there', () => {
+		expect(parts(TEXT).slice(2)).toEqual([
+			['changes', false, null, 'Sin escribir todavía'],
+			['connects', false, null, 'Sin escribir todavía'],
+		]);
+	});
+
+	it('shows the "Escrita" label for a written part while the text loads, and when it could not be read', () => {
+		for (const reflection of [undefined, null]) {
+			expect(parts(reflection)).toEqual([
+				['about', true, null, 'Escrita'],
+				['kept', true, null, 'Escrita'],
+				['changes', false, null, 'Sin escribir todavía'],
+				['connects', false, null, 'Sin escribir todavía'],
+			]);
+		}
+	});
+
+	it('shows the label for a written part whose text came back empty: the note changed between the two reads', () => {
+		expect(parts({ ...TEXT, about: '' })[0]).toEqual(['about', true, null, 'Escrita']);
+	});
+
+	it('keeps the seal and the state from the cache, whatever the text says', () => {
+		const sealed = bookCardView(mere({ status: 'completed', reflection: FULL }), TODAY, es, BOTH, { about: '', kept: '', changes: '', connects: '' });
+		const missing = bookCardView(mere({ status: 'completed' }), TODAY, es, BOTH, { about: 'a', kept: 'b', changes: 'c', connects: 'd' });
+
+		expect([sealed.state, sealed.seal.sealed]).toEqual(['sealed', true]);
+		expect([missing.state, missing.seal.sealed]).toEqual(['reflection-missing', false]);
 	});
 });

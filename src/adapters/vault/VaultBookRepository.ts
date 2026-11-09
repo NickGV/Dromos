@@ -1,19 +1,21 @@
 import type { App, TFile } from 'obsidian';
 import type { Book } from '../../domain';
-import type { BookRepository, BookWriteResult, FinishReadingFields, StartReadingFields, StartReadingResult } from '../../ports';
+import type { BookRepository, BookWriteResult, FinishReadingFields, ReflectionText, StartReadingFields, StartReadingResult } from '../../ports';
 import { buildBooks, type BookNote } from './bookMapper';
 import { finishReadingInFrontmatter, showsFinished, showsStarted, startReadingInFrontmatter } from './bookWrite';
 import { waitForCache, type Timers } from './cacheWait';
 import { asRecord } from './frontmatterFields';
+import { reflectionText } from './reflectionText';
 
 /** Longest wait for Obsidian to re-read a note after Dromos saved it. */
 const CACHE_WAIT_MS = 3000;
 
 /**
  * Books read from the vault with `metadataCache` (ADR-016): the frontmatter for the fields and
- * the cached headings and sections for the reflection, never the body as text (Q026). Notes
- * without a cache entry yet (right after Obsidian starts) are skipped; the next read sees them.
- * The only writes are the state changes of S4, through `processFrontMatter`.
+ * the cached headings and sections for the reflection, which decide the seal without reading the
+ * body as text (Q026). Notes without a cache entry yet (right after Obsidian starts) are skipped;
+ * the next read sees them. The body is read only by `readReflection`, for the card to show what
+ * was written. The only writes are the state changes of S4, through `processFrontMatter`.
  */
 export class VaultBookRepository implements BookRepository {
 	constructor(
@@ -40,6 +42,14 @@ export class VaultBookRepository implements BookRepository {
 			(frontmatter) => finishReadingInFrontmatter(frontmatter, fields),
 			(cached) => showsFinished(cached, fields),
 		);
+	}
+
+	async readReflection(path: string): Promise<ReflectionText | null> {
+		const file = this.app.vault.getFileByPath(path);
+		if (!file) return null;
+		const cache = this.app.metadataCache.getFileCache(file);
+		if (!cache || asRecord(cache.frontmatter).type !== 'book') return null;
+		return reflectionText(await this.app.vault.cachedRead(file), cache.headings ?? []);
 	}
 
 	private async write<Result extends StartReadingResult>(
