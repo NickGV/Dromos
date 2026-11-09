@@ -1,9 +1,11 @@
 // Vault-backed adapters: game state read from notes.
+export * from './bookMapper';
 export * from './briefingMapper';
 export * from './campaignLink';
 export * from './campaignMapper';
 export * from './characterMapper';
 export * from './folderPath';
+export * from './VaultBookRepository';
 export * from './VaultBriefingRepository';
 export * from './VaultGameStateRepository';
 export * from './VaultCampaignRepository';
