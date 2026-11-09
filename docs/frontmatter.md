@@ -156,7 +156,7 @@ created: 2026-11-06
 | `shelf` | Esdras, with you | One shelf, written as it should read ("Teología"). Shelves that differ only in case are one shelf, named as its first book by title writes it | No shelf ("Sin estante"), listed last |
 | `status` | Esdras creates it `planning`, or `completed` for a book you already read; then Dromos | `planning` pending, `active` reading, `paused` paused, `completed` finished. `archived` has no use yet | `planning` |
 | `started`, `finished` | Dromos, when you start and finish the book | `YYYY-MM-DD` | None |
-| `habitica_id` | Dromos, when you start the book | The reading to-do in Habitica | None |
+| `habitica_id` | Dromos, when you start the book | The reading to-do in Habitica. Dromos never replaces one that is already there | None |
 
 ### The reflection
 

@@ -57,6 +57,18 @@ Two messages name an id, and both mean the task already exists in Habitica:
 
 The notes of a created to-do hold the campaign's title and an `obsidian://` link made of your vault's name and the note's path. They go only to your own account.
 
+## Start reading a book
+
+A pending book (`status: planning`) offers **Empezar a leer** on its card in the library. It creates one reading to-do per book, then writes `status: active`, `started` (today) and its `habitica_id` into the book note:
+
+- The title is "Leer: " and the book's title; the notes hold an `obsidian://` link to the book note.
+- It carries the `skill/lector` tag, created if it does not exist yet, so completing it counts for **lector** like any other to-do.
+- Its checklist has five unchecked items: "Terminar de leer" and the four questions of the reflection.
+
+If Habitica fails, nothing is written and the book stays pending. If the to-do was created but the note could not be saved, the message names the to-do's id, as with **Send to Habitica**. A book that already has a `habitica_id` never gets a second to-do: starting it only writes the state and the date.
+
+**Terminar** on a book being read writes `status: completed` and `finished` (today). It does not complete the to-do in Habitica; that stays yours, once the reflection is written. Dromos seals the book only when the four sections of the reflection have text.
+
 ## When Dromos talks to Habitica
 
 Only when the tab opens and when you select **Sync**. Nothing runs on a timer, and there is no telemetry.
@@ -65,6 +77,8 @@ Only when the tab opens and when you select **Sync**. Nothing runs on a timer, a
 |---|---|
 | Opening the tab or selecting **Sync** | About eight reads, plus up to 10 for linked tasks missing from the lists |
 | **Send to Habitica** | One write for the task. With skills, one read of your tags and one write for each that does not exist |
+| **Empezar a leer** | One read of your tags, one write for `skill/lector` if it does not exist, and one write for the to-do. None for a book that already has a `habitica_id` |
+| **Terminar** | None |
 
 Habitica allows 30 requests per minute. A request with no answer after 15 seconds counts as offline.
 
