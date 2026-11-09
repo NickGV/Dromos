@@ -1,4 +1,5 @@
 // Interfaces that cross the hexagon boundary. Implemented under src/adapters.
+export * from './AreaRepository';
 export * from './BookRepository';
 export * from './BriefingRepository';
 export * from './CampaignRepository';

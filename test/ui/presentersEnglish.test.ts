@@ -128,6 +128,7 @@ describe('English: campaigns', () => {
 	it('words the list: empty states and notices', () => {
 		const snapshot = (overrides: Partial<CampaignSnapshot>): CampaignSnapshot => ({
 			campaigns: [open],
+			areas: [],
 			issues: [],
 			lastSyncedAt: NOW,
 			status: { kind: 'synced' },

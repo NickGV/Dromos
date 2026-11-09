@@ -1,5 +1,7 @@
-import { bookState, compareBooks, daysSince, groupByShelf, type Book, type BookState, type Shelf } from '../../domain';
+import type { CampaignSnapshot } from '../../application';
+import { bookState, compareBooks, daysSince, groupByShelf, isReadingHabit, type Book, type BookState, type Shelf } from '../../domain';
 import { plural, type MessageKey, type Translator } from '../../i18n';
+import { habitRow, type HabitRowView } from './campaignView';
 
 /** Every state the library shows: an archived book is not shown anywhere (M7 S5). */
 export type ShownBookState = Exclude<BookState, 'archived'>;
@@ -48,6 +50,19 @@ export interface DeskScrollView {
 	/** "Leyendo desde hace 12 días", or "Leyendo" with no start date. */
 	readonly since: string;
 	readonly openLabel: string;
+}
+
+/** The habits beside the desk (ADR-017): the areas' reading habits, rowed as a campaign's. */
+export interface LibraryHabitsView {
+	/** "Hábitos". */
+	readonly title: string;
+	readonly rows: readonly LibraryHabitRowView[];
+}
+
+export interface LibraryHabitRowView {
+	/** The `archeion` note the habit is declared in, which "Enviar a Habitica" writes. */
+	readonly areaPath: string;
+	readonly row: HabitRowView;
 }
 
 /** One shelf, level 2 of the library (M7 S5), shown in place of the room. */
@@ -158,6 +173,21 @@ export function libraryRoomView(books: readonly Book[], today: string, t: Transl
 			empty: reading.length === 0 ? t('library.desk.empty') : null,
 		},
 	};
+}
+
+/**
+ * The habits beside the desk (ADR-017): every habit of an area whose skills, its own or else its
+ * area's, include `lector`, in the order of the areas (by title) and of their notes, with its
+ * streak as the campaigns' sync left it. A habit whose daily is gone reads as missing; none can be
+ * sent while Habitica is not configured. `null` when there is none, so the room draws no block.
+ */
+export function libraryHabitsView(snapshot: CampaignSnapshot, t: Translator): LibraryHabitsView | null {
+	const canSend = snapshot.status.kind !== 'not-configured';
+	const rows = (snapshot.areas ?? []).flatMap((area) => {
+		const missing = new Set(snapshot.issues.filter((issue) => issue.campaignPath === area.path).map((issue) => issue.taskTitle));
+		return area.habits.filter((habit) => isReadingHabit(habit, area)).map((habit) => ({ areaPath: area.path, row: habitRow(habit, missing.has(habit.title), { canSend, t }) }));
+	});
+	return rows.length === 0 ? null : { title: t('library.habits'), rows };
 }
 
 /** The shelf `id` (from `shelfId`), or `null` when no shown book is on it any more. */

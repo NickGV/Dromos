@@ -13,7 +13,7 @@ const clock = { today: () => '2026-11-03', now: () => new Date('2026-11-03T14:00
 
 export const IDLE_QUESTS: QuestSnapshot = { quests: null, lastSyncedAt: null, status: { kind: 'idle' } };
 export const IDLE_GAME: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
-const IDLE_CAMPAIGNS: CampaignSnapshot = { campaigns: null, issues: [], lastSyncedAt: null, status: { kind: 'idle' } };
+export const IDLE_CAMPAIGNS: CampaignSnapshot = { campaigns: null, areas: null, issues: [], lastSyncedAt: null, status: { kind: 'idle' } };
 
 /**
  * Dependencies for rendering `HomeScreen` on the server: effects never run there, so the
@@ -40,6 +40,7 @@ export function homeDeps(
 		renderMarkdown: renderNothing,
 		openCard: () => ({ show: noop, close: noop }),
 		openNote: noop,
+		habits: { snapshot: () => options.campaigns ?? IDLE_CAMPAIGNS, sync: { execute: never, reload: never }, send: never },
 		clock,
 	};
 	return {

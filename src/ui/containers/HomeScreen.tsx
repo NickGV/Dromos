@@ -110,7 +110,8 @@ let viewCount = 0;
  * It holds the four screens of the view (game-ui S1): home, campaigns, skills and the library
  * (M7 S5), under one scene with a signpost. Changing screen, campaign tab or skill spends no
  * request: they are only state here, and the campaigns panel stays mounted in its slot on every
- * screen. The library reads the vault each time its screen opens.
+ * screen. The library reads the vault each time its screen opens; the habits beside its desk follow
+ * the campaigns' sync through `syncKey`.
  * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
  * here, and the card, the ribbon and the panel are drawn from the step it is at.
  *
@@ -345,7 +346,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
 					{/* The library draws its own header card: on a shelf it names the shelf and leads back. */}
-					{screen === 'library' ? <LibraryPanel deps={deps.library} character={headerCharacter(character, t)} language={language} period={dayPeriod(deps.clock.now())} /> : null}
+					{screen === 'library' ? (
+						<LibraryPanel deps={deps.library} character={headerCharacter(character, t)} language={language} period={dayPeriod(deps.clock.now())} syncKey={syncKey} />
+					) : null}
 				</main>
 				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
 				<p className="dromos-visually-hidden dromos-since-news" role="status">

@@ -3053,12 +3053,13 @@
 .dromos-root .dromos-book-card-action { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .dromos-root .dromos-book-card-hint { margin: 0; color: var(--dromos-ink-muted); font-size: 13px; }
 
-/* Phones and narrow panes: the desk first, the alcoves one per row with the niche beside the name,
-   the card's sections and buttons stacked. */
+/* Phones and narrow panes: the desk first and its habits right after it (ADR-017), the alcoves one
+   per row with the niche beside the name, the card's sections and buttons stacked. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-screen-header.has-back { grid-template-columns: minmax(0, 1fr); row-gap: 6px; }
 	.dromos-root .dromos-library-summary { order: -2; }
-	.dromos-root .dromos-library-desk { order: -1; }
+	.dromos-root .dromos-library-desk,
+	.dromos-root .dromos-library-habits { order: -1; }
 	.dromos-root .dromos-alcoves { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px; }
 	.dromos-root button.dromos-alcove { flex-direction: row; justify-content: flex-start; gap: 14px; padding: 8px 14px 8px 8px; text-align: left; }
 	.dromos-root button.dromos-alcove .dromos-alcove-art { width: 112px; }

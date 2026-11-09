@@ -29,7 +29,7 @@ const kairos = campaign({
 	habits: [habit('Code 30 minutes'), habit('Walk', { habiticaId: 'hb', streak: 3, days: 7 })],
 });
 const cheshbon = campaign({ path: 'P/Cheshbon/README.md', title: 'Cheshbon', phases: [phase('one', 'active')], tasks: [pending('Ledger', 'one')] });
-const snapshot: CampaignSnapshot = { campaigns: [kairos, cheshbon], issues: [], lastSyncedAt: new Date('2026-11-03T12:00:00Z'), status: { kind: 'synced' } };
+const snapshot: CampaignSnapshot = { campaigns: [kairos, cheshbon], areas: [], issues: [], lastSyncedAt: new Date('2026-11-03T12:00:00Z'), status: { kind: 'synced' } };
 const screenOf = (value: CampaignSnapshot = snapshot, selected: string | null = null) => campaignScreenView(campaignListView(value, { today: TODAY, defaultStaleAfterDays: 14, t: en }), selected, en);
 const view = screenOf();
 const detail = view.campaign as CampaignDetailView;

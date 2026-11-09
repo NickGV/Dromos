@@ -2,6 +2,7 @@
 export * from './CampaignState';
 export * from './gameEvents';
 export * from './GameState';
+export * from './LinkHabitToArea';
 export * from './LinkHabitToCampaign';
 export * from './LinkTaskToCampaign';
 export * from './FinishReading';

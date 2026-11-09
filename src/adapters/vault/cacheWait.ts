@@ -1,3 +1,5 @@
+import type { App } from 'obsidian';
+
 /** The timer functions `waitForCache` uses; injectable so tests need no real clock. */
 export interface Timers {
 	set(handler: () => void, ms: number): unknown;
@@ -37,4 +39,12 @@ export function waitForCache(
 		});
 		const timer = timers.set(finish, timeoutMs);
 	});
+}
+
+/** The `subscribe` argument of `waitForCache`: listens to the cache's "changed" event. */
+export function onCacheChanged(app: Pick<App, 'metadataCache'>): (onChanged: (path: string) => void) => () => void {
+	return (onChanged) => {
+		const ref = app.metadataCache.on('changed', (changed) => onChanged(changed.path));
+		return () => app.metadataCache.offref(ref);
+	};
 }

@@ -1,17 +1,21 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import type { CampaignSnapshot } from '../../../src/application';
 import type { Book } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import type { ReflectionText } from '../../../src/ports';
 import { MarkdownBlock, type MarkdownRender } from '../../../src/ui/atoms/MarkdownBlock';
 import { AlcoveButton } from '../../../src/ui/molecules/AlcoveButton';
 import { DeskScroll } from '../../../src/ui/molecules/DeskScroll';
+import { HabitRow } from '../../../src/ui/molecules/HabitRow';
 import { ShelfScrollButton } from '../../../src/ui/molecules/ShelfScrollButton';
 import { BookCard, type BookCardBusy } from '../../../src/ui/organisms/BookCard';
 import { LibraryRoom } from '../../../src/ui/organisms/LibraryRoom';
 import { LibraryShelf } from '../../../src/ui/organisms/LibraryShelf';
 import { bookCardView, type BookCardActions } from '../../../src/ui/presenters/bookCardView';
-import { libraryRoomView, libraryShelfView, shelfId } from '../../../src/ui/presenters/libraryView';
+import { I18nProvider } from '../../../src/ui/i18n';
+import { libraryHabitsView, libraryRoomView, libraryShelfView, shelfId } from '../../../src/ui/presenters/libraryView';
+import { area, habit } from '../../domain/campaign/campaignFixtures';
 import { aBook, aReflection } from '../../fakes/books';
 import { clickOf, componentsOf, elementsOf } from './elements';
 import { noop, renderNothing } from './homeDeps';
@@ -290,5 +294,68 @@ describe('BookCard: the text of the reflection, read-only (M7 S5, S2)', () => {
 		expect(closed).toBe(0);
 		click?.({ target: target(true) });
 		expect(closed).toBe(1);
+	});
+});
+
+describe('LibraryRoom: the habits beside the desk (ADR-017, S2)', () => {
+	const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+	const synced: CampaignSnapshot = {
+		campaigns: [],
+		areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: 'd1', streak: 6 }), habit('Releer notas', { days: 14 })] })],
+		issues: [],
+		lastSyncedAt: new Date('2026-11-09T12:00:00Z'),
+		status: { kind: 'synced' },
+	};
+	const habits = (t = es, snapshot = synced) => libraryHabitsView(snapshot, t);
+	const roomWithHabits = (t = es, sendingHabit: { areaPath: string; title: string } | null = null) =>
+		renderToStaticMarkup(
+			<I18nProvider t={t}>
+				<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, t)} habits={habits(t)} sendingHabit={sendingHabit} onSendHabit={noop} onOpenShelf={noop} onOpenCard={noop} />
+			</I18nProvider>,
+		);
+	/** The `<h3>` titles of the room, in document order. */
+	const headings = (html: string): string[] => [...html.matchAll(/<h3[^>]*>(.*?)<\/h3>/g)].map((match) => match[1] ?? '');
+
+	it('draws the habits right after the desk, under their own heading, each with its streak', () => {
+		const html = roomWithHabits();
+
+		expect(headings(html)).toEqual(['Los estantes', 'Leyendo ahora', 'Hábitos']);
+		expect(html.indexOf('dromos-library-habits')).toBeGreaterThan(html.indexOf('dromos-library-desk'));
+		expect(html).toMatch(/<section class="dromos-section dromos-library-habits" aria-labelledby="dromos-library-habits"><h3 class="dromos-card-title" id="dromos-library-habits">Hábitos<\/h3>/);
+		expect(html).toContain('Racha: 6 de 21 días');
+		expect(html).toContain('Meta: 14 días');
+		expect(html.match(/<li class="dromos-habit is-/g)).toHaveLength(2);
+	});
+
+	it('offers "Enviar a Habitica" only on the habit never sent, and says "Enviando…" while it goes', () => {
+		expect(buttonTexts(roomWithHabits())).toContain('Enviar a Habitica');
+		expect(buttonTexts(roomWithHabits()).filter((text) => text === 'Enviar a Habitica')).toHaveLength(1);
+		expect(roomWithHabits(es, { areaPath: BIBLIOTHEKE, title: 'Releer notas' })).toContain('Enviando…');
+		expect(roomWithHabits(en)).toContain('>Habits</h3>');
+	});
+
+	it('sends the habit with the path of its area', () => {
+		const sent: string[] = [];
+		const tree = LibraryRoom({
+			view: libraryRoomView(LIBRARY, TODAY, es),
+			habits: habits(),
+			sendingHabit: { areaPath: BIBLIOTHEKE, title: 'Releer notas' },
+			onSendHabit: (areaPath, title) => sent.push(`${areaPath}|${title}`),
+			onOpenShelf: noop,
+			onOpenCard: noop,
+		});
+		const rows = componentsOf(tree, HabitRow);
+
+		expect(rows.map((row) => row.props.sending)).toEqual([false, true]);
+		(rows[1]?.props.onSend as () => void)();
+		expect(sent).toEqual([`${BIBLIOTHEKE}|Releer notas`]);
+	});
+
+	it('draws no habits block when the reading areas have no habits', () => {
+		const html = renderToStaticMarkup(<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, es)} habits={habits(es, { ...synced, areas: [] })} onOpenShelf={noop} onOpenCard={noop} />);
+
+		expect(html).not.toContain('dromos-library-habits');
+		expect(headings(html)).toEqual(['Los estantes', 'Leyendo ahora']);
+		expect(room()).not.toContain('dromos-library-habits');
 	});
 });

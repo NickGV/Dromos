@@ -22,7 +22,7 @@ const kairos = campaign({
 const cheshbon = campaign({ path: 'P/Cheshbon/README.md', title: 'Cheshbon', phases: [phase('one', 'active')], tasks: [pending('Ledger', 'one')] });
 
 function snapshot(overrides: Partial<CampaignSnapshot> = {}): CampaignSnapshot {
-	return { campaigns: [kairos, cheshbon], issues: [], lastSyncedAt: new Date('2026-11-03T12:00:00Z'), status: { kind: 'synced' }, ...overrides };
+	return { campaigns: [kairos, cheshbon], areas: [], issues: [], lastSyncedAt: new Date('2026-11-03T12:00:00Z'), status: { kind: 'synced' }, ...overrides };
 }
 
 const screen = (value: CampaignSnapshot, selected: string | null = null, t = en) => campaignScreenView(campaignListView(value, { today: TODAY, defaultStaleAfterDays: 14, t }), selected, t);

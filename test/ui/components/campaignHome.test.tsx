@@ -99,7 +99,7 @@ describe('CampaignHomeCard (game-ui S7)', () => {
 });
 
 describe('HomeScreen shows compact campaign cards on home, and the campaign screen on the campaigns screen', () => {
-	const snapshot: CampaignSnapshot = { campaigns: [kairos], issues: [], lastSyncedAt: new Date('2026-10-31T10:00:00Z'), status: { kind: 'synced' } };
+	const snapshot: CampaignSnapshot = { campaigns: [kairos], areas: [], issues: [], lastSyncedAt: new Date('2026-10-31T10:00:00Z'), status: { kind: 'synced' } };
 	const deps = () => {
 		const base = homeDeps();
 		return { ...base, campaigns: { ...base.campaigns, campaignSnapshot: () => snapshot, clock: { today: () => '2026-10-31', now: () => new Date('2026-10-31T12:00:00Z') } } };

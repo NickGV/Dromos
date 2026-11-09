@@ -115,3 +115,46 @@ describe('linkHabitHabiticaIdInFrontmatter', () => {
 		expect(frontmatter.habits).toEqual([{ title: 'Same', habitica_id: ID }]);
 	});
 });
+
+describe('an area hub: habits only (ADR-017)', () => {
+	const archeion = (extra: Record<string, unknown> = {}): Record<string, unknown> => ({
+		type: 'archeion',
+		status: 'active',
+		skill: ['lector'],
+		habits: [{ title: 'Leer 10 minutos', days: 21, skill: 'lector', habitica_id: null }],
+		...extra,
+	});
+
+	it('writes the id into the first unsent habit of an archeion, and touches nothing else', () => {
+		const frontmatter = archeion({ habits: [{ title: 'Leer 10 minutos', habitica_id: 'first' }, { title: 'Leer 10 minutos', days: 21, habitica_id: '' }] });
+		const before = structuredClone(frontmatter);
+
+		expect(linkHabitHabiticaIdInFrontmatter(frontmatter, 'Leer 10 minutos', ID)).toBe('linked');
+		expect(frontmatter).toEqual({ ...before, habits: [{ title: 'Leer 10 minutos', habitica_id: 'first' }, { title: 'Leer 10 minutos', days: 21, habitica_id: ID }] });
+	});
+
+	it('never overwrites the id of an archeion habit', () => {
+		const frontmatter = archeion({ habits: [{ title: 'Leer 10 minutos', habitica_id: 'existing-id' }] });
+
+		expect(linkHabitHabiticaIdInFrontmatter(frontmatter, 'Leer 10 minutos', ID)).toBe('already-linked');
+		expect(frontmatter.habits).toEqual([{ title: 'Leer 10 minutos', habitica_id: 'existing-id' }]);
+	});
+
+	it('still rejects the tasks of an archeion: only a project index has tasks Dromos writes', () => {
+		const frontmatter = archeion({ tasks: [{ title: 'Leer 10 minutos', habitica_id: null }] });
+		const before = structuredClone(frontmatter);
+
+		expect(linkHabiticaIdInFrontmatter(frontmatter, 'Leer 10 minutos', ID)).toBe('not-found');
+		expect(frontmatter).toEqual(before);
+	});
+
+	it('still rejects the habits of any type other than index and archeion', () => {
+		for (const type of ['research', 'study-session', 'book', 'resource', undefined]) {
+			const frontmatter = archeion({ type });
+			const before = structuredClone(frontmatter);
+
+			expect(linkHabitHabiticaIdInFrontmatter(frontmatter, 'Leer 10 minutos', ID)).toBe('not-found');
+			expect(frontmatter).toEqual(before);
+		}
+	});
+});

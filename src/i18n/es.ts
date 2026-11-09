@@ -276,6 +276,7 @@ export const es = {
 	'library.openShelf': 'Abrir el estante {name}, {books}',
 	'library.desk': 'Leyendo ahora',
 	'library.desk.empty': 'No estás leyendo ningún libro. Elige uno de un estante.',
+	'library.habits': 'Hábitos',
 	'library.since.today': 'Leyendo desde hoy',
 	'library.since.one': 'Leyendo desde hace 1 día',
 	'library.since.other': 'Leyendo desde hace {count} días',

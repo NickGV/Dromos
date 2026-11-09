@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import type { CampaignSnapshot } from '../../src/application';
 import type { Book } from '../../src/domain';
 import { createTranslator } from '../../src/i18n';
-import { libraryRoomView, libraryShelfView, shelfId } from '../../src/ui/presenters/libraryView';
+import { libraryHabitsView, libraryRoomView, libraryShelfView, shelfId } from '../../src/ui/presenters/libraryView';
+import { area, campaign, habit } from '../domain/campaign/campaignFixtures';
 import { aBook, aReflection } from '../fakes/books';
 
 const en = createTranslator('en');
@@ -184,5 +186,82 @@ describe('the reading to-do copy (M7 S3)', () => {
 		const items = ['library.todo.item.finish', 'library.todo.item.about', 'library.todo.item.kept', 'library.todo.item.changes', 'library.todo.item.connects'] as const;
 		expect(items.map((key) => es(key))).toEqual(['Terminar de leer', 'De qué trata', 'Qué me quedó', 'Qué cambia en mí', 'Con qué lo conecto']);
 		expect(items.map((key) => en(key))).toEqual(['Finish reading', 'What it is about', 'What stayed with me', 'What changes in me', 'What I connect it to']);
+	});
+});
+
+describe('libraryHabitsView: the habits beside the desk (ADR-017, S2)', () => {
+	const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+	const snapshot = (overrides: Partial<CampaignSnapshot> = {}): CampaignSnapshot => ({
+		campaigns: [],
+		areas: [
+			area({
+				path: BIBLIOTHEKE,
+				habits: [
+					habit('Leer 10 minutos', { habiticaId: 'd1', days: 21, streak: 6 }),
+					habit('Releer notas', { days: 14 }),
+					habit('Perdido', { habiticaId: 'd2', streak: null }),
+					habit('Diario', { habiticaId: 'd3', days: 7, streak: 9 }),
+				],
+			}),
+			area({ path: '03 - Areas/Kairos/Archeion - Kairos.md', title: 'Archeion - Kairos', skills: ['desarrollador'], habits: [habit('Codear', { habiticaId: 'd4', streak: 3 })] }),
+		],
+		issues: [{ campaignPath: BIBLIOTHEKE, taskTitle: 'Perdido', kind: 'habitica-task-missing' }],
+		lastSyncedAt: new Date('2026-11-09T12:00:00Z'),
+		status: { kind: 'synced' },
+		...overrides,
+	});
+
+	it('rows the reading habits only, each with its streak over its days, as a campaign habit is rowed', () => {
+		const view = libraryHabitsView(snapshot(), es);
+
+		expect(view?.title).toBe('Hábitos');
+		expect(view?.rows.map((entry) => entry.areaPath)).toEqual([BIBLIOTHEKE, BIBLIOTHEKE, BIBLIOTHEKE, BIBLIOTHEKE]);
+		expect(view?.rows.map(({ row }) => [row.title, row.state, row.canSend, row.progress.percent, row.text])).toEqual([
+			['Leer 10 minutos', 'tracking', false, 29, 'Racha: 6 de 21 días'],
+			['Releer notas', 'unsent', true, 0, 'Meta: 14 días'],
+			['Perdido', 'missing', false, 0, 'Meta: 21 días'],
+			['Diario', 'built', false, 100, 'Hábito formado: 7 días'],
+		]);
+	});
+
+	it('speaks English: the heading is "Habits"', () => {
+		expect(libraryHabitsView(snapshot(), en)?.title).toBe('Habits');
+		expect(libraryHabitsView(snapshot(), en)?.rows[0]?.row.text).toBe('Streak: 6 of 21 days');
+	});
+
+	it('offers no send button while Habitica is not configured', () => {
+		expect(libraryHabitsView(snapshot({ status: { kind: 'not-configured' } }), es)?.rows[1]?.row).toMatchObject({ state: 'unsent', canSend: false });
+	});
+
+	it('shows a habit by its skills, its own or else its Archeion\'s, whatever the Archeion (2026-11-09 change)', () => {
+		const LEARNINGS = '03 - Areas/Learnings/Archeion - Learnings.md';
+		const BIBLE = '03 - Areas/Bible/Archeion - Bible.md';
+		const view = libraryHabitsView(
+			snapshot({
+				areas: [
+					area({ path: BIBLE, title: 'Archeion - Bible', skills: ['teologo'], habits: [habit('Orar'), habit('Leer la Biblia', { skills: ['lector'] })] }),
+					area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { skills: ['lector'] })] }),
+					area({ path: LEARNINGS, title: 'Archeion - Learnings', skills: ['lector'], habits: [habit('Repasar', { skills: ['estudiante'] }), habit('Leer un artículo')] }),
+				],
+				issues: [],
+			}),
+			es,
+		);
+
+		expect(view?.rows.map(({ areaPath, row }) => [areaPath, row.title])).toEqual([
+			[BIBLE, 'Leer la Biblia'],
+			[BIBLIOTHEKE, 'Leer 10 minutos'],
+			[LEARNINGS, 'Leer un artículo'],
+		]);
+	});
+
+	it('is absent before the first sync, with no area, or when no habit is a reading one', () => {
+		expect(libraryHabitsView(snapshot({ areas: null }), es)).toBeNull();
+		expect(libraryHabitsView(snapshot({ areas: [] }), es)).toBeNull();
+		expect(libraryHabitsView(snapshot({ areas: [area({ habits: [] }), area({ path: 'x.md', skills: ['desarrollador'], habits: [habit('Codear')] }), area({ path: 'y.md', habits: [habit('Repasar', { skills: ['estudiante'] })] })] }), es)).toBeNull();
+	});
+
+	it('never rows the habits of a campaign', () => {
+		expect(libraryHabitsView(snapshot({ areas: [], campaigns: [campaign({ skills: ['lector'], habits: [habit('Leer')] })] }), es)).toBeNull();
 	});
 });

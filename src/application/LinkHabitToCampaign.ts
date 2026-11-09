@@ -1,13 +1,9 @@
-import type { CampaignRepository, TagCatalog, TaskCreator } from '../ports';
-import { sendAndLink, type LinkOutcome } from './sendAndLink';
+import type { CampaignRepository } from '../ports';
+import type { LinkOutcome } from './sendAndLink';
+import { sendHabit, type SendHabitDeps } from './sendHabit';
 
-export interface LinkHabitToCampaignDeps {
+export interface LinkHabitToCampaignDeps extends SendHabitDeps {
 	readonly repository: CampaignRepository;
-	readonly creator: TaskCreator;
-	/** A link that opens the campaign note, put in the daily's notes. Built by the composition root. */
-	readonly noteLink: (campaignPath: string) => string;
-	/** Where the `skill/<id>` tags of the daily are found or created. */
-	readonly tags: TagCatalog;
 }
 
 /**
@@ -32,29 +28,11 @@ export class LinkHabitToCampaign {
 	}
 
 	private async run(campaignPath: string, habitTitle: string): Promise<LinkOutcome> {
-		const { repository, creator, noteLink, tags } = this.deps;
+		const { repository } = this.deps;
 		const campaign = (await repository.listActive()).find((candidate) => candidate.path === campaignPath);
 		if (!campaign) return { kind: 'not-found' };
 		if (campaign.kind !== 'project') return { kind: 'not-a-project' };
 
-		const habits = campaign.habits.filter((habit) => habit.title === habitTitle);
-		if (habits.length === 0) return { kind: 'not-found' };
-		// The habit `linkHabitHabiticaId` will link: the first one with that title and no id yet.
-		const target = habits.find((habit) => habit.habiticaId === null);
-		if (!target) return { kind: 'already-linked' };
-		const skills = target.skills.length > 0 ? target.skills : campaign.skills;
-
-		return sendAndLink(
-			async () => {
-				// Tags first: if they fail nothing is created, so a retry cannot leave a duplicate daily.
-				const tagIds = skills.length > 0 ? await tags.ensureSkillTags(skills) : [];
-				return creator.createDaily({
-					title: habitTitle,
-					notes: `Dromos · ${campaign.title}\n${noteLink(campaignPath)}`,
-					...(tagIds.length > 0 ? { tags: tagIds } : {}),
-				});
-			},
-			(habiticaId) => repository.linkHabitHabiticaId(campaignPath, habitTitle, habiticaId),
-		);
+		return sendHabit(this.deps, campaign, habitTitle, (habiticaId) => repository.linkHabitHabiticaId(campaignPath, habitTitle, habiticaId));
 	}
 }

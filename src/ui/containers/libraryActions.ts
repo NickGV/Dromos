@@ -1,4 +1,4 @@
-import type { LibraryState, LoadLibrary, ReadReflection } from '../../application';
+import type { CampaignSnapshot, LibraryState, LoadLibrary, ReadReflection, SyncCampaigns } from '../../application';
 import type { ReflectionText } from '../../ports';
 
 /**
@@ -19,6 +19,26 @@ export async function runBookAction(action: BookAction, path: string, load: Pick
 		// The action says its own failure; the next read shows whatever the note holds.
 	}
 	return load.execute();
+}
+
+/**
+ * "Enviar a Habitica" for a habit beside the desk (ADR-017): the habit `title` of the area at
+ * `areaPath`. It reports its own outcome (a notice); whatever it answers, the room only reads again.
+ */
+export type HabitSend = (areaPath: string, title: string) => Promise<unknown>;
+
+/**
+ * Runs `send`, then re-reads the vault with no Habitica request (`reload` joins a sync already
+ * running) and answers with the new snapshot, so a habit that got its id loses its button. A
+ * rejected send is read again too: the note may have changed before it failed.
+ */
+export async function runHabitSend(send: HabitSend, areaPath: string, title: string, sync: Pick<SyncCampaigns, 'reload'>): Promise<CampaignSnapshot> {
+	try {
+		await send(areaPath, title);
+	} catch {
+		// The send says its own failure; the next read shows whatever the note holds.
+	}
+	return sync.reload();
 }
 
 /** Loads the text of the open card's reflection; see `reflectionLoader`. */
