@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { LibraryState } from '../../src/application';
+import type { CampaignSnapshot, LibraryState } from '../../src/application';
 import type { ReflectionText } from '../../src/ports';
-import { reflectionLoader, runBookAction } from '../../src/ui/containers/libraryActions';
+import { reflectionLoader, runBookAction, runHabitSend } from '../../src/ui/containers/libraryActions';
 import { aBook } from '../fakes/books';
 
 const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })] };
@@ -125,5 +125,36 @@ describe('reflectionLoader: the text of the open card (M7 S5)', () => {
 		await settled();
 
 		expect(delivered).toEqual([['a.md', null]]);
+	});
+});
+
+describe('runHabitSend: "Send to Habitica" beside the desk (ADR-017, S2)', () => {
+	const reloaded: CampaignSnapshot = { campaigns: [], areas: [], issues: [], lastSyncedAt: null, status: { kind: 'synced' } };
+
+	it('sends the habit, then re-reads the vault with no Habitica request and answers with the new snapshot', async () => {
+		const calls: string[] = [];
+		const snapshot = await runHabitSend(
+			(areaPath, title) => {
+				calls.push(`send:${areaPath}|${title}`);
+				return Promise.resolve();
+			},
+			'Archeion.md',
+			'Leer 10 minutos',
+			{
+				reload: () => {
+					calls.push('reload');
+					return Promise.resolve(reloaded);
+				},
+			},
+		);
+
+		expect(calls).toEqual(['send:Archeion.md|Leer 10 minutos', 'reload']);
+		expect(snapshot).toBe(reloaded);
+	});
+
+	it('still re-reads when the send rejects, so the screen shows what the note holds', async () => {
+		const snapshot = await runHabitSend(() => Promise.reject(new Error('offline')), 'Archeion.md', 'Leer', { reload: () => Promise.resolve(reloaded) });
+
+		expect(snapshot).toBe(reloaded);
 	});
 });

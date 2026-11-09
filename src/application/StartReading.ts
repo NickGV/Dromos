@@ -1,9 +1,6 @@
-import type { Book } from '../domain';
+import { READING_SKILL, type Book } from '../domain';
 import type { BookRepository, Clock, LinkResult, StartReadingResult, TagCatalog, TaskCreator, TaskSourceErrorKind } from '../ports';
 import { sendAndLink, type LinkOutcome } from './sendAndLink';
-
-/** The skill of the reading to-do: the Archeion - Bibliotheke's (Q027). */
-export const READING_SKILL = 'lector';
 
 /** The text of a book's reading to-do. */
 export interface ReadingTodo {

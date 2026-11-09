@@ -1,4 +1,4 @@
-import type { Campaign } from '../domain';
+import type { Area, Campaign } from '../domain';
 import type { CampaignIssue } from './mergeTaskStatuses';
 import type { PendingOrFailedStatus, SyncStatus } from './QuestState';
 
@@ -6,14 +6,23 @@ import type { PendingOrFailedStatus, SyncStatus } from './QuestState';
 export interface CampaignSnapshot {
 	/** Campaigns as last read from the vault, with Habitica's last known status applied; `null` before the first sync. */
 	readonly campaigns: readonly Campaign[] | null;
-	/** Tasks whose Habitica task is gone. */
+	/** Areas as last read from the vault (ADR-017), the streaks of their reading habits applied; `null` before the first sync. */
+	readonly areas: readonly Area[] | null;
+	/** Tasks and habits, of campaigns and areas, whose Habitica task is gone. */
 	readonly issues: readonly CampaignIssue[];
 	/** When Habitica last answered, or `null` before the first time. */
 	readonly lastSyncedAt: Date | null;
 	readonly status: SyncStatus;
 }
 
-const INITIAL: CampaignSnapshot = { campaigns: null, issues: [], lastSyncedAt: null, status: { kind: 'idle' } };
+/** One read of the vault with Habitica's last known status applied: what each record stores. */
+export interface CampaignLists {
+	readonly campaigns: readonly Campaign[];
+	readonly areas: readonly Area[];
+	readonly issues: readonly CampaignIssue[];
+}
+
+const INITIAL: CampaignSnapshot = { campaigns: null, areas: null, issues: [], lastSyncedAt: null, status: { kind: 'idle' } };
 
 /** Session-scoped campaign state, held in memory only and never written to disk (D3). */
 export class CampaignState {
@@ -23,23 +32,27 @@ export class CampaignState {
 		return this.current;
 	}
 
-	/** Stores a fresh list and marks it `synced`. */
-	recordSuccess(campaigns: readonly Campaign[], issues: readonly CampaignIssue[], syncedAt: Date): void {
-		this.current = { campaigns: [...campaigns], issues: [...issues], lastSyncedAt: syncedAt, status: { kind: 'synced' } };
+	/** Stores fresh lists and marks them `synced`. */
+	recordSuccess(lists: CampaignLists, syncedAt: Date): void {
+		this.current = { ...copy(lists), lastSyncedAt: syncedAt, status: { kind: 'synced' } };
 	}
 
-	/** A fresh list from the vault alone: the status and the sync time stay as they were. */
-	recordVault(campaigns: readonly Campaign[], issues: readonly CampaignIssue[]): void {
-		this.current = { ...this.current, campaigns: [...campaigns], issues: [...issues] };
+	/** Fresh lists from the vault alone: the status and the sync time stay as they were. */
+	recordVault(lists: CampaignLists): void {
+		this.current = { ...this.current, ...copy(lists) };
 	}
 
-	/** The vault list is fresh but Habitica did not answer: keeps the last sync time. */
-	recordPartial(campaigns: readonly Campaign[], issues: readonly CampaignIssue[], status: PendingOrFailedStatus): void {
-		this.current = { ...this.current, campaigns: [...campaigns], issues: [...issues], status };
+	/** The vault lists are fresh but Habitica did not answer: keeps the last sync time. */
+	recordPartial(lists: CampaignLists, status: PendingOrFailedStatus): void {
+		this.current = { ...this.current, ...copy(lists), status };
 	}
 
-	/** Changes only the status; the list and the sync time stay untouched. */
+	/** Changes only the status; the lists and the sync time stay untouched. */
 	setStatus(status: PendingOrFailedStatus): void {
 		this.current = { ...this.current, status };
 	}
+}
+
+function copy({ campaigns, areas, issues }: CampaignLists): Pick<CampaignSnapshot, 'campaigns' | 'areas' | 'issues'> {
+	return { campaigns: [...campaigns], areas: [...areas], issues: [...issues] };
 }

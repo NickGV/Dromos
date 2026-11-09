@@ -22,10 +22,5 @@ export function frontmatterIn(content: string): unknown {
 	}
 }
 
-/** The `subscribe` argument of `waitForCache`: listens to the cache's "changed" event. */
-export function onCacheChanged(app: Pick<App, 'metadataCache'>): (onChanged: (path: string) => void) => () => void {
-	return (onChanged) => {
-		const ref = app.metadataCache.on('changed', (changed) => onChanged(changed.path));
-		return () => app.metadataCache.offref(ref);
-	};
-}
+// Lives in `cacheWait.ts`, which imports no `obsidian` runtime, so repositories that use it stay testable.
+export { onCacheChanged } from './cacheWait';

@@ -12,9 +12,10 @@ import {
 } from '../adapters/habitica';
 import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, FinishReading, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
+import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
 import { readingOutcomeView, readingTodo } from '../ui/presenters/readingView';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
 
@@ -74,6 +75,16 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		readingTodo: (book) => readingTodo(book, createTranslator(settings.language), sendDeps.noteLink),
 	});
 	const finishReading = new FinishReading({ repository: books, clock });
+	// One campaigns sync for the session: it also brings the streaks of the areas' reading habits (ADR-017).
+	const syncCampaigns = new SyncCampaigns({
+		repository: campaignRepository,
+		areas: campaignRepository,
+		source: new HabiticaTaskStatusSource(habitica),
+		clock,
+		state: campaignState,
+		hasCredentials,
+	});
+	const linkAreaHabit = new LinkHabitToArea(sendDeps);
 	// One renderer for the briefing and the book card: both draw note text as Obsidian does.
 	const renderMarkdown = createMarkdownRender(plugin.app);
 	// Opens a note in another tab; the campaigns' "Open note" and the book card's "Abrir la nota".
@@ -124,13 +135,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				return () => void gameListeners.delete(onChange);
 			},
 			campaigns: {
-				syncCampaigns: new SyncCampaigns({
-					repository: campaignRepository,
-					source: new HabiticaTaskStatusSource(habitica),
-					clock,
-					state: campaignState,
-					hasCredentials,
-				}),
+				syncCampaigns,
 				linkTask: new LinkTaskToCampaign(sendDeps),
 				linkHabit: new LinkHabitToCampaign(sendDeps),
 				campaignSnapshot: () => campaignState.snapshot(),
@@ -138,13 +143,18 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				openNote,
 				clock,
 			},
-			// "Empezar a leer" and "Terminar" (M7 S3, S4) toast their outcome; the card reads the books again after.
+			// "Empezar a leer", "Terminar" (M7 S3, S4) and a habit's "Enviar a Habitica" (ADR-017) toast their outcome; the screen reads again after.
 			library: {
 				loadLibrary: new LoadLibrary({ books }),
 				readReflection: new ReadReflection({ books }),
 				renderMarkdown,
 				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),
 				finishReading: async (path) => showNotice(readingOutcomeView(await finishReading.execute(path), createTranslator(settings.language)).message),
+				habits: {
+					snapshot: () => campaignState.snapshot(),
+					sync: syncCampaigns,
+					send: async (areaPath, title) => showNotice(linkOutcomeView(await linkAreaHabit.execute(areaPath, title), createTranslator(settings.language)).message),
+				},
 				openCard: createOpenCardModal(plugin.app),
 				openNote,
 				clock,

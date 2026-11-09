@@ -278,6 +278,7 @@ describe('campaignCardView: research', () => {
 describe('campaignListView', () => {
 	const snapshot = (overrides: Partial<CampaignSnapshot> = {}): CampaignSnapshot => ({
 		campaigns: [kairos],
+		areas: [],
 		issues: [],
 		lastSyncedAt: new Date('2026-10-31T15:00:00.000Z'),
 		status: { kind: 'synced' },

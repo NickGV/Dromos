@@ -1,8 +1,9 @@
-import type { Campaign } from '../domain';
+import type { Area, Campaign, CampaignHabit } from '../domain';
 import type { TaskStatus } from '../ports';
 
-/** A project task whose Habitica task is gone; shown as a warning, never as a failure (S4). */
+/** A linked task or habit whose Habitica task is gone; shown as a warning, never as a failure (S4). */
 export interface CampaignIssue {
+	/** The note it is declared in: a campaign, or an area for an area habit (ADR-017). */
 	readonly campaignPath: string;
 	readonly taskTitle: string;
 	readonly kind: 'habitica-task-missing';
@@ -10,6 +11,11 @@ export interface CampaignIssue {
 
 export interface MergedCampaigns {
 	readonly campaigns: Campaign[];
+	readonly issues: CampaignIssue[];
+}
+
+export interface MergedAreas {
+	readonly areas: Area[];
 	readonly issues: CampaignIssue[];
 }
 
@@ -22,15 +28,7 @@ export function mergeTaskStatuses(campaigns: readonly Campaign[], statuses: Read
 	const issues: CampaignIssue[] = [];
 	const merged = campaigns.map((campaign): Campaign => {
 		if (campaign.kind !== 'project') return campaign;
-		const habits = campaign.habits.map((habit) => {
-			const status = habit.habiticaId === null ? undefined : statuses.get(habit.habiticaId);
-			if (status?.kind === 'daily') return { ...habit, streak: status.streak };
-			if (status?.kind === 'missing') {
-				issues.push({ campaignPath: campaign.path, taskTitle: habit.title, kind: 'habitica-task-missing' });
-				return { ...habit, streak: null };
-			}
-			return habit;
-		});
+		const habits = mergeHabits(campaign.path, campaign.habits, statuses, issues);
 		const tasks = campaign.tasks.map((task) => {
 			const status = task.habiticaId === null ? undefined : statuses.get(task.habiticaId);
 			if (!status) return task;
@@ -43,4 +41,24 @@ export function mergeTaskStatuses(campaigns: readonly Campaign[], statuses: Read
 		return { ...campaign, tasks, habits };
 	});
 	return { campaigns: merged, issues };
+}
+
+/** The same answer applied to the habits of areas (ADR-017), exactly as to a campaign's. Pure. */
+export function mergeAreaStatuses(areas: readonly Area[], statuses: ReadonlyMap<string, TaskStatus>): MergedAreas {
+	const issues: CampaignIssue[] = [];
+	const merged = areas.map((area): Area => ({ ...area, habits: mergeHabits(area.path, area.habits, statuses, issues) }));
+	return { areas: merged, issues };
+}
+
+/** The streak of each habit's daily; a missing daily clears it and raises an issue on `path`. */
+function mergeHabits(path: string, habits: readonly CampaignHabit[], statuses: ReadonlyMap<string, TaskStatus>, issues: CampaignIssue[]): CampaignHabit[] {
+	return habits.map((habit) => {
+		const status = habit.habiticaId === null ? undefined : statuses.get(habit.habiticaId);
+		if (status?.kind === 'daily') return { ...habit, streak: status.streak };
+		if (status?.kind === 'missing') {
+			issues.push({ campaignPath: path, taskTitle: habit.title, kind: 'habitica-task-missing' });
+			return { ...habit, streak: null };
+		}
+		return habit;
+	});
 }

@@ -19,6 +19,16 @@ describe('isBookNote: a book is any `type: book` note (S1)', () => {
 	it.each([{ type: 'resource' }, { type: 'Book' }, {}, undefined, 'book'])('is not a book with frontmatter %j', (frontmatter) => {
 		expect(isBookNote(note(frontmatter))).toBe(false);
 	});
+
+	it('is not a book inside the templates folder, where `Templates/book.md` says `type: book` (area habits F1)', () => {
+		expect(isBookNote(note({ type: 'book', status: 'planning', title: '{{title}}' }, templateMetadata(), 'Templates/book.md'))).toBe(false);
+		expect(isBookNote(note({ type: 'book' }, templateMetadata(), 'Templates/Libros/book.md'))).toBe(false);
+	});
+
+	it('is still a book in a folder that only starts like the templates folder, or holds one of its own', () => {
+		expect(isBookNote(note({ type: 'book' }, templateMetadata(), 'Templates viejos/Un libro.md'))).toBe(true);
+		expect(isBookNote(note({ type: 'book' }, templateMetadata(), '03 - Areas/Bibliotheke/Templates/Un libro.md'))).toBe(true);
+	});
 });
 
 describe('bookFromNote: the fields of a book note (S1)', () => {

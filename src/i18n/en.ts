@@ -275,6 +275,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'library.openShelf': 'Open the shelf {name}, {books}',
 	'library.desk': 'Reading now',
 	'library.desk.empty': 'You are not reading any book. Choose one from a shelf.',
+	'library.habits': 'Habits',
 	'library.since.today': 'Reading since today',
 	'library.since.one': 'Reading for 1 day',
 	'library.since.other': 'Reading for {count} days',

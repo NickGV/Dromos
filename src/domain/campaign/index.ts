@@ -4,4 +4,5 @@ export * from './campaignProgress';
 export * from './nextAction';
 export * from './staleness';
 export * from './habitProgress';
+export * from './habitSkills';
 export * from './skillEvidence';

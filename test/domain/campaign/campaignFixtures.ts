@@ -1,3 +1,4 @@
+import type { Area } from '../../../src/domain/area/Area';
 import type { Campaign, CampaignHabit, CampaignTask, Phase } from '../../../src/domain/campaign/Campaign';
 
 export function phase(id: string, status: Phase['status'] = 'planning'): Phase {
@@ -35,6 +36,17 @@ export function campaign(overrides: Partial<Campaign> = {}): Campaign {
 		created: '2026-08-01',
 		phases: [],
 		tasks: [],
+		habits: [],
+		...overrides,
+	};
+}
+
+/** The Library's Archeion (ADR-017): an area with the reading skill and no habits yet. */
+export function area(overrides: Partial<Area> = {}): Area {
+	return {
+		path: '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md',
+		title: 'Archeion - Bibliotheke',
+		skills: ['lector'],
 		habits: [],
 		...overrides,
 	};

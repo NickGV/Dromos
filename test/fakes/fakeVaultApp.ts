@@ -3,7 +3,11 @@ import type { NoteMetadata } from './noteMetadata';
 /** What the metadata cache holds for one note in these tests; `null` is a note not cached yet. */
 export type FakeCache = (Partial<NoteMetadata> & { readonly frontmatter?: unknown }) | null;
 
-type FakeFile = { readonly path: string };
+/** A file as the repositories read it; `stat.ctime` gives a note's creation day when its frontmatter has none. */
+type FakeFile = { readonly path: string; readonly stat: { readonly ctime: number } };
+
+/** Noon, 2026-11-06, UTC: the creation time of every fake file. */
+const CREATED = Date.UTC(2026, 10, 6, 12);
 
 export interface FakeVaultOptions {
 	/** The text of each note, by path, as `vault.cachedRead` answers it. Nothing in the fake can write it. */
@@ -26,7 +30,7 @@ export interface FakeVaultOptions {
  * the cache's "changed" event. Cast it to the repository's constructor parameter.
  */
 export function fakeVaultApp(notes: Readonly<Record<string, FakeCache>>, options: FakeVaultOptions = {}) {
-	const files: FakeFile[] = Object.keys(notes).map((path) => ({ path }));
+	const files: FakeFile[] = Object.keys(notes).map((path) => ({ path, stat: { ctime: CREATED } }));
 	const caches = new Map<string, FakeCache>(Object.entries(notes));
 	const saved = new Map(Object.entries(notes).map(([path, cache]) => [path, savedCopy(cache?.frontmatter)]));
 	const bodies = new Map(Object.entries(options.bodies ?? {}));

@@ -104,7 +104,7 @@ export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 }
 
 /** `skill` is a single id or a list of ids; both read as a list of lowercase ids (like the tags), and an empty text or `null` is no skill. */
-function skillsFrom(value: unknown): string[] {
+export function skillsFrom(value: unknown): string[] {
 	const items = Array.isArray(value) ? value : [value];
 	return [...new Set(items.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim().toLowerCase()] : [])))];
 }
@@ -117,7 +117,11 @@ export function buildCompletedCampaigns(notes: readonly VaultNote[]): Campaign[]
 		.sort((left, right) => left.title.localeCompare(right.title));
 }
 
-function habitsFrom(value: unknown): CampaignHabit[] {
+/**
+ * The `habits[]` of a project `index` or of an area `archeion` (ADR-017), with one schema: an entry
+ * without a title is skipped, `days` defaults to 21, and the streak is unknown until Habitica answers.
+ */
+export function habitsFrom(value: unknown): CampaignHabit[] {
 	if (!Array.isArray(value)) return [];
 	return value.flatMap((entry: unknown) => {
 		const fields = asRecord(entry);

@@ -1,4 +1,5 @@
 // Vault-backed adapters: game state read from notes.
+export * from './areaMapper';
 export * from './bookMapper';
 export * from './briefingMapper';
 export * from './campaignLink';

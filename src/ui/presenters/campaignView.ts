@@ -131,7 +131,8 @@ function daysLeft(deadline: string | null, today: string): number | null {
 	return Number.isFinite(days) ? days : null;
 }
 
-function habitRow(habit: CampaignHabit, missing: boolean, { canSend, t }: CampaignViewContext): HabitRowView {
+/** One habit as `HabitRow` draws it, in a campaign card or beside the Library's desk (ADR-017). */
+export function habitRow(habit: CampaignHabit, missing: boolean, { canSend, t }: Pick<CampaignViewContext, 'canSend' | 't'>): HabitRowView {
 	const progress = habitProgress(missing ? 0 : (habit.streak ?? 0), habit.days);
 	const view = { done: progress.done, total: progress.total, percent: Math.round(progress.ratio * 100) };
 	const target = t('habit.target', { days: habit.days });

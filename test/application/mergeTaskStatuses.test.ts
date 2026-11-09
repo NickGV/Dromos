@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { mergeTaskStatuses } from '../../src/application/mergeTaskStatuses';
+import { mergeAreaStatuses, mergeTaskStatuses } from '../../src/application/mergeTaskStatuses';
 import type { TaskStatus } from '../../src/ports/TaskStatusSource';
-import { campaign, habit, phase, task } from '../domain/campaign/campaignFixtures';
+import { area, campaign, habit, phase, task } from '../domain/campaign/campaignFixtures';
 
 const statuses = (entries: Record<string, TaskStatus>): Map<string, TaskStatus> => new Map(Object.entries(entries));
 
@@ -109,5 +109,28 @@ describe('mergeTaskStatuses: subtasks (missions S2)', () => {
 		expect(merged?.tasks[0]).toMatchObject({ completed: false, checklist: { done: 2, total: 5 } });
 		expect(merged?.tasks[1]).toMatchObject({ completed: true, completedOn: '2026-11-01', checklist: { done: 3, total: 3 } });
 		expect(merged?.tasks[2]).not.toHaveProperty('checklist');
+	});
+});
+
+describe('mergeAreaStatuses: the habits of an area (ADR-017)', () => {
+	const PATH = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+
+	it('puts the streak of the daily on the habit, like a campaign habit', () => {
+		const bibliotheke = area({ path: PATH, habits: [habit('Leer', { habiticaId: 'd1' }), habit('Unsent'), habit('Unknown', { habiticaId: 'd9', streak: 4 })] });
+
+		const merged = mergeAreaStatuses([bibliotheke], statuses({ d1: { kind: 'daily', streak: 6 } }));
+
+		expect(merged.areas[0]?.habits.map((item) => item.streak)).toEqual([6, null, 4]);
+		expect(merged.areas[0]).toMatchObject({ path: PATH, title: 'Archeion - Bibliotheke', skills: ['lector'] });
+		expect(merged.issues).toEqual([]);
+	});
+
+	it('flags a habit whose daily is gone with the area path, and clears its streak', () => {
+		const bibliotheke = area({ path: PATH, habits: [habit('Leer', { habiticaId: 'd1', streak: 5 })] });
+
+		const merged = mergeAreaStatuses([bibliotheke], statuses({ d1: { kind: 'missing' } }));
+
+		expect(merged.areas[0]?.habits[0]?.streak).toBeNull();
+		expect(merged.issues).toEqual([{ campaignPath: PATH, taskTitle: 'Leer', kind: 'habitica-task-missing' }]);
 	});
 });

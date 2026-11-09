@@ -46,7 +46,7 @@ A skill unlocks when all its requirements are met, and an unlock is permanent.
 
 ## Send to Habitica
 
-A project task or habit with no `habitica_id` shows a **Send to Habitica** button. It creates the to-do or daily and writes its id back into the note, so the button disappears and repeating the click creates nothing.
+A project task or habit with no `habitica_id` shows a **Send to Habitica** button. It creates the to-do or daily and writes its id back into the note, so the button disappears and repeating the click creates nothing. A habit beside the Library's desk, declared in an area note (`type: archeion`, ADR-017), works the same way: the same daily, tags and requests as a campaign habit, and only its `habitica_id` is written into the area note.
 
 Two messages name an id, and both mean the task already exists in Habitica:
 
@@ -55,7 +55,7 @@ Two messages name an id, and both mean the task already exists in Habitica:
 | The id could not be saved in the note | Write it yourself as `habitica_id`. Sending again would create a second task |
 | A duplicate was created | Delete the task with that id in Habitica. This happens when the note was linked at the same moment from elsewhere |
 
-The notes of a created to-do hold the campaign's title and an `obsidian://` link made of your vault's name and the note's path. They go only to your own account.
+The notes of a created to-do or daily hold the title of its campaign (or of its area) and an `obsidian://` link made of your vault's name and the note's path. They go only to your own account.
 
 ## Start reading a book
 
@@ -75,8 +75,8 @@ Only when the tab opens and when you select **Sync**. Nothing runs on a timer, a
 
 | Action | Requests |
 |---|---|
-| Opening the tab or selecting **Sync** | About eight reads, plus up to 10 for linked tasks missing from the lists |
-| **Send to Habitica** | One write for the task. With skills, one read of your tags and one write for each that does not exist |
+| Opening the tab or selecting **Sync** | About eight reads, plus up to 10 for linked tasks missing from the lists. The habits beside the Library's desk are looked up in the same sync and share that cap of 10; opening the Library sends nothing |
+| **Send to Habitica** | One write for the task. With skills, one read of your tags and one write for each that does not exist. The same for a habit beside the Library's desk |
 | **Empezar a leer** | One read of your tags, one write for `skill/lector` if it does not exist, and one write for the to-do. None for a book that already has a `habitica_id` |
 | **Terminar** | None |
 
