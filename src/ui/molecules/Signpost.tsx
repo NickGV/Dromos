@@ -1,13 +1,14 @@
 import type { MessageKey } from '../../i18n';
 import { useT } from '../i18n';
 
-/** The screens inside the Dromos view (game-ui S1). */
-export type DromosScreen = 'home' | 'campaigns' | 'skills';
+/** The screens inside the Dromos view (game-ui S1), the library added by M7 (S5). */
+export type DromosScreen = 'home' | 'campaigns' | 'skills' | 'library';
 
 const SCREENS: readonly { readonly id: DromosScreen; readonly label: MessageKey }[] = [
 	{ id: 'home', label: 'nav.home' },
 	{ id: 'campaigns', label: 'nav.campaigns' },
 	{ id: 'skills', label: 'nav.skills' },
+	{ id: 'library', label: 'nav.library' },
 ];
 
 export interface SignpostProps {
@@ -19,8 +20,9 @@ export interface SignpostProps {
 }
 
 /**
- * The signpost inside the scene (S1): its four planks always in the same order, one per screen
- * and then the settings (game-ui S14), so a plank never moves under the pointer. The current
+ * The signpost inside the scene (S1): its five planks always in the same order, one per screen
+ * (the library fourth, M7 S5) and then the settings (game-ui S14), so a plank never moves under
+ * the pointer. The stylesheet hangs them on both sides of the post, so five fit on a phone. The current
  * screen's plank is burnt into the wood and carries `aria-current="page"`; its name is its label.
  * The others are named "Go to X", so the visible label is part of the accessible name.
  */

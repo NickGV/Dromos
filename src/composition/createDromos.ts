@@ -10,11 +10,12 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
-import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
+import { CampaignState, FinishReading, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
+import { readingOutcomeView, readingTodo } from '../ui/presenters/readingView';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
 
 /** What the plugin registers, built once per plugin load. */
@@ -63,6 +64,20 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		tags: new HabiticaTagCatalog(habitica),
 		// Sent to the user's own Habitica account inside the task's notes.
 		noteLink: (path: string) => obsidianNoteUri(plugin.app.vault.getName(), path),
+	};
+	const books = new VaultBookRepository(plugin.app);
+	const startReading = new StartReading({
+		repository: books,
+		creator: sendDeps.creator,
+		tags: sendDeps.tags,
+		clock,
+		readingTodo: (book) => readingTodo(book, createTranslator(settings.language), sendDeps.noteLink),
+	});
+	const finishReading = new FinishReading({ repository: books, clock });
+	// Opens a note in another tab; the campaigns' "Open note" and the book card's "Abrir la nota".
+	const openNote = (path: string): void => {
+		const file = plugin.app.vault.getFileByPath(path);
+		if (file) void plugin.app.workspace.getLeaf('tab').openFile(file);
 	};
 	const gameState = new GameState();
 	const syncGame = new SyncGame({
@@ -118,10 +133,16 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				linkHabit: new LinkHabitToCampaign(sendDeps),
 				campaignSnapshot: () => campaignState.snapshot(),
 				staleAfterDays: () => settings.staleAfterDays,
-				openNote: (path) => {
-					const file = plugin.app.vault.getFileByPath(path);
-					if (file) void plugin.app.workspace.getLeaf('tab').openFile(file);
-				},
+				openNote,
+				clock,
+			},
+			// "Empezar a leer" and "Terminar" (M7 S3, S4) toast their outcome; the card reads the books again after.
+			library: {
+				loadLibrary: new LoadLibrary({ books }),
+				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),
+				finishReading: async (path) => showNotice(readingOutcomeView(await finishReading.execute(path), createTranslator(settings.language)).message),
+				openCard: createOpenCardModal(plugin.app),
+				openNote,
 				clock,
 			},
 		},

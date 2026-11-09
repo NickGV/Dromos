@@ -7,6 +7,7 @@ export * from './LinkTaskToCampaign';
 export * from './FinishReading';
 export * from './mergeTaskStatuses';
 export * from './LoadHome';
+export * from './LoadLibrary';
 export * from './RequestBriefing';
 export * from './QuestState';
 export * from './SyncCampaigns';

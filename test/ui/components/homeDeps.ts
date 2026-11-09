@@ -2,6 +2,7 @@ import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src
 import { createTranslator, type Language } from '../../../src/i18n';
 import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
 import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
+import type { LibraryDeps } from '../../../src/ui/containers/LibraryPanel';
 import { InMemoryDeviceStore } from '../../fakes/InMemoryDeviceStore';
 
 export const noop = (): void => undefined;
@@ -33,6 +34,12 @@ export function homeDeps(
 		openNote: noop,
 		clock,
 	};
+	const library: LibraryDeps = {
+		loadLibrary: { execute: never },
+		openCard: () => ({ show: noop, close: noop }),
+		openNote: noop,
+		clock,
+	};
 	return {
 		loadHome: { execute: never },
 		syncQuests: { execute: never },
@@ -49,6 +56,7 @@ export function homeDeps(
 		clock,
 		deviceStore: new InMemoryDeviceStore(),
 		campaigns,
+		library,
 		translator: () => createTranslator(language),
 		language: () => language,
 		subscribeSettings: () => noop,
