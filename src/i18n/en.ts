@@ -249,6 +249,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'task.sending': 'Sending…',
 
 	'link.linked': 'Task sent to Habitica.',
+	'link.openInObsidian': 'Open in Obsidian',
 	'link.alreadyLinked': 'That task is already in Habitica.',
 	'link.notFound': 'The task was not found in the note. Sync and try again.',
 	'link.notAProject': 'Only project tasks are sent to Habitica.',

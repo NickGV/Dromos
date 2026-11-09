@@ -10,7 +10,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
@@ -63,8 +63,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		repository: campaignRepository,
 		creator: new HabiticaTaskCreator(habitica),
 		tags: new HabiticaTagCatalog(habitica),
-		// Sent to the user's own Habitica account inside the task's notes.
-		noteLink: (path: string) => obsidianNoteUri(plugin.app.vault.getName(), path),
+		// Sent to the user's own Habitica account inside the task's notes, as a Markdown link Habitica makes clickable.
+		noteLink: (path: string) => obsidianNoteLink(createTranslator(settings.language)('link.openInObsidian'), plugin.app.vault.getName(), path),
 	};
 	const books = new VaultBookRepository(plugin.app);
 	const startReading = new StartReading({

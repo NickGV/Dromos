@@ -55,13 +55,13 @@ Two messages name an id, and both mean the task already exists in Habitica:
 | The id could not be saved in the note | Write it yourself as `habitica_id`. Sending again would create a second task |
 | A duplicate was created | Delete the task with that id in Habitica. This happens when the note was linked at the same moment from elsewhere |
 
-The notes of a created to-do or daily hold the title of its campaign (or of its area) and an `obsidian://` link made of your vault's name and the note's path. They go only to your own account.
+The notes of a created to-do or daily hold the title of its campaign (or of its area) and a Markdown link, **Open in Obsidian** (in the language of the settings), to an `obsidian://` address made of your vault's name and the note's path. Habitica, on the web and on Android, makes only web and mail addresses clickable on their own, so a bare `obsidian://` address, as in the tasks sent before 0.12.1, stays plain text; the Markdown link opens the note. They go only to your own account.
 
 ## Start reading a book
 
 A pending book (`status: planning`) offers **Empezar a leer** on its card in the library. It creates one reading to-do per book, then writes `status: active`, `started` (today) and its `habitica_id` into the book note:
 
-- The title is "Leer: " and the book's title; the notes hold an `obsidian://` link to the book note.
+- The title is "Leer: " and the book's title; the notes hold the link to the book note, **Abrir en Obsidian**.
 - It carries the `skill/lector` tag, created if it does not exist yet, so completing it counts for **lector** like any other to-do.
 - Its checklist has five unchecked items: "Terminar de leer" and the four questions of the reflection.
 
