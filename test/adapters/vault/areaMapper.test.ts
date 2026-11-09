@@ -22,6 +22,10 @@ describe('isAreaNote (ADR-017)', () => {
 		for (const type of ['index', 'research', 'study-session', 'book', undefined]) expect(isAreaNote(archeion({ type }))).toBe(false);
 		expect(isAreaNote(note(BIBLIOTHEKE, undefined))).toBe(false);
 	});
+
+	it('rejects the archeion template in the templates folder (F1)', () => {
+		expect(isAreaNote(archeion({ title: '{{title}}', skill: [] }, 'Templates/archeion.md'))).toBe(false);
+	});
 });
 
 describe('areaFromNote (ADR-017)', () => {

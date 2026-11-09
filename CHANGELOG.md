@@ -8,6 +8,10 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 - **Habits** in the Library, right after the reading desk: the habits an area note (`type: archeion`) declares, with the same schema as a campaign's, whose skill is `lector`, their own or else the area's. Each shows its Habitica streak over its target and, until it is sent, **Send to Habitica**, which creates its daily and writes only its `habitica_id` into the area note. Their streaks come with the campaigns' sync, so opening the Library sends no request.
 
+### Fixed
+
+- The Library no longer shows the book template, `Templates/book.md`, as a book to read with no shelf: notes in the `Templates` folder are never books or areas.
+
 ## [0.11.0] - 2026-11-09
 
 ### Added

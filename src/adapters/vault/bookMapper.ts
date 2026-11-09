@@ -1,6 +1,7 @@
 import { compareBooks, REFLECTION_SECTIONS, type Book, type LifecycleStatus, type ReflectionSection } from '../../domain';
 import { asRecord, dateOrNull, fileName, nonEmpty, oneOf } from './frontmatterFields';
 import { habiticaIdFrom } from './habiticaId';
+import { isTemplatePath } from './templateNote';
 
 /** Where a block starts, as the metadata cache records it; only the line is read. */
 interface CachedPosition {
@@ -39,9 +40,9 @@ const DEFAULT_STATUS: LifecycleStatus = 'planning';
  */
 const CONTENT_TYPES: ReadonlySet<string> = new Set(['paragraph', 'list', 'blockquote', 'callout', 'table', 'code', 'math', 'html', 'element']);
 
-/** True for a `type: book` note, whatever its folder (ADR-016). */
+/** True for a `type: book` note in any folder but the templates folder (ADR-016). */
 export function isBookNote(note: BookNote): boolean {
-	return asRecord(note.frontmatter).type === 'book';
+	return asRecord(note.frontmatter).type === 'book' && !isTemplatePath(note.path);
 }
 
 /** Maps one book note. Missing or wrongly typed fields fall back to defaults, never `NaN` and never a throw. */

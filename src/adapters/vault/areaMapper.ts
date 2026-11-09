@@ -1,11 +1,12 @@
 import type { Area } from '../../domain';
 import { habitsFrom, skillsFrom, type VaultNote } from './campaignMapper';
 import { asRecord, fileName, nonEmpty } from './frontmatterFields';
+import { isTemplatePath } from './templateNote';
 
-/** True for an area hub (ADR-017): an `archeion` note whose `status` is not `archived`; a missing status counts as not archived. */
+/** True for an area hub (ADR-017): an `archeion` note whose `status` is not `archived` (a missing status counts as not archived), outside the templates folder. */
 export function isAreaNote(note: VaultNote): boolean {
 	const fields = asRecord(note.frontmatter);
-	return fields.type === 'archeion' && fields.status !== 'archived';
+	return fields.type === 'archeion' && fields.status !== 'archived' && !isTemplatePath(note.path);
 }
 
 /** Maps one area note: its title (or the file name), its skills and its habits, read as a campaign's are. Never throws. */
