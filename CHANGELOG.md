@@ -2,6 +2,18 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.11.0] - 2026-11-09
+
+### Added
+
+- **Library**, a new screen on the signpost: a library of papyrus scrolls made from the `type: book` notes of your vault. The reading room shows the books you are reading on a desk and one alcove per `shelf`; an alcove opens its shelf, with its books in rows (reading, to read, finished); a scroll opens its card.
+- The book card shows the title, author, shelf, state and dates, and the four parts of the reflection with what you wrote in each, read-only and rendered as the note; a link in it opens the note it points to. A finished book is sealed in clay once all four parts have text; until then it says "Reflection missing".
+- **Start reading** on a book to read creates its reading to-do in Habitica, with the `skill/lector` tag and a checklist (finish reading, then the four parts of the reflection), and marks the book as being read. **Finish** marks it finished; the to-do stays yours to complete in Habitica. **Open the note** takes you to the note to write the reflection.
+
+### Changed
+
+- The signpost has a fifth plank, **Library**, and its planks now hang on both sides of the post.
+
 ## [0.10.1] - 2026-11-06
 
 ### Fixed
