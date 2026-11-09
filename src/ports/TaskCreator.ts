@@ -4,6 +4,8 @@ export interface NewTodo {
 	readonly notes: string;
 	/** Habitica tag ids to put on the to-do; none when absent or empty. */
 	readonly tags?: readonly string[];
+	/** Checklist items, in order, all unchecked; none when absent or empty. */
+	readonly checklist?: readonly string[];
 }
 
 /** A daily to create in Habitica: the habit a campaign asks to build. */

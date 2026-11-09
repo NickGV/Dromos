@@ -22,6 +22,7 @@ export class HabiticaTaskCreator implements TaskCreator {
 					type,
 					notes: task.notes,
 					...(task.tags && task.tags.length > 0 ? { tags: task.tags } : {}),
+					...(task.checklist && task.checklist.length > 0 ? { checklist: task.checklist.map((text) => ({ text, completed: false })) } : {}),
 				}),
 			);
 			const id = created.id ?? created._id;

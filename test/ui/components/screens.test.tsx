@@ -5,7 +5,7 @@ import { createTranslator } from '../../../src/i18n';
 import { Landscape } from '../../../src/ui/atoms/Landscape';
 import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { I18nProvider } from '../../../src/ui/i18n';
-import { Signpost } from '../../../src/ui/molecules/Signpost';
+import { Signpost, type DromosScreen } from '../../../src/ui/molecules/Signpost';
 import { ScreenHeader } from '../../../src/ui/organisms/ScreenHeader';
 import { IDLE_QUESTS, homeDeps, noop } from './homeDeps';
 
@@ -29,31 +29,41 @@ const at = (iso: string): Date => new Date(iso);
 const quests = (status: QuestSnapshot['status'], lastSyncedAt: Date | null = at('2026-11-03T12:00:00Z')): QuestSnapshot => ({ quests: [], lastSyncedAt, status });
 
 describe('Signpost', () => {
-	it('always shows its four planks in a fixed order, the one of the current screen burnt in and marked as the page (game-ui S14)', () => {
-		const html = (current: 'home' | 'campaigns' | 'skills') => renderToStaticMarkup(<Signpost current={current} onGo={noop} onSettings={noop} />);
+	it('always shows its five planks in a fixed order, the one of the current screen burnt in and marked as the page (game-ui S14, M7 S5)', () => {
+		const html = (current: DromosScreen) => renderToStaticMarkup(<Signpost current={current} onGo={noop} onSettings={noop} />);
 
 		expect(planks(html('home'))).toEqual([
 			['Path', 'Path'],
 			['Go to Campaigns', 'Campaigns'],
 			['Go to Skills', 'Skills'],
+			['Go to Library', 'Library'],
 			['Go to Settings', 'Settings'],
 		]);
 		expect(planks(html('campaigns'))).toEqual([
 			['Go to Path', 'Path'],
 			['Campaigns', 'Campaigns'],
 			['Go to Skills', 'Skills'],
+			['Go to Library', 'Library'],
 			['Go to Settings', 'Settings'],
 		]);
-		expect(planks(html('skills')).map(([, text]) => text)).toEqual(['Path', 'Campaigns', 'Skills', 'Settings']);
-		expect([currentPlank(html('home')), currentPlank(html('campaigns')), currentPlank(html('skills'))]).toEqual([['Path'], ['Campaigns'], ['Skills']]);
+		expect(planks(html('library'))).toEqual([
+			['Go to Path', 'Path'],
+			['Go to Campaigns', 'Campaigns'],
+			['Go to Skills', 'Skills'],
+			['Library', 'Library'],
+			['Go to Settings', 'Settings'],
+		]);
+		expect(planks(html('skills')).map(([, text]) => text)).toEqual(['Path', 'Campaigns', 'Skills', 'Library', 'Settings']);
+		expect([currentPlank(html('home')), currentPlank(html('campaigns')), currentPlank(html('skills')), currentPlank(html('library'))]).toEqual([['Path'], ['Campaigns'], ['Skills'], ['Library']]);
 		expect(html('home').match(/aria-current/g)).toHaveLength(1);
+		expect(html('library').match(/aria-current/g)).toHaveLength(1);
 	});
 
 	it('keeps the other planks named "Go to X" as before, and no plank disabled', () => {
 		const html = renderToStaticMarkup(<Signpost current="skills" onGo={noop} onSettings={noop} />);
 
 		expect(html).not.toContain('disabled');
-		expect(planks(html).map(([name]) => name)).toEqual(['Go to Path', 'Go to Campaigns', 'Skills', 'Go to Settings']);
+		expect(planks(html).map(([name]) => name)).toEqual(['Go to Path', 'Go to Campaigns', 'Skills', 'Go to Library', 'Go to Settings']);
 	});
 
 	it('speaks Spanish when the interface does', () => {
@@ -66,25 +76,26 @@ describe('Signpost', () => {
 			['Ir a Camino', 'Camino'],
 			['Campañas', 'Campañas'],
 			['Ir a Skills', 'Skills'],
+			['Ir a Biblioteca', 'Biblioteca'],
 			['Ir a Ajustes', 'Ajustes'],
 		]);
 	});
 
 	it('hides the settings plank where the settings cannot be opened', () => {
-		expect(planks(renderToStaticMarkup(<Signpost current="home" onGo={noop} onSettings={null} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills']);
+		expect(planks(renderToStaticMarkup(<Signpost current="home" onGo={noop} onSettings={null} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library']);
 	});
 
 	it('is a navigation landmark of buttons', () => {
 		const html = renderToStaticMarkup(<Signpost current="home" onGo={noop} onSettings={noop} />);
 		expect(html).toMatch(/^<nav[^>]*class="dromos-signpost"[^>]*aria-label="Sections"/);
-		expect(html.match(/<button type="button"/g)).toHaveLength(4);
+		expect(html.match(/<button type="button"/g)).toHaveLength(5);
 	});
 });
 
 describe('HomeScreen signpost', () => {
 	it('offers the settings plank only when the settings can be opened', () => {
-		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills']);
-		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps({ openSettings: noop })} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Settings']);
+		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library']);
+		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps({ openSettings: noop })} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library', 'Go to Settings']);
 		expect(currentPlank(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="campaigns" />))).toEqual(['Campaigns']);
 	});
 
@@ -141,6 +152,13 @@ describe('ScreenHeader', () => {
 		expect(html).not.toContain('·');
 	});
 
+	it('offers a way back above the title when given one (M7 S5), and none otherwise', () => {
+		const html = renderToStaticMarkup(<ScreenHeader title="Teología · 4" character={null} back={{ label: 'Library', ariaLabel: 'Back to the library', onBack: noop }} />);
+
+		expect(html).toMatch(/^<header[^>]*><button type="button" class="dromos-screen-back" aria-label="Back to the library"><span aria-hidden="true">←<\/span>Library<\/button><h2[^>]*>Teología · 4<\/h2>/);
+		expect(renderToStaticMarkup(<ScreenHeader title="Skills" character={null} />)).not.toContain('<button');
+	});
+
 	it('is the heading that takes the focus when the screen opens', () => {
 		const html = renderToStaticMarkup(<ScreenHeader title="Skills" character={null} />);
 		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"/);
@@ -172,6 +190,24 @@ describe('HomeScreen screens', () => {
 		expect(skills).toContain('dromos-skills');
 		expect(skills).not.toContain('dromos-quests');
 		expect(skills).not.toContain('dromos-campaigns');
+	});
+
+	it('opens the library with its header card, its plank burnt in, and nothing of the other screens (M7 S5)', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="library" />);
+
+		expect(currentPlank(html)).toEqual(['Library']);
+		expect(firstInMain(html)).toMatch(/^<header[^>]*class="dromos-panel dromos-screen-header"[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Library<\/h2>/);
+		expect(html).toContain('Opening the library…');
+		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-skills', 'dromos-chronicle']) expect(html).not.toContain(section);
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ language: 'es' })} initialScreen="library" />)).toMatch(/<h2[^>]*>Biblioteca<\/h2>/);
+	});
+
+	it('keeps the library off the other screens', () => {
+		for (const screen of ['home', 'campaigns', 'skills'] as const) expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).not.toContain('dromos-library');
+	});
+
+	it('draws the short scene on the library screen, as on the others', () => {
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="library" />)).toContain('class="dromos-scene"');
 	});
 
 	it('draws the tall scene on the home screen only', () => {

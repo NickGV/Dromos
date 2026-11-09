@@ -33,6 +33,7 @@ import { walkerView } from '../presenters/walkerView';
 import { openLetter, storedLetterMark } from './briefingLetter';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
+import { LibraryPanel, type LibraryDeps } from './LibraryPanel';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -63,6 +64,8 @@ export interface HomeScreenDeps {
 	/** This device's own small state: the mark of the last letter of Esdras opened here (game-ui S13), and what it last saw of the game (S15). */
 	readonly deviceStore: DeviceStore;
 	readonly campaigns: CampaignsDeps;
+	/** The library screen (M7 S5): the books, the card and its actions. */
+	readonly library: LibraryDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
 	readonly translator: () => Translator;
 	/** The interface language, for the `lang` of the screen; read on every render. */
@@ -104,9 +107,10 @@ let viewCount = 0;
  * when it finishes, the character is read again because the sync rewrites its note. Each run
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  *
- * It holds the three screens of the view (game-ui S1): home, campaigns and skills, under one
- * scene with a signpost. Changing screen, campaign tab or skill spends no request: they are only
- * state here, and the campaigns panel stays mounted in its slot on every screen.
+ * It holds the four screens of the view (game-ui S1): home, campaigns, skills and the library
+ * (M7 S5), under one scene with a signpost. Changing screen, campaign tab or skill spends no
+ * request: they are only state here, and the campaigns panel stays mounted in its slot on every
+ * screen. The library reads the vault each time its screen opens.
  * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
  * here, and the card, the ribbon and the panel are drawn from the step it is at.
  *
@@ -321,7 +325,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					<CampaignsPanel
 						deps={deps.campaigns}
 						syncKey={syncKey}
-						hidden={screen === 'skills'}
+						hidden={screen === 'skills' || screen === 'library'}
 						onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
 						screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign, character: headerCharacter(character, t) } : undefined}
 					/>
@@ -340,6 +344,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					{screen === 'skills' ? (
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
+					{/* The library draws its own header card: on a shelf it names the shelf and leads back. */}
+					{screen === 'library' ? <LibraryPanel deps={deps.library} character={headerCharacter(character, t)} language={language} period={dayPeriod(deps.clock.now())} /> : null}
 				</main>
 				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
 				<p className="dromos-visually-hidden dromos-since-news" role="status">

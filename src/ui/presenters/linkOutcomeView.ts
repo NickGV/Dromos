@@ -19,7 +19,7 @@ export function linkOutcomeView(outcome: LinkOutcome, t: Translator): LinkOutcom
 		case 'not-a-project':
 			return { tone: 'warning', message: t('link.notAProject') };
 		case 'habitica-failed':
-			return failure(outcome.error, t);
+			return habiticaFailureView(outcome.error, t);
 		case 'duplicate':
 			return { tone: 'warning', message: t('link.duplicate', { id: outcome.habiticaId }) };
 		case 'write-failed':
@@ -27,7 +27,8 @@ export function linkOutcomeView(outcome: LinkOutcome, t: Translator): LinkOutcom
 	}
 }
 
-function failure(error: Extract<LinkOutcome, { kind: 'habitica-failed' }>['error'], t: Translator): LinkOutcomeView {
+/** A Habitica failure while sending a task, in the same words wherever Dromos sends one. */
+export function habiticaFailureView(error: Extract<LinkOutcome, { kind: 'habitica-failed' }>['error'], t: Translator): LinkOutcomeView {
 	switch (error) {
 		case 'Offline':
 			return { tone: 'warning', message: t('link.offline') };

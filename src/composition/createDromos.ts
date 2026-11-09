@@ -10,11 +10,12 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
-import { VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, QuestState, RequestBriefing, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteUri, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
+import { CampaignState, FinishReading, GameState, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
+import { readingOutcomeView, readingTodo } from '../ui/presenters/readingView';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
 
 /** What the plugin registers, built once per plugin load. */
@@ -64,6 +65,22 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		// Sent to the user's own Habitica account inside the task's notes.
 		noteLink: (path: string) => obsidianNoteUri(plugin.app.vault.getName(), path),
 	};
+	const books = new VaultBookRepository(plugin.app);
+	const startReading = new StartReading({
+		repository: books,
+		creator: sendDeps.creator,
+		tags: sendDeps.tags,
+		clock,
+		readingTodo: (book) => readingTodo(book, createTranslator(settings.language), sendDeps.noteLink),
+	});
+	const finishReading = new FinishReading({ repository: books, clock });
+	// One renderer for the briefing and the book card: both draw note text as Obsidian does.
+	const renderMarkdown = createMarkdownRender(plugin.app);
+	// Opens a note in another tab; the campaigns' "Open note" and the book card's "Abrir la nota".
+	const openNote = (path: string): void => {
+		const file = plugin.app.vault.getFileByPath(path);
+		if (file) void plugin.app.workspace.getLeaf('tab').openFile(file);
+	};
 	const gameState = new GameState();
 	const syncGame = new SyncGame({
 		skills: new VaultSkillRepository(plugin.app, vaultFolder),
@@ -86,7 +103,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,
-			renderMarkdown: createMarkdownRender(plugin.app),
+			renderMarkdown,
 			renderIcon,
 			// The job runs in OpenCode on the desktop: on a phone there is nowhere to paste the command.
 			requestBriefing: isDesktopApp() ? new RequestBriefing(new SystemClipboard()) : null,
@@ -118,10 +135,18 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				linkHabit: new LinkHabitToCampaign(sendDeps),
 				campaignSnapshot: () => campaignState.snapshot(),
 				staleAfterDays: () => settings.staleAfterDays,
-				openNote: (path) => {
-					const file = plugin.app.vault.getFileByPath(path);
-					if (file) void plugin.app.workspace.getLeaf('tab').openFile(file);
-				},
+				openNote,
+				clock,
+			},
+			// "Empezar a leer" and "Terminar" (M7 S3, S4) toast their outcome; the card reads the books again after.
+			library: {
+				loadLibrary: new LoadLibrary({ books }),
+				readReflection: new ReadReflection({ books }),
+				renderMarkdown,
+				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),
+				finishReading: async (path) => showNotice(readingOutcomeView(await finishReading.execute(path), createTranslator(settings.language)).message),
+				openCard: createOpenCardModal(plugin.app),
+				openNote,
 				clock,
 			},
 		},

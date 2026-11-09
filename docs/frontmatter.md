@@ -12,6 +12,7 @@ Every note Dromos uses is plain Markdown with YAML frontmatter. A missing or wro
 | `Skills/<id>.md` | [Skill](#skill) |
 | `README.md` of a project | [Project](#project) |
 | A research and its sessions | [Research](#research) |
+| A book, `type: book` | [Book](#book) |
 | `Ledger/YYYY-MM.md` | [Ledger](#ledger) |
 | `Briefing.md` | [Briefing](#briefing) |
 | `Rules.md` | [Changing the rules](../README.md#changing-the-rules) |
@@ -130,6 +131,47 @@ created: 2026-10-30
 ```
 
 A session counts as done with `status: completed`. Dromos only reads these notes.
+
+## Book
+
+A note with `type: book`, wherever it lives. Esdras creates it in `03 - Areas/Bibliotheke/` as `<Title> - <Author>.md`, from `Templates/book.md`. After that, Dromos writes only `status`, `started`, `finished` and `habitica_id`; the body is yours.
+
+```yaml
+---
+type: book
+title: "Klara y el Sol"
+author: "Kazuo Ishiguro"
+shelf: "Ficción"
+status: active
+started: 2026-11-07
+habitica_id: 3f2a1c8e-...
+created: 2026-11-06
+---
+```
+
+| Field | Written by | Rule | Default |
+|---|---|---|---|
+| `title` | Esdras | The title alone, without the author | The file name |
+| `author` | Esdras | | None |
+| `shelf` | Esdras, with you | One shelf, written as it should read ("Teología"). Shelves that differ only in case are one shelf, named as its first book by title writes it | No shelf ("Sin estante"), listed last |
+| `status` | Esdras creates it `planning`, or `completed` for a book you already read; then Dromos | `planning` pending, `active` reading, `paused` paused, `completed` finished. `archived` has no use yet | `planning` |
+| `started`, `finished` | Dromos, when you start and finish the book | `YYYY-MM-DD` | None |
+| `habitica_id` | Dromos, when you start the book | The reading to-do in Habitica. Dromos never replaces one that is already there | None |
+
+### The reflection
+
+Four sections, with these headings at any level, in this order:
+
+1. `## De qué trata`
+2. `## Qué me quedó`
+3. `## Qué cambia en mí`
+4. `## Con qué lo conecto`
+
+A section runs from its heading to the next heading of the same or a higher level (`##` or `#` after a `##`), so its sub-headings belong to it: a `### Cita` with its quote under `## Qué me quedó` is part of that section. A section has text when a paragraph, list, quote, callout, table, code block, math or HTML sits in it. A comment (`%% %%`) or a horizontal rule alone does not count. A missing heading, or one spelled another way, is an empty section; if a heading appears twice, the first one counts. Whether a section has text, and so the seal, comes from Obsidian's cache of the note, never the text itself, so the other sections of the note never count.
+
+The book card shows what you wrote in each section, read-only and rendered as the note (links open the note they point to), but the seal still comes from the headings in the cache: a section the cache does not count says "Sin escribir todavía" whatever it holds.
+
+**A book is sealed** when its `status` is `completed` and all four sections have text. A `completed` book with any section empty shows as missing its reflection ("Falta la reflexión"), not sealed.
 
 ## Ledger
 

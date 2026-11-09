@@ -34,6 +34,33 @@ describe('HabiticaTaskCreator.createTodo', () => {
 		expect(JSON.parse(plain.http.requests[0]?.body ?? '{}')).toEqual({ text: 'Task', type: 'todo', notes: '' });
 	});
 
+	it('sends each checklist item as an unchecked Habitica checklist entry, in order', async () => {
+		const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Leer: Klara y el Sol', type: 'todo' } }));
+
+		await creator.createTodo({ title: 'Leer: Klara y el Sol', notes: 'Dromos', tags: ['t-lector'], checklist: ['Terminar de leer', 'De qué trata'] });
+
+		expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({
+			text: 'Leer: Klara y el Sol',
+			type: 'todo',
+			notes: 'Dromos',
+			tags: ['t-lector'],
+			checklist: [
+				{ text: 'Terminar de leer', completed: false },
+				{ text: 'De qué trata', completed: false },
+			],
+		});
+	});
+
+	it('sends no checklist key when the to-do has none or an empty one, so the body is the same as before checklists', async () => {
+		for (const todo of [{ title: 'Task', notes: 'Dromos · Kairos' }, { title: 'Task', notes: 'Dromos · Kairos', checklist: [] }]) {
+			const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Task', type: 'todo' } }));
+
+			await creator.createTodo(todo);
+
+			expect(http.requests[0]?.body).toBe(JSON.stringify({ text: 'Task', type: 'todo', notes: 'Dromos · Kairos' }));
+		}
+	});
+
 	it('reads the id from _id when id is missing', async () => {
 		const { creator } = creatorWith(respond(201, { success: true, data: { _id: ID, text: 'Task', type: 'todo' } }));
 
