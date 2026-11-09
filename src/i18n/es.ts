@@ -250,6 +250,7 @@ export const es = {
 	'task.sending': 'Enviando…',
 
 	'link.linked': 'Tarea enviada a Habitica.',
+	'link.openInObsidian': 'Abrir en Obsidian',
 	'link.alreadyLinked': 'Esa tarea ya está en Habitica.',
 	'link.notFound': 'No se encontró la tarea en la nota. Sincroniza e inténtalo de nuevo.',
 	'link.notAProject': 'Solo las tareas de proyectos se envían a Habitica.',

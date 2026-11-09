@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- The link to the note in the notes of a task Dromos sends to Habitica can be opened: it is now a Markdown link, **Open in Obsidian**, because Habitica showed the bare `obsidian://` address as plain text, on the web and on Android. Tasks sent before keep the old text.
+
 ## [0.12.0] - 2026-11-09
 
 ### Added
