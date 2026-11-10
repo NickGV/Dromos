@@ -35,6 +35,14 @@ describe('StatBadge draws a stat as six pips (game-ui S3)', () => {
 		expect(html).toMatch(/<span class="dromos-stat-label" aria-hidden="true">Strength<\/span>/);
 	});
 
+	it("draws the plaque's cell with the short label, the full name and value kept as its name and its tooltip (S5)", () => {
+		const html = renderToStaticMarkup(<StatBadge stat={view.stats[0]!} compact />);
+
+		expect(html).toMatch(/^<div class="dromos-stat is-compact" title="Strength 3"><span class="dromos-stat-label" aria-hidden="true">STR<\/span><span class="dromos-stat-pips" role="img" aria-label="Strength 3">/);
+		expect(html.match(/class="dromos-pip is-filled"/g)).toHaveLength(3);
+		expect(html).not.toContain('>Strength<');
+	});
+
 	it('shows a value above six as its number, without pips', () => {
 		const html = renderToStaticMarkup(<StatBadge stat={view.stats[1]!} />);
 
@@ -61,15 +69,40 @@ describe('CharacterCard after the design (game-ui S3)', () => {
 		expect(html).toMatch(/<span class="dromos-xp-text">240 \/ 520 XP<\/span><span class="dromos-xp-next">Level 4 in 280 XP<\/span>/);
 	});
 
-	it('draws the six stats in their grid', () => {
-		expect(card().match(/role="img" aria-label="(Strength|Vitality|Intelligence|Wisdom|Spirit|Discipline) \d+"/g)).toHaveLength(6);
+	it("draws the six stats under the bar in the plaque's compact grid, in the card's order (S5)", () => {
+		const html = card();
+		const stats = /<div class="dromos-stats is-compact">(.*?)<\/div><p>sync line/.exec(html)?.[1] ?? '';
+
+		expect([...stats.matchAll(/<span class="dromos-stat-label" aria-hidden="true">(\w+)<\/span><span class="dromos-stat-pips" role="img" aria-label="([^"]+)"/g)].map((match) => [match[1], match[2]])).toEqual([
+			['STR', 'Strength 3'],
+			['VIT', 'Vitality 8'],
+			['INT', 'Intelligence 4'],
+			['WIS', 'Wisdom 1'],
+			['SPI', 'Spirit 0'],
+			['DIS', 'Discipline 6'],
+		]);
+		expect(html.indexOf('dromos-stats')).toBeGreaterThan(html.indexOf('dromos-xp-next'));
 	});
 
 	it('keeps the sync line at its foot and the name as the heading that takes the focus', () => {
 		const html = card();
 
+		expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character" aria-label="Character">/);
 		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"[^>]*>Nicolás<\/h2>/);
 		expect(html.endsWith('<p>sync line</p></section>')).toBe(true);
+	});
+
+	it('puts the skills part between the stats and the sync line (S3)', () => {
+		const html = renderToStaticMarkup(<CharacterCard view={view} footer={<p>sync line</p>} skills={<p>skills</p>} />);
+
+		expect(html).toMatch(/<div class="dromos-stats is-compact">.*<\/div><p>skills<\/p><p>sync line<\/p><\/section>$/);
+	});
+
+	it('keeps the name a heading on the other screens, but not the one their screen focuses', () => {
+		const html = renderToStaticMarkup(<CharacterCard view={view} footer={null} heading={false} />);
+
+		expect(html).toContain('<h2 class="dromos-character-name">Nicolás</h2>');
+		expect(html).not.toContain('data-screen-heading');
 	});
 });
 
@@ -107,12 +140,42 @@ describe('XpBar', () => {
 	});
 });
 
-describe('CharacterPanel', () => {
+describe('CharacterPanel, the plaque (S2)', () => {
 	it('still names the expected note when the character is missing, without a card', () => {
 		const html = renderToStaticMarkup(<CharacterPanel state={{ kind: 'missing', path: 'Dromos/Character.md' }} footer={null} />);
 
 		expect(html).toContain('<code>Dromos/Character.md</code>');
 		expect(html).not.toContain('dromos-level-medal');
+	});
+
+	it('keeps the texts of loading, missing and unreadable on the plaque, with the skills and the sync line under them', () => {
+		const states = [
+			[{ kind: 'loading' }, 'Loading the character…'],
+			[{ kind: 'missing', path: 'Dromos/Character.md' }, 'Character not found'],
+			[{ kind: 'unreadable' }, 'The character note could not be read.'],
+		] as const;
+		for (const [state, text] of states) {
+			const html = renderToStaticMarkup(<CharacterPanel state={state} skills={<p>skills</p>} footer={<p>sync line</p>} />);
+
+			expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character-empty" aria-label="Character">/);
+			expect(html).toContain(text);
+			expect(html.endsWith('<p>skills</p><p>sync line</p></section>')).toBe(true);
+		}
+	});
+
+	it('makes the missing title the screen heading on home only', () => {
+		const missing = { kind: 'missing', path: 'Dromos/Character.md' } as const;
+
+		expect(renderToStaticMarkup(<CharacterPanel state={missing} footer={null} />)).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"[^>]*>Character not found<\/h2>/);
+		expect(renderToStaticMarkup(<CharacterPanel state={missing} footer={null} heading={false} />)).toContain('<h2 class="dromos-card-title">Character not found</h2>');
+	});
+
+	it('gives the found character the same plaque', () => {
+		const html = renderToStaticMarkup(<CharacterPanel state={{ kind: 'found', view }} skills={<p>skills</p>} footer={<p>sync line</p>} heading={false} />);
+
+		expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character"/);
+		expect(html).not.toContain('data-screen-heading');
+		expect(html.endsWith('<p>skills</p><p>sync line</p></section>')).toBe(true);
 	});
 });
 

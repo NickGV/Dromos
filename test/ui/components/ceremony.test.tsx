@@ -66,7 +66,7 @@ describe('Scene', () => {
 	it('keeps the landscape and the signpost alone without one', () => {
 		const html = renderToStaticMarkup(<Scene screen="home" offline={false} onGo={noop} onSettings={null} />);
 
-		expect(html).toMatch(/^<div class="dromos-scene is-home" data-period="day"><svg[^>]*class="dromos-landscape"/);
+		expect(html).toMatch(/^<div class="dromos-scene" data-period="day"><svg[^>]*class="dromos-landscape"/);
 		expect(html).not.toContain('dromos-ribbon');
 	});
 });
@@ -75,11 +75,11 @@ describe('Scene', () => {
 describe('HomeScreen runs the ceremony from the game events (game-ui S4)', () => {
 	const render = (events: readonly GameEvent[]) => renderToStaticMarkup(<HomeScreen deps={homeDeps({ game: { ...IDLE_GAME, events } })} />);
 
-	it('unfurls the ribbon over the scene and opens the panel under the card for a character level', () => {
+	it('unfurls the ribbon over the scene and opens the panel first on the screen, under the plaque, for a character level', () => {
 		const html = render([levelUp, readerUp]);
 
 		expect(sceneOf(html)).toContain('<span class="dromos-ribbon-kicker">New level</span><span class="dromos-ribbon-title">Level 4</span>');
-		expect(html).toMatch(/<main[^>]*><section[^>]*aria-label="Character">.*?<\/section><section class="dromos-card dromos-ceremony"/);
+		expect(html).toMatch(/<section[^>]*aria-label="Character">.*?<\/section><\/div><main[^>]*><section class="dromos-card dromos-ceremony"/);
 		expect(html).toContain('You reached level 4');
 		expect(html).toContain('Reader rose to level 3');
 	});

@@ -5,7 +5,7 @@ import type { CardVisit } from '../presenters/sinceVisitView';
 import { useT } from '../i18n';
 import { CharacterCard } from './CharacterCard';
 
-/** What the character area shows: the card, or why there is no card. */
+/** What the character's plaque shows: the character, or why there is none. */
 export type CharacterPanelState =
 	| { readonly kind: 'loading' }
 	| { readonly kind: 'unreadable' }
@@ -18,49 +18,49 @@ export interface CharacterPanelProps {
 	readonly ceremony?: CeremonyPhase | null;
 	/** Since the last visit on this device, for the card (game-ui S15); `null` without it. */
 	readonly visit?: CardVisit | null;
-	/** The sync line at the foot of the card; it shows in every state. */
+	/** The skills part (S3), above the sync line; it shows in every state, absent or `null` it does not. */
+	readonly skills?: ReactNode;
+	/** The sync line at the foot of the plaque; it shows in every state. */
 	readonly footer: ReactNode;
+	/** Whether its heading is the screen's heading, the one a changed screen focuses: on home only. */
+	readonly heading?: boolean;
 }
 
 /**
- * The character card, or an empty state, always first on the screen. When `Character.md` is
- * missing it names the expected path and shows no invented values (D4).
+ * The character's plaque (S2), in the scene's corner on wide panes and under it on narrow ones, on
+ * every screen: the character, or an empty state. When `Character.md` is missing it names the
+ * expected path and shows no invented values (D4).
  */
-export function CharacterPanel({ state, ceremony = null, visit = null, footer }: CharacterPanelProps) {
+export function CharacterPanel({ state, ceremony = null, visit = null, skills = null, footer, heading = true }: CharacterPanelProps) {
 	const t = useT();
-	switch (state.kind) {
-		case 'found':
-			return <CharacterCard view={state.view} footer={footer} ceremony={ceremony} visit={visit} />;
-		case 'missing':
-			return (
-				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
-					<h2 className="dromos-card-title" tabIndex={-1} data-screen-heading>
-						{t('character.missing.title')}
-					</h2>
+	if (state.kind === 'found') return <CharacterCard view={state.view} footer={footer} ceremony={ceremony} visit={visit} skills={skills} heading={heading} />;
+	return (
+		<section className="dromos-card dromos-plaque dromos-character-empty" aria-label={t('character.aria')}>
+			{state.kind === 'missing' ? (
+				<>
+					{heading ? (
+						<h2 className="dromos-card-title" tabIndex={-1} data-screen-heading>
+							{t('character.missing.title')}
+						</h2>
+					) : (
+						<h2 className="dromos-card-title">{t('character.missing.title')}</h2>
+					)}
 					<p className="dromos-empty">
 						{t('character.missing.before')}
 						<code>{state.path}</code>
 						{t('character.missing.after')}
 					</p>
-					{footer}
-				</section>
-			);
-		case 'unreadable':
-			return (
-				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
-					<p className="dromos-empty">{t('character.unreadable')}</p>
-					{footer}
-				</section>
-			);
-		case 'loading':
-			return (
-				<section className="dromos-card dromos-character-empty" aria-label={t('character.aria')}>
-					{/* Busy is the text alone: a busy section would hold back the sync line's live region. */}
-					<p className="dromos-empty" aria-busy="true">
-						{t('character.loading')}
-					</p>
-					{footer}
-				</section>
-			);
-	}
+				</>
+			) : state.kind === 'unreadable' ? (
+				<p className="dromos-empty">{t('character.unreadable')}</p>
+			) : (
+				// Busy is the text alone: a busy section would hold back the sync line's live region.
+				<p className="dromos-empty" aria-busy="true">
+					{t('character.loading')}
+				</p>
+			)}
+			{skills}
+			{footer}
+		</section>
+	);
 }

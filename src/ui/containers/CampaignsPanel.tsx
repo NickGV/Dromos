@@ -4,7 +4,7 @@ import type { Clock } from '../../ports';
 import { useT } from '../i18n';
 import { CampaignBoard } from '../organisms/CampaignBoard';
 import { CampaignScreen, type Sending } from '../organisms/CampaignScreen';
-import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
+import { ScreenHeader } from '../organisms/ScreenHeader';
 import { campaignHomeCardView } from '../presenters/campaignHomeView';
 import { campaignScreenView, groupToggleKey, taskToggleKey } from '../presenters/campaignScreenView';
 import { toggled } from '../presenters/toggled';
@@ -50,8 +50,6 @@ export interface CampaignsScreenProps {
 	/** The campaign to show, or `null` for the first one. */
 	readonly selected: string | null;
 	readonly onSelect: (path: string) => void;
-	/** The character the header card names, or `null` while there is none. */
-	readonly character: ScreenHeaderCharacter | null;
 }
 
 /**
@@ -113,7 +111,7 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, 
 	const shown = page.campaign?.path ?? null;
 	return (
 		<>
-			<ScreenHeader title={page.title} character={screen.character} />
+			<ScreenHeader title={page.title} />
 			<CampaignScreen
 				view={page}
 				sending={sending}

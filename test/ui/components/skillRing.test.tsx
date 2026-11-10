@@ -9,7 +9,8 @@ import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { SkillRingButton } from '../../../src/ui/molecules/SkillRingButton';
 import type { SkillRingView } from '../../../src/ui/presenters/skillsView';
 import { skill } from '../../domain/skill/skillFixtures';
-import { clickOf } from './elements';
+import { PlaqueSkills } from '../../../src/ui/molecules/PlaqueSkills';
+import { clickOf, componentsOf } from './elements';
 import { IDLE_GAME, homeDeps, noop } from './homeDeps';
 
 const CIRCUMFERENCE = 2 * Math.PI * 38;
@@ -78,9 +79,43 @@ describe('SkillRingButton (game-ui S9)', () => {
 
 		expect(opened).toEqual(['lector']);
 	});
+
+	it('draws a compact medallion for the plaque: the ring alone, its accessible name kept (S3)', () => {
+		const html = renderToStaticMarkup(<SkillRingButton view={athlete} onOpen={noop} renderIcon={noop} size={36} compact />);
+
+		expect(html).toMatch(/^<button type="button" class="dromos-ring-button is-locked is-compact" aria-label="Athlete, locked, Habit streak: 15 of 20 days"><span class="dromos-ring is-locked" style="width:36px;height:36px"/);
+		expect(html).not.toContain('dromos-ring-name');
+		expect(html).not.toContain('dromos-ring-caption');
+	});
 });
 
-describe('HomeScreen shows the skills as one row of ring medallions', () => {
+describe('PlaqueSkills (S3)', () => {
+	const view = { title: 'Skills · 1 of 2', rings: [athlete, reader] };
+
+	it('titles the part "Skills · N of M" and draws its skills as small ring medallions', () => {
+		const html = renderToStaticMarkup(<PlaqueSkills view={view} onOpen={noop} renderIcon={noop} />);
+
+		expect(html).toMatch(/^<div class="dromos-plaque-skills"><p class="dromos-plaque-skills-title">Skills · 1 of 2<\/p>/);
+		expect([...html.matchAll(/<button type="button" class="dromos-ring-button [^"]*is-compact" aria-label="([^"]+)"><span class="dromos-ring [^"]*" style="width:(\d+)px/g)].map((match) => [match[1], match[2]])).toEqual([
+			['Athlete, locked, Habit streak: 15 of 20 days', '36'],
+			['Reader, Level 2 · 40/160', '36'],
+		]);
+	});
+
+	it('opens the Skills screen on the skill chosen', () => {
+		const opened: string[] = [];
+		const buttons = componentsOf(PlaqueSkills({ view, onOpen: (id) => opened.push(id), renderIcon: noop }), SkillRingButton);
+
+		expect(buttons.map((button) => [button.props.compact, button.props.size])).toEqual([
+			[true, 36],
+			[true, 36],
+		]);
+		(buttons[1]?.props.onOpen as (id: string) => void)('lector');
+		expect(opened).toEqual(['lector']);
+	});
+});
+
+describe('HomeScreen shows the skills nearest to unlocking on the plaque (S3)', () => {
 	const game: GameSnapshot = {
 		...IDLE_GAME,
 		status: { kind: 'synced' },
@@ -90,11 +125,19 @@ describe('HomeScreen shows the skills as one row of ring medallions', () => {
 		],
 	};
 
-	it('draws a ring medallion per skill on home, earned first', () => {
-		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} />);
+	it('draws them on the plaque of every screen, the locked ones first, and no skills row on home any more', () => {
+		for (const screen of ['home', 'campaigns', 'skills', 'library'] as const) {
+			const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} initialScreen={screen} />);
+			const plaque = /<section class="dromos-card dromos-plaque[^"]*"[^>]*>(.*?)<\/section>/.exec(html)?.[1] ?? '';
 
-		expect([...html.matchAll(/class="dromos-ring-button [^"]*" aria-label="([^"]+)"/g)].map((match) => match[1])).toEqual(['Reader, Level 1 · 40/100', 'Athlete, locked, Quests with this skill: 1 of 4']);
-		expect(html).toContain('<section class="dromos-section dromos-skills" aria-label="Skills">');
+			expect(plaque).toContain('<p class="dromos-plaque-skills-title">Skills · 1 of 2</p>');
+			expect([...plaque.matchAll(/class="dromos-ring-button [^"]*" aria-label="([^"]+)"/g)].map((match) => match[1])).toEqual(['Athlete, locked, Quests with this skill: 1 of 4', 'Reader, Level 1 · 40/100']);
+		}
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} />)).not.toContain('dromos-skills');
+	});
+
+	it('draws no skills part while there is no skill', () => {
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).not.toContain('dromos-plaque-skills');
 	});
 
 	// game-ui S9: the skills screen draws the same rings as its grid; skillsScreen.test.tsx checks it.

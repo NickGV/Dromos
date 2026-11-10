@@ -8,6 +8,7 @@ import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { SyncButton } from '../atoms/SyncButton';
 import { I18nProvider } from '../i18n';
 import { OfflineBand } from '../molecules/OfflineBand';
+import { PlaqueSkills } from '../molecules/PlaqueSkills';
 import type { DromosScreen } from '../molecules/Signpost';
 import { StatusBanner } from '../molecules/StatusBanner';
 import { BriefingPanel } from '../organisms/BriefingPanel';
@@ -16,18 +17,18 @@ import { Chronicle } from '../organisms/Chronicle';
 import { LevelUpPanel } from '../organisms/LevelUpPanel';
 import { QuestList } from '../organisms/QuestList';
 import { Scene } from '../organisms/Scene';
-import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
-import { SkillsRow } from '../organisms/SkillsRow';
+import { ScreenHeader } from '../organisms/ScreenHeader';
 import { SkillsScreen } from '../organisms/SkillsScreen';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
 import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
+import { plaqueSkillsView } from '../presenters/plaqueSkillsView';
 import { questListView, questPanelView, type QuestFilter } from '../presenters/questListView';
 import { toggled } from '../presenters/toggled';
 import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinceVisitView';
-import { skillRingView, skillsPageView, skillsScreenView } from '../presenters/skillsView';
+import { skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
 import { walkerView } from '../presenters/walkerView';
 import { openLetter, storedLetterMark } from './briefingLetter';
@@ -108,12 +109,14 @@ let viewCount = 0;
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  *
  * It holds the four screens of the view (game-ui S1): home, campaigns, skills and the library
- * (M7 S5), under one scene with a signpost. Changing screen, campaign tab or skill spends no
+ * (M7 S5), under one scene with a signpost and the character's plaque (home-header S2), which
+ * shows on every screen with the skills nearest to unlocking (S3). Changing screen, campaign tab
+ * or skill spends no
  * request: they are only state here, and the campaigns panel stays mounted in its slot on every
  * screen. The library reads the vault each time its screen opens; the habits beside its desk follow
  * the campaigns' sync through `syncKey`.
  * A character level in the game events runs the level-up ceremony (game-ui S4): its timing lives
- * here, and the card, the ribbon and the panel are drawn from the step it is at.
+ * here, and the plaque, the ribbon and the panel are drawn from the step it is at.
  *
  * Since the last visit (game-ui S15): the record this device kept is read once on open. While the
  * open sync runs, the bar and the walker wait where that record left them; once it settles and
@@ -123,7 +126,7 @@ let viewCount = 0;
  *
  * The world reacts (game-ui S17): the scene's sky follows the hour of the clock, read on every
  * render, so the periodic re-render turns it with no timer of its own, and a campfire burns once
- * every daily is done. Under the skills, the chronicle lists the last deeds of the ledger (S18).
+ * every daily is done. On home, the chronicle lists the last deeds of the ledger (S18).
  */
 export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
@@ -158,12 +161,20 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const phase = useCeremonyPhase(ceremony?.level ?? null);
 	const go = useCallback((next: DromosScreen): void => setPlace((current) => ({ ...current, screen: next })), []);
 	const selectCampaign = useCallback((path: string): void => setPlace((current) => ({ ...current, campaign: path })), []);
-	// Closing the panel takes its button away: the focus goes back to the character's name.
+	// Closing the panel takes its button away: the focus goes back to the character's name, on the plaque.
 	const dismissEvents = useCallback((): void => {
 		deps.dismissGameEvents();
 		setGame(deps.gameSnapshot());
-		main.current?.querySelector<HTMLElement>('[data-screen-heading]')?.focus({ preventScroll: true });
+		frame.current?.querySelector<HTMLElement>('[data-screen-heading]')?.focus({ preventScroll: true });
 	}, [deps]);
+	// A medallion of the plaque opens the Skills screen on its skill (S3), as the home row did.
+	const openSkill = useCallback(
+		(skillId: string): void => {
+			setSelectedSkill(skillId);
+			go('skills');
+		},
+		[go],
+	);
 	const { requestBriefing } = deps;
 	const onRequestBriefing = requestBriefing
 		? (): void => {
@@ -271,41 +282,45 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const held = visit.kind === 'waiting' && motion && standing ? heldProgress(lastSeen, standing) : null;
 	const cardVisit = visitCardView({ delta: visit.kind === 'settled' ? visit.delta : null, held, ceremony: characterCeremony?.phase ?? null, motion }, t);
 	const walker = walkerView(standing, characterCeremony === null ? (held?.fraction ?? null) : null, characterCeremony);
+	const plaqueSkills = plaqueSkillsView(skills, t);
 	return (
 		<I18nProvider t={t}>
 			{/* `lang` on the frame covers the signpost; the one on <main> stays for the content. */}
 			<div className="dromos-frame" lang={language} ref={frame}>
 				{offline ? <OfflineBand text={offlineBandText(quests, deps.clock.now(), t)} /> : null}
-				<Scene
-					screen={screen}
-					offline={offline}
-					onGo={go}
-					onSettings={deps.openSettings}
-					ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
-					walker={walker.fraction}
-					gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
-					period={dayPeriod(deps.clock.now())}
-					campfire={questPanel.dayComplete}
-				/>
+				{/* The scene and, after it, the character's plaque (S2): the stylesheet sets the plaque in the scene's
+				    corner on wide panes and under it on narrow ones. Keyboard order: the signpost, the plaque, the screen. */}
+				<div className="dromos-header">
+					<Scene
+						screen={screen}
+						offline={offline}
+						onGo={go}
+						onSettings={deps.openSettings}
+						ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
+						walker={walker.fraction}
+						gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
+						period={dayPeriod(deps.clock.now())}
+						campfire={questPanel.dayComplete}
+					/>
+					<CharacterPanel
+						state={panelState(character, t)}
+						ceremony={characterCeremony?.phase ?? null}
+						visit={cardVisit}
+						heading={home}
+						skills={plaqueSkills ? <PlaqueSkills view={plaqueSkills} onOpen={openSkill} renderIcon={deps.renderIcon} /> : null}
+						footer={
+							<div className="dromos-sync-line">
+								{/* While offline the band above the scene says it (S10), so the line shows only Sync (game-ui S14);
+								    the banner stays mounted and quiet, so its live region only changes text (S12). */}
+								<StatusBanner {...banner} quiet={offline} />
+								<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
+							</div>
+						}
+					/>
+				</div>
 				<main className={`dromos-home is-${screen}`} lang={language} ref={main} tabIndex={-1}>
 					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted. */}
-					{home ? (
-						<CharacterPanel
-							state={panelState(character, t)}
-							ceremony={characterCeremony?.phase ?? null}
-							visit={cardVisit}
-							footer={
-								<div className="dromos-sync-line">
-									{/* While offline the band above the scene says it (S10), so the line shows only Sync (game-ui S14);
-									    the banner stays mounted and quiet, so its live region only changes text (S12). */}
-									<StatusBanner {...banner} quiet={offline} />
-									<SyncButton syncing={quests.status.kind === 'syncing'} onSync={() => void refresh()} />
-								</div>
-							}
-						/>
-					) : screen === 'skills' ? (
-						<ScreenHeader title={t('screen.skills')} character={headerCharacter(character, t)} />
-					) : null}
+					{screen === 'skills' ? <ScreenHeader title={t('screen.skills')} /> : null}
 					{showCeremony ? <LevelUpPanel view={ceremony} onDismiss={dismissEvents} renderIcon={deps.renderIcon} /> : null}
 					{home && briefing ? (
 						<BriefingPanel
@@ -328,26 +343,15 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						syncKey={syncKey}
 						hidden={screen === 'skills' || screen === 'library'}
 						onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
-						screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign, character: headerCharacter(character, t) } : undefined}
+						screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 					/>
-					{home ? (
-						<SkillsRow
-							page={skills}
-							rings={[...skills.earned, ...skills.locked].map((card) => skillRingView(card, t))}
-							onOpen={(skillId) => {
-								setSelectedSkill(skillId);
-								go('skills');
-							}}
-							renderIcon={deps.renderIcon}
-						/>
-					) : null}
 					{chronicle ? <Chronicle view={chronicle} /> : null}
 					{screen === 'skills' ? (
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
 					{/* The library draws its own header card: on a shelf it names the shelf and leads back. */}
 					{screen === 'library' ? (
-						<LibraryPanel deps={deps.library} character={headerCharacter(character, t)} language={language} period={dayPeriod(deps.clock.now())} syncKey={syncKey} />
+						<LibraryPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} syncKey={syncKey} />
 					) : null}
 				</main>
 				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
@@ -363,13 +367,6 @@ function panelState(character: CharacterShown, t: Translator): CharacterPanelSta
 	return character.kind === 'found' ? { kind: 'found', view: characterCardView(character.character, t) } : character;
 }
 
-/** The character as the header card of the other screens names it, or `null` while there is none. */
-function headerCharacter(character: CharacterShown, t: Translator): ScreenHeaderCharacter | null {
-	if (character.kind !== 'found') return null;
-	const view = characterCardView(character.character, t);
-	return { name: view.name, title: view.title, level: character.character.level, xpText: view.xp.text };
-}
-
 /** "Last known state · 2 h ago", with the time of the last quests fetched this session when there is one. */
 function offlineBandText(quests: QuestSnapshot, now: Date, t: Translator): string {
 	return quests.lastSyncedAt ? t('offline.band', { ago: agoText(minutesSince(quests.lastSyncedAt, now), t) }) : t('offline.band.never');
@@ -377,7 +374,9 @@ function offlineBandText(quests: QuestSnapshot, now: Date, t: Translator): strin
 
 /**
  * After a change of screen (not on the first paint), scrolls the view back to the top and moves
- * the focus to the new screen's heading, or to `<main>` while that heading is not drawn yet.
+ * the focus to the new screen's heading, or to `<main>` while that heading is not drawn yet. The
+ * frame is searched, not `<main>`: on home the heading is the name on the plaque, outside it, and
+ * on the other screens the plaque marks none, so the header card's title is the first.
  */
 function useScreenFocus(screen: DromosScreen, frame: RefObject<HTMLElement>, main: RefObject<HTMLElement>): void {
 	const shown = useRef(screen);
@@ -386,7 +385,7 @@ function useScreenFocus(screen: DromosScreen, frame: RefObject<HTMLElement>, mai
 		shown.current = screen;
 		const scroller = frame.current?.closest<HTMLElement>('.dromos-root');
 		if (scroller) scroller.scrollTop = 0;
-		const heading = main.current?.querySelector<HTMLElement>('[data-screen-heading]') ?? main.current;
+		const heading = frame.current?.querySelector<HTMLElement>('[data-screen-heading]') ?? main.current;
 		heading?.focus({ preventScroll: true });
 	}, [screen, frame, main]);
 }

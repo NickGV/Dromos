@@ -15,40 +15,50 @@ export interface CharacterCardProps {
 	readonly ceremony?: CeremonyPhase | null;
 	/** Since the last visit on this device (game-ui S15): the line under the bar, and how the bar moves. */
 	readonly visit?: CardVisit | null;
+	/** The skills part (S3), between the stats and the sync line; absent or `null`, none. */
+	readonly skills?: ReactNode;
+	/**
+	 * Whether the name is the screen's heading, the one a changed screen focuses: on home only. On
+	 * the other screens it stays a heading, and their header card takes the focus.
+	 */
+	readonly heading?: boolean;
 }
 
 /**
- * The character read from `Character.md` (game-ui S3): the level medallion, the name, the title
- * and level in small caps, the hatched XP bar with the next level, and the six stats as pips,
- * with the sync line at its foot. It overlaps the foot of the scene above it, and its name is
- * the heading the home screen focuses. During a level-up the bar fills first, then the
- * medallion turns ochre. Since the last visit the bar may wait at the value last seen and then
- * catch up, with a line under it; a level-up ceremony owns the bar while it fills.
+ * The character read from `Character.md` on its plaque (S2, game-ui S3): the level medallion, the
+ * name, the title and level in small caps, the hatched XP bar with the next level, the six stats
+ * in a compact grid with short labels (S5), the skills nearest to unlocking (S3) and the sync line
+ * at its foot. During a level-up the bar fills first, then the medallion turns ochre. Since the
+ * last visit the bar may wait at the value last seen and then catch up, with a line under it; a
+ * level-up ceremony owns the bar while it fills.
  */
-export function CharacterCard({ view, footer, ceremony = null, visit = null }: CharacterCardProps) {
+export function CharacterCard({ view, footer, ceremony = null, visit = null, skills = null, heading = true }: CharacterCardProps) {
 	const t = useT();
 	const ceremonyOwnsBar = ceremony === 'fill' || ceremony === 'medal';
 	const fill = ceremony === 'fill' ? 100 : ceremonyOwnsBar ? undefined : (visit?.heldPercent ?? undefined);
 	return (
-		<section className="dromos-card dromos-character" aria-label={t('character.aria')}>
-			<div className="dromos-character-main">
-				<div className="dromos-character-who">
-					<LevelMedal level={view.level} label={view.levelText} lit={ceremony === 'medal' || ceremony === 'final'} />
-					<div className="dromos-character-names">
+		<section className="dromos-card dromos-plaque dromos-character" aria-label={t('character.aria')}>
+			<div className="dromos-character-who">
+				<LevelMedal level={view.level} label={view.levelText} lit={ceremony === 'medal' || ceremony === 'final'} />
+				<div className="dromos-character-names">
+					{heading ? (
 						<h2 className="dromos-character-name" tabIndex={-1} data-screen-heading>
 							{view.name}
 						</h2>
-						<TitleLine parts={view.titleParts} />
-						<XpBar {...view.xp} note={view.nextLevelText} fill={fill} catchUp={!ceremonyOwnsBar && (visit?.catchUp ?? false)} />
-						{visit?.line ? <SinceLine parts={visit.parts} /> : null}
-					</div>
-				</div>
-				<div className="dromos-stats">
-					{view.stats.map((stat) => (
-						<StatBadge key={stat.id} stat={stat} />
-					))}
+					) : (
+						<h2 className="dromos-character-name">{view.name}</h2>
+					)}
+					<TitleLine parts={view.titleParts} />
+					<XpBar {...view.xp} note={view.nextLevelText} fill={fill} catchUp={!ceremonyOwnsBar && (visit?.catchUp ?? false)} />
+					{visit?.line ? <SinceLine parts={visit.parts} /> : null}
 				</div>
 			</div>
+			<div className="dromos-stats is-compact">
+				{view.stats.map((stat) => (
+					<StatBadge key={stat.id} stat={stat} compact />
+				))}
+			</div>
+			{skills}
 			{footer}
 		</section>
 	);
@@ -80,7 +90,7 @@ function SinceLine({ parts }: { readonly parts: readonly string[] }) {
 		<p className="dromos-since">
 			{parts.map((part, index) => (
 				<span key={index}>
-					{index > 0 ? '\u00a0· ' : null}
+					{index > 0 ? ' · ' : null}
 					<span className="dromos-since-part">{part}</span>
 				</span>
 			))}

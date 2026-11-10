@@ -131,54 +131,66 @@ describe('Landscape', () => {
 });
 
 describe('ScreenHeader', () => {
-	it('names the screen and carries the character line', () => {
-		const html = renderToStaticMarkup(<ScreenHeader title="Campaigns" character={{ name: 'Nicolás', title: 'Corredor', level: 3, xpText: '240 / 520 XP' }} />);
-		expect(html).toMatch(/<h2[^>]*>Campaigns<\/h2>/);
-		expect(html).toContain('Nicolás · Corredor · level 3 · 240 / 520 XP');
-	});
-
-	it('leaves out a missing title and speaks Spanish when the interface does', () => {
-		const html = renderToStaticMarkup(
-			<I18nProvider t={createTranslator('es')}>
-				<ScreenHeader title="Skills" character={{ name: 'Nicolás', title: null, level: 3, xpText: '240 / 520 XP' }} />
-			</I18nProvider>,
-		);
-		expect(html).toContain('Nicolás · nivel 3 · 240 / 520 XP');
-	});
-
-	it('shows no character line while there is no character', () => {
-		const html = renderToStaticMarkup(<ScreenHeader title="Skills" character={null} />);
-		expect(html).toMatch(/<h2[^>]*>Skills<\/h2>/);
-		expect(html).not.toContain('·');
+	it('names the screen and draws no character line, which the plaque holds now (S2)', () => {
+		const html = renderToStaticMarkup(<ScreenHeader title="Campaigns" />);
+		expect(html).toBe('<header class="dromos-panel dromos-screen-header"><h2 class="dromos-screen-title" tabindex="-1" data-screen-heading="true">Campaigns</h2></header>');
+		expect(html).not.toContain('dromos-screen-character');
 	});
 
 	it('offers a way back above the title when given one (M7 S5), and none otherwise', () => {
-		const html = renderToStaticMarkup(<ScreenHeader title="Teología · 4" character={null} back={{ label: 'Library', ariaLabel: 'Back to the library', onBack: noop }} />);
+		const html = renderToStaticMarkup(<ScreenHeader title="Teología · 4" back={{ label: 'Library', ariaLabel: 'Back to the library', onBack: noop }} />);
 
-		expect(html).toMatch(/^<header[^>]*><button type="button" class="dromos-screen-back" aria-label="Back to the library"><span aria-hidden="true">←<\/span>Library<\/button><h2[^>]*>Teología · 4<\/h2>/);
-		expect(renderToStaticMarkup(<ScreenHeader title="Skills" character={null} />)).not.toContain('<button');
+		expect(html).toMatch(/^<header[^>]*><button type="button" class="dromos-screen-back" aria-label="Back to the library"><span aria-hidden="true">←<\/span>Library<\/button><h2[^>]*>Teología · 4<\/h2><\/header>$/);
+		expect(renderToStaticMarkup(<ScreenHeader title="Skills" />)).not.toContain('<button');
 	});
 
 	it('is the heading that takes the focus when the screen opens', () => {
-		const html = renderToStaticMarkup(<ScreenHeader title="Skills" character={null} />);
+		const html = renderToStaticMarkup(<ScreenHeader title="Skills" />);
 		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"/);
 	});
 });
 
+/** The character's plaque: the section labelled "Character". */
+function plaqueOf(html: string): string {
+	return /<section class="dromos-card dromos-plaque[^"]*" aria-label="Character">.*?<\/section>/.exec(html)?.[0] ?? '';
+}
+
 describe('HomeScreen screens', () => {
-	it('opens the other screens with the header card instead of the character', () => {
+	it('opens the other screens with the header card, which no longer names the character', () => {
 		const campaigns = firstInMain(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="campaigns" />));
 		const skills = firstInMain(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="skills" />));
 		expect(campaigns).toMatch(/^<header[^>]*class="dromos-panel dromos-screen-header"/);
-		expect(campaigns).toMatch(/^<header[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Campaigns<\/h2>/);
-		expect(skills).toMatch(/^<header[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Skills<\/h2>/);
+		expect(campaigns).toMatch(/^<header[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Campaigns<\/h2><\/header>/);
+		expect(skills).toMatch(/^<header[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Skills<\/h2><\/header>/);
 	});
 
-	it('keeps the home screen as it was, with no header card', () => {
+	it('draws the plaque on every screen, right after the scene and before the screen, with the sync line (S2)', () => {
+		for (const screen of ['home', 'campaigns', 'skills', 'library'] as const) {
+			const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />);
+			const header = /<div class="dromos-header">(.*?)<main/.exec(html)?.[1] ?? '';
+
+			expect(header).toMatch(/^<div class="dromos-scene"[^>]*>.*<\/nav><\/div><section class="dromos-card dromos-plaque[^"]*" aria-label="Character">/);
+			expect(plaqueOf(html)).toContain('Loading the character…');
+			expect(plaqueOf(html)).toMatch(/<div class="dromos-sync-line">.*class="dromos-sync-button"/);
+			expect(html.match(/aria-label="Character"/g)).toHaveLength(1);
+		}
+	});
+
+	it('leaves one screen heading on the other screens, the header card\'s, outside the plaque', () => {
+		for (const screen of ['campaigns', 'skills', 'library'] as const) {
+			const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />);
+
+			expect(html.match(/data-screen-heading/g)).toHaveLength(1);
+			expect(plaqueOf(html)).not.toContain('data-screen-heading');
+		}
+	});
+
+	it('keeps the home screen without a header card, the character out of the screen', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} />);
+		const main = /<main[^>]*>.*<\/main>/.exec(html)?.[0] ?? '';
 		expect(html).not.toContain('dromos-screen-header');
-		expect(firstInMain(html)).toMatch(/^<section[^>]*aria-label="Character"/);
-		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-skills']) expect(html).toContain(section);
+		expect(main).not.toContain('aria-label="Character"');
+		for (const section of ['dromos-quests', 'dromos-campaigns']) expect(main).toContain(section);
 	});
 
 	it('shows only the campaigns on the campaigns screen, and only the skills on the skills screen', () => {
@@ -196,7 +208,7 @@ describe('HomeScreen screens', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="library" />);
 
 		expect(currentPlank(html)).toEqual(['Library']);
-		expect(firstInMain(html)).toMatch(/^<header[^>]*class="dromos-panel dromos-screen-header"[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Library<\/h2>/);
+		expect(firstInMain(html)).toMatch(/^<header[^>]*class="dromos-panel dromos-screen-header"[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Library<\/h2><\/header>/);
 		expect(html).toContain('Opening the library…');
 		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-skills', 'dromos-chronicle']) expect(html).not.toContain(section);
 		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ language: 'es' })} initialScreen="library" />)).toMatch(/<h2[^>]*>Biblioteca<\/h2>/);
@@ -206,13 +218,10 @@ describe('HomeScreen screens', () => {
 		for (const screen of ['home', 'campaigns', 'skills'] as const) expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).not.toContain('dromos-library');
 	});
 
-	it('draws the short scene on the library screen, as on the others', () => {
-		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="library" />)).toContain('class="dromos-scene"');
-	});
-
-	it('draws the tall scene on the home screen only', () => {
-		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).toContain('class="dromos-scene is-home"');
-		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="skills" />)).toContain('class="dromos-scene"');
+	it('draws the same scene on every screen, as tall as the home screen had it (S2)', () => {
+		for (const screen of ['home', 'campaigns', 'skills', 'library'] as const) {
+			expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).toContain('<div class="dromos-scene" data-period="day">');
+		}
 	});
 });
 
@@ -233,8 +242,8 @@ describe('HomeScreen offline', () => {
 	});
 
 	it('takes the color out of the scene while offline', () => {
-		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'offline' }) })} />)).toContain('class="dromos-scene is-home is-offline"');
-		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'error' }) })} />)).toContain('class="dromos-scene is-home"');
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'offline' }) })} />)).toContain('class="dromos-scene is-offline"');
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ quests: quests({ kind: 'error' }) })} />)).toContain('class="dromos-scene"');
 	});
 
 	it('still announces going offline through the hidden live region, though the line shows only Sync (S12)', () => {

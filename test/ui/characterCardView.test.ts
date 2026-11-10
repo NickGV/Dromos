@@ -29,12 +29,12 @@ describe('characterCardView', () => {
 			xp: { current: 50, total: 150, percent: 33, text: '50 / 150 XP' },
 			nextLevelText: 'Nivel 4 en 100 XP',
 			stats: [
-				{ id: 'fuerza', label: 'Fuerza', value: 2, pips: [true, true, false, false, false, false], ariaLabel: 'Fuerza 2' },
-				{ id: 'vitalidad', label: 'Vitalidad', value: 6, pips: [true, true, true, true, true, true], ariaLabel: 'Vitalidad 6' },
-				{ id: 'inteligencia', label: 'Inteligencia', value: 4, pips: [true, true, true, true, false, false], ariaLabel: 'Inteligencia 4' },
-				{ id: 'sabiduria', label: 'Sabiduría', value: 1, pips: [true, false, false, false, false, false], ariaLabel: 'Sabiduría 1' },
-				{ id: 'espiritu', label: 'Espíritu', value: 3, pips: [true, true, true, false, false, false], ariaLabel: 'Espíritu 3' },
-				{ id: 'disciplina', label: 'Disciplina', value: 5, pips: [true, true, true, true, true, false], ariaLabel: 'Disciplina 5' },
+				{ id: 'fuerza', label: 'Fuerza', shortLabel: 'FUE', value: 2, pips: [true, true, false, false, false, false], ariaLabel: 'Fuerza 2' },
+				{ id: 'vitalidad', label: 'Vitalidad', shortLabel: 'VIT', value: 6, pips: [true, true, true, true, true, true], ariaLabel: 'Vitalidad 6' },
+				{ id: 'inteligencia', label: 'Inteligencia', shortLabel: 'INT', value: 4, pips: [true, true, true, true, false, false], ariaLabel: 'Inteligencia 4' },
+				{ id: 'sabiduria', label: 'Sabiduría', shortLabel: 'SAB', value: 1, pips: [true, false, false, false, false, false], ariaLabel: 'Sabiduría 1' },
+				{ id: 'espiritu', label: 'Espíritu', shortLabel: 'ESP', value: 3, pips: [true, true, true, false, false, false], ariaLabel: 'Espíritu 3' },
+				{ id: 'disciplina', label: 'Disciplina', shortLabel: 'DIS', value: 5, pips: [true, true, true, true, true, false], ariaLabel: 'Disciplina 5' },
 			],
 		});
 	});
@@ -60,10 +60,23 @@ describe('characterCardView', () => {
 		expect(characterCardView({ ...CHARACTER, xpIntoLevel: 10, xpToNext: 0 }, t).xp.percent).toBe(0);
 	});
 
+	it('gives each stat the short label of the plaque, the full name kept for screen readers (S5)', () => {
+		const view = characterCardView(CHARACTER, createTranslator('en'));
+
+		expect(view.stats.map((stat) => [stat.shortLabel, stat.ariaLabel])).toEqual([
+			['STR', 'Strength 2'],
+			['VIT', 'Vitality 6'],
+			['INT', 'Intelligence 4'],
+			['WIS', 'Wisdom 1'],
+			['SPI', 'Spirit 3'],
+			['DIS', 'Discipline 5'],
+		]);
+	});
+
 	it('draws a stat above six as its number, not as pips (game-ui S3)', () => {
 		const view = characterCardView({ ...CHARACTER, stats: { ...CHARACTER.stats, fuerza: 7, vitalidad: 0 } }, t);
 
-		expect(view.stats[0]).toEqual({ id: 'fuerza', label: 'Fuerza', value: 7, pips: null, ariaLabel: 'Fuerza 7' });
+		expect(view.stats[0]).toEqual({ id: 'fuerza', label: 'Fuerza', shortLabel: 'FUE', value: 7, pips: null, ariaLabel: 'Fuerza 7' });
 		expect(view.stats[1]?.pips).toEqual([false, false, false, false, false, false]);
 	});
 

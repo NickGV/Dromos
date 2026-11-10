@@ -444,31 +444,27 @@
 .dromos-root .dromos-scene {
 	/* How the drawing is sliced into the scene, for the text placed over it (game-ui S16): the
 	   scene's width, which bleeds over the view's padding, its height (kept equal to `height`),
-	   and how far the drawing is framed to the left. Below 800 px (870 px on the taller home
-	   scene) the frame moves left, so the road's end and the plaque of its gate stay clear of the
-	   signpost, whose planks hang on both sides of its post since M7; the sky moves back by about
-	   as much, so the sun and the clouds stay where they were. */
+	   and how far the drawing is framed to the left. Below 870 px the frame moves left, so the
+	   road's end and the plaque of its gate stay clear of the signpost, whose planks hang on both
+	   sides of its post since M7; the sky moves back by about as much, so the sun and the clouds
+	   stay where they were.
+	   Every screen draws the same scene (home-header S2): 300 px, and on panes wider than the
+	   drawing it grows with it, up to 380 px, so the slice does not crop its sky away (a recorded
+	   departure from S1, game-ui L8). The walker, the gate and its plaque stay whole on every
+	   pane from 320 to 2560 px. */
 	--dromos-scene-w: calc(100cqi + 2 * var(--size-4-3, 12px));
-	--dromos-scene-h: 170px;
-	--dromos-scene-shift: max(0px, calc(800px - var(--dromos-scene-w)));
+	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
+	--dromos-scene-shift: max(0px, calc(870px - var(--dromos-scene-w)));
 	--dromos-sky-x: calc(var(--dromos-scene-shift) / 2);
 	position: relative;
 	overflow: hidden;
-	height: 170px;
+	height: 300px;
+	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
 	border-bottom: 1px solid var(--dromos-umber);
 	background: var(--dromos-scene-sky-bottom);
 	transition-property: --dromos-scene-sky-top, --dromos-scene-sky-bottom, --dromos-scene-sun, --dromos-scene-cloud, --dromos-scene-hill, --dromos-scene-leaf, --dromos-scene-gate, --dromos-scene-fire, --dromos-sun-drop;
 	transition-duration: 2s;
 	transition-timing-function: ease-in-out;
-}
-
-/* 300 px on the home screen; on panes wider than the drawing it grows with it, up to 380 px, so
-   the slice does not crop its sky away (a recorded departure from S1, game-ui L8). */
-.dromos-root .dromos-scene.is-home {
-	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
-	--dromos-scene-shift: max(0px, calc(870px - var(--dromos-scene-w)));
-	height: 300px;
-	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
 }
 
 .dromos-root .dromos-landscape {
@@ -575,8 +571,7 @@
 /* The sky moves back as far as the frame moved left, so the sun and the clouds keep their place.
    Past 1216 px the 380 px scene is cropped at the top: the sun, the clouds and the birds come
    down about as much as it crops, up to 100 px. */
-.dromos-root .dromos-scene-sky { transform: translateX(var(--dromos-sky-x)); }
-.dromos-root .dromos-scene.is-home .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
+.dromos-root .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
 
 /* Under 700 px the slice crops the left of the scene: the sun moves right of the first cloud. */
 @container dromos-view (max-width: 700px) {
@@ -670,18 +665,12 @@
 
 .dromos-root .dromos-plank.is-current:focus-visible { box-shadow: inset 0 0 0 1px var(--dromos-plank-scorch), inset 0 0 8px var(--dromos-plank-scorch), 0 0 0 6px var(--dromos-paper); }
 
-/* The scenes of 170 px (wider panes only; narrow ones get 220 px) leave the signpost 134 px over
-   the header card: its planks are 28 px tall there, their targets 34 px, 6 px apart within a side. */
-.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { --dromos-plank-step: 17px; bottom: 34px; }
-.dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 28px; padding: 3px 10px; font-size: 14px; }
-.dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -3px 0; }
-
 /* The plaque on the gate's lintel, "Level 6" (game-ui S16): text over the drawing, so it keeps
    its size and its contrast on any sky. It sits on the lintel at the gate's point in the view box
    (--dromos-gate-x, --dromos-gate-top, from the markup), mapped as the slice maps the drawing:
-   scaled by k, the larger of the two ratios, centred across and anchored at the foot. Where the
-   short scene of a wide pane crops the lintel away, it stays 4 px inside the scene's top. Not a
-   plank: smaller, square to the road, and it takes no pointer. */
+   scaled by k, the larger of the two ratios, centred across and anchored at the foot. Should the
+   slice ever crop the lintel away, it stays 4 px inside the scene's top. Not a plank: smaller,
+   square to the road, and it takes no pointer. */
 .dromos-root .dromos-gate-plaque {
 	--dromos-k: max(calc((var(--dromos-scene-w) + var(--dromos-scene-shift)) / 960), calc(var(--dromos-scene-h) / 300));
 	position: absolute;
@@ -710,24 +699,17 @@
 /* Narrow panes and phones (S11): a lower scene, the signpost 14 px from the right. The same
    pane width as the narrow stats below: those measure .dromos-home, 16 px inside a side. */
 @container dromos-view (max-width: 472px) {
-	/* Every screen gets the 220 px scene here, the other screens too, so the planks keep 44 px
-	   targets on phones (game-ui L15). */
-	.dromos-root .dromos-scene.is-home,
-	.dromos-root .dromos-scene:not(.is-home) { --dromos-scene-h: 220px; height: 220px; }
-	.dromos-root .dromos-signpost { right: 14px; }
+	/* Every screen gets the 220 px scene here (game-ui L15). */
+	.dromos-root .dromos-scene { --dromos-scene-h: 220px; height: 220px; }
 	/* 44 px targets over the 220 px scene: 34 px planks reaching 5 px out, 10 px apart within a side. */
-	.dromos-root .dromos-scene.is-home .dromos-signpost,
-	.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { --dromos-plank-step: 22px; bottom: 47px; }
-	.dromos-root .dromos-scene.is-home .dromos-plank,
-	.dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 34px; padding: 4px 12px; font-size: 16px; }
-	.dromos-root .dromos-scene.is-home .dromos-plank::after,
-	.dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -5px 0; }
+	.dromos-root .dromos-signpost { right: 14px; bottom: 47px; }
+	.dromos-root .dromos-plank { min-height: 34px; padding: 4px 12px; }
+	.dromos-root .dromos-plank::after { inset: -5px 0; }
 	/* The drawing is framed at least 60 px further left, so the walker stands clear of the
 	   signpost instead of behind it, and the sun moves right with it. The narrower the pane, the
 	   further it is framed, so the plaque of the gate stays left of the signpost's two sides; the
 	   sky moves back by as much, at the 220 px scene's scale. */
-	.dromos-root .dromos-scene,
-	.dromos-root .dromos-scene.is-home {
+	.dromos-root .dromos-scene {
 		--dromos-scene-shift: max(120px, calc(690px - var(--dromos-scene-w)));
 		--dromos-sky-x: calc((var(--dromos-scene-shift) - 120px) * 0.68);
 	}
@@ -778,13 +760,6 @@
 	font-weight: 600;
 	line-height: 1.1;
 	color: var(--dromos-ink);
-}
-
-.dromos-root .dromos-screen-character {
-	margin: 0;
-	color: var(--dromos-ink-muted);
-	font-size: 13px;
-	overflow-wrap: anywhere;
 }
 
 /* A changed screen moves the focus to its heading: a ring only for the keyboard. */
@@ -854,8 +829,23 @@
 /* Disclosure toggles: touch-sized on phones. */
 .is-mobile .dromos-root summary { padding-block: 12px; }
 
-/* The screen under the scene: its first card overlaps the scene's foot, 44 px on the home
-   screen and 30 px on the others. */
+/* The scene and the character's plaque (home-header S2). Narrow panes keep the plaque under the
+   scene, as wide as the screen below it; wide ones set it inside the scene, at its bottom left
+   (below). The scene is the grid's first row; the plaque, a parchment panel, its second. */
+.dromos-root .dromos-header { display: grid; grid-template-columns: minmax(0, 1fr); }
+.dromos-root .dromos-header > .dromos-scene { grid-area: 1 / 1; }
+
+.dromos-root .dromos-plaque {
+	grid-area: 2 / 1;
+	justify-self: center;
+	box-sizing: border-box;
+	width: calc(100% - 32px);
+	max-width: 688px;
+	margin-top: 16px;
+	padding: 9px 16px 5px;
+}
+
+/* The screen under the scene and the plaque: nothing overlaps the scene's foot any more. */
 .dromos-root .dromos-home {
 	container-type: inline-size;
 	display: flex;
@@ -863,26 +853,18 @@
 	gap: 12px;
 	max-width: 720px;
 	margin: 0 auto;
-	padding: 0 16px 32px;
+	padding: 20px 16px 32px;
 }
 
-.dromos-root .dromos-home > :first-child {
-	position: relative;
-	z-index: 3;
-	margin-top: -44px;
-}
-
-.dromos-root .dromos-home:not(.is-home) > :first-child { margin-top: -30px; }
-
-/* Sync line at the foot of the character card: a quiet line while all is well, a band
-   when the user has something to do (Habitica not reached, or the account not set). */
+/* Sync line at the foot of the plaque: a quiet line while all is well, a band when the user
+   has something to do (Habitica not reached, or the account not set). */
 .dromos-root .dromos-sync-line {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
-	margin-top: 14px;
-	padding-top: 10px;
+	margin-top: 0;
+	padding-top: 6px;
 	border-top: 1px solid var(--background-modifier-border);
 }
 
@@ -953,22 +935,20 @@
 .dromos-root .dromos-section { min-width: 0; }
 .dromos-root .dromos-section-empty { margin: 0; padding: 16px; color: var(--text-muted); }
 
-/* Character (game-ui S3): the level medallion beside the name, the title and the hatched XP
-   bar; the six stats as pips in two columns; the sync line at the foot. */
-.dromos-root .dromos-character { padding: 16px 20px; }
-
-.dromos-root .dromos-character-main {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 16px 28px;
-}
+/* The character on its plaque (S2, game-ui S3): the level medallion beside the name, the title
+   and the hatched XP bar; the six stats as pips in a compact grid (S5); the skills nearest to
+   unlocking (S3); the sync line at the foot. */
+.dromos-root .dromos-plaque { display: flex; flex-direction: column; gap: 6px; }
+.dromos-root .dromos-plaque .dromos-character-title { margin-top: 1px; }
+.dromos-root .dromos-plaque .dromos-xp.is-stacked { margin-top: 5px; }
+.dromos-root .dromos-plaque .dromos-xp.is-stacked .dromos-xp-track { height: 11px; border-radius: 6px; }
+.dromos-root .dromos-plaque .dromos-xp-caption { margin-top: 2px; }
+.dromos-root .dromos-plaque .dromos-since { margin-top: 3px; }
 
 .dromos-root .dromos-character-who {
 	display: flex;
-	flex: 1 1 280px;
 	align-items: center;
-	gap: 16px;
+	gap: 14px;
 	min-width: 0;
 }
 
@@ -977,9 +957,9 @@
 .dromos-root .dromos-character-name {
 	margin: 0;
 	font-family: var(--dromos-font-display);
-	font-size: 34px;
+	font-size: 27px;
 	font-weight: 600;
-	line-height: 1.1;
+	line-height: 1.05;
 	overflow-wrap: anywhere;
 }
 
@@ -994,9 +974,9 @@
 	margin: 2px 0 0;
 	overflow-x: clip;
 	color: var(--dromos-ink-muted);
-	font-size: 15px;
+	font-size: 14px;
 	font-variant: small-caps;
-	letter-spacing: 0.14em;
+	letter-spacing: 0.12em;
 	line-height: 1.3;
 	overflow-wrap: anywhere;
 }
@@ -1018,8 +998,8 @@
 	display: grid;
 	flex: 0 0 auto;
 	place-items: center;
-	width: 72px;
-	height: 72px;
+	width: 60px;
+	height: 60px;
 }
 
 .dromos-root .dromos-level-medal-disc { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -1031,7 +1011,7 @@
 	position: relative;
 	color: var(--dromos-ink);
 	font-family: var(--dromos-font-display);
-	font-size: 30px;
+	font-size: 26px;
 	font-weight: 700;
 	font-variant-numeric: lining-nums tabular-nums;
 	line-height: 1;
@@ -1119,12 +1099,35 @@
 
 .dromos-root .dromos-since-part { white-space: nowrap; }
 
-.dromos-root .dromos-stats {
+/* The six stats in the plaque's compact grid (S5): three columns of two, filled down each
+   column in the card's order, so the rows read STR INT SPI and VIT WIS DIS. Each cell is the
+   short label and the six pips; the full name and the value are its tooltip and its pips' name. */
+.dromos-root .dromos-stats.is-compact {
 	display: grid;
-	flex: 1 1 250px;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 8px 22px;
+	grid-template-rows: repeat(2, auto);
+	grid-auto-columns: minmax(0, 1fr);
+	grid-auto-flow: column;
+	gap: 2px 12px;
 	min-width: 0;
+	max-width: 420px;
+}
+
+.dromos-root .dromos-stat.is-compact {
+	flex-wrap: nowrap;
+	justify-content: flex-start;
+	gap: 5px;
+	color: var(--dromos-ink-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+}
+
+.dromos-root .dromos-stat.is-compact .dromos-stat-label { width: 22px; flex: 0 0 auto; }
+
+/* Where three cells no longer fit side by side (panes under about 400 px), two columns of three,
+   as the character card had them: STR VIT, INT WIS, SPI DIS. */
+@container dromos-view (max-width: 375px) {
+	.dromos-root .dromos-stats.is-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-flow: row; }
 }
 
 /* The label and its pips share a line; where the column is too narrow the pips go under it. */
@@ -1257,15 +1260,42 @@
    to the left of the scene, a little smaller. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-ribbon { top: 14px; left: 10px; transform: scale(0.82); transform-origin: left top; }
-	.dromos-root .dromos-character { padding: 16px; }
-	.dromos-root .dromos-stats { column-gap: 16px; }
-	.dromos-root .dromos-character-name { font-size: 30px; }
 }
 
 /* The narrowest panes (about 360 px and less): the planks reach the left half of the scene, so
    the ribbon shrinks into the strip of sky above them. */
 @container dromos-view (max-width: 340px) {
 	.dromos-root .dromos-ribbon { top: 2px; left: 8px; transform: scale(0.68); }
+}
+
+/* Wide panes (S2): the plaque moves into the scene's bottom left corner, 10 px from its foot and
+   28 px from its left edge, sharing the scene's grid cell. From 816 px of the view's content
+   (840 px panes) it clears the campfire, the leftmost of what it must never cover (its glow at 462
+   in the drawing's units), by 15 px and more, and with it the walker, the gate, the gate's plaque
+   and the signpost; on narrower panes the slice frames the drawing further left and the campfire
+   would fall under it. Should the plaque grow taller than the scene, the row grows with it and
+   the plaque runs on below the scene's foot.
+   The sky moves right until the sun (at 150 in the drawing's units, radius 24) stands 16 px clear
+   of the plaque, so the hour stays readable: by 742 - W/2 units up to 960 px panes (W the pane),
+   where the drawing is drawn at its own size, then by 372480/W - 126, which shrinks as the
+   drawing grows. Two chords of that curve, 960 to 1400 px and 1400 to 2560 px, each 4 units
+   above it, stand in for it; the largest of the three lines applies. The ribbon of a level-up
+   (270 px wide) stays centred where that clears the plaque and the sun beside it (at most 72 px
+   wide there) by 16 px each, else it sits that far right of them; further right it would meet
+   the gate's plaque, which rises to the top on the widest panes. */
+@container dromos-view (min-width: 816px) {
+	.dromos-root .dromos-plaque {
+		position: relative;
+		z-index: 3;
+		grid-area: 1 / 1;
+		align-self: end;
+		justify-self: start;
+		width: 344px;
+		margin: 10px 0 10px 16px;
+		box-shadow: 0 2px 6px var(--dromos-shadow);
+	}
+	.dromos-root .dromos-scene { --dromos-sky-x: calc(var(--dromos-scene-shift) / 2 + max(0px, calc(734px - 50cqi), calc(526px - 27.73cqi), calc(287px - 10.39cqi))); }
+	.dromos-root .dromos-ribbon { left: max(50%, calc(var(--size-4-3, 12px) + 16px + 344px + 16px + 72px + 16px + 135px)); }
 }
 
 /* Quests (game-ui S6): one panel, its header line, and rows split by a dashed hairline. */
@@ -2164,6 +2194,26 @@
 }
 
 .dromos-root .dromos-ring-lock svg { width: 100%; height: 100%; stroke-width: 1.8; }
+
+/* The skills on the plaque (S3): "Skills · 2 of 5" and four small medallions on one line, each a
+   40 px target (44 px on touch screens) around its 36 px ring. */
+.dromos-root .dromos-plaque-skills {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 16px;
+}
+
+.dromos-root .dromos-plaque-skills-title {
+	margin: 0;
+	color: var(--dromos-ink-muted);
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+
+.dromos-root .dromos-plaque-rings { display: flex; gap: 4px; }
+.dromos-root .dromos-ring-button.is-compact { width: auto; padding: 2px; border-radius: 50%; }
+.is-mobile .dromos-root .dromos-ring-button.is-compact { padding: 4px; }
 
 /* The campaigns and skills screens (game-ui S8, S9) space their sections as the design does. */
 .dromos-root .dromos-home.is-campaigns,

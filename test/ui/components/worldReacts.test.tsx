@@ -64,8 +64,8 @@ describe('Scene: the campfire burns only on a complete day (game-ui S17)', () =>
 
 describe('Scene: the time of day (game-ui S17)', () => {
 	it('carries the period as a data attribute, day when none is given', () => {
-		expect(scene({ period: 'dusk' })).toMatch(/^<div class="dromos-scene is-home" data-period="dusk">/);
-		expect(scene()).toMatch(/^<div class="dromos-scene is-home" data-period="day">/);
+		expect(scene({ period: 'dusk' })).toMatch(/^<div class="dromos-scene" data-period="dusk">/);
+		expect(scene()).toMatch(/^<div class="dromos-scene" data-period="day">/);
 		expect(renderToStaticMarkup(<Scene screen="skills" offline period="night" onGo={noop} onSettings={null} />)).toMatch(/^<div class="dromos-scene is-offline" data-period="night">/);
 	});
 

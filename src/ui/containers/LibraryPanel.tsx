@@ -9,7 +9,7 @@ import { BookCard, type BookCardBusy } from '../organisms/BookCard';
 import { LibraryRoom, type SendingHabit } from '../organisms/LibraryRoom';
 import { LibraryShelf } from '../organisms/LibraryShelf';
 import { ResourceCard } from '../organisms/ResourceCard';
-import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
+import { ScreenHeader } from '../organisms/ScreenHeader';
 import { archiveDoorView, archiveView, type ArchiveFilter } from '../presenters/archiveView';
 import { bookCardView } from '../presenters/bookCardView';
 import type { DayPeriod } from '../presenters/dayPeriod';
@@ -76,8 +76,6 @@ export interface LibraryDeps {
 
 export interface LibraryPanelProps {
 	readonly deps: LibraryDeps;
-	/** The character the header card names, or `null` while there is none. */
-	readonly character: ScreenHeaderCharacter | null;
 	/** The interface language, for the card, which opens outside the view. */
 	readonly language: Language;
 	/** The time of day: the desk's oil lamp is lit at night. */
@@ -115,7 +113,7 @@ type LibraryBusy = BookCardBusy | 'mark';
  * sync the campaigns panel starts for it. "Enviar a Habitica" runs once at a time, reports its
  * outcome itself, then the vault is read again, so the sent habit loses its button.
  */
-export function LibraryPanel({ deps, character, language, period, syncKey }: LibraryPanelProps) {
+export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelProps) {
 	const t = useT();
 	// `null` while the first read runs: saying the library is empty would be a guess.
 	const [library, setLibrary] = useState<LibraryState | null>(null);
@@ -336,7 +334,7 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 	const title = inArchive ? t('archive.title') : shelfView ? shelfView.title : t('screen.library');
 	return (
 		<>
-			<ScreenHeader title={title} character={character} back={back} />
+			<ScreenHeader title={title} back={back} />
 			<div className="dromos-library" data-period={period} ref={body}>
 				{library === null ? (
 					<p className="dromos-library-note">{t('library.loading')}</p>

@@ -11,6 +11,16 @@ const STAT_KEYS: Readonly<Record<StatId, MessageKey>> = {
 	disciplina: 'stat.disciplina',
 };
 
+/** Copy keys of the stats' short labels, as the plaque's compact grid names them (S5). */
+const STAT_SHORT_KEYS: Readonly<Record<StatId, MessageKey>> = {
+	fuerza: 'stat.fuerza.short',
+	vitalidad: 'stat.vitalidad.short',
+	inteligencia: 'stat.inteligencia.short',
+	sabiduria: 'stat.sabiduria.short',
+	espiritu: 'stat.espiritu.short',
+	disciplina: 'stat.disciplina.short',
+};
+
 /** The label of a stat in the interface language. */
 export function statLabel(id: StatId, t: Translator): string {
 	return t(STAT_KEYS[id]);
@@ -22,6 +32,8 @@ export const STAT_PIPS = 6;
 export interface StatBadgeView {
 	readonly id: StatId;
 	readonly label: string;
+	/** "STR": the plaque's compact grid shows it; the full label stays in `ariaLabel` (S5). */
+	readonly shortLabel: string;
 	readonly value: number;
 	/** One entry per pip, `true` where filled; `null` when the value is above six and its number shows instead. */
 	readonly pips: readonly boolean[] | null;
@@ -54,7 +66,7 @@ export interface CharacterCardView {
 	readonly xp: XpBarView;
 	/** "Level 4 in 280 XP", under the bar: Dromos has no next title to name (game-ui S3). */
 	readonly nextLevelText: string;
-	/** Always the six stats, in `STAT_IDS` order. */
+	/** Always the six stats, in `STAT_IDS` order, for the plaque's compact grid (S5). */
 	readonly stats: readonly StatBadgeView[];
 }
 
@@ -80,6 +92,7 @@ function statBadgeView(id: StatId, value: number, t: Translator): StatBadgeView 
 	return {
 		id,
 		label,
+		shortLabel: t(STAT_SHORT_KEYS[id]),
 		value,
 		pips: value > STAT_PIPS ? null : Array.from({ length: STAT_PIPS }, (_, index) => index < value),
 		ariaLabel: t('character.stat.aria', { stat: label, value }),

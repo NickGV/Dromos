@@ -6,7 +6,7 @@ export interface LevelMedalProps {
 	readonly lit: boolean;
 }
 
-/** The character's level as a 72 px medallion with its number (game-ui S3). */
+/** The character's level as a 60 px medallion with its number, on the plaque (game-ui S3, home-header S2). */
 export function LevelMedal({ level, label, lit }: LevelMedalProps) {
 	return (
 		<span className={lit ? 'dromos-level-medal is-lit' : 'dromos-level-medal'} role="img" aria-label={label}>
