@@ -27,7 +27,7 @@ Branch: `feat/m8-archive` · Delivery: work-unit commits on the branch, merged i
 | D1 | S1–S6 | README, CHANGELOG `[Unreleased]` | with each unit | done with U2 (L5) | see L5 |
 | U4 | S8 | `youtubeVideo` (which links are a YouTube video), the card's video through the existing `renderMarkdown`, styles, en/es | inline (no writer reason: one small unit) | done: RED→GREEN; `npm test` 132 files, 1747 tests (L13) | `f6f5d57` |
 | U5 | S9 | `linksOpenInObsidian` adapter (Web viewer on and taking external links), the card link closes the card only then, docs | inline (no writer reason: one small unit) | done with U4 (L13) | `f6f5d57` |
-| R1 | S7 | Release 0.13.0 with the user's go-ahead | inline | in progress (L17) | |
+| R1 | S7 | Release 0.13.0 with the user's go-ahead | inline | done: released (L18), Android verified (L19) | `395e33b` (tag `0.13.0`), `main` `10beb4c` |
 
 ## Log
 
@@ -58,3 +58,11 @@ Branch: `feat/m8-archive` · Delivery: work-unit commits on the branch, merged i
 - **L15** (2026-11-10): Esdras created the 12 videos with Nick's ok, in `04 - Resources/Posts-Papers/`. Each has `sourceType: video`, `url: https://www.youtube.com/watch?v=<id>`, `saved: 2026-11-10` and `finished: ""`. Checked in Obsidian's metadata cache with the archive's rules (`obsidian eval`): 56 in the archive (36 post, 13 video, 6 podcast, 1 course), all 56 pending. Each of the 12 new notes gives `youtubeVideoId` its own id, matching the 12 sent, and its `finished: ""` reads as pending. Expected screen: "56 pendientes"; Todos 56, Artículos 36, Videos 13, Podcasts 6, Cursos 1; "36 por leer · 14 por ver · 6 por escuchar"; the 12 new ones first (saved latest).
 - **L16** (2026-11-10, user): "perdon se lo tenia que decir a esdras, pero ya, veo que todo esta bien, se abre correctamente, aun me falta probar en android, pero por el momento todoo bien, ya subiste la version?". The previous "arreglalo de una vez porfavor" was meant for Esdras, so nothing changed. Desktop review accepted, Android still pending. Nothing was published: four commits (`7dadf38`..`f6f5d57`) sit on `feat/m8-archive` after `main` 7aaf648, with no tag. R1 waits for the user's go-ahead.
 - **L17** (2026-11-10, user): "si dale publicala porfavor" — go-ahead for R1 (S7): merge into `main`, release 0.13.0, push `main` and the tag. The Android check comes after, through BRAT.
+- **L18** (2026-11-10): 0.13.0 published.
+  - Feature `--no-ff` merged into `main` (`bd27564`). `release/0.13.0` holds `94114f1` (changelog dated 2026-11-10) and `395e33b` (`npm version minor`, annotated tag `0.13.0` by NickGV), merged into `main` (`10beb4c`).
+  - All 9 new commits: author and committer NickGV <nickgomvelez@gmail.com>, no co-author or AI lines, no `main.js`, `data.json` or `node_modules`.
+  - Checks on `main`: `npm test` 132 files, 1747 tests; lint 0 errors; build ok.
+  - `gh auth status`: NickGV active. Pushed `main` (7aaf648..10beb4c) and the tag. `release.yml` run 42849833855 succeeded. The release 0.13.0 is not a draft or pre-release, with `main.js`, `manifest.json` and `styles.css`.
+  - Local vault plugin reinstalled from `main` (manifest 0.13.0) and reloaded.
+  - Pending: the user's check on Android through BRAT; then the `02-Phases` M8 plugin ticks; frames 1, 4, 5; the migration of old resources (Esdras).
+- **L19** (2026-11-10, user): "ya confirme y funciona correctamente" — 0.13.0 verified on Android through BRAT. R1 done. Vault `02-Phases.md` M8: the five plugin tasks ticked, plus one line for the video and Web viewer tabs added outside the plan. Still open in M8: frames 1, 4 and 5 (mockups) and the migration of old resources (Esdras).
