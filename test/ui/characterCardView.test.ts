@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Character } from '../../src/domain';
 import { createTranslator } from '../../src/i18n';
-import { characterCardView } from '../../src/ui/presenters/characterCardView';
+import { characterCardView, statBadgeView } from '../../src/ui/presenters/characterCardView';
 
 const CHARACTER: Character = {
 	name: 'Nicolás',
@@ -18,8 +18,10 @@ const t = createTranslator('es');
 
 describe('characterCardView', () => {
 	it('shows the name, the title, the level, the XP into the level and the six stats', () => {
-		// game-ui S3 adds the level number, the small-caps line, the next level and the pips.
-		expect(characterCardView(CHARACTER, t)).toEqual({
+		// game-ui S3 adds the level number, the small-caps line and the next level; S9 the stats radar (statRadarView.test.ts).
+		const { radar, ...card } = characterCardView(CHARACTER, t);
+
+		expect(card).toEqual({
 			name: 'Nicolás',
 			title: 'Corredor',
 			level: 3,
@@ -28,23 +30,8 @@ describe('characterCardView', () => {
 			titleParts: ['Corredor', 'nivel 3'],
 			xp: { current: 50, total: 150, percent: 33, text: '50 / 150 XP' },
 			nextLevelText: 'Nivel 4 en 100 XP',
-			stats: [
-				{ id: 'fuerza', label: 'Fuerza', shortLabel: 'FUE', value: 2, pips: [true, true, false, false, false, false], ariaLabel: 'Fuerza 2' },
-				{ id: 'vitalidad', label: 'Vitalidad', shortLabel: 'VIT', value: 6, pips: [true, true, true, true, true, true], ariaLabel: 'Vitalidad 6' },
-				{ id: 'inteligencia', label: 'Inteligencia', shortLabel: 'INT', value: 4, pips: [true, true, true, true, false, false], ariaLabel: 'Inteligencia 4' },
-				{ id: 'sabiduria', label: 'Sabiduría', shortLabel: 'SAB', value: 1, pips: [true, false, false, false, false, false], ariaLabel: 'Sabiduría 1' },
-				{ id: 'espiritu', label: 'Espíritu', shortLabel: 'ESP', value: 3, pips: [true, true, true, false, false, false], ariaLabel: 'Espíritu 3' },
-				{ id: 'disciplina', label: 'Disciplina', shortLabel: 'DIS', value: 5, pips: [true, true, true, true, true, false], ariaLabel: 'Disciplina 5' },
-			],
 		});
-	});
-
-	it('orders the stats as the ADR-014 schema does whatever the stored order', () => {
-		const stats = { disciplina: 1, espiritu: 2, sabiduria: 3, inteligencia: 4, vitalidad: 5, fuerza: 6 };
-
-		const view = characterCardView({ ...CHARACTER, stats }, t);
-
-		expect(view.stats.map((stat) => stat.id)).toEqual(['fuerza', 'vitalidad', 'inteligencia', 'sabiduria', 'espiritu', 'disciplina']);
+		expect([radar.ariaLabel, radar.max, radar.rings]).toEqual(['Fuerza 2, Vitalidad 6, Inteligencia 4, Sabiduría 1, Espíritu 3, Disciplina 5', 6, [2, 4, 6]]);
 	});
 
 	it('hides an empty title and shows a placeholder for an empty name', () => {
@@ -60,24 +47,10 @@ describe('characterCardView', () => {
 		expect(characterCardView({ ...CHARACTER, xpIntoLevel: 10, xpToNext: 0 }, t).xp.percent).toBe(0);
 	});
 
-	it('gives each stat the short label of the plaque, the full name kept for screen readers (S5)', () => {
-		const view = characterCardView(CHARACTER, createTranslator('en'));
-
-		expect(view.stats.map((stat) => [stat.shortLabel, stat.ariaLabel])).toEqual([
-			['STR', 'Strength 2'],
-			['VIT', 'Vitality 6'],
-			['INT', 'Intelligence 4'],
-			['WIS', 'Wisdom 1'],
-			['SPI', 'Spirit 3'],
-			['DIS', 'Discipline 5'],
-		]);
-	});
-
-	it('draws a stat above six as its number, not as pips (game-ui S3)', () => {
-		const view = characterCardView({ ...CHARACTER, stats: { ...CHARACTER.stats, fuerza: 7, vitalidad: 0 } }, t);
-
-		expect(view.stats[0]).toEqual({ id: 'fuerza', label: 'Fuerza', shortLabel: 'FUE', value: 7, pips: null, ariaLabel: 'Fuerza 7' });
-		expect(view.stats[1]?.pips).toEqual([false, false, false, false, false, false]);
+	it('draws a stat badge above six as its number, not as pips (game-ui S3)', () => {
+		expect(statBadgeView('fuerza', 7, t)).toEqual({ id: 'fuerza', label: 'Fuerza', shortLabel: 'FUE', value: 7, pips: null, ariaLabel: 'Fuerza 7' });
+		expect(statBadgeView('vitalidad', 0, t).pips).toEqual([false, false, false, false, false, false]);
+		expect(statBadgeView('vitalidad', 6, t).pips).toEqual([true, true, true, true, true, true]);
 	});
 
 	it('says how much XP the next level is away, never below zero (game-ui S3)', () => {

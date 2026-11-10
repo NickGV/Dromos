@@ -6,7 +6,7 @@ import { StatBadge } from '../../../src/ui/atoms/StatBadge';
 import { XpBar } from '../../../src/ui/atoms/XpBar';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
 import { CharacterPanel } from '../../../src/ui/organisms/CharacterPanel';
-import { characterCardView } from '../../../src/ui/presenters/characterCardView';
+import { characterCardView, statBadgeView } from '../../../src/ui/presenters/characterCardView';
 
 const t = createTranslator('en');
 const CHARACTER: Character = {
@@ -27,7 +27,7 @@ const fillWidth = (html: string): string | undefined => /class="dromos-xp-fill" 
 
 describe('StatBadge draws a stat as six pips (game-ui S3)', () => {
 	it('fills as many pips as the value, as one image named by the stat and its value', () => {
-		const html = renderToStaticMarkup(<StatBadge stat={view.stats[0]!} />);
+		const html = renderToStaticMarkup(<StatBadge stat={statBadgeView('fuerza', 3, t)} />);
 
 		expect(html).toMatch(/role="img" aria-label="Strength 3"/);
 		expect(html.match(/class="dromos-pip( is-filled)?"/g)).toHaveLength(6);
@@ -36,7 +36,7 @@ describe('StatBadge draws a stat as six pips (game-ui S3)', () => {
 	});
 
 	it("draws the plaque's cell with the short label, the full name and value kept as its name and its tooltip (S5)", () => {
-		const html = renderToStaticMarkup(<StatBadge stat={view.stats[0]!} compact />);
+		const html = renderToStaticMarkup(<StatBadge stat={statBadgeView('fuerza', 3, t)} compact />);
 
 		expect(html).toMatch(/^<div class="dromos-stat is-compact" title="Strength 3"><span class="dromos-stat-label" aria-hidden="true">STR<\/span><span class="dromos-stat-pips" role="img" aria-label="Strength 3">/);
 		expect(html.match(/class="dromos-pip is-filled"/g)).toHaveLength(3);
@@ -44,7 +44,7 @@ describe('StatBadge draws a stat as six pips (game-ui S3)', () => {
 	});
 
 	it('shows a value above six as its number, without pips', () => {
-		const html = renderToStaticMarkup(<StatBadge stat={view.stats[1]!} />);
+		const html = renderToStaticMarkup(<StatBadge stat={statBadgeView('vitalidad', 8, t)} />);
 
 		expect(html).toMatch(/role="img" aria-label="Vitality 8"/);
 		expect(html).toContain('<span class="dromos-stat-number">8</span>');
@@ -69,19 +69,13 @@ describe('CharacterCard after the design (game-ui S3)', () => {
 		expect(html).toMatch(/<span class="dromos-xp-text">240 \/ 520 XP<\/span><span class="dromos-xp-next">Level 4 in 280 XP<\/span>/);
 	});
 
-	it("draws the six stats under the bar in the plaque's compact grid, in the card's order (S5)", () => {
+	it('draws the six stats under the bar as a radar, in place of the dots (S9)', () => {
 		const html = card();
-		const stats = /<div class="dromos-stats is-compact">(.*?)<\/div><p>sync line/.exec(html)?.[1] ?? '';
 
-		expect([...stats.matchAll(/<span class="dromos-stat-label" aria-hidden="true">(\w+)<\/span><span class="dromos-stat-pips" role="img" aria-label="([^"]+)"/g)].map((match) => [match[1], match[2]])).toEqual([
-			['STR', 'Strength 3'],
-			['VIT', 'Vitality 8'],
-			['INT', 'Intelligence 4'],
-			['WIS', 'Wisdom 1'],
-			['SPI', 'Spirit 0'],
-			['DIS', 'Discipline 6'],
-		]);
-		expect(html.indexOf('dromos-stats')).toBeGreaterThan(html.indexOf('dromos-xp-next'));
+		expect(html).toMatch(/<\/div><\/div><\/div><div class="dromos-character-row"><svg class="dromos-radar" role="img" aria-label="Strength 3, Vitality 8, Intelligence 4, Wisdom 1, Spirit 0, Discipline 6"/);
+		expect([...html.matchAll(/<tspan class="dromos-radar-label">(\w+)<\/tspan> <tspan class="dromos-radar-value">(\d+)<\/tspan>/g)].map((match) => `${match[1]} ${match[2]}`)).toEqual(['STR 3', 'VIT 8', 'INT 4', 'WIS 1', 'SPI 0', 'DIS 6']);
+		expect(html.indexOf('dromos-radar')).toBeGreaterThan(html.indexOf('dromos-xp-next'));
+		expect(html).not.toMatch(/dromos-stats?\b|dromos-pip/);
 	});
 
 	it('keeps the sync line at its foot and the name as the heading that takes the focus', () => {
@@ -92,10 +86,10 @@ describe('CharacterCard after the design (game-ui S3)', () => {
 		expect(html.endsWith('<p>sync line</p></section>')).toBe(true);
 	});
 
-	it('puts the skills part between the stats and the sync line (S3)', () => {
+	it('puts the skills part beside the radar, in one row above the sync line (S3, S9)', () => {
 		const html = renderToStaticMarkup(<CharacterCard view={view} footer={<p>sync line</p>} skills={<p>skills</p>} />);
 
-		expect(html).toMatch(/<div class="dromos-stats is-compact">.*<\/div><p>skills<\/p><p>sync line<\/p><\/section>$/);
+		expect(html).toMatch(/<div class="dromos-character-row"><svg class="dromos-radar".*<\/svg><p>skills<\/p><\/div><p>sync line<\/p><\/section>$/);
 	});
 
 	it('keeps the name a heading on the other screens, but not the one their screen focuses', () => {
@@ -175,7 +169,7 @@ describe('CharacterPanel, the plaque (S2)', () => {
 
 		expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character"/);
 		expect(html).not.toContain('data-screen-heading');
-		expect(html.endsWith('<p>skills</p><p>sync line</p></section>')).toBe(true);
+		expect(html.endsWith('<p>skills</p></div><p>sync line</p></section>')).toBe(true);
 	});
 });
 

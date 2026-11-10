@@ -45,7 +45,7 @@ describe('HomeScreen puts the character on the plaque right after the scene (S2)
 });
 
 describe('CharacterCard', () => {
-	// game-ui S3 gave the view the level number, the title line, the next level and the pips.
+	// game-ui S3 gave the view the level number, the title line and the next level; S9 the stats radar.
 	const view = {
 		name: 'Nicolás',
 		title: 'Corredor',
@@ -55,7 +55,7 @@ describe('CharacterCard', () => {
 		titleParts: ['Corredor', 'level 3'],
 		xp: { current: 240, total: 520, percent: 46, text: '240 / 520 XP' },
 		nextLevelText: 'Level 4 in 280 XP',
-		stats: [{ id: 'fuerza' as const, label: 'Strength', shortLabel: 'STR', value: 2, pips: [true, true, false, false, false, false], ariaLabel: 'Strength 2' }],
+		radar: { max: 6, rings: [2, 4, 6], ariaLabel: 'Strength 2', axes: [{ id: 'fuerza' as const, shortLabel: 'STR', label: 'Strength', value: 2, text: 'Strength 2', reach: 2 / 6, x: 0, y: -1 }] },
 	};
 
 	// The landscape is now the scene above every screen (game-ui S1); screens.test.tsx checks it is aria-hidden.

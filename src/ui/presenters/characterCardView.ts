@@ -1,5 +1,6 @@
 import { STAT_IDS, type Character, type StatId } from '../../domain';
 import type { MessageKey, Translator } from '../../i18n';
+import { statRadarView, type StatRadarView } from './statRadarView';
 
 /** Copy keys of the six stats; the ids themselves are the frontmatter keys of `Character.md` and never change. */
 const STAT_KEYS: Readonly<Record<StatId, MessageKey>> = {
@@ -11,7 +12,7 @@ const STAT_KEYS: Readonly<Record<StatId, MessageKey>> = {
 	disciplina: 'stat.disciplina',
 };
 
-/** Copy keys of the stats' short labels, as the plaque's compact grid names them (S5). */
+/** Copy keys of the stats' short labels, as the plaque's radar names its axes (S5, S9). */
 const STAT_SHORT_KEYS: Readonly<Record<StatId, MessageKey>> = {
 	fuerza: 'stat.fuerza.short',
 	vitalidad: 'stat.vitalidad.short',
@@ -32,7 +33,7 @@ export const STAT_PIPS = 6;
 export interface StatBadgeView {
 	readonly id: StatId;
 	readonly label: string;
-	/** "STR": the plaque's compact grid shows it; the full label stays in `ariaLabel` (S5). */
+	/** "STR": the compact badge shows it; the full label stays in `ariaLabel` (S5). */
 	readonly shortLabel: string;
 	readonly value: number;
 	/** One entry per pip, `true` where filled; `null` when the value is above six and its number shows instead. */
@@ -66,8 +67,8 @@ export interface CharacterCardView {
 	readonly xp: XpBarView;
 	/** "Level 4 in 280 XP", under the bar: Dromos has no next title to name (game-ui S3). */
 	readonly nextLevelText: string;
-	/** Always the six stats, in `STAT_IDS` order, for the plaque's compact grid (S5). */
-	readonly stats: readonly StatBadgeView[];
+	/** The six stats as the plaque's radar (S9), in `STAT_IDS` order, the first axis at the top. */
+	readonly radar: StatRadarView;
 }
 
 /** Maps a character read from `Character.md` to the card's display values. */
@@ -83,11 +84,15 @@ export function characterCardView(character: Character, t: Translator): Characte
 		titleParts: title === null ? [t('character.level', { level })] : [title, t('screen.level', { level })],
 		xp: xpBarView(xpIntoLevel, xpToNext),
 		nextLevelText: t('character.nextLevel', { level: level + 1, xp: Math.max(0, xpToNext - xpIntoLevel) }),
-		stats: STAT_IDS.map((id) => statBadgeView(id, character.stats[id], t)),
+		radar: statRadarView(
+			STAT_IDS.map((id) => ({ id, label: t(STAT_KEYS[id]), shortLabel: t(STAT_SHORT_KEYS[id]), value: character.stats[id] })),
+			t,
+		),
 	};
 }
 
-function statBadgeView(id: StatId, value: number, t: Translator): StatBadgeView {
+/** One stat as `StatBadge` draws it: its label and six pips, or its number above six (game-ui S3). */
+export function statBadgeView(id: StatId, value: number, t: Translator): StatBadgeView {
 	const label = t(STAT_KEYS[id]);
 	return {
 		id,

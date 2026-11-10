@@ -1122,7 +1122,7 @@
 .dromos-root .dromos-section-empty { margin: 0; padding: 16px; color: var(--text-muted); }
 
 /* The character on its plaque (S2, game-ui S3): the level medallion beside the name, the title
-   and the hatched XP bar; the six stats as pips in a compact grid (S5); the skills nearest to
+   and the hatched XP bar; in one row the six stats as a radar (S5, S9) and the skills nearest to
    unlocking (S3); the sync line at the foot. */
 .dromos-root .dromos-plaque { display: flex; flex-direction: column; gap: 6px; }
 .dromos-root .dromos-plaque .dromos-character-title { margin-top: 1px; }
@@ -1285,17 +1285,63 @@
 
 .dromos-root .dromos-since-part { white-space: nowrap; }
 
-/* The six stats in the plaque's compact grid (S5): three columns of two, filled down each
-   column in the card's order, so the rows read STR INT SPI and VIT WIS DIS. Each cell is the
-   short label and the six pips; the full name and the value are its tooltip and its pips' name. */
-.dromos-root .dromos-stats.is-compact {
-	display: grid;
-	grid-template-rows: repeat(2, auto);
-	grid-auto-columns: minmax(0, 1fr);
-	grid-auto-flow: column;
-	gap: 2px 12px;
+/* The stats radar and the skills share one row under the XP bar (S9, S3), no taller than the
+   stats grid and the skills line it replaced together, so the plaque keeps its height in the
+   scene. Where both do not fit side by side (panes under about 400 px) the skills go under the
+   radar, which then stands centred on its line. */
+.dromos-root .dromos-character-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px 12px;
 	min-width: 0;
-	max-width: 420px;
+}
+
+.dromos-root .dromos-character-row > .dromos-plaque-skills { flex: 1 1 172px; min-width: 0; }
+
+/* On touch screens the medallions are 44 px targets (S3): they stand edge to edge, their padding
+   still parting the rings by 8 px, so the four fit beside the radar in the scene's plaque. */
+.is-mobile .dromos-root .dromos-character-row { column-gap: 10px; }
+.is-mobile .dromos-root .dromos-character-row > .dromos-plaque-skills { flex-basis: 176px; }
+.is-mobile .dromos-root .dromos-character-row .dromos-plaque-rings { gap: 0; }
+
+/* The radar (S9): a ring every two points and the six axes in a quiet umber hairline, the values
+   an ochre shape over a light ochre wash with a dot on each axis, ringed in the plaque's colour.
+   The tips read in the plaque's small caps, the numbers in ink. Tooltips name each stat. */
+.dromos-root .dromos-radar { flex: 0 0 auto; width: 124px; height: auto; overflow: visible; }
+
+.dromos-root .dromos-radar-ring,
+.dromos-root .dromos-radar-axis {
+	fill: none;
+	stroke: var(--dromos-rule);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
+}
+
+.dromos-root .dromos-radar-shape {
+	fill: var(--dromos-ochre-tint);
+	stroke: var(--dromos-ochre-mark);
+	stroke-width: 1.5;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.dromos-root .dromos-radar-dot { fill: var(--dromos-ochre-mark); stroke: var(--dromos-panel); stroke-width: 1.5; }
+
+.dromos-root .dromos-radar-text {
+	fill: var(--dromos-ink-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+}
+
+.dromos-root .dromos-radar-value { fill: var(--dromos-ink); font-variant-numeric: lining-nums tabular-nums; }
+
+/* Where the radar stands alone on its line (under the scene, on panes under about 400 px), it is
+   drawn larger, its labels at about the plaque's 13 px. */
+@container dromos-view (max-width: 373px) {
+	.dromos-root .dromos-radar { width: 148px; }
 }
 
 .dromos-root .dromos-stat.is-compact {
@@ -1309,12 +1355,6 @@
 }
 
 .dromos-root .dromos-stat.is-compact .dromos-stat-label { width: 22px; flex: 0 0 auto; }
-
-/* Where three cells no longer fit side by side (panes under about 400 px), two columns of three,
-   as the character card had them: STR VIT, INT WIS, SPI DIS. */
-@container dromos-view (max-width: 375px) {
-	.dromos-root .dromos-stats.is-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-flow: row; }
-}
 
 /* The label and its pips share a line; where the column is too narrow the pips go under it. */
 .dromos-root .dromos-stat {
