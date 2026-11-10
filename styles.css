@@ -387,7 +387,8 @@
 	--dromos-sun-drop: 30px;
 }
 
-.theme-light .dromos-root .dromos-scene[data-period='night'] {
+.theme-light .dromos-root .dromos-scene[data-period='night'],
+.theme-light .dromos-root .dromos-library[data-period='night'] .dromos-archive-window {
 	--dromos-scene-sky-top: #1a2646;
 	--dromos-scene-sky-bottom: #2c3f6e;
 	--dromos-scene-sun: #eee6cf;
@@ -2657,7 +2658,8 @@
 .dromos-root .dromos-library-room { display: flex; flex-direction: column; gap: 20px; }
 .dromos-root .dromos-library-room > .dromos-section .dromos-card-title { margin-bottom: 10px; }
 
-.dromos-root .dromos-library-summary {
+.dromos-root .dromos-library-summary,
+.dromos-root .dromos-archive-summary {
 	margin: 4px 0 0;
 	color: var(--dromos-ink);
 	font-size: 15px;
@@ -3081,4 +3083,264 @@
 	.dromos-root .dromos-book-card-actions,
 	.dromos-root .dromos-book-card-action { flex-direction: column; align-items: stretch; }
 	.dromos-root .dromos-book-card-actions .dromos-btn { width: 100%; }
+}
+
+/* ── The archive (M8 S2, S5, S6) ──────────────────────────────────────────────────────────────
+   A room of the library: a doorway in the reading room's wall, then the room itself, an arched
+   window with the landscape over a long worktable, and the rack of pigeonholes as filter buttons;
+   under it the summary and the list. Each resource has a small object for its kind, always beside
+   its words; the clay seal marks a processed one, the empty outline one missing what it left. By
+   night (the dark theme, or the light theme's night hours) the window shows the moon and stars and
+   a candle burns on the table. Its card is the book card's frame. */
+
+/* The doorway, after the alcoves: one button, the arch drawn beside its name and count. */
+.dromos-root .dromos-archive-doorway { display: flex; padding: 0 14px 14px; }
+.dromos-root button.dromos-archive-door {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	min-height: 44px;
+	padding: 8px 22px 8px 10px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 8px;
+	background-color: var(--dromos-panel);
+	box-shadow: 0 1px 0 var(--dromos-shadow);
+	color: var(--dromos-ink);
+	font: inherit;
+	text-align: left;
+	white-space: normal;
+	cursor: pointer;
+}
+.dromos-root button.dromos-archive-door:hover { background-color: var(--dromos-card-hover); }
+.dromos-root button.dromos-archive-door:focus-visible,
+.dromos-root button.dromos-pigeonhole:focus-visible,
+.dromos-root button.dromos-resource-title:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: 2px; box-shadow: none; }
+.dromos-root .dromos-archive-door-art { display: block; flex: none; width: 64px; height: auto; aspect-ratio: 96 / 112; }
+.dromos-root .dromos-archive-door-opening { fill: var(--dromos-niche); }
+.dromos-root .dromos-archive-door-jamb { fill: none; stroke: var(--dromos-umber); stroke-width: 1.8; stroke-linejoin: round; }
+.dromos-root .dromos-archive-door-step { fill: var(--dromos-stone-face); stroke: var(--dromos-umber); stroke-width: 1; }
+.dromos-root .dromos-archive-door-label { display: flex; flex-direction: column; gap: 1px; }
+.dromos-root .dromos-archive-door-name {
+	font-family: var(--dromos-font-display);
+	font-size: 20px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.05em;
+	line-height: 1.15;
+}
+.dromos-root .dromos-archive-door-count { color: var(--dromos-ink-muted); font-size: 13px; font-variant-numeric: lining-nums; }
+
+/* The room: the window at the left, the pigeonholes beside it, the worktable across the foot. */
+.dromos-root .dromos-archive { display: flex; flex-direction: column; gap: 20px; }
+.dromos-root .dromos-archive > .dromos-section .dromos-card-title { margin-bottom: 10px; }
+.dromos-root .dromos-library-scene.is-archive > .is-panels { box-sizing: border-box; min-height: 248px; padding: 14px 14px 98px 188px; }
+.dromos-root .dromos-archive-window { position: absolute; top: 14px; left: 14px; width: 158px; height: auto; aspect-ratio: 150 / 128; }
+.dromos-root .dromos-archive-sky { fill: var(--dromos-scene-sky-bottom); }
+.dromos-root .dromos-archive-moon { fill: var(--dromos-scene-sun); }
+.dromos-root .dromos-archive-star { fill: none; stroke: var(--dromos-scene-star); stroke-width: 2.4; stroke-linecap: round; }
+.dromos-root .dromos-archive-cloud { fill: var(--dromos-scene-cloud); stroke: var(--dromos-scene-line); stroke-width: 0.8; }
+.dromos-root .dromos-archive-hill { fill: var(--dromos-scene-leaf); }
+.dromos-root .dromos-archive-hill.is-far { fill: var(--dromos-scene-hill); }
+.dromos-root .dromos-archive-cypress { fill: var(--dromos-scene-leaf); stroke: var(--dromos-scene-line); stroke-width: 0.8; }
+.dromos-root .dromos-archive-mullion { fill: none; stroke: var(--dromos-umber); stroke-width: 2; }
+.dromos-root .dromos-archive-frame { fill: none; stroke: var(--dromos-umber); stroke-width: 3; stroke-linejoin: round; }
+.dromos-root .dromos-archive-sill { fill: var(--dromos-wood); stroke: var(--dromos-umber); stroke-width: 1; }
+.dromos-root .dromos-archive-light {
+	position: absolute;
+	top: 96px;
+	left: 120px;
+	width: 120px;
+	height: 190px;
+	background: linear-gradient(90deg, transparent, var(--dromos-light-shaft) 45% 55%, transparent);
+	transform: skewX(-32deg);
+}
+.dromos-root .dromos-archive-table {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	height: 84px;
+	border-top: 1px solid var(--dromos-rule);
+	background-color: var(--dromos-tint);
+}
+.dromos-root .dromos-archive-things { display: block; width: 100%; height: 56px; }
+.dromos-root .dromos-archive-table::after {
+	content: '';
+	display: block;
+	height: 16px;
+	border-top: 1px solid var(--dromos-umber);
+	background-color: var(--dromos-wood);
+	box-shadow: inset 0 -6px 0 var(--dromos-wood-edge);
+}
+.dromos-root .dromos-archive-candle-body { fill: var(--dromos-papyrus); stroke: var(--dromos-umber); stroke-width: 1; }
+/* By day the light falls on the table; at night the moon, the stars and the candle take its place. */
+.dromos-root .dromos-library[data-period='night'] .dromos-archive-light { display: none; }
+.theme-light .dromos-root .dromos-library:not([data-period='night']) :is(.dromos-archive-moon, .dromos-archive-star, .dromos-archive-candle) { display: none; }
+
+/* The pigeonholes: parchment boxes on a wooden ledge, the one on show pressed in ochre. */
+.dromos-root .dromos-pigeonholes { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 10px; }
+.dromos-root button.dromos-pigeonhole {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	width: 100%;
+	height: auto;
+	min-height: 64px;
+	padding: 8px 8px 12px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 6px;
+	background-color: var(--dromos-paper);
+	box-shadow: inset 0 -4px 0 var(--dromos-wood);
+	color: var(--dromos-ink);
+	font: inherit;
+	white-space: normal;
+	cursor: pointer;
+}
+.dromos-root button.dromos-pigeonhole:hover { background-color: var(--dromos-card-hover); }
+.dromos-root button.dromos-pigeonhole.is-selected {
+	border-color: var(--dromos-ochre-mark);
+	background-color: var(--dromos-panel);
+	background-image: linear-gradient(var(--dromos-ochre-tint), var(--dromos-ochre-tint));
+	box-shadow: inset 0 0 0 1px var(--dromos-ochre-mark), inset 0 -4px 0 var(--dromos-wood);
+}
+.dromos-root .dromos-pigeonhole .dromos-resource-art { width: 26px; height: 26px; }
+.dromos-root .dromos-pigeonhole-label { font-family: var(--dromos-font-display); font-size: 17px; font-weight: 600; line-height: 1.15; }
+.dromos-root .dromos-pigeonhole-count { font-variant-numeric: lining-nums; }
+
+/* The objects of the kinds, on the rows, the pigeonholes, the card and the table. */
+.dromos-root .dromos-resource-art { display: block; flex: none; overflow: visible; }
+.dromos-root .dromos-resource-paper { fill: var(--dromos-papyrus); stroke: var(--dromos-umber); stroke-width: 1.2; stroke-linejoin: round; }
+.dromos-root .dromos-resource-line { fill: none; stroke: var(--dromos-umber); stroke-width: 1; stroke-linejoin: round; }
+.dromos-root .dromos-resource-text { fill: none; stroke: var(--dromos-papyrus-line); stroke-width: 1.4; stroke-linecap: round; }
+.dromos-root .dromos-resource-wood { fill: var(--dromos-wood); stroke: var(--dromos-umber); stroke-width: 1.2; stroke-linejoin: round; }
+.dromos-root .dromos-resource-wax { fill: var(--dromos-ochre); stroke: var(--dromos-umber); stroke-width: 0.8; }
+.dromos-root .dromos-resource-cord { fill: var(--dromos-ochre); stroke: var(--dromos-umber); stroke-width: 0.8; }
+.dromos-root .dromos-resource-stamp { fill: var(--dromos-seal); stroke: var(--dromos-umber); stroke-width: 0.8; }
+.dromos-root .dromos-resource-play { fill: var(--dromos-umber); }
+.dromos-root .dromos-resource-horn { fill: none; stroke: var(--dromos-umber); stroke-width: 2; stroke-linecap: round; }
+.dromos-root .dromos-resource-string { fill: none; stroke: var(--dromos-umber); stroke-width: 0.8; }
+.dromos-root .dromos-resource-stylus { fill: none; stroke: var(--dromos-umber); stroke-width: 2.2; stroke-linecap: round; }
+.dromos-root .dromos-resource-seal circle { fill: var(--dromos-seal); stroke: var(--dromos-umber); stroke-width: 1; }
+.dromos-root .dromos-resource-seal .dromos-resource-seal-ring { fill: none; stroke: var(--dromos-seal-ring); }
+.dromos-root .dromos-resource-seal-empty { fill: var(--dromos-papyrus); stroke: var(--dromos-clay); stroke-width: 1.4; stroke-dasharray: 2.4 2; }
+
+/* The list: the summary under the room, an empty line on parchment, each section one panel of rows. */
+.dromos-root .dromos-archive-empty {
+	margin: 0;
+	padding: 14px 16px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 8px;
+	background-color: var(--dromos-panel);
+	color: var(--dromos-ink);
+	text-align: center;
+}
+.dromos-root .dromos-resource-list { margin: 0; padding: 0; list-style: none; }
+.dromos-root .dromos-resource-row {
+	display: grid;
+	grid-template-columns: 40px minmax(0, 1fr) auto;
+	column-gap: 14px;
+	align-items: start;
+	padding: 14px 16px;
+	border-top: 1px solid var(--dromos-rule);
+}
+.dromos-root .dromos-resource-row:first-child { border-top: 0; }
+.dromos-root .dromos-resource-row > .dromos-resource-art { width: 40px; height: 40px; margin-top: 2px; }
+.dromos-root .dromos-resource-body { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; }
+.dromos-root .dromos-resource-meta { margin: 0; font-size: 13px; line-height: 1.35; }
+.dromos-root .dromos-resource-kind {
+	margin-right: 6px;
+	font-family: var(--dromos-font-display);
+	font-size: 15px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.06em;
+}
+.dromos-root .dromos-resource-state { color: var(--dromos-ink); font-weight: 600; }
+.dromos-root .dromos-resource-row.is-takeaway-missing .dromos-resource-state { color: var(--dromos-clay-ink); }
+.dromos-root button.dromos-resource-title {
+	display: inline-flex;
+	align-items: center;
+	height: auto;
+	min-height: 44px;
+	margin: -4px 0;
+	padding: 0;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	box-shadow: none;
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: left;
+	white-space: normal;
+	text-decoration: underline dotted var(--dromos-umber);
+	text-underline-offset: 4px;
+	overflow-wrap: anywhere;
+	cursor: pointer;
+}
+.dromos-root button.dromos-resource-title:hover { text-decoration-style: solid; }
+.dromos-root .dromos-resource-source { margin: 0; color: var(--dromos-ink-muted); font-size: 14px; overflow-wrap: anywhere; }
+.dromos-root .dromos-resource-saved { margin: 0; color: var(--dromos-ink-muted); font-size: 13px; }
+.dromos-root .dromos-resource-why { margin: 2px 0 0; color: var(--dromos-ink-muted); font-size: 13px; font-style: italic; overflow-wrap: anywhere; }
+/* "Abrir ↗" is a real link wearing the button's look. */
+.dromos-root a.dromos-resource-link {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--dromos-ink);
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.dromos-root a.dromos-resource-link:hover { color: var(--dromos-ink); text-decoration: none; }
+.dromos-root .dromos-resource-panel > .dromos-list-toggle { display: flex; margin: 4px auto 14px; }
+
+/* The card: the book card's frame, with the kind above the title and its two parts in one column. */
+.dromos-root .dromos-resource-card-kind {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 6px;
+	font-family: var(--dromos-font-display);
+	font-size: 17px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.06em;
+}
+.dromos-root .dromos-resource-card-kind .dromos-resource-art { width: 30px; height: 30px; }
+.dromos-root .dromos-resource-card-parts { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
+.dromos-root .dromos-resource-card-why { margin: 4px 0 0; color: var(--dromos-ink); font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; }
+.dromos-root .dromos-book-card-state.is-takeaway-missing,
+.dromos-root .dromos-resource-card.is-takeaway-missing .dromos-book-seal-text { color: var(--dromos-clay-ink); }
+
+/* Phones and narrow panes: the room shrinks, the window small over a row of chips that scrolls
+   sideways, the table a strip; each row puts its link under its text. */
+@container dromos-view (max-width: 472px) {
+	.dromos-root .dromos-library-scene.is-archive > .is-panels { min-height: 0; padding: 92px 12px 62px; }
+	.dromos-root .dromos-archive-window { top: 10px; left: 12px; width: 84px; }
+	.dromos-root .dromos-archive-light { display: none; }
+	.dromos-root .dromos-archive-table { height: 52px; }
+	.dromos-root .dromos-archive-things { height: 36px; }
+	.dromos-root .dromos-archive-table::after { height: 12px; }
+	.dromos-root .dromos-pigeonholes { display: flex; flex-wrap: nowrap; gap: 8px; margin-inline: -12px; padding: 4px 12px 6px; overflow-x: auto; scroll-padding-inline: 12px; scrollbar-width: thin; scrollbar-color: var(--dromos-scrollbar) transparent; }
+	.dromos-root button.dromos-pigeonhole { flex: none; flex-direction: row; gap: 6px; width: auto; min-height: 44px; padding: 4px 14px 4px 8px; border-radius: 999px; box-shadow: none; }
+	.dromos-root button.dromos-pigeonhole.is-selected { box-shadow: inset 0 0 0 1px var(--dromos-ochre-mark); }
+	.dromos-root .dromos-pigeonhole .dromos-resource-art { width: 22px; height: 22px; }
+	.dromos-root .dromos-pigeonhole-label { font-size: 15px; white-space: nowrap; }
+	.dromos-root .dromos-resource-row { grid-template-columns: 32px minmax(0, 1fr); column-gap: 10px; padding: 12px; }
+	.dromos-root .dromos-resource-row > .dromos-resource-art { width: 32px; height: 32px; }
+	.dromos-root .dromos-resource-row > .dromos-resource-link { grid-column: 2; justify-self: start; margin-top: 8px; }
+	.dromos-root .dromos-archive-doorway { padding: 0 12px 12px; }
+	.dromos-root button.dromos-archive-door { width: 100%; }
 }

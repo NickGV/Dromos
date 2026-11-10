@@ -126,6 +126,20 @@ describe('reflectionLoader: the text of the open card (M7 S5)', () => {
 
 		expect(delivered).toEqual([['a.md', null]]);
 	});
+
+	it('loads the takeaway of a resource card the same way, a slow read of another card dropped (M8 S6)', async () => {
+		const delivered: [string, string | null][] = [];
+		const pending: { path: string; settle: (text: string | null) => void }[] = [];
+		const loader = reflectionLoader<string>({ execute: (path) => new Promise<string | null>((resolve) => pending.push({ path, settle: resolve })) }, (path, text) => delivered.push([path, text]));
+
+		loader.load('old.md');
+		loader.load('new.md');
+		pending[0]?.settle('viejo');
+		pending[1]?.settle('');
+		await settled();
+
+		expect(delivered).toEqual([['new.md', '']]);
+	});
 });
 
 describe('runHabitSend: "Send to Habitica" beside the desk (ADR-017, S2)', () => {

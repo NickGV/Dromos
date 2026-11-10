@@ -12,11 +12,12 @@ import {
 } from '../adapters/habitica';
 import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultResourceRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, MarkResourceFinished, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
 import { readingOutcomeView, readingTodo } from '../ui/presenters/readingView';
+import { resourceOutcomeView } from '../ui/presenters/resourceCardView';
 import { rebuildMessage } from '../ui/presenters/rebuildView';
 
 /** What the plugin registers, built once per plugin load. */
@@ -77,6 +78,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		readingTodo: (book) => readingTodo(book, createTranslator(settings.language), sendDeps.noteLink),
 	});
 	const finishReading = new FinishReading({ repository: books, clock });
+	// "Marcar como leído" on a resource of the archive (M8 S6): writes only `finished`, no request, no XP.
+	const markResourceFinished = new MarkResourceFinished({ repository: resources, clock });
 	// One campaigns sync for the session: it also brings the streaks of the areas' reading habits (ADR-017).
 	const syncCampaigns = new SyncCampaigns({
 		repository: campaignRepository,
@@ -145,13 +148,15 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				openNote,
 				clock,
 			},
-			// "Empezar a leer", "Terminar" (M7 S3, S4) and a habit's "Enviar a Habitica" (ADR-017) toast their outcome; the screen reads again after.
+			// "Empezar a leer", "Terminar" (M7 S3, S4), a resource's "Marcar como leído" (M8 S6) and a habit's "Enviar a Habitica" (ADR-017) toast their outcome; the screen reads again after.
 			library: {
 				loadLibrary: new LoadLibrary({ books, resources }),
 				readReflection: new ReadReflection({ books }),
 				renderMarkdown,
 				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),
 				finishReading: async (path) => showNotice(readingOutcomeView(await finishReading.execute(path), createTranslator(settings.language)).message),
+				readTakeaway: new ReadTakeaway({ resources }),
+				markResourceFinished: async (path) => showNotice(resourceOutcomeView(await markResourceFinished.execute(path), createTranslator(settings.language)).message),
 				habits: {
 					snapshot: () => campaignState.snapshot(),
 					sync: syncCampaigns,

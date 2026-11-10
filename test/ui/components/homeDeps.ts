@@ -37,6 +37,7 @@ export function homeDeps(
 	const library: LibraryDeps = {
 		loadLibrary: { execute: never },
 		readReflection: { execute: never },
+		readTakeaway: { execute: never },
 		renderMarkdown: renderNothing,
 		openCard: () => ({ show: noop, close: noop }),
 		openNote: noop,
