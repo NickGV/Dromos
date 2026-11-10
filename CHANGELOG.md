@@ -2,6 +2,21 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The character plaque** on every screen, inside the landscape's bottom left corner (under it on narrow views): your level, name, title, XP, what changed since your last visit, the six stats as a radar with each tip's short name and number (STR 3), the four skills nearest to unlocking (each opens the Skills screen) and the sync line.
+- A small reading desk on the home screen with the books you are reading; selecting one opens its card, as in the Library.
+- The landscape comes alive: far mountains, a windmill, chimney smoke, grazing sheep, flowers and grass in the wind, butterflies by day, and fireflies and twinkling stars at night, all in slow, quiet loops. They hold still with reduced motion, while Habitica cannot be reached, and while the landscape is out of sight.
+- The walker is redrawn as a pilgrim runner: a mantle, a satchel, sandals and a lantern on its staff.
+- A shepherd leaning on his crook among his sheep, with a lion resting at peace beside them, on the far hill.
+
+### Changed
+
+- Every screen shows the whole landscape, so the walker and the gate are never cut; the header card of Campaigns, Skills and Library names only the screen.
+- The home screen is in two columns: Esdras's letter and today's quests on the left; campaigns, the reading desk and the chronicle on the right. The character card and the row of skills left it for the plaque.
+
 ## [0.13.0] - 2026-11-10
 
 ### Added

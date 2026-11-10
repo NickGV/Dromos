@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CampaignSnapshot } from '../../src/application';
 import type { Book } from '../../src/domain';
 import { createTranslator } from '../../src/i18n';
-import { libraryHabitsView, libraryRoomView, libraryShelfView, shelfId } from '../../src/ui/presenters/libraryView';
+import { homeDeskView, libraryHabitsView, libraryRoomView, libraryShelfView, shelfId } from '../../src/ui/presenters/libraryView';
 import { area, campaign, habit } from '../domain/campaign/campaignFixtures';
 import { aBook, aReflection } from '../fakes/books';
 
@@ -114,6 +114,27 @@ describe('libraryRoomView: the reading room (M7 S5)', () => {
 		}
 		expect(libraryRoomView([], TODAY, en).empty).toBe('The library is empty. Ask Esdras to add the books you want to read.');
 		expect(libraryRoomView(LIBRARY, TODAY, es).empty).toBeNull();
+	});
+});
+
+describe('homeDeskView: the small reading desk on home (home-header S1)', () => {
+	const loaded = (books: readonly Book[]) => ({ kind: 'loaded' as const, books, resources: [] });
+
+	it('holds only the books being read, as the desk of the library draws them', () => {
+		const desk = homeDeskView(loaded(LIBRARY), TODAY, es);
+
+		expect(desk?.title).toBe('Leyendo ahora');
+		expect(desk?.empty).toBeNull();
+		expect(desk?.scrolls).toEqual(libraryRoomView(LIBRARY, TODAY, es).desk.scrolls);
+		expect(desk?.scrolls.map((scroll) => scroll.title)).toEqual(['Clean Architecture', 'Mero cristianismo']);
+		expect(homeDeskView(loaded(LIBRARY), TODAY, en)?.title).toBe('Reading now');
+	});
+
+	it('is not drawn while no book is being read, while the library loads, or when it cannot be read', () => {
+		expect(homeDeskView(loaded([book('A'), book('B', { status: 'paused' }), book('C', { status: 'completed', reflection: FULL })]), TODAY, es)).toBeNull();
+		expect(homeDeskView(loaded([]), TODAY, es)).toBeNull();
+		expect(homeDeskView(null, TODAY, es)).toBeNull();
+		expect(homeDeskView({ kind: 'unreadable' }, TODAY, es)).toBeNull();
 	});
 });
 

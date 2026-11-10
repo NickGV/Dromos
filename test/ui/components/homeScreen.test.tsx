@@ -4,15 +4,14 @@ import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
 import { IDLE_GAME, IDLE_QUESTS, homeDeps } from './homeDeps';
 
-/** The markup of the first element inside `<main>`, up to its closing `</section>`. */
+/** The character's plaque, which follows the scene before `<main>`, up to its closing `</section>`. */
 function firstSection(html: string): string {
-	const main = /<main[^>]*>/.exec(html);
-	if (!main) return '';
-	const rest = html.slice(main.index + main[0].length);
-	return rest.startsWith('<section') ? rest.slice(0, rest.indexOf('</section>')) : '';
+	const start = html.indexOf('<section class="dromos-card dromos-plaque');
+	if (start < 0 || start > html.indexOf('<main')) return '';
+	return html.slice(start, html.indexOf('</section>', start));
 }
 
-describe('HomeScreen puts the character first', () => {
+describe('HomeScreen puts the character on the plaque right after the scene (S2)', () => {
 	it('opens with the character, which holds the sync line and its button', () => {
 		const section = firstSection(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />));
 		expect(section).toMatch(/^<section[^>]*aria-label="Character"/);
@@ -27,7 +26,7 @@ describe('HomeScreen puts the character first', () => {
 	});
 
 	// game-ui S4: the ceremony panel under the card replaces the banner that sat inside it.
-	it('keeps the character first when there is a level-up, which opens its panel under the card', () => {
+	it('keeps the character on the plaque when there is a level-up, which opens its panel first on the screen', () => {
 		const game = { ...IDLE_GAME, events: [{ kind: 'character-level' as const, level: 4 }] };
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} />);
 		const section = firstSection(html);
@@ -46,7 +45,7 @@ describe('HomeScreen puts the character first', () => {
 });
 
 describe('CharacterCard', () => {
-	// game-ui S3 gave the view the level number, the title line, the next level and the pips.
+	// game-ui S3 gave the view the level number, the title line and the next level; S9 the stats radar.
 	const view = {
 		name: 'Nicolás',
 		title: 'Corredor',
@@ -56,7 +55,7 @@ describe('CharacterCard', () => {
 		titleParts: ['Corredor', 'level 3'],
 		xp: { current: 240, total: 520, percent: 46, text: '240 / 520 XP' },
 		nextLevelText: 'Level 4 in 280 XP',
-		stats: [{ id: 'fuerza' as const, label: 'Strength', value: 2, pips: [true, true, false, false, false, false], ariaLabel: 'Strength 2' }],
+		radar: { max: 6, rings: [2, 4, 6], ariaLabel: 'Strength 2', axes: [{ id: 'fuerza' as const, shortLabel: 'STR', label: 'Strength', value: 2, text: 'Strength 2', reach: 2 / 6, x: 0, y: -1 }] },
 	};
 
 	// The landscape is now the scene above every screen (game-ui S1); screens.test.tsx checks it is aria-hidden.

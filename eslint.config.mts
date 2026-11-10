@@ -40,4 +40,9 @@ export default defineConfig(
 			'obsidianmd/ui/sentence-case': ['warn', { brands: ['Habitica', 'Dromos'], ignoreRegex: ['Character\\.md'] }],
 		},
 	},
+	{
+		// The tests run in Node and never ship to a phone: they may read the files they check.
+		files: ['test/**'],
+		rules: { 'obsidianmd/no-nodejs-modules': 'off' },
+	},
 );

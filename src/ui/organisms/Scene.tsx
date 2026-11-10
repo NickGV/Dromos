@@ -25,14 +25,15 @@ export interface SceneProps {
 }
 
 /**
- * The scene above every screen (S1): the landscape, tall on the home screen and short on the
- * others, with the walker on the road and the gate of the next level at its end (S16), the
- * signpost to the other screens planted in it and, at a level-up, the ribbon over it. The card
- * that opens the screen overlaps its foot. The world reacts (S17): the sky follows the time of
- * day, through `data-period`, and a campfire burns on a complete day.
+ * The scene above every screen (S1): the same landscape on each (home-header S2), tall enough for
+ * the walker, the gate and its plaque to stay whole, with the walker on the road and the gate of
+ * the next level at its end (S16), the signpost to the other screens planted in it and, at a
+ * level-up, the ribbon over it. The character's plaque follows it, in its corner on wide panes;
+ * nothing overlaps its foot. The world reacts (S17): the sky follows the time of day, through
+ * `data-period`, and a campfire burns on a complete day.
  */
 export function Scene({ screen, offline, onGo, onSettings, ribbon = null, walker = null, gateLabel = null, period = 'day', campfire = false }: SceneProps) {
-	const classes = ['dromos-scene', screen === 'home' ? 'is-home' : null, offline ? 'is-offline' : null].filter((name) => name !== null).join(' ');
+	const classes = offline ? 'dromos-scene is-offline' : 'dromos-scene';
 	return (
 		<div className={classes} data-period={period}>
 			<Landscape>

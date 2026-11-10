@@ -91,7 +91,7 @@ describe('English: character card', () => {
 		expect(view.name).toBe('Unnamed');
 		expect(view.levelText).toBe('Level 4');
 		expect(view.xp.text).toBe('240 / 520 XP');
-		expect(view.stats.map((stat) => [stat.id, stat.label])).toEqual([
+		expect(view.radar.axes.map((axis) => [axis.id, axis.label])).toEqual([
 			['fuerza', 'Strength'],
 			['vitalidad', 'Vitality'],
 			['inteligencia', 'Intelligence'],

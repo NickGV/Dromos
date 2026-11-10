@@ -52,6 +52,30 @@ describe('Walker', () => {
 			expect(html).toContain(`class="${part}"`);
 		}
 	});
+
+	// home-header S6: "podrias mejorar al corredor, pongamoslo mejorcito".
+	it('is a pilgrim runner: a mantle with folds and a hem, a satchel on its strap, sandals, a face, and the lamp in a lantern on the staff', () => {
+		const html = renderToStaticMarkup(
+			<svg>
+				<Walker fraction={0.3} />
+			</svg>,
+		);
+
+		for (const part of ['dromos-scene-mantle', 'dromos-scene-fold', 'dromos-scene-hem', 'dromos-scene-satchel', 'dromos-scene-strap', 'dromos-scene-sandal', 'dromos-scene-skin', 'dromos-scene-eye', 'dromos-scene-lantern', 'dromos-scene-lamp-glow']) {
+			expect(html, part).toContain(`class="${part}"`);
+		}
+		expect(walkerAt(html)).toBe(walkerTransform(walkerPlacement(0.3)));
+	});
+
+	it('wears a sash the wind stirs, inside the body so it steps and breathes with it, and holds still as the life of the scene does', () => {
+		const html = renderToStaticMarkup(
+			<svg>
+				<Walker fraction={null} />
+			</svg>,
+		);
+
+		expect(html).toMatch(/<g class="dromos-walker-body"><g class="dromos-scene-figure">.*<g class="dromos-walker-sash dromos-scene-life"><path class="dromos-scene-sash"/);
+	});
 });
 
 describe('Scene marks the gate with the next level', () => {
@@ -73,7 +97,7 @@ describe('Scene marks the gate with the next level', () => {
 	it('still starts with the landscape and has no ribbon without one, plaque or not', () => {
 		const html = scene({ walker: 0.35, gateLabel: 'Level 6' });
 
-		expect(html).toMatch(/^<div class="dromos-scene is-home" data-period="day"><svg[^>]*class="dromos-landscape"/);
+		expect(html).toMatch(/^<div class="dromos-scene" data-period="day"><svg[^>]*class="dromos-landscape"/);
 		expect(html).not.toContain('dromos-ribbon');
 	});
 

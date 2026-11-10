@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { Character } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
-import { StatBadge } from '../../../src/ui/atoms/StatBadge';
 import { XpBar } from '../../../src/ui/atoms/XpBar';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
 import { CharacterPanel } from '../../../src/ui/organisms/CharacterPanel';
@@ -25,25 +24,6 @@ const card = (ceremony: Parameters<typeof CharacterCard>[0]['ceremony'] = null):
 /** The width of the XP bar's fill, in percent. */
 const fillWidth = (html: string): string | undefined => /class="dromos-xp-fill" style="width:(\d+)%"/.exec(html)?.[1];
 
-describe('StatBadge draws a stat as six pips (game-ui S3)', () => {
-	it('fills as many pips as the value, as one image named by the stat and its value', () => {
-		const html = renderToStaticMarkup(<StatBadge stat={view.stats[0]!} />);
-
-		expect(html).toMatch(/role="img" aria-label="Strength 3"/);
-		expect(html.match(/class="dromos-pip( is-filled)?"/g)).toHaveLength(6);
-		expect(html.match(/class="dromos-pip is-filled"/g)).toHaveLength(3);
-		expect(html).toMatch(/<span class="dromos-stat-label" aria-hidden="true">Strength<\/span>/);
-	});
-
-	it('shows a value above six as its number, without pips', () => {
-		const html = renderToStaticMarkup(<StatBadge stat={view.stats[1]!} />);
-
-		expect(html).toMatch(/role="img" aria-label="Vitality 8"/);
-		expect(html).toContain('<span class="dromos-stat-number">8</span>');
-		expect(html).not.toContain('dromos-pip');
-	});
-});
-
 describe('CharacterCard after the design (game-ui S3)', () => {
 	it('opens with a level medallion named by the level, and drops the level chip', () => {
 		const html = card();
@@ -61,15 +41,34 @@ describe('CharacterCard after the design (game-ui S3)', () => {
 		expect(html).toMatch(/<span class="dromos-xp-text">240 \/ 520 XP<\/span><span class="dromos-xp-next">Level 4 in 280 XP<\/span>/);
 	});
 
-	it('draws the six stats in their grid', () => {
-		expect(card().match(/role="img" aria-label="(Strength|Vitality|Intelligence|Wisdom|Spirit|Discipline) \d+"/g)).toHaveLength(6);
+	it('draws the six stats under the bar as a radar, in place of the dots (S9)', () => {
+		const html = card();
+
+		expect(html).toMatch(/<\/div><\/div><\/div><div class="dromos-character-row"><svg class="dromos-radar" role="img" aria-label="Strength 3, Vitality 8, Intelligence 4, Wisdom 1, Spirit 0, Discipline 6"/);
+		expect([...html.matchAll(/<tspan class="dromos-radar-label">(\w+)<\/tspan> <tspan class="dromos-radar-value">(\d+)<\/tspan>/g)].map((match) => `${match[1]} ${match[2]}`)).toEqual(['STR 3', 'VIT 8', 'INT 4', 'WIS 1', 'SPI 0', 'DIS 6']);
+		expect(html.indexOf('dromos-radar')).toBeGreaterThan(html.indexOf('dromos-xp-next'));
+		expect(html).not.toMatch(/dromos-stats?\b|dromos-pip/);
 	});
 
 	it('keeps the sync line at its foot and the name as the heading that takes the focus', () => {
 		const html = card();
 
+		expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character" aria-label="Character">/);
 		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"[^>]*>Nicolás<\/h2>/);
 		expect(html.endsWith('<p>sync line</p></section>')).toBe(true);
+	});
+
+	it('puts the skills part beside the radar, in one row above the sync line (S3, S9)', () => {
+		const html = renderToStaticMarkup(<CharacterCard view={view} footer={<p>sync line</p>} skills={<p>skills</p>} />);
+
+		expect(html).toMatch(/<div class="dromos-character-row"><svg class="dromos-radar".*<\/svg><p>skills<\/p><\/div><p>sync line<\/p><\/section>$/);
+	});
+
+	it('keeps the name a heading on the other screens, but not the one their screen focuses', () => {
+		const html = renderToStaticMarkup(<CharacterCard view={view} footer={null} heading={false} />);
+
+		expect(html).toContain('<h2 class="dromos-character-name">Nicolás</h2>');
+		expect(html).not.toContain('data-screen-heading');
 	});
 });
 
@@ -107,12 +106,42 @@ describe('XpBar', () => {
 	});
 });
 
-describe('CharacterPanel', () => {
+describe('CharacterPanel, the plaque (S2)', () => {
 	it('still names the expected note when the character is missing, without a card', () => {
 		const html = renderToStaticMarkup(<CharacterPanel state={{ kind: 'missing', path: 'Dromos/Character.md' }} footer={null} />);
 
 		expect(html).toContain('<code>Dromos/Character.md</code>');
 		expect(html).not.toContain('dromos-level-medal');
+	});
+
+	it('keeps the texts of loading, missing and unreadable on the plaque, with the skills and the sync line under them', () => {
+		const states = [
+			[{ kind: 'loading' }, 'Loading the character…'],
+			[{ kind: 'missing', path: 'Dromos/Character.md' }, 'Character not found'],
+			[{ kind: 'unreadable' }, 'The character note could not be read.'],
+		] as const;
+		for (const [state, text] of states) {
+			const html = renderToStaticMarkup(<CharacterPanel state={state} skills={<p>skills</p>} footer={<p>sync line</p>} />);
+
+			expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character-empty" aria-label="Character">/);
+			expect(html).toContain(text);
+			expect(html.endsWith('<p>skills</p><p>sync line</p></section>')).toBe(true);
+		}
+	});
+
+	it('makes the missing title the screen heading on home only', () => {
+		const missing = { kind: 'missing', path: 'Dromos/Character.md' } as const;
+
+		expect(renderToStaticMarkup(<CharacterPanel state={missing} footer={null} />)).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"[^>]*>Character not found<\/h2>/);
+		expect(renderToStaticMarkup(<CharacterPanel state={missing} footer={null} heading={false} />)).toContain('<h2 class="dromos-card-title">Character not found</h2>');
+	});
+
+	it('gives the found character the same plaque', () => {
+		const html = renderToStaticMarkup(<CharacterPanel state={{ kind: 'found', view }} skills={<p>skills</p>} footer={<p>sync line</p>} heading={false} />);
+
+		expect(html).toMatch(/^<section class="dromos-card dromos-plaque dromos-character"/);
+		expect(html).not.toContain('data-screen-heading');
+		expect(html.endsWith('<p>skills</p></div><p>sync line</p></section>')).toBe(true);
 	});
 });
 

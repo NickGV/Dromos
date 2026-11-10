@@ -334,6 +334,25 @@
 	--dromos-scene-flame: #f0c36a;
 	--dromos-scene-log: #6e5038;
 	--dromos-scene-stone: #6f675e;
+	/* The life of the landscape (home-header S4): the far ridge, the sky's haze over blue stone, so
+	   it is set again for each hour of the light theme; the sheep's wool; flowers in cream and
+	   ochre; a butterfly's clay wings (by day only) and the fireflies' light (at night only). */
+	--dromos-scene-ridge: #2d364f;
+	--dromos-scene-wool: #a59d89;
+	--dromos-scene-flower: #b3aa92;
+	--dromos-scene-bloom: #b58a3e;
+	--dromos-scene-wing: #c8673e;
+	--dromos-scene-firefly: #f2d675;
+	/* The pilgrim runner (home-header S6): a sienna mantle, moonlit, and leather for its satchel and
+	   sandals. */
+	--dromos-scene-mantle: #7d5541;
+	--dromos-scene-satchel: #5c4130;
+	/* The pasture (home-header S7, S8): the shepherd's brown robe and pale head cloth, the lion's
+	   tawny body and darker mane, all under the moon. */
+	--dromos-scene-coat: #6e5a45;
+	--dromos-scene-cloth: #b3a98f;
+	--dromos-scene-lion: #a2865a;
+	--dromos-scene-mane: #6b4a2f;
 	/* How far the time of day lowers the sun (S17); the dark theme's moon keeps its place. */
 	--dromos-sun-drop: 0px;
 }
@@ -361,6 +380,18 @@
 	--dromos-scene-flame: #f2c14e;
 	--dromos-scene-log: #7a4f30;
 	--dromos-scene-stone: #d6cdbf;
+	--dromos-scene-ridge: #b9ced2;
+	--dromos-scene-wool: #faf5ea;
+	--dromos-scene-flower: #faf5ea;
+	--dromos-scene-bloom: #d9a33a;
+	--dromos-scene-wing: #c8673e;
+	--dromos-scene-firefly: #f2d675;
+	--dromos-scene-mantle: #a65d3b;
+	--dromos-scene-satchel: #7a4f30;
+	--dromos-scene-coat: #96714c;
+	--dromos-scene-cloth: #faf5ea;
+	--dromos-scene-lion: #d8a95b;
+	--dromos-scene-mane: #9a5b2d;
 }
 
 /* The time of day (game-ui S17): the scene's data-period sets only token values. By day the
@@ -376,6 +407,7 @@
 	--dromos-scene-sky-bottom: #f4dcc6;
 	--dromos-scene-sun: #f8dfae;
 	--dromos-scene-cloud: #fcf1e6;
+	--dromos-scene-ridge: #b8c2cf;
 	--dromos-sun-drop: 30px;
 }
 
@@ -384,6 +416,7 @@
 	--dromos-scene-sky-bottom: #f1caa6;
 	--dromos-scene-sun: #f3c48c;
 	--dromos-scene-cloud: #f7e4d4;
+	--dromos-scene-ridge: #b3bccb;
 	--dromos-sun-drop: 30px;
 }
 
@@ -397,6 +430,7 @@
 	--dromos-scene-leaf: #33492c;
 	--dromos-scene-gate: #cbb993;
 	--dromos-scene-fire: #f08a50;
+	--dromos-scene-ridge: #2f4169;
 	--dromos-sun-drop: -14px;
 }
 
@@ -444,31 +478,27 @@
 .dromos-root .dromos-scene {
 	/* How the drawing is sliced into the scene, for the text placed over it (game-ui S16): the
 	   scene's width, which bleeds over the view's padding, its height (kept equal to `height`),
-	   and how far the drawing is framed to the left. Below 800 px (870 px on the taller home
-	   scene) the frame moves left, so the road's end and the plaque of its gate stay clear of the
-	   signpost, whose planks hang on both sides of its post since M7; the sky moves back by about
-	   as much, so the sun and the clouds stay where they were. */
+	   and how far the drawing is framed to the left. Below 870 px the frame moves left, so the
+	   road's end and the plaque of its gate stay clear of the signpost, whose planks hang on both
+	   sides of its post since M7; the sky moves back by about as much, so the sun and the clouds
+	   stay where they were.
+	   Every screen draws the same scene (home-header S2): 300 px, and on panes wider than the
+	   drawing it grows with it, up to 380 px, so the slice does not crop its sky away (a recorded
+	   departure from S1, game-ui L8). The walker, the gate and its plaque stay whole on every
+	   pane from 320 to 2560 px. */
 	--dromos-scene-w: calc(100cqi + 2 * var(--size-4-3, 12px));
-	--dromos-scene-h: 170px;
-	--dromos-scene-shift: max(0px, calc(800px - var(--dromos-scene-w)));
+	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
+	--dromos-scene-shift: max(0px, calc(870px - var(--dromos-scene-w)));
 	--dromos-sky-x: calc(var(--dromos-scene-shift) / 2);
 	position: relative;
 	overflow: hidden;
-	height: 170px;
+	height: 300px;
+	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
 	border-bottom: 1px solid var(--dromos-umber);
 	background: var(--dromos-scene-sky-bottom);
 	transition-property: --dromos-scene-sky-top, --dromos-scene-sky-bottom, --dromos-scene-sun, --dromos-scene-cloud, --dromos-scene-hill, --dromos-scene-leaf, --dromos-scene-gate, --dromos-scene-fire, --dromos-sun-drop;
 	transition-duration: 2s;
 	transition-timing-function: ease-in-out;
-}
-
-/* 300 px on the home screen; on panes wider than the drawing it grows with it, up to 380 px, so
-   the slice does not crop its sky away (a recorded departure from S1, game-ui L8). */
-.dromos-root .dromos-scene.is-home {
-	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
-	--dromos-scene-shift: max(0px, calc(870px - var(--dromos-scene-w)));
-	height: 300px;
-	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
 }
 
 .dromos-root .dromos-landscape {
@@ -518,6 +548,29 @@
 .dromos-root .dromos-scene-gate { fill: var(--dromos-scene-gate); stroke: var(--dromos-scene-marker-line); stroke-width: 1.4; stroke-linejoin: round; }
 .dromos-root .dromos-walker .dromos-scene-figure { stroke: var(--dromos-scene-marker-line); }
 .dromos-root .dromos-walker.is-walking .dromos-walker-body { animation: dromos-step 0.4s steps(2, jump-none) infinite; }
+
+/* The pilgrim runner (home-header S6): its tunic and arm in the robe's cream, a sienna mantle with
+   two folds and an ochre hem, leather for the satchel, its strap and the sandals, a lantern on the
+   staff whose glass takes the lamp's light at night. Folds are a finer line than the outline. */
+.dromos-root .dromos-scene-mantle { fill: var(--dromos-scene-mantle); }
+.dromos-root .dromos-scene-skin { fill: var(--dromos-scene-skin); }
+.dromos-root .dromos-scene-fold { fill: none; stroke-width: 0.8; }
+.dromos-root .dromos-scene-hem { fill: none; stroke: var(--dromos-scene-belt); stroke-width: 1.4; }
+.dromos-root .dromos-scene-strap { fill: none; stroke: var(--dromos-scene-satchel); stroke-width: 1.8; }
+.dromos-root .dromos-scene-satchel { fill: var(--dromos-scene-satchel); }
+.dromos-root .dromos-scene-sandal { fill: none; stroke: var(--dromos-scene-satchel); stroke-width: 1.2; }
+.dromos-root .dromos-scene-eye { fill: var(--dromos-scene-hair); stroke: none; }
+.dromos-root .dromos-scene-lantern { fill: var(--dromos-scene-house); stroke-width: 0.9; }
+.dromos-root .dromos-scene-sash { fill: var(--dromos-scene-belt); stroke-width: 0.8; }
+
+/* The sash's ends stir about their knot, a few degrees, slower than the breath and out of time
+   with it. */
+.dromos-root .dromos-walker-sash { transform-box: fill-box; transform-origin: 50% 0%; animation: dromos-stir 6.5s ease-in-out -2s infinite alternate; }
+
+@keyframes dromos-stir {
+	from { transform: rotate(-3deg); }
+	to { transform: rotate(6deg); }
+}
 
 @keyframes dromos-step {
 	from { transform: translateY(0); }
@@ -575,13 +628,223 @@
 /* The sky moves back as far as the frame moved left, so the sun and the clouds keep their place.
    Past 1216 px the 380 px scene is cropped at the top: the sun, the clouds and the birds come
    down about as much as it crops, up to 100 px. */
-.dromos-root .dromos-scene-sky { transform: translateX(var(--dromos-sky-x)); }
-.dromos-root .dromos-scene.is-home .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
+.dromos-root .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
 
 /* Under 700 px the slice crops the left of the scene: the sun moves right of the first cloud. */
 @container dromos-view (max-width: 700px) {
 	.dromos-root .dromos-scene-sun { transform: translateX(190px); }
 }
+
+/* The life of the landscape (home-header S4): more to look at in the same line style, every color
+   a token, and only slow loops of transform and opacity, 6 s or longer and staggered so nothing
+   beats in time. The walker's walk and the level-up stay the moments; nothing here is near them.
+   What moves is marked .dromos-scene-life: reduced motion (below) shows the pose it is drawn in,
+   and out of sight or offline it holds where it is. */
+.dromos-root .dromos-scene-ridge { fill: var(--dromos-scene-ridge); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-opacity: 0.35; transition: fill 2s ease-in-out; }
+
+/* From 1700 px the sky's figures have come down their full 100 units, into the ridge's band: the
+   ridge gives the sky back to them. */
+@container dromos-view (min-width: 1700px) {
+	.dromos-root .dromos-scene-ridge { display: none; }
+}
+
+/* Wind: the cypresses lean less than a degree from their foot, the grass a few degrees. */
+.dromos-root .dromos-scene-cypress { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-lean 10s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-cypress:nth-child(2n) { animation-duration: 12.5s; animation-delay: -5s; }
+.dromos-root .dromos-scene-cypress:nth-child(3) { animation-delay: -8s; }
+.dromos-root .dromos-scene-tuft { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-sway 7s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-tufts g:nth-child(2n) .dromos-scene-tuft { animation-duration: 8.5s; animation-delay: -3s; }
+.dromos-root .dromos-scene-tufts g:nth-child(3n) .dromos-scene-tuft { animation-delay: -5.5s; }
+
+@keyframes dromos-lean {
+	from { transform: rotate(-0.7deg); }
+	to { transform: rotate(0.7deg); }
+}
+
+@keyframes dromos-sway {
+	from { transform: rotate(-4deg); }
+	to { transform: rotate(3deg); }
+}
+
+/* The birds cross the sky in 150 s, rising and falling a little, with two slow wing beats now and
+   then; at rest they keep the place the design gave them. */
+.dromos-root .dromos-scene-flock { animation: dromos-cross 150s linear -69s infinite; }
+.dromos-root .dromos-scene-glide { animation: dromos-glide 11s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-birds { transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-wingbeat 7s ease-in-out infinite; }
+.dromos-root .dromos-scene-birds + .dromos-scene-birds { animation-duration: 8.5s; animation-delay: -3s; }
+
+@keyframes dromos-cross {
+	from { transform: translateX(-480px); }
+	to { transform: translateX(560px); }
+}
+
+@keyframes dromos-glide {
+	from { transform: translateY(0); }
+	to { transform: translateY(5px); }
+}
+
+@keyframes dromos-wingbeat {
+	0%, 70%, 100% { transform: scaleY(1); }
+	76% { transform: scaleY(0.4); }
+	82% { transform: scaleY(1); }
+	88% { transform: scaleY(0.45); }
+	94% { transform: scaleY(1); }
+}
+
+/* The windmill: tower and sails in the village's colors, the sails turning once in 24 s. */
+.dromos-root .dromos-scene-mill,
+.dromos-root .dromos-scene-chimneys { fill: var(--dromos-scene-house); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linejoin: round; }
+.dromos-root .dromos-scene-mill-door { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-scene-sail { fill: var(--dromos-scene-house); stroke: var(--dromos-scene-line); stroke-width: 0.9; stroke-linejoin: round; }
+.dromos-root .dromos-scene-hub { fill: var(--dromos-scene-line); }
+.dromos-root .dromos-scene-sails { transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-turn 24s linear infinite; }
+
+@keyframes dromos-turn {
+	to { transform: rotate(360deg); }
+}
+
+/* The sheep: one grazes, one looks around, one lowers its head now and then, about its neck. */
+.dromos-root .dromos-scene-wool { fill: var(--dromos-scene-wool); stroke: var(--dromos-scene-line); stroke-width: 0.9; }
+.dromos-root .dromos-scene-legs { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linecap: round; }
+.dromos-root .dromos-scene-sheep-head { fill: var(--dromos-scene-hair); stroke: var(--dromos-scene-hair); stroke-width: 1.1; stroke-linecap: round; transform-box: fill-box; transform-origin: 0% 100%; }
+.dromos-root .dromos-scene-sheep-head.is-down { transform: rotate(70deg); }
+.dromos-root .dromos-scene-sheep-head.is-grazing { animation: dromos-graze 14s ease-in-out -3s infinite; }
+
+@keyframes dromos-graze {
+	0%, 48%, 92%, 100% { transform: rotate(0deg); }
+	56%, 84% { transform: rotate(70deg); }
+}
+
+/* The pasture (home-header S7, S8): the shepherd and the lion in the far life's line, finer at
+   their scale. The shepherd leans on his crook and now and then looks back at the sheep; the lion
+   breathes, flicks the tip of its tail and every so often lifts its head and settles it. Each
+   moves about its own foot, by a few degrees, on loops of different lengths. */
+.dromos-root .dromos-scene-shepherd,
+.dromos-root .dromos-scene-lion { stroke: var(--dromos-scene-line); stroke-width: 0.7; stroke-linejoin: round; stroke-linecap: round; }
+.dromos-root .dromos-scene-pasture .dromos-scene-fold { stroke-width: 0.55; }
+.dromos-root .dromos-scene-coat { fill: var(--dromos-scene-coat); }
+.dromos-root .dromos-scene-cloth { fill: var(--dromos-scene-cloth); }
+.dromos-root .dromos-scene-crook { fill: none; stroke-width: 1; }
+.dromos-root .dromos-scene-pelt { fill: var(--dromos-scene-lion); }
+.dromos-root .dromos-scene-mane,
+.dromos-root .dromos-scene-tail-tuft { fill: var(--dromos-scene-mane); }
+.dromos-root .dromos-scene-tail { fill: none; stroke-width: 0.9; }
+.dromos-root .dromos-scene-pasture .dromos-scene-sheep-head.is-grazing { animation-delay: -10s; }
+.dromos-root .dromos-scene-shepherd-lean { transform-box: fill-box; transform-origin: 40% 100%; animation: dromos-rest 9s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-shepherd-head { transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-look 17s ease-in-out -2s infinite; }
+.dromos-root .dromos-scene-lion-breath { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-lion-breath 7.5s ease-in-out infinite; }
+.dromos-root .dromos-scene-lion-head { transform-box: fill-box; transform-origin: 90% 85%; animation: dromos-lift 23s ease-in-out -6s infinite; }
+.dromos-root .dromos-scene-tail-tip { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-flick 11s ease-in-out -4s infinite; }
+
+@keyframes dromos-rest {
+	from { transform: rotate(-1deg); }
+	to { transform: rotate(1.5deg); }
+}
+
+@keyframes dromos-look {
+	0%, 58%, 86%, 100% { transform: scaleX(1); }
+	62%, 82% { transform: scaleX(-1); }
+}
+
+@keyframes dromos-lion-breath {
+	0%, 100% { transform: scaleY(1); }
+	50% { transform: scaleY(1.04); }
+}
+
+@keyframes dromos-lift {
+	0%, 60%, 88%, 100% { transform: rotate(0deg); }
+	66%, 80% { transform: rotate(7deg) translateY(-0.5px); }
+}
+
+@keyframes dromos-flick {
+	0%, 82%, 96%, 100% { transform: rotate(0deg); }
+	86% { transform: rotate(-24deg); }
+	90% { transform: rotate(10deg); }
+}
+
+/* Smoke from two chimneys: puffs that rise, grow and fade, a third of the way apart. At rest, a
+   trail of three. */
+.dromos-root .dromos-scene-smoke circle { fill: var(--dromos-scene-cloud); stroke: var(--dromos-scene-line); stroke-width: 0.8; stroke-opacity: 0.6; transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-smoke 10s linear infinite; }
+.dromos-root .dromos-scene-smoke circle:nth-child(1) { transform: translate(0.8px, -4px) scale(0.8); opacity: 0.75; animation-delay: -1s; }
+.dromos-root .dromos-scene-smoke circle:nth-child(2) { transform: translate(2.4px, -10px) scale(1.15); opacity: 0.5; animation-delay: -4.4s; }
+.dromos-root .dromos-scene-smoke circle:nth-child(3) { transform: translate(4.4px, -16px) scale(1.5); opacity: 0.28; animation-delay: -7.8s; }
+.dromos-root .dromos-scene-smoke g + g circle { animation-duration: 12s; }
+
+@keyframes dromos-smoke {
+	0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+	15% { opacity: 0.75; }
+	100% { transform: translate(5px, -20px) scale(1.7); opacity: 0; }
+}
+
+/* Flowers on the near hill and the roadside; butterflies rest on them by day and slowly open and
+   close their wings; fireflies drift over the road at night, glowing and fading. The dark theme is
+   a night at every hour, so it has fireflies and no butterflies. */
+.dromos-root .dromos-scene-flower { fill: var(--dromos-scene-flower); }
+.dromos-root .dromos-scene-bloom { fill: var(--dromos-scene-bloom); }
+.dromos-root .dromos-scene-butterflies { display: none; }
+.theme-light .dromos-root .dromos-scene:not([data-period='night']) .dromos-scene-butterflies { display: inline; }
+.theme-light .dromos-root .dromos-scene:not([data-period='night']) .dromos-scene-fireflies { display: none; }
+.dromos-root .dromos-scene-wings { fill: var(--dromos-scene-wing); stroke: var(--dromos-scene-line); stroke-width: 0.6; stroke-linejoin: round; transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-bask 8s ease-in-out infinite; }
+.dromos-root .dromos-scene-butterflies g + g .dromos-scene-wings { animation-duration: 10.5s; animation-delay: -4s; }
+.dromos-root .dromos-scene-butterfly-body { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linecap: round; }
+.dromos-root .dromos-scene-firefly { animation: dromos-hover 13s ease-in-out infinite; }
+.dromos-root .dromos-scene-fireflies g:nth-child(2n) .dromos-scene-firefly { animation-duration: 16s; animation-delay: -6s; }
+.dromos-root .dromos-scene-fireflies g:nth-child(3n) .dromos-scene-firefly { animation-duration: 19s; animation-delay: -11s; animation-direction: reverse; }
+.dromos-root .dromos-scene-firefly-glow { fill: var(--dromos-scene-firefly); opacity: 0.22; animation: dromos-glimmer 6s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-firefly-spark { fill: var(--dromos-scene-firefly); animation: dromos-glimmer-spark 6s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-fireflies g:nth-child(2n) circle { animation-duration: 7.5s; animation-delay: -2.5s; }
+.dromos-root .dromos-scene-fireflies g:nth-child(3n) circle { animation-duration: 9s; animation-delay: -5s; }
+
+@keyframes dromos-bask {
+	0%, 40%, 100% { transform: scaleX(1); }
+	48% { transform: scaleX(0.2); }
+	56%, 72% { transform: scaleX(1); }
+	78% { transform: scaleX(0.35); }
+	84% { transform: scaleX(1); }
+}
+
+@keyframes dromos-hover {
+	0%, 100% { transform: translate(0, 0); }
+	25% { transform: translate(5px, -4px); }
+	50% { transform: translate(9px, 1px); }
+	75% { transform: translate(3px, 4px); }
+}
+
+@keyframes dromos-glimmer {
+	from { opacity: 0.06; }
+	to { opacity: 0.3; }
+}
+
+@keyframes dromos-glimmer-spark {
+	from { opacity: 0.35; }
+	to { opacity: 1; }
+}
+
+/* The stars twinkle, each on its own time. */
+.dromos-root .dromos-scene-stars circle { animation: dromos-twinkle 7s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-stars circle:nth-child(2n) { animation-duration: 9.5s; animation-delay: -4s; }
+.dromos-root .dromos-scene-stars circle:nth-child(3n) { animation-duration: 12s; animation-delay: -7s; }
+
+@keyframes dromos-twinkle {
+	from { opacity: 1; }
+	to { opacity: 0.35; }
+}
+
+/* The walker breathes while it stands, rising less than a unit from its feet; walking, it steps. */
+.dromos-root .dromos-walker-body { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-breathe 7s ease-in-out infinite; }
+
+@keyframes dromos-breathe {
+	0%, 100% { transform: scaleY(1); }
+	50% { transform: scaleY(1.012); }
+}
+
+/* Out of sight (the landscape's is-still, set from an IntersectionObserver) everything in the
+   drawing holds where it is. Offline the life, the clouds and the walker's breath hold still. */
+.dromos-root .dromos-landscape.is-still *,
+.dromos-root .dromos-scene.is-offline .dromos-scene-drift,
+.dromos-root .dromos-scene.is-offline .dromos-scene-life,
+.dromos-root .dromos-scene.is-offline .dromos-scene-life *,
+.dromos-root .dromos-scene.is-offline .dromos-walker:not(.is-walking) .dromos-walker-body { animation-play-state: paused; }
 
 /* The signpost (S1): a post with its five planks (M7 S5), each a 44 px target, the current
    screen's burnt in (game-ui S14). They hang on both sides of the post, staggered as in the
@@ -670,18 +933,12 @@
 
 .dromos-root .dromos-plank.is-current:focus-visible { box-shadow: inset 0 0 0 1px var(--dromos-plank-scorch), inset 0 0 8px var(--dromos-plank-scorch), 0 0 0 6px var(--dromos-paper); }
 
-/* The scenes of 170 px (wider panes only; narrow ones get 220 px) leave the signpost 134 px over
-   the header card: its planks are 28 px tall there, their targets 34 px, 6 px apart within a side. */
-.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { --dromos-plank-step: 17px; bottom: 34px; }
-.dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 28px; padding: 3px 10px; font-size: 14px; }
-.dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -3px 0; }
-
 /* The plaque on the gate's lintel, "Level 6" (game-ui S16): text over the drawing, so it keeps
    its size and its contrast on any sky. It sits on the lintel at the gate's point in the view box
    (--dromos-gate-x, --dromos-gate-top, from the markup), mapped as the slice maps the drawing:
-   scaled by k, the larger of the two ratios, centred across and anchored at the foot. Where the
-   short scene of a wide pane crops the lintel away, it stays 4 px inside the scene's top. Not a
-   plank: smaller, square to the road, and it takes no pointer. */
+   scaled by k, the larger of the two ratios, centred across and anchored at the foot. Should the
+   slice ever crop the lintel away, it stays 4 px inside the scene's top. Not a plank: smaller,
+   square to the road, and it takes no pointer. */
 .dromos-root .dromos-gate-plaque {
 	--dromos-k: max(calc((var(--dromos-scene-w) + var(--dromos-scene-shift)) / 960), calc(var(--dromos-scene-h) / 300));
 	position: absolute;
@@ -710,33 +967,29 @@
 /* Narrow panes and phones (S11): a lower scene, the signpost 14 px from the right. The same
    pane width as the narrow stats below: those measure .dromos-home, 16 px inside a side. */
 @container dromos-view (max-width: 472px) {
-	/* Every screen gets the 220 px scene here, the other screens too, so the planks keep 44 px
-	   targets on phones (game-ui L15). */
-	.dromos-root .dromos-scene.is-home,
-	.dromos-root .dromos-scene:not(.is-home) { --dromos-scene-h: 220px; height: 220px; }
-	.dromos-root .dromos-signpost { right: 14px; }
+	/* Every screen gets the 220 px scene here (game-ui L15). */
+	.dromos-root .dromos-scene { --dromos-scene-h: 220px; height: 220px; }
 	/* 44 px targets over the 220 px scene: 34 px planks reaching 5 px out, 10 px apart within a side. */
-	.dromos-root .dromos-scene.is-home .dromos-signpost,
-	.dromos-root .dromos-scene:not(.is-home) .dromos-signpost { --dromos-plank-step: 22px; bottom: 47px; }
-	.dromos-root .dromos-scene.is-home .dromos-plank,
-	.dromos-root .dromos-scene:not(.is-home) .dromos-plank { min-height: 34px; padding: 4px 12px; font-size: 16px; }
-	.dromos-root .dromos-scene.is-home .dromos-plank::after,
-	.dromos-root .dromos-scene:not(.is-home) .dromos-plank::after { inset: -5px 0; }
+	.dromos-root .dromos-signpost { right: 14px; bottom: 47px; }
+	.dromos-root .dromos-plank { min-height: 34px; padding: 4px 12px; }
+	.dromos-root .dromos-plank::after { inset: -5px 0; }
 	/* The drawing is framed at least 60 px further left, so the walker stands clear of the
 	   signpost instead of behind it, and the sun moves right with it. The narrower the pane, the
 	   further it is framed, so the plaque of the gate stays left of the signpost's two sides; the
 	   sky moves back by as much, at the 220 px scene's scale. */
-	.dromos-root .dromos-scene,
-	.dromos-root .dromos-scene.is-home {
+	.dromos-root .dromos-scene {
 		--dromos-scene-shift: max(120px, calc(690px - var(--dromos-scene-w)));
 		--dromos-sky-x: calc((var(--dromos-scene-shift) - 120px) * 0.68);
 	}
 	.dromos-root .dromos-scene-sun { transform: translateX(230px); }
 }
 
-/* Reduced motion: the clouds, the fire and the spinner hold still, the scene changes color and
-   period at once, and the campfire is lit from the start. */
+/* Reduced motion: the clouds, the fire, the life of the landscape and the spinner hold still in
+   their drawn pose, the walker does not breathe, the scene changes color and period at once, and
+   the campfire is lit from the start. */
 @media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-landscape .dromos-scene-life,
+	.dromos-root .dromos-landscape .dromos-scene-life *,
 	.dromos-root .dromos-scene-drift,
 	.dromos-root .dromos-walker-body,
 	.dromos-root .dromos-campfire,
@@ -745,6 +998,7 @@
 	.dromos-root .dromos-spinner { animation: none; }
 	.dromos-root .dromos-scene,
 	.dromos-root .dromos-landscape,
+	.dromos-root .dromos-scene-ridge,
 	.dromos-root .dromos-gate-plaque { transition: none; }
 }
 
@@ -778,13 +1032,6 @@
 	font-weight: 600;
 	line-height: 1.1;
 	color: var(--dromos-ink);
-}
-
-.dromos-root .dromos-screen-character {
-	margin: 0;
-	color: var(--dromos-ink-muted);
-	font-size: 13px;
-	overflow-wrap: anywhere;
 }
 
 /* A changed screen moves the focus to its heading: a ring only for the keyboard. */
@@ -854,8 +1101,23 @@
 /* Disclosure toggles: touch-sized on phones. */
 .is-mobile .dromos-root summary { padding-block: 12px; }
 
-/* The screen under the scene: its first card overlaps the scene's foot, 44 px on the home
-   screen and 30 px on the others. */
+/* The scene and the character's plaque (home-header S2). Narrow panes keep the plaque under the
+   scene, as wide as the screen below it; wide ones set it inside the scene, at its bottom left
+   (below). The scene is the grid's first row; the plaque, a parchment panel, its second. */
+.dromos-root .dromos-header { display: grid; grid-template-columns: minmax(0, 1fr); }
+.dromos-root .dromos-header > .dromos-scene { grid-area: 1 / 1; }
+
+.dromos-root .dromos-plaque {
+	grid-area: 2 / 1;
+	justify-self: center;
+	box-sizing: border-box;
+	width: calc(100% - 32px);
+	max-width: 688px;
+	margin-top: 16px;
+	padding: 9px 16px 5px;
+}
+
+/* The screen under the scene and the plaque: nothing overlaps the scene's foot any more. */
 .dromos-root .dromos-home {
 	container-type: inline-size;
 	display: flex;
@@ -863,26 +1125,18 @@
 	gap: 12px;
 	max-width: 720px;
 	margin: 0 auto;
-	padding: 0 16px 32px;
+	padding: 20px 16px 32px;
 }
 
-.dromos-root .dromos-home > :first-child {
-	position: relative;
-	z-index: 3;
-	margin-top: -44px;
-}
-
-.dromos-root .dromos-home:not(.is-home) > :first-child { margin-top: -30px; }
-
-/* Sync line at the foot of the character card: a quiet line while all is well, a band
-   when the user has something to do (Habitica not reached, or the account not set). */
+/* Sync line at the foot of the plaque: a quiet line while all is well, a band when the user
+   has something to do (Habitica not reached, or the account not set). */
 .dromos-root .dromos-sync-line {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
-	margin-top: 14px;
-	padding-top: 10px;
+	margin-top: 0;
+	padding-top: 6px;
 	border-top: 1px solid var(--background-modifier-border);
 }
 
@@ -953,22 +1207,20 @@
 .dromos-root .dromos-section { min-width: 0; }
 .dromos-root .dromos-section-empty { margin: 0; padding: 16px; color: var(--text-muted); }
 
-/* Character (game-ui S3): the level medallion beside the name, the title and the hatched XP
-   bar; the six stats as pips in two columns; the sync line at the foot. */
-.dromos-root .dromos-character { padding: 16px 20px; }
-
-.dromos-root .dromos-character-main {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 16px 28px;
-}
+/* The character on its plaque (S2, game-ui S3): the level medallion beside the name, the title
+   and the hatched XP bar; in one row the six stats as a radar (S5, S9) and the skills nearest to
+   unlocking (S3); the sync line at the foot. */
+.dromos-root .dromos-plaque { display: flex; flex-direction: column; gap: 6px; }
+.dromos-root .dromos-plaque .dromos-character-title { margin-top: 1px; }
+.dromos-root .dromos-plaque .dromos-xp.is-stacked { margin-top: 5px; }
+.dromos-root .dromos-plaque .dromos-xp.is-stacked .dromos-xp-track { height: 11px; border-radius: 6px; }
+.dromos-root .dromos-plaque .dromos-xp-caption { margin-top: 2px; }
+.dromos-root .dromos-plaque .dromos-since { margin-top: 3px; }
 
 .dromos-root .dromos-character-who {
 	display: flex;
-	flex: 1 1 280px;
 	align-items: center;
-	gap: 16px;
+	gap: 14px;
 	min-width: 0;
 }
 
@@ -977,9 +1229,9 @@
 .dromos-root .dromos-character-name {
 	margin: 0;
 	font-family: var(--dromos-font-display);
-	font-size: 34px;
+	font-size: 27px;
 	font-weight: 600;
-	line-height: 1.1;
+	line-height: 1.05;
 	overflow-wrap: anywhere;
 }
 
@@ -994,9 +1246,9 @@
 	margin: 2px 0 0;
 	overflow-x: clip;
 	color: var(--dromos-ink-muted);
-	font-size: 15px;
+	font-size: 14px;
 	font-variant: small-caps;
-	letter-spacing: 0.14em;
+	letter-spacing: 0.12em;
 	line-height: 1.3;
 	overflow-wrap: anywhere;
 }
@@ -1018,8 +1270,8 @@
 	display: grid;
 	flex: 0 0 auto;
 	place-items: center;
-	width: 72px;
-	height: 72px;
+	width: 60px;
+	height: 60px;
 }
 
 .dromos-root .dromos-level-medal-disc { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -1031,7 +1283,7 @@
 	position: relative;
 	color: var(--dromos-ink);
 	font-family: var(--dromos-font-display);
-	font-size: 30px;
+	font-size: 26px;
 	font-weight: 700;
 	font-variant-numeric: lining-nums tabular-nums;
 	line-height: 1;
@@ -1119,44 +1371,63 @@
 
 .dromos-root .dromos-since-part { white-space: nowrap; }
 
-.dromos-root .dromos-stats {
-	display: grid;
-	flex: 1 1 250px;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 8px 22px;
-	min-width: 0;
-}
-
-/* The label and its pips share a line; where the column is too narrow the pips go under it. */
-.dromos-root .dromos-stat {
+/* The stats radar and the skills share one row under the XP bar (S9, S3), no taller than the
+   stats grid and the skills line it replaced together, so the plaque keeps its height in the
+   scene. Where both do not fit side by side (panes under about 400 px) the skills go under the
+   radar, which then stands centred on its line. */
+.dromos-root .dromos-character-row {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: 2px 8px;
-	font-size: 14px;
-	line-height: 1.3;
+	justify-content: center;
+	gap: 6px 12px;
+	min-width: 0;
 }
 
-.dromos-root .dromos-stat-label { min-width: 0; }
-.dromos-root .dromos-stat-pips { display: flex; flex: 0 0 auto; align-items: center; gap: 3px; min-height: 18px; }
+.dromos-root .dromos-character-row > .dromos-plaque-skills { flex: 1 1 172px; min-width: 0; }
 
-.dromos-root .dromos-pip {
-	width: 9px;
-	height: 9px;
-	box-sizing: border-box;
-	border: 1px solid var(--dromos-umber);
-	border-radius: 50%;
+/* On touch screens the medallions are 44 px targets (S3): they stand edge to edge, their padding
+   still parting the rings by 8 px, so the four fit beside the radar in the scene's plaque. */
+.is-mobile .dromos-root .dromos-character-row { column-gap: 10px; }
+.is-mobile .dromos-root .dromos-character-row > .dromos-plaque-skills { flex-basis: 176px; }
+.is-mobile .dromos-root .dromos-character-row .dromos-plaque-rings { gap: 0; }
+
+/* The radar (S9): a ring every two points and the six axes in a quiet umber hairline, the values
+   an ochre shape over a light ochre wash with a dot on each axis, ringed in the plaque's colour.
+   The tips read in the plaque's small caps, the numbers in ink. Tooltips name each stat. */
+.dromos-root .dromos-radar { flex: 0 0 auto; width: 124px; height: auto; overflow: visible; }
+
+.dromos-root .dromos-radar-ring,
+.dromos-root .dromos-radar-axis {
+	fill: none;
+	stroke: var(--dromos-rule);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
 }
 
-.dromos-root .dromos-pip.is-filled { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-mark); }
+.dromos-root .dromos-radar-shape {
+	fill: var(--dromos-ochre-tint);
+	stroke: var(--dromos-ochre-mark);
+	stroke-width: 1.5;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
 
-.dromos-root .dromos-stat-number {
-	font-family: var(--dromos-font-display);
-	font-size: 18px;
-	font-weight: 700;
-	font-variant-numeric: lining-nums tabular-nums;
-	line-height: 1;
+.dromos-root .dromos-radar-dot { fill: var(--dromos-ochre-mark); stroke: var(--dromos-panel); stroke-width: 1.5; }
+
+.dromos-root .dromos-radar-text {
+	fill: var(--dromos-ink-muted);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+}
+
+.dromos-root .dromos-radar-value { fill: var(--dromos-ink); font-variant-numeric: lining-nums tabular-nums; }
+
+/* Where the radar stands alone on its line (under the scene, on panes under about 400 px), it is
+   drawn larger, its labels at about the plaque's 13 px. */
+@container dromos-view (max-width: 373px) {
+	.dromos-root .dromos-radar { width: 148px; }
 }
 
 /* The level-up ceremony (game-ui S4): the panel settles in under the card, the ribbon unfurls
@@ -1257,15 +1528,42 @@
    to the left of the scene, a little smaller. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-ribbon { top: 14px; left: 10px; transform: scale(0.82); transform-origin: left top; }
-	.dromos-root .dromos-character { padding: 16px; }
-	.dromos-root .dromos-stats { column-gap: 16px; }
-	.dromos-root .dromos-character-name { font-size: 30px; }
 }
 
 /* The narrowest panes (about 360 px and less): the planks reach the left half of the scene, so
    the ribbon shrinks into the strip of sky above them. */
 @container dromos-view (max-width: 340px) {
 	.dromos-root .dromos-ribbon { top: 2px; left: 8px; transform: scale(0.68); }
+}
+
+/* Wide panes (S2): the plaque moves into the scene's bottom left corner, 10 px from its foot and
+   28 px from its left edge, sharing the scene's grid cell. From 816 px of the view's content
+   (840 px panes) it clears the campfire, the leftmost of what it must never cover (its glow at 462
+   in the drawing's units), by 15 px and more, and with it the walker, the gate, the gate's plaque
+   and the signpost; on narrower panes the slice frames the drawing further left and the campfire
+   would fall under it. Should the plaque grow taller than the scene, the row grows with it and
+   the plaque runs on below the scene's foot.
+   The sky moves right until the sun (at 150 in the drawing's units, radius 24) stands 16 px clear
+   of the plaque, so the hour stays readable: by 742 - W/2 units up to 960 px panes (W the pane),
+   where the drawing is drawn at its own size, then by 372480/W - 126, which shrinks as the
+   drawing grows. Two chords of that curve, 960 to 1400 px and 1400 to 2560 px, each 4 units
+   above it, stand in for it; the largest of the three lines applies. The ribbon of a level-up
+   (270 px wide) stays centred where that clears the plaque and the sun beside it (at most 72 px
+   wide there) by 16 px each, else it sits that far right of them; further right it would meet
+   the gate's plaque, which rises to the top on the widest panes. */
+@container dromos-view (min-width: 816px) {
+	.dromos-root .dromos-plaque {
+		position: relative;
+		z-index: 3;
+		grid-area: 1 / 1;
+		align-self: end;
+		justify-self: start;
+		width: 344px;
+		margin: 10px 0 10px 16px;
+		box-shadow: 0 2px 6px var(--dromos-shadow);
+	}
+	.dromos-root .dromos-scene { --dromos-sky-x: calc(var(--dromos-scene-shift) / 2 + max(0px, calc(734px - 50cqi), calc(526px - 27.73cqi), calc(287px - 10.39cqi))); }
+	.dromos-root .dromos-ribbon { left: max(50%, calc(var(--size-4-3, 12px) + 16px + 344px + 16px + 72px + 16px + 135px)); }
 }
 
 /* Quests (game-ui S6): one panel, its header line, and rows split by a dashed hairline. */
@@ -1389,9 +1687,15 @@
 	border: 0;
 }
 
-/* Wide panes (760 px and more): quests and campaigns side by side, the rest across both
-   columns. Obsidian pads the view 12 px on each side and the query measures inside that
-   padding, so 760 px reads as 736. */
+/* The two columns of home (home-header S1) are drawn on every screen, so the campaigns panel keeps
+   its parent: they make no box of their own, and their sections flow as the screen's, one column
+   in their order (the letter, the quests, the campaigns, the reading desk, the chronicle). */
+.dromos-root .dromos-home-column { display: contents; }
+
+/* Wide panes (760 px and more): home in two columns, each flowing on its own, so a long letter or
+   a long campaign list leaves no gap in the other; the level-up panel spans both above them.
+   Obsidian pads the view 12 px on each side and the query measures inside that padding, so 760 px
+   reads as 736. */
 @container dromos-view (min-width: 736px) {
 	.dromos-root .dromos-home { max-width: 1100px; }
 
@@ -1403,8 +1707,14 @@
 	}
 
 	.dromos-root .dromos-home.is-home > * { grid-column: 1 / -1; }
-	.dromos-root .dromos-home.is-home > .dromos-quests,
-	.dromos-root .dromos-home.is-home > .dromos-campaigns { grid-column: auto; }
+	.dromos-root .dromos-home.is-home > .dromos-home-column {
+		display: flex;
+		flex-direction: column;
+		gap: 28px;
+		min-width: 0;
+	}
+	.dromos-root .dromos-home.is-home > .dromos-home-column.is-start { grid-column: 1; }
+	.dromos-root .dromos-home.is-home > .dromos-home-column.is-end { grid-column: 2; }
 }
 
 /* Campaigns (M2) */
@@ -2165,6 +2475,26 @@
 
 .dromos-root .dromos-ring-lock svg { width: 100%; height: 100%; stroke-width: 1.8; }
 
+/* The skills on the plaque (S3): "Skills · 2 of 5" and four small medallions on one line, each a
+   40 px target (44 px on touch screens) around its 36 px ring. */
+.dromos-root .dromos-plaque-skills {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 16px;
+}
+
+.dromos-root .dromos-plaque-skills-title {
+	margin: 0;
+	color: var(--dromos-ink-muted);
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+
+.dromos-root .dromos-plaque-rings { display: flex; gap: 4px; }
+.dromos-root .dromos-ring-button.is-compact { width: auto; padding: 2px; border-radius: 50%; }
+.is-mobile .dromos-root .dromos-ring-button.is-compact { padding: 4px; }
+
 /* The campaigns and skills screens (game-ui S8, S9) space their sections as the design does. */
 .dromos-root .dromos-home.is-campaigns,
 .dromos-root .dromos-home.is-skills { gap: 22px; }
@@ -2804,9 +3134,24 @@
 .dromos-root .dromos-library-lamp-flame { fill: var(--dromos-lamp-flame); stroke: var(--dromos-umber); stroke-width: 0.8; }
 .dromos-root .dromos-library-lamp-halo { fill: var(--dromos-lamp-halo); }
 /* The lamp is lit at night only, and the desk takes its warmth; by day it is put away. */
-.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-lamp { display: none; }
+.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-lamp { display: none; }
 .dromos-root .dromos-library-scene.is-desk > .is-drawing { background: radial-gradient(ellipse 260px 140px at 62px 22px, var(--dromos-lamp-warmth), transparent); }
-.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
+.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
+
+/* The small desk on home (home-header S1): the same wood, lamp and ink pot, drawn smaller, and
+   smaller scrolls, two to a row where they fit. */
+.dromos-root .dromos-reading-desk .dromos-card-title { margin-bottom: 10px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini { box-shadow: inset 0 -7px 0 var(--dromos-wood-edge), 0 1px 0 var(--dromos-shadow); }
+.dromos-root .dromos-library-scene.is-desk.is-mini > .is-panels { padding: 34px 12px 18px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-lamp { top: 1px; left: 10px; width: 48px; height: 32px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-inkwell { top: 1px; right: 12px; width: 26px; height: 30px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini > .is-drawing { background: radial-gradient(ellipse 180px 100px at 44px 16px, var(--dromos-lamp-warmth), transparent); }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scrolls { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini button.dromos-desk-scroll { padding: 10px 12px 12px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll .dromos-scroll-art { max-width: 150px; margin-bottom: 6px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-title { font-size: 18px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini :is(.dromos-desk-scroll-author, .dromos-desk-scroll-since) { font-size: 13px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-since { margin-top: 4px; }
 
 .dromos-root .dromos-desk-scrolls {
 	display: grid;
