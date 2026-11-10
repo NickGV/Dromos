@@ -1344,50 +1344,6 @@
 	.dromos-root .dromos-radar { width: 148px; }
 }
 
-.dromos-root .dromos-stat.is-compact {
-	flex-wrap: nowrap;
-	justify-content: flex-start;
-	gap: 5px;
-	color: var(--dromos-ink-muted);
-	font-size: 11px;
-	font-weight: 600;
-	letter-spacing: 0.04em;
-}
-
-.dromos-root .dromos-stat.is-compact .dromos-stat-label { width: 22px; flex: 0 0 auto; }
-
-/* The label and its pips share a line; where the column is too narrow the pips go under it. */
-.dromos-root .dromos-stat {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 2px 8px;
-	font-size: 14px;
-	line-height: 1.3;
-}
-
-.dromos-root .dromos-stat-label { min-width: 0; }
-.dromos-root .dromos-stat-pips { display: flex; flex: 0 0 auto; align-items: center; gap: 3px; min-height: 18px; }
-
-.dromos-root .dromos-pip {
-	width: 9px;
-	height: 9px;
-	box-sizing: border-box;
-	border: 1px solid var(--dromos-umber);
-	border-radius: 50%;
-}
-
-.dromos-root .dromos-pip.is-filled { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-mark); }
-
-.dromos-root .dromos-stat-number {
-	font-family: var(--dromos-font-display);
-	font-size: 18px;
-	font-weight: 700;
-	font-variant-numeric: lining-nums tabular-nums;
-	line-height: 1;
-}
-
 /* The level-up ceremony (game-ui S4): the panel settles in under the card, the ribbon unfurls
    over the scene. Only this moment moves; reduced motion shows the end at once (below). */
 .dromos-root .dromos-ceremony {

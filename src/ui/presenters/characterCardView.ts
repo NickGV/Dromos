@@ -27,21 +27,6 @@ export function statLabel(id: StatId, t: Translator): string {
 	return t(STAT_KEYS[id]);
 }
 
-/** Pips a stat is drawn with; a value above it shows as its number (game-ui S3). */
-export const STAT_PIPS = 6;
-
-export interface StatBadgeView {
-	readonly id: StatId;
-	readonly label: string;
-	/** "STR": the compact badge shows it; the full label stays in `ariaLabel` (S5). */
-	readonly shortLabel: string;
-	readonly value: number;
-	/** One entry per pip, `true` where filled; `null` when the value is above six and its number shows instead. */
-	readonly pips: readonly boolean[] | null;
-	/** What the pips say to a screen reader, such as "Strength 3". */
-	readonly ariaLabel: string;
-}
-
 /** XP into the current level against the XP the level needs. */
 export interface XpBarView {
 	readonly current: number;
@@ -88,19 +73,6 @@ export function characterCardView(character: Character, t: Translator): Characte
 			STAT_IDS.map((id) => ({ id, label: t(STAT_KEYS[id]), shortLabel: t(STAT_SHORT_KEYS[id]), value: character.stats[id] })),
 			t,
 		),
-	};
-}
-
-/** One stat as `StatBadge` draws it: its label and six pips, or its number above six (game-ui S3). */
-export function statBadgeView(id: StatId, value: number, t: Translator): StatBadgeView {
-	const label = t(STAT_KEYS[id]);
-	return {
-		id,
-		label,
-		shortLabel: t(STAT_SHORT_KEYS[id]),
-		value,
-		pips: value > STAT_PIPS ? null : Array.from({ length: STAT_PIPS }, (_, index) => index < value),
-		ariaLabel: t('character.stat.aria', { stat: label, value }),
 	};
 }
 

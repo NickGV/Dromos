@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Character } from '../../src/domain';
 import { createTranslator } from '../../src/i18n';
-import { characterCardView, statBadgeView } from '../../src/ui/presenters/characterCardView';
+import { characterCardView } from '../../src/ui/presenters/characterCardView';
 
 const CHARACTER: Character = {
 	name: 'Nicolás',
@@ -45,12 +45,6 @@ describe('characterCardView', () => {
 		expect(characterCardView({ ...CHARACTER, xpIntoLevel: 0 }, t).xp.percent).toBe(0);
 		expect(characterCardView({ ...CHARACTER, xpIntoLevel: 200 }, t).xp.percent).toBe(100);
 		expect(characterCardView({ ...CHARACTER, xpIntoLevel: 10, xpToNext: 0 }, t).xp.percent).toBe(0);
-	});
-
-	it('draws a stat badge above six as its number, not as pips (game-ui S3)', () => {
-		expect(statBadgeView('fuerza', 7, t)).toEqual({ id: 'fuerza', label: 'Fuerza', shortLabel: 'FUE', value: 7, pips: null, ariaLabel: 'Fuerza 7' });
-		expect(statBadgeView('vitalidad', 0, t).pips).toEqual([false, false, false, false, false, false]);
-		expect(statBadgeView('vitalidad', 6, t).pips).toEqual([true, true, true, true, true, true]);
 	});
 
 	it('says how much XP the next level is away, never below zero (game-ui S3)', () => {

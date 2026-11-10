@@ -2,11 +2,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { Character } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
-import { StatBadge } from '../../../src/ui/atoms/StatBadge';
 import { XpBar } from '../../../src/ui/atoms/XpBar';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
 import { CharacterPanel } from '../../../src/ui/organisms/CharacterPanel';
-import { characterCardView, statBadgeView } from '../../../src/ui/presenters/characterCardView';
+import { characterCardView } from '../../../src/ui/presenters/characterCardView';
 
 const t = createTranslator('en');
 const CHARACTER: Character = {
@@ -24,33 +23,6 @@ const card = (ceremony: Parameters<typeof CharacterCard>[0]['ceremony'] = null):
 
 /** The width of the XP bar's fill, in percent. */
 const fillWidth = (html: string): string | undefined => /class="dromos-xp-fill" style="width:(\d+)%"/.exec(html)?.[1];
-
-describe('StatBadge draws a stat as six pips (game-ui S3)', () => {
-	it('fills as many pips as the value, as one image named by the stat and its value', () => {
-		const html = renderToStaticMarkup(<StatBadge stat={statBadgeView('fuerza', 3, t)} />);
-
-		expect(html).toMatch(/role="img" aria-label="Strength 3"/);
-		expect(html.match(/class="dromos-pip( is-filled)?"/g)).toHaveLength(6);
-		expect(html.match(/class="dromos-pip is-filled"/g)).toHaveLength(3);
-		expect(html).toMatch(/<span class="dromos-stat-label" aria-hidden="true">Strength<\/span>/);
-	});
-
-	it("draws the plaque's cell with the short label, the full name and value kept as its name and its tooltip (S5)", () => {
-		const html = renderToStaticMarkup(<StatBadge stat={statBadgeView('fuerza', 3, t)} compact />);
-
-		expect(html).toMatch(/^<div class="dromos-stat is-compact" title="Strength 3"><span class="dromos-stat-label" aria-hidden="true">STR<\/span><span class="dromos-stat-pips" role="img" aria-label="Strength 3">/);
-		expect(html.match(/class="dromos-pip is-filled"/g)).toHaveLength(3);
-		expect(html).not.toContain('>Strength<');
-	});
-
-	it('shows a value above six as its number, without pips', () => {
-		const html = renderToStaticMarkup(<StatBadge stat={statBadgeView('vitalidad', 8, t)} />);
-
-		expect(html).toMatch(/role="img" aria-label="Vitality 8"/);
-		expect(html).toContain('<span class="dromos-stat-number">8</span>');
-		expect(html).not.toContain('dromos-pip');
-	});
-});
 
 describe('CharacterCard after the design (game-ui S3)', () => {
 	it('opens with a level medallion named by the level, and drops the level chip', () => {
