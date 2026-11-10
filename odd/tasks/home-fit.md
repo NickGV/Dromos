@@ -21,8 +21,8 @@ The user's request: "chat sabes que podemos hacer para quizas lograr que se pued
 
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
-| T1 | S1-S4 | The four changes, one commit per spec where they stand apart | delegated, writer E (context backstop: the parent session is long) | pending | |
-| T2 | S1-S4 | Seam check, live measure in Obsidian, README and CHANGELOG, dev build | inline | pending | |
+| T1 | S1-S4 | The four changes, one commit per spec where they stand apart | delegated, writer E (context backstop: the parent session is long) | done (L4); acceptance short by about 135 px (L5) | `9dab41a`, `e765cf0`, `d369c89`, `23b6f07` |
+| T2 | S1-S4 | Seam check, live measure in Obsidian, README and CHANGELOG, dev build | inline | done (L5) | docs (this commit) |
 | R1 | | Release with the user's go-ahead | inline | pending | |
 
 ## Log
@@ -30,3 +30,5 @@ The user's request: "chat sabes que podemos hacer para quizas lograr que se pued
 - **L1** (2026-11-10, user): "chat sabes que podemos hacer para quizas lograr que se pueda ver en el path todo sin necesitdad de hacedr scroll, que las campains se puedan collapsar".
 - **L2** (2026-11-10): measured in Obsidian on 0.14.0: view 1546 × 970; home 1884 px tall; landscape 380, letter 289, quests 604, campaigns 864 (three cards of about 200-310), desk 237, chronicle 263. The right column (1364) and the left (893) both pass the 590 px left under the landscape.
 - **L3** (2026-11-10, user): "si dale porfavor", to the four-point proposal (S1-S4), with Claude's recommendation to do all four.
+- **L4** (2026-11-10): writer E finished T1: S1 `9dab41a` (home campaign cards folded to one row, toggle in the `h3` with `aria-expanded`, **Open campaign** inside, the open set per device under `home-campaigns-open`), S2 `e765cf0` (one-line home desk, chronicle of three with **View more (2)**), S3 `d369c89` (`QUEST_LIMIT` 4), S4 `23b6f07` (folded letter: head line, mission, buttons; the closest skill inside the letter; the excerpt and `excerptOf` removed; the scene 300 px up to 960 px wide, 320 px from 1024, back to 380 only between about 1862 and 2211 px; the sky group's shift re-tuned and the ridge hidden from 1783 px so the sun and clouds are not cut). Its checks: 138 files, 1813 tests; lint 0 errors and the 4 old warnings; build ok. Preview: 1625 to 1116 px.
+- **L5** (2026-11-10): T2. Seam check on the branch: 138 files, 1813 tests; lint 0 errors, 4 old warnings. Dev build installed and measured live at 1546 × 970: 1884 to 1105 px (scene 320, letter 200, quests 472, campaigns 277, desk 87, chronicle 229; left column 701, right 649). About 135 px of scroll remain: the fourth quest's foot and the two **View more** buttons. Closing it needs a denser quest row or three rows (beyond the approved S3): the user's call. README and CHANGELOG `[Unreleased]` written. Risk: item 6 (geometry by screenshots).
