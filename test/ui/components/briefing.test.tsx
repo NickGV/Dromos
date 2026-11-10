@@ -140,17 +140,34 @@ describe('BriefingPanel folds and unrolls the letter (game-ui S13)', () => {
 		expect(buttons.map((button) => button.props.onClick)).toEqual([onToggle, onFold]);
 	});
 
-	it('shows the top line, the mission cut at two lines, the closest skill and a muted excerpt while folded', () => {
-		const html = render();
+	// home-fit S4: the folded letter is only its head line, the mission and its buttons.
+	it('folded, shows only its head line with the seal when new, the mission cut at two lines and its buttons', () => {
+		const unread = briefingView({ kind: 'found', briefing: todayBriefing }, TODAY, [caregiver], en, null);
+		const html = render(unread);
+		const folded = html.slice(0, html.indexOf(`<div class="dromos-briefing-letter" id="${LETTER_ID}-letter">`));
 
-		expect(html).toContain('<p class="dromos-briefing-top">Letter from Esdras · today</p>');
-		expect(html).toMatch(/<strong class="dromos-briefing-title">Finish the login screen<\/strong>/);
-		expect(html).toMatch(/<p class="dromos-briefing-near"><span class="dromos-briefing-label">Closest skill<\/span>/);
-		expect(html).toContain('<p class="dromos-briefing-excerpt">Shalom.</p>');
+		expect(folded).toContain('<p class="dromos-briefing-top">Letter from Esdras · today</p>');
+		expect(folded).toContain('<span class="dromos-briefing-new">New letter</span>');
+		expect(folded).toMatch(/<div class="dromos-briefing-content"><p class="dromos-briefing-mission"><span class="dromos-briefing-label">Mission of the day<\/span><strong class="dromos-briefing-title">Finish the login screen<\/strong><\/p><\/div><div class="dromos-briefing-row">/);
+		expect(block(folded, 'dromos-briefing-toggle')).toContain('Read the letter · 1 min');
+		expect(folded).not.toContain('dromos-briefing-near');
+		expect(html).not.toContain('dromos-briefing-excerpt');
 	});
 
-	it('drops the excerpt once the letter is unrolled, where the whole text shows', () => {
-		expect(render(today, { open: true })).not.toContain('dromos-briefing-excerpt');
+	it('moves the closest skill into the letter, after the why and before the text', () => {
+		for (const open of [false, true]) {
+			expect(block(render(today, { open }), 'dromos-briefing-letter')).toMatch(
+				/<p class="dromos-briefing-why">.*?<\/p><p class="dromos-briefing-near"><span class="dromos-briefing-label">Closest skill<\/span>.*?Caregiver.*?See a doctor this year<\/span><\/p><div class="dromos-briefing-body markdown-rendered">/,
+			);
+		}
+	});
+
+	it('draws no mission block while folded when the letter has no mission', () => {
+		const plain = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, nearSkillId: 'cuidador' }) }, TODAY, [caregiver], en, null);
+		const html = render(plain);
+
+		expect(html.slice(0, html.indexOf('<div class="dromos-briefing-row">'))).not.toContain('dromos-briefing-content');
+		expect(block(html, 'dromos-briefing-letter')).toContain('<p class="dromos-briefing-near">');
 	});
 
 	it('signs the folded row, and only the foot once unrolled', () => {

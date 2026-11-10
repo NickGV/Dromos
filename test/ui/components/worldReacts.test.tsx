@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { DeedEntry, GameSnapshot, QuestSnapshot } from '../../../src/application';
 import { createTranslator } from '../../../src/i18n';
 import { Campfire } from '../../../src/ui/atoms/Campfire';
+import { ListToggle } from '../../../src/ui/atoms/ListToggle';
 import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { I18nProvider } from '../../../src/ui/i18n';
 import { Chronicle } from '../../../src/ui/organisms/Chronicle';
@@ -11,6 +12,7 @@ import { Scene } from '../../../src/ui/organisms/Scene';
 import { chronicleView } from '../../../src/ui/presenters/chronicleView';
 import { questListView, questPanelView } from '../../../src/ui/presenters/questListView';
 import { aQuest } from '../../fakes/quests';
+import { componentsOf } from './elements';
 import { IDLE_GAME, homeDeps, noop } from './homeDeps';
 
 const en = createTranslator('en');
@@ -107,9 +109,9 @@ describe('Chronicle (game-ui S18)', () => {
 	it('is a section headed "Chronicle" like the others, with one journal line per deed', () => {
 		const view = chronicleView([deed({ date: TODAY, source: 'streak', xp: 5, skills: [] }), deed(), deed({ source: 'revert', xp: -10, skills: [] })], TODAY, en);
 		if (!view) throw new Error('no chronicle');
-		const html = renderToStaticMarkup(<Chronicle view={view} />);
+		const html = renderToStaticMarkup(<Chronicle view={view} listId="dromos-chronicle-1" />);
 
-		expect(html).toMatch(/^<section class="dromos-section dromos-chronicle" aria-label="Chronicle"><h2 class="dromos-card-title">Chronicle<\/h2><div class="dromos-panel dromos-chronicle-panel"><ol class="dromos-deeds">/);
+		expect(html).toMatch(/^<section class="dromos-section dromos-chronicle" aria-label="Chronicle"><h2 class="dromos-card-title">Chronicle<\/h2><div class="dromos-panel dromos-chronicle-panel"><ol class="dromos-deeds" id="dromos-chronicle-1">/);
 		expect([...html.matchAll(/<li class="dromos-deed[^"]*">(.*?)<\/li>/g)].map((match) => (match[1] ?? '').replace(/<[^>]+>/g, '').replaceAll(' ', ' '))).toEqual([
 			'Today · Streak bonus · +5 XP',
 			'Yesterday · Read 20 pages · Reader +10 XP',
@@ -118,10 +120,26 @@ describe('Chronicle (game-ui S18)', () => {
 		expect(html).toContain('<li class="dromos-deed is-undone">');
 	});
 
+	it('folds to three lines under a "View more" toggle that controls the list (home-fit S2)', () => {
+		const five = ['Read 20 pages', 'Morning run', 'Plan the week', 'Call the bank', 'Stretch'].map((task) => deed({ task, skills: [] }));
+		const folded = chronicleView(five, TODAY, en);
+		const expanded = chronicleView(five, TODAY, en, { expanded: true });
+		if (!folded || !expanded) throw new Error('no chronicle');
+		const onToggleMore = (): void => undefined;
+
+		const html = renderToStaticMarkup(<Chronicle view={folded} listId="dromos-chronicle-3" onToggleMore={onToggleMore} />);
+
+		expect(html.match(/<li class="dromos-deed/g)).toHaveLength(3);
+		expect(html).toContain('<ol class="dromos-deeds" id="dromos-chronicle-3">');
+		expect(html).toContain('<button type="button" class="dromos-btn is-small dromos-list-toggle" aria-expanded="false" aria-controls="dromos-chronicle-3">View more (2)</button>');
+		expect(renderToStaticMarkup(<Chronicle view={expanded} listId="dromos-chronicle-3" />).match(/<li class="dromos-deed/g)).toHaveLength(5);
+		expect(componentsOf(Chronicle({ view: folded, listId: 'dromos-chronicle-3', onToggleMore }), ListToggle)[0]?.props.onToggle).toBe(onToggleMore);
+	});
+
 	it('speaks Spanish', () => {
 		const view = chronicleView([deed({ source: 'revert', xp: -10, skills: [] })], TODAY, es);
 		if (!view) throw new Error('no chronicle');
-		const html = renderToStaticMarkup(<Chronicle view={view} />);
+		const html = renderToStaticMarkup(<Chronicle view={view} listId="dromos-chronicle-1" />);
 
 		expect(html).toContain('aria-label="Crónica"');
 		expect(html.replace(/<[^>]+>/g, '').replaceAll(' ', ' ')).toContain('Ayer · Deshecho · Read 20 pages · −10 XP');

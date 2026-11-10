@@ -2,6 +2,15 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- The home screen fits much more in one view. Campaign cards fold to one row (name, seal or task count, next step and a thin bar); selecting the row opens the road and **Open campaign**, and the cards you leave open are remembered on each device.
+- The home reading desk shows one line per book (the Library keeps its drawn desk); the chronicle shows the three newest deeds, with **View more**; today's quests fold to four rows.
+- The folded letter shows only its head line, the mission and its buttons; the closest skill moved inside the letter.
+- The landscape is 320 px tall on most desktop panes instead of growing to 380 (300 px up to 960 px wide).
+
 ## [0.14.0] - 2026-11-10
 
 ### Added

@@ -9,20 +9,21 @@ export interface ListToggleView {
 	readonly expanded: boolean;
 }
 
-/** The rows a list shows, with its toggle only when it is longer than `LIST_LIMIT`. */
+/** The rows a list shows, with its toggle only when it is longer than its limit. */
 export interface LimitedRows<T> {
 	readonly rows: readonly T[];
 	readonly more?: ListToggleView;
 }
 
 /**
- * Every row of a list that fits or is expanded; otherwise `LIST_LIMIT` of them under "View more (N)".
- * A folded list hides its finished rows first, so open work stays in sight, and keeps its order
- * (missions A4). It fetches nothing: the rows are already there.
+ * Every row of a list that fits or is expanded; otherwise `limit` of them (`LIST_LIMIT` unless the
+ * list asks for fewer, as home does: home-fit S2, S3) under "View more (N)". A folded list hides
+ * its finished rows first, so open work stays in sight, and keeps its order (missions A4). It
+ * fetches nothing: the rows are already there.
  */
-export function limitRows<T>(rows: readonly T[], expanded: boolean, t: Translator, isDone: (row: T) => boolean): LimitedRows<T> {
-	if (rows.length <= LIST_LIMIT) return { rows };
+export function limitRows<T>(rows: readonly T[], expanded: boolean, t: Translator, isDone: (row: T) => boolean, limit: number = LIST_LIMIT): LimitedRows<T> {
+	if (rows.length <= limit) return { rows };
 	if (expanded) return { rows, more: { label: t('list.less'), expanded: true } };
-	const kept = new Set([...rows.filter((row) => !isDone(row)), ...rows.filter(isDone)].slice(0, LIST_LIMIT));
-	return { rows: rows.filter((row) => kept.has(row)), more: { label: t('list.more', { count: rows.length - LIST_LIMIT }), expanded: false } };
+	const kept = new Set([...rows.filter((row) => !isDone(row)), ...rows.filter(isDone)].slice(0, limit));
+	return { rows: rows.filter((row) => kept.has(row)), more: { label: t('list.more', { count: rows.length - limit }), expanded: false } };
 }

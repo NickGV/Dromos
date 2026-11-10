@@ -483,17 +483,21 @@
 	   sides of its post since M7; the sky moves back by about as much, so the sun and the clouds
 	   stay where they were.
 	   Every screen draws the same scene (home-header S2): 300 px, and on panes wider than the
-	   drawing it grows with it, up to 380 px, so the slice does not crop its sky away (a recorded
-	   departure from S1, game-ui L8). The walker, the gate and its plaque stay whole on every
-	   pane from 320 to 2560 px. */
+	   drawing it grows with it up to 320 px (home-fit S4: 1024 px panes; it grew to 380 before), so
+	   the home fits one view. From about 1862 px it grows again with the pane, up to 380 px at
+	   about 2211 px, as it did before, so the slice keeps the drawing from 135 units down (W/960 px
+	   a unit on a W px pane): the walker, the gate's lintel (157.6) with its plaque over it, and a
+	   strip of sky. It never goes under 300 px where the character's plaque (279 px and its 10 px
+	   margins) sits inside it. The walker, the gate and its plaque stay whole on every pane from
+	   320 to 2560 px. */
 	--dromos-scene-w: calc(100cqi + 2 * var(--size-4-3, 12px));
-	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
+	--dromos-scene-h: clamp(300px, max(min(320px, calc(31.25cqi + 7.5px)), calc(17.1875cqi + 4.125px)), 380px);
 	--dromos-scene-shift: max(0px, calc(870px - var(--dromos-scene-w)));
 	--dromos-sky-x: calc(var(--dromos-scene-shift) / 2);
 	position: relative;
 	overflow: hidden;
 	height: 300px;
-	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
+	height: var(--dromos-scene-h);
 	border-bottom: 1px solid var(--dromos-umber);
 	background: var(--dromos-scene-sky-bottom);
 	transition-property: --dromos-scene-sky-top, --dromos-scene-sky-bottom, --dromos-scene-sun, --dromos-scene-cloud, --dromos-scene-hill, --dromos-scene-leaf, --dromos-scene-gate, --dromos-scene-fire, --dromos-sun-drop;
@@ -626,9 +630,12 @@
 }
 
 /* The sky moves back as far as the frame moved left, so the sun and the clouds keep their place.
-   Past 1216 px the 380 px scene is cropped at the top: the sun, the clouds and the birds come
-   down about as much as it crops, up to 100 px. */
-.dromos-root .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
+   Past 1024 px the 320 px scene is cropped at the top (home-fit S4), by 300 - 307200/W units of
+   the drawing on a W px pane: from about 1138 px the sun, the clouds and the birds come down that
+   much less 30, so the sun's top stays about 10 units under the top edge, up to 100 units (at
+   about 1807 px). Two chords of that curve, 1138 to 1400 px and 1400 to 1807 px, at most 4 units
+   under it, stand in for it; the curve bends down, so the smaller of the two applies. */
+.dromos-root .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, min(calc((100cqi - 1114px) * 0.1931), calc((100cqi - 959px) * 0.1214))))); }
 
 /* Under 700 px the slice crops the left of the scene: the sun moves right of the first cloud. */
 @container dromos-view (max-width: 700px) {
@@ -642,9 +649,9 @@
    and out of sight or offline it holds where it is. */
 .dromos-root .dromos-scene-ridge { fill: var(--dromos-scene-ridge); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-opacity: 0.35; transition: fill 2s ease-in-out; }
 
-/* From 1700 px the sky's figures have come down their full 100 units, into the ridge's band: the
-   ridge gives the sky back to them. */
-@container dromos-view (min-width: 1700px) {
+/* From 1783 px (1807 px panes) the sky's figures have come down their full 100 units, into the
+   ridge's band: the ridge gives the sky back to them. */
+@container dromos-view (min-width: 1783px) {
 	.dromos-root .dromos-scene-ridge { display: none; }
 }
 
@@ -1569,6 +1576,7 @@
 /* Quests (game-ui S6): one panel, its header line, and rows split by a dashed hairline. */
 .dromos-root .dromos-quest-panel { padding: 0; }
 .dromos-root .dromos-quest-panel > .dromos-empty { padding: 16px; }
+.dromos-root .dromos-quest-panel > .dromos-list-toggle { margin: 4px 16px 12px; }
 
 .dromos-root .dromos-quest-header {
 	display: flex;
@@ -1935,7 +1943,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
-	margin: 0 0 8px;
+	margin: 0;
 }
 
 .dromos-root .dromos-briefing-title {
@@ -1953,9 +1961,9 @@
 	letter-spacing: 0.08em;
 }
 
-/* "Closest skill · Reader · 2 of 5 quests": one line while folded, all of it once unrolled. */
+/* "Closest skill · Reader · 2 of 5 quests", in the unrolled letter after the why (home-fit S4). */
 .dromos-root .dromos-briefing-near {
-	margin: 0 0 8px;
+	margin: 0 0 14px;
 	font-size: 14px;
 	line-height: 1.5;
 }
@@ -1966,31 +1974,12 @@
 .dromos-root .dromos-briefing-near-icon { display: inline-flex; vertical-align: -0.15em; }
 .dromos-root .dromos-briefing-near-icon svg { width: 1.1em; height: 1.1em; }
 
-.dromos-root .dromos-briefing-excerpt {
-	display: -webkit-box;
-	margin: 0 0 4px;
-	overflow: hidden;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	color: var(--dromos-ink-muted);
-	font-family: var(--dromos-font-display);
-	font-size: 17px;
-	font-style: italic;
-	line-height: 1.45;
-}
-
-/* Folded, the mission stops at two lines and the closest skill at one. */
+/* Folded, the mission stops at two lines. */
 .dromos-root .dromos-briefing:not(.is-open) .dromos-briefing-title {
 	display: -webkit-box;
 	overflow: hidden;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
-}
-
-.dromos-root .dromos-briefing:not(.is-open) .dromos-briefing-near {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .dromos-root .dromos-briefing-row,
@@ -2178,13 +2167,14 @@
 .dromos-root .dromos-habit-text { color: var(--text-muted); font-size: var(--font-ui-small); }
 .dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--dromos-olive); }
 
-/* Campaign cards on the home screen (game-ui S7): one panel each, a tinted header with the
-   serif name and the seal or the count, the road, the next step. The name's button stretches
-   over the whole card, so the card is one target and the text in it stays readable. */
+/* Campaign cards on the home screen (game-ui S7), folded to one row (home-fit S1): one panel each,
+   a tinted header row with the serif name and the seal or the count, which is the toggle; folded,
+   the next step and a thin bar of the whole campaign under it (about 68 px in all); open, the
+   road, the next step and the way to the campaigns screen. */
 .dromos-root .dromos-campaign-cards {
 	display: flex;
 	flex-direction: column;
-	gap: 14px;
+	gap: 10px;
 }
 
 .dromos-root .dromos-campaign-card {
@@ -2193,34 +2183,26 @@
 	padding: 0;
 }
 
-.dromos-root .dromos-campaign-card:hover { background-color: var(--dromos-card-hover); }
+.dromos-root .dromos-campaign-card-title {
+	margin: 0;
+	font-size: 1em;
+	font-weight: inherit;
+	line-height: inherit;
+}
 
-.dromos-root .dromos-campaign-card-head {
+.dromos-root .dromos-campaign-card-toggle {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: 10px;
-	min-height: 58px;
-	padding: 10px 16px;
-	border-bottom: 1px solid var(--dromos-rule);
-	background: var(--dromos-tint);
-}
-
-.dromos-root .dromos-campaign-card-title {
-	min-width: 0;
-	margin: 0;
-	font-family: var(--dromos-font-display);
-	font-size: 25px;
-	font-weight: 600;
-	line-height: 1.1;
-	overflow-wrap: anywhere;
-}
-
-.dromos-root .dromos-campaign-card-open {
+	box-sizing: border-box;
+	width: 100%;
 	height: auto;
-	padding: 0;
+	min-height: 34px;
+	padding: 5px 12px 5px 14px;
 	border: 0;
-	background: none;
+	border-bottom: 1px solid var(--dromos-rule);
+	border-radius: 0;
+	background: var(--dromos-tint);
 	box-shadow: none;
 	color: inherit;
 	font: inherit;
@@ -2229,21 +2211,36 @@
 	cursor: pointer;
 }
 
-.dromos-root .dromos-campaign-card-open::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	border-radius: 8px;
+.dromos-root .dromos-campaign-card-toggle:hover { background-color: var(--dromos-card-hover); }
+.dromos-root .dromos-campaign-card-toggle:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: -2px; box-shadow: none; }
+.is-mobile .dromos-root .dromos-campaign-card-toggle { min-height: 44px; }
+
+.dromos-root .dromos-campaign-card-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-family: var(--dromos-font-display);
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.2;
+	overflow-wrap: anywhere;
 }
 
-.dromos-root .dromos-campaign-card-open:focus-visible { outline: none; box-shadow: none; }
-.dromos-root .dromos-campaign-card-open:focus-visible::after { outline: 2px solid var(--dromos-focus); outline-offset: -3px; }
+/* The chevron points right while folded and down once open, as a mission's does. */
+.dromos-root .dromos-campaign-card-chevron {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: none;
+	stroke: var(--dromos-ink-muted);
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	transition: transform 0.15s ease;
+}
 
-/* Where :has() works, the ring goes around the card, 2 px out, as on every other button; the
-   ring inside the card above stays for the hosts without it. */
-@supports selector(:has(*)) {
-	.dromos-root .dromos-campaign-card:has(.dromos-campaign-card-open:focus-visible) { outline: 2px solid var(--dromos-focus); outline-offset: 2px; }
-	.dromos-root .dromos-campaign-card-open:focus-visible::after { outline: none; }
+.dromos-root .dromos-campaign-card-toggle[aria-expanded="true"] .dromos-campaign-card-chevron { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-campaign-card-chevron { transition: none; }
 }
 
 .dromos-root .dromos-campaign-card-count {
@@ -2252,6 +2249,34 @@
 	font-size: 12px;
 	font-variant-numeric: tabular-nums;
 }
+
+/* Folded: the next step, then the thin bar of the whole campaign at the row's end, under the count. */
+.dromos-root .dromos-campaign-card-summary {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 6px 14px 7px;
+}
+
+.dromos-root .dromos-campaign-card-summary .dromos-campaign-card-next {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.dromos-root .dromos-campaign-card-bar {
+	flex: 0 0 clamp(64px, 30%, 160px);
+	box-sizing: border-box;
+	height: 7px;
+	overflow: hidden;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 4px;
+	background: var(--dromos-paper);
+}
+
+.dromos-root .dromos-campaign-card-bar-fill { display: block; height: 100%; background: var(--dromos-olive); }
 
 /* The stalled seal: a round clay stamp, a little crooked, with a pale ring inside its edge. */
 .dromos-root .dromos-seal {
@@ -2273,7 +2298,21 @@
 	transform: rotate(-8deg);
 }
 
-.dromos-root .dromos-campaign-card-body { padding: 14px 16px; }
+/* The seal of a folded card's row: the same clay stamp, as a small tilted tablet that fits the row. */
+.dromos-root .dromos-seal.is-small {
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 1px 9px 2px;
+	border-radius: 4px;
+	font-size: 12px;
+	line-height: 1.3;
+	transform: rotate(-3deg);
+}
+
+.dromos-root .dromos-campaign-card-body { padding: 12px 14px; }
+.dromos-root .dromos-campaign-card-body[hidden] { display: none; }
+.dromos-root .dromos-campaign-card-open { margin-top: 10px; }
 
 .dromos-root .dromos-campaign-card-next {
 	margin: 10px 0 0;
@@ -2890,6 +2929,7 @@
    small caps, the task in ink and what it gained in ochre ink. An undone deed says "Undone" in
    clay ink, its task struck through and its XP muted. Parts stay whole when a line wraps. */
 .dromos-root .dromos-chronicle-panel { padding: 4px 18px; }
+.dromos-root .dromos-chronicle-panel > .dromos-list-toggle { margin: 4px 0 12px; }
 .dromos-root .dromos-deeds { margin: 0; padding: 0; list-style: none; }
 
 .dromos-root .dromos-deed {
@@ -3134,24 +3174,50 @@
 .dromos-root .dromos-library-lamp-flame { fill: var(--dromos-lamp-flame); stroke: var(--dromos-umber); stroke-width: 0.8; }
 .dromos-root .dromos-library-lamp-halo { fill: var(--dromos-lamp-halo); }
 /* The lamp is lit at night only, and the desk takes its warmth; by day it is put away. */
-.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-lamp { display: none; }
+.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-lamp { display: none; }
 .dromos-root .dromos-library-scene.is-desk > .is-drawing { background: radial-gradient(ellipse 260px 140px at 62px 22px, var(--dromos-lamp-warmth), transparent); }
-.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
+.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
 
-/* The small desk on home (home-header S1): the same wood, lamp and ink pot, drawn smaller, and
-   smaller scrolls, two to a row where they fit. */
+/* The small desk on home (home-header S1), one line per book (home-fit S2): a parchment panel, each
+   line a button with a small scroll, the title, the author and the days, split by a dashed rule as
+   the quests are. The library keeps the drawn desk. */
 .dromos-root .dromos-reading-desk .dromos-card-title { margin-bottom: 10px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini { box-shadow: inset 0 -7px 0 var(--dromos-wood-edge), 0 1px 0 var(--dromos-shadow); }
-.dromos-root .dromos-library-scene.is-desk.is-mini > .is-panels { padding: 34px 12px 18px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-lamp { top: 1px; left: 10px; width: 48px; height: 32px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-inkwell { top: 1px; right: 12px; width: 26px; height: 30px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini > .is-drawing { background: radial-gradient(ellipse 180px 100px at 44px 16px, var(--dromos-lamp-warmth), transparent); }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scrolls { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini button.dromos-desk-scroll { padding: 10px 12px 12px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll .dromos-scroll-art { max-width: 150px; margin-bottom: 6px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-title { font-size: 18px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini :is(.dromos-desk-scroll-author, .dromos-desk-scroll-since) { font-size: 13px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-since { margin-top: 4px; }
+.dromos-root .dromos-reading-lines { margin: 0; padding: 4px 0; list-style: none; }
+.dromos-root .dromos-reading-lines > li + li { border-top: 1px dashed var(--dromos-rule-dashed); }
+.dromos-root button.dromos-reading-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 12px;
+	box-sizing: border-box;
+	width: 100%;
+	height: auto;
+	min-height: 44px;
+	padding: 8px 16px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--dromos-ink);
+	font: inherit;
+	text-align: left;
+	white-space: normal;
+	cursor: pointer;
+}
+.dromos-root button.dromos-reading-line:hover { background-color: var(--dromos-card-hover); }
+.dromos-root button.dromos-reading-line:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: -2px; box-shadow: none; }
+.dromos-root .dromos-reading-line .dromos-scroll-art { flex: none; width: 36px; height: 13px; }
+.dromos-root .dromos-reading-line-book { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; }
+.dromos-root .dromos-reading-line-title {
+	font-family: var(--dromos-font-display);
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-decoration: underline dotted var(--dromos-umber);
+	text-underline-offset: 3px;
+}
+.dromos-root .dromos-reading-line-author { color: var(--dromos-ink-muted); font-size: 13px; }
+.dromos-root .dromos-reading-line-since { flex: none; margin-left: auto; color: var(--dromos-ochre-ink); font-size: 13px; font-weight: 600; }
 
 .dromos-root .dromos-desk-scrolls {
 	display: grid;

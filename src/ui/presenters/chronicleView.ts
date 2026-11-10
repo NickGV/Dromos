@@ -2,9 +2,13 @@ import type { DeedEntry, SkillRef } from '../../application';
 import { daysSince } from '../../domain';
 import type { Translator } from '../../i18n';
 import { dayMonth } from './dates';
+import { limitRows, type ListToggleView } from './listLimit';
 
 /** Up to this many days back a deed's day is said in words; older ones show the short date. */
 const DAYS_IN_WORDS = 6;
+
+/** The deeds the chronicle shows before "View more" (home-fit S2); the game keeps five. */
+export const CHRONICLE_LIMIT = 3;
 
 /** One journal line of the chronicle: "Yesterday · Read 20 pages · Reader +10 XP". */
 export interface DeedLineView {
@@ -22,18 +26,28 @@ export interface DeedLineView {
 /** The chronicle of the home screen (game-ui S18). */
 export interface ChronicleView {
 	readonly title: string;
-	/** Newest first. */
+	/** Newest first: the three newest while folded (home-fit S2), every deed once expanded. */
 	readonly lines: readonly DeedLineView[];
+	/** "View more (N)" or "View less", only with more than three deeds. */
+	readonly more?: ListToggleView;
+}
+
+export interface ChronicleOptions {
+	/** Shows every deed the game kept; folded, the three newest (home-fit S2). */
+	readonly expanded?: boolean;
 }
 
 /**
  * The last deeds of the ledger as journal lines (game-ui S18), or `null` when there is none to tell:
  * before the first game sync, or while the ledger is empty. `today` is `Clock.today()`, so the days
- * follow the clock. A streak bonus reads "Streak bonus", and anything undone reads "Undone".
+ * follow the clock. A streak bonus reads "Streak bonus", and anything undone reads "Undone". Folded,
+ * it shows the three newest under "View more" (home-fit S2).
  */
-export function chronicleView(deeds: readonly DeedEntry[] | undefined, today: string, t: Translator): ChronicleView | null {
+export function chronicleView(deeds: readonly DeedEntry[] | undefined, today: string, t: Translator, options: ChronicleOptions = {}): ChronicleView | null {
 	if (deeds === undefined || deeds.length === 0) return null;
-	return { title: t('chronicle.title'), lines: deeds.map((deed, index) => lineOf(deed, index, today, t)) };
+	const lines = deeds.map((deed, index) => lineOf(deed, index, today, t));
+	const { rows, more } = limitRows(lines, options.expanded ?? false, t, () => false, CHRONICLE_LIMIT);
+	return { title: t('chronicle.title'), lines: rows, ...(more ? { more } : {}) };
 }
 
 function lineOf(deed: DeedEntry, index: number, today: string, t: Translator): DeedLineView {

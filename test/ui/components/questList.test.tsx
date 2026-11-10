@@ -73,8 +73,8 @@ describe('QuestList: "View more" (missions S3)', () => {
 		const many = Array.from({ length: 8 }, (_, index) => aQuest(`t${index}`, { type: 'todo' }));
 		const folded = renderToStaticMarkup(<QuestList view={questPanelView(questListView(many, TODAY, en), en)} />);
 
-		expect(folded.match(/<li class="dromos-quest/g)).toHaveLength(6);
-		expect(folded).toContain('<button type="button" class="dromos-btn is-small dromos-list-toggle" aria-expanded="false">View more (2)</button>');
+		expect(folded.match(/<li class="dromos-quest/g)).toHaveLength(4);
+		expect(folded).toContain('<button type="button" class="dromos-btn is-small dromos-list-toggle" aria-expanded="false">View more (4)</button>');
 		expect(html).not.toContain('dromos-list-toggle');
 	});
 });

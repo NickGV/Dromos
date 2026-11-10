@@ -1,7 +1,7 @@
 import type { BriefingRequest, BriefingState } from '../../application';
 import { BRIEFING_COMMAND, isBriefingOf, type Briefing } from '../../domain';
 import type { Translator } from '../../i18n';
-import { codeSegments, excerptOf, readingMinutes, shortHash, type TextSegment } from './briefingText';
+import { codeSegments, readingMinutes, shortHash, type TextSegment } from './briefingText';
 import { dayMonth } from './dates';
 import type { SkillCardView } from './skillsView';
 
@@ -38,8 +38,8 @@ export interface LetterMark {
 
 /**
  * What the panel of Esdras shows (calm-ui S1, S2; game-ui S5, S13). A letter opens with its top line
- * and folds to the mission, the closest skill and an excerpt; with no letter, the notice says why.
- * The text of another day stays visible, only dimmed.
+ * and folds to the mission (home-fit S4); the closest skill and the text are in the unrolled
+ * letter. With no letter, the notice says why. The text of another day stays visible, only dimmed.
  */
 export interface BriefingView {
 	readonly ariaLabel: string;
@@ -55,8 +55,6 @@ export interface BriefingView {
 	readonly dimmed: boolean;
 	readonly mission: BriefingMissionView | null;
 	readonly near: BriefingNearView | null;
-	/** The letter's first words as plain text, for the folded panel; `null` when it has no text. */
-	readonly excerpt: string | null;
 	readonly markdown: { readonly body: string; readonly sourcePath: string } | null;
 	readonly signature: string | null;
 	/** `null` when nothing is written, and so nothing unrolls. */
@@ -72,7 +70,7 @@ export function briefingView(state: BriefingState, today: string, lockedSkills: 
 	const requestLabel = t('briefing.request');
 	if (state.kind !== 'found') {
 		const notice = t(state.kind === 'missing' ? 'briefing.notToday' : 'briefing.unreadable');
-		return { ariaLabel, topLine: null, notice, newLabel: null, requestLabel, requestInRow: true, dimmed: false, mission: null, near: null, excerpt: null, markdown: null, signature: null, letter: null };
+		return { ariaLabel, topLine: null, notice, newLabel: null, requestLabel, requestInRow: true, dimmed: false, mission: null, near: null, markdown: null, signature: null, letter: null };
 	}
 	const { briefing } = state;
 	const ofToday = isBriefingOf(briefing, today);
@@ -91,7 +89,6 @@ export function briefingView(state: BriefingState, today: string, lockedSkills: 
 			? { label: t('briefing.mission'), title: briefing.mission.title, why: briefing.mission.why === null ? null : codeSegments(briefing.mission.why), whyLabel: t('briefing.why') }
 			: null,
 		near: nearOf(briefing, lockedSkills, t),
-		excerpt: excerptOf(briefing.body),
 		markdown: hasText ? { body: briefing.body, sourcePath: briefing.path } : null,
 		signature: written ? t('briefing.signature') : null,
 		letter,

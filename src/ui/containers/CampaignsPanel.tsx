@@ -34,10 +34,10 @@ export interface CampaignsPanelProps {
 	 */
 	readonly hidden?: boolean;
 	/**
-	 * Given on the home screen: the panel draws the compact cards (game-ui S7), each opening the
-	 * campaigns screen on its campaign through this.
+	 * Given on the home screen: the panel draws the compact cards (game-ui S7), folded but for the
+	 * open ones (home-fit S1), each opening the campaigns screen on its campaign.
 	 */
-	readonly onOpenCampaign?: (path: string) => void;
+	readonly home?: CampaignsHomeProps;
 	/**
 	 * Given on the campaigns screen (game-ui S8): the panel draws the header card, named after the
 	 * campaign shown, then its tabs, tasks, habits and send buttons. Choosing a tab only asks the
@@ -46,17 +46,29 @@ export interface CampaignsPanelProps {
 	readonly screen?: CampaignsScreenProps;
 }
 
+export interface CampaignsHomeProps {
+	/** The paths of the campaigns whose cards are open; the home screen keeps them on the device. */
+	readonly open: ReadonlySet<string>;
+	/** Opens or folds the card of the campaign at `path`. */
+	readonly onToggle: (path: string) => void;
+	/** Opens the campaigns screen on the campaign at `path`. */
+	readonly onOpen: (path: string) => void;
+}
+
 export interface CampaignsScreenProps {
 	/** The campaign to show, or `null` for the first one. */
 	readonly selected: string | null;
 	readonly onSelect: (path: string) => void;
 }
 
+/** Numbers the open views, so each one's campaign cards have their own ids in the window (aria-controls). */
+let campaignsCount = 0;
+
 /**
  * Container of the campaigns (S5, S6): syncs when it mounts and whenever `syncKey` changes
  * (the home's "Sincronizar"), and sends a task to Habitica on request. It never polls (S4).
  */
-export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, screen }: CampaignsPanelProps) {
+export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: CampaignsPanelProps) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
 	const [sending, setSending] = useState<Sending | null>(null);
 	const [message, setMessage] = useState<(LinkOutcomeView & { readonly path: string }) | null>(null);
@@ -64,6 +76,7 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, 
 	const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(() => new Set());
 	// The missions whose subtasks the reader opened, by `taskToggleKey` (missions S5).
 	const [openMissions, setOpenMissions] = useState<ReadonlySet<string>>(() => new Set());
+	const [idPrefix] = useState(() => `dromos-campaigns-${(campaignsCount += 1)}`);
 	const mounted = useRef(false);
 	const t = useT();
 
@@ -105,7 +118,10 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, onOpenCampaign, 
 
 	if (hidden) return null;
 	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
-	if (onOpenCampaign) return <CampaignBoard list={view} cards={view.cards.map((card) => campaignHomeCardView(card, t))} onOpen={onOpenCampaign} />;
+	if (home) {
+		const cards = view.cards.map((card) => campaignHomeCardView(card, t));
+		return <CampaignBoard list={view} cards={cards} open={home.open} idPrefix={idPrefix} onToggle={home.onToggle} onOpen={home.onOpen} />;
+	}
 	if (!screen) return null;
 	const page = campaignScreenView(view, screen.selected, t, expandedGroups, openMissions);
 	const shown = page.campaign?.path ?? null;

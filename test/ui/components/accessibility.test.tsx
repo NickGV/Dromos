@@ -74,7 +74,6 @@ describe('heading outline', () => {
 			dimmed: false,
 			mission: null,
 			near: null,
-			excerpt: null,
 			markdown: null,
 			signature: '— Esdras',
 			letter: { readLabel: 'Read the letter · 1 min', foldLabel: 'Fold the letter' },
