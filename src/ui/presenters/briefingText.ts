@@ -8,8 +8,6 @@ export interface TextSegment {
 
 /** Reading speed for the "N min" of the folded letter. */
 const WORDS_PER_MINUTE = 200;
-/** Longest excerpt handed to the panel; it shows two lines of it. */
-const EXCERPT_LENGTH = 240;
 
 // A backtick run, then the code (at least one character, not ending in a backtick), then a run of
 // the same length that no further backtick follows: CommonMark's code span, without lookbehinds.
@@ -76,16 +74,6 @@ function inlinePlain(text: string): string {
 		.replace(/(^|\W)_(\S(?:.*?\S)?)_(?=\W|$)/g, '$1$2')
 		.replace(/~~(.+?)~~/g, '$1')
 		.replace(/==(.+?)==/g, '$1');
-}
-
-/** The first words of the letter as plain text, cut at a word with an ellipsis; `null` when nothing is written. */
-export function excerptOf(markdown: string, maxLength: number = EXCERPT_LENGTH): string | null {
-	const text = plainText(markdown);
-	if (text === '') return null;
-	if (text.length <= maxLength) return text;
-	const cut = text.slice(0, maxLength);
-	const space = cut.lastIndexOf(' ');
-	return `${(space > 0 ? cut.slice(0, space) : cut).trimEnd()}…`;
 }
 
 /** Minutes to read the letter at 200 words a minute, rounded up, never under one. */

@@ -70,7 +70,6 @@ describe('briefingView', () => {
 			dimmed: false,
 			mission: null,
 			near: null,
-			excerpt: null,
 			markdown: null,
 			signature: null,
 			letter: null,
@@ -91,7 +90,6 @@ describe('briefingView', () => {
 		const view = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, body: '', mission }) }, TODAY, [], es);
 
 		expect(view.markdown).toBeNull();
-		expect(view.excerpt).toBeNull();
 		expect(view.mission).toEqual({ label: 'Misión del día', title: 'Cerrar Kairos', why: null, whyLabel: 'Por qué esta misión' });
 	});
 
@@ -182,11 +180,12 @@ describe('briefingView, folded letter', () => {
 		expect(view.notice).toBe('Esdras has not written today');
 	});
 
-	it('shows a plain excerpt of the letter, without its markdown', () => {
-		const body = 'Shalom, Nicolás.\n\n**La carrera de hoy.** En [[02 - Projects/Dromos/README|Dromos]], `phases` marca M4.';
-		const view = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, body }) }, TODAY, [], en);
+	// home-fit S4: the folded letter shows no excerpt; the unrolled letter has the whole text.
+	it('carries no excerpt of the letter', () => {
+		const view = briefingView({ kind: 'found', briefing: aBriefing({ created: TODAY, body: 'Shalom, Nicolás.' }) }, TODAY, [], en);
 
-		expect(view.excerpt).toBe('Shalom, Nicolás. La carrera de hoy. En Dromos, phases marca M4.');
+		expect(view).not.toHaveProperty('excerpt');
+		expect(view.markdown?.body).toBe('Shalom, Nicolás.');
 	});
 
 	it('offers to read the letter with its reading time, and to fold it', () => {

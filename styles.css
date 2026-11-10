@@ -483,17 +483,21 @@
 	   sides of its post since M7; the sky moves back by about as much, so the sun and the clouds
 	   stay where they were.
 	   Every screen draws the same scene (home-header S2): 300 px, and on panes wider than the
-	   drawing it grows with it, up to 380 px, so the slice does not crop its sky away (a recorded
-	   departure from S1, game-ui L8). The walker, the gate and its plaque stay whole on every
-	   pane from 320 to 2560 px. */
+	   drawing it grows with it up to 320 px (home-fit S4: 1024 px panes; it grew to 380 before), so
+	   the home fits one view. From about 1862 px it grows again with the pane, up to 380 px at
+	   about 2211 px, as it did before, so the slice keeps the drawing from 135 units down (W/960 px
+	   a unit on a W px pane): the walker, the gate's lintel (157.6) with its plaque over it, and a
+	   strip of sky. It never goes under 300 px where the character's plaque (279 px and its 10 px
+	   margins) sits inside it. The walker, the gate and its plaque stay whole on every pane from
+	   320 to 2560 px. */
 	--dromos-scene-w: calc(100cqi + 2 * var(--size-4-3, 12px));
-	--dromos-scene-h: clamp(300px, calc(31.25cqi + 7.5px), 380px);
+	--dromos-scene-h: clamp(300px, max(min(320px, calc(31.25cqi + 7.5px)), calc(17.1875cqi + 4.125px)), 380px);
 	--dromos-scene-shift: max(0px, calc(870px - var(--dromos-scene-w)));
 	--dromos-sky-x: calc(var(--dromos-scene-shift) / 2);
 	position: relative;
 	overflow: hidden;
 	height: 300px;
-	height: clamp(300px, calc(31.25cqi + 7.5px), 380px);
+	height: var(--dromos-scene-h);
 	border-bottom: 1px solid var(--dromos-umber);
 	background: var(--dromos-scene-sky-bottom);
 	transition-property: --dromos-scene-sky-top, --dromos-scene-sky-bottom, --dromos-scene-sun, --dromos-scene-cloud, --dromos-scene-hill, --dromos-scene-leaf, --dromos-scene-gate, --dromos-scene-fire, --dromos-sun-drop;
@@ -626,9 +630,12 @@
 }
 
 /* The sky moves back as far as the frame moved left, so the sun and the clouds keep their place.
-   Past 1216 px the 380 px scene is cropped at the top: the sun, the clouds and the birds come
-   down about as much as it crops, up to 100 px. */
-.dromos-root .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, calc((100cqi - 1192px) * 0.2)))); }
+   Past 1024 px the 320 px scene is cropped at the top (home-fit S4), by 300 - 307200/W units of
+   the drawing on a W px pane: from about 1138 px the sun, the clouds and the birds come down that
+   much less 30, so the sun's top stays about 10 units under the top edge, up to 100 units (at
+   about 1807 px). Two chords of that curve, 1138 to 1400 px and 1400 to 1807 px, at most 4 units
+   under it, stand in for it; the curve bends down, so the smaller of the two applies. */
+.dromos-root .dromos-scene-sky { transform: translate(var(--dromos-sky-x), min(100px, max(0px, min(calc((100cqi - 1114px) * 0.1931), calc((100cqi - 959px) * 0.1214))))); }
 
 /* Under 700 px the slice crops the left of the scene: the sun moves right of the first cloud. */
 @container dromos-view (max-width: 700px) {
@@ -642,9 +649,9 @@
    and out of sight or offline it holds where it is. */
 .dromos-root .dromos-scene-ridge { fill: var(--dromos-scene-ridge); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-opacity: 0.35; transition: fill 2s ease-in-out; }
 
-/* From 1700 px the sky's figures have come down their full 100 units, into the ridge's band: the
-   ridge gives the sky back to them. */
-@container dromos-view (min-width: 1700px) {
+/* From 1783 px (1807 px panes) the sky's figures have come down their full 100 units, into the
+   ridge's band: the ridge gives the sky back to them. */
+@container dromos-view (min-width: 1783px) {
 	.dromos-root .dromos-scene-ridge { display: none; }
 }
 
@@ -1936,7 +1943,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
-	margin: 0 0 8px;
+	margin: 0;
 }
 
 .dromos-root .dromos-briefing-title {
@@ -1954,9 +1961,9 @@
 	letter-spacing: 0.08em;
 }
 
-/* "Closest skill · Reader · 2 of 5 quests": one line while folded, all of it once unrolled. */
+/* "Closest skill · Reader · 2 of 5 quests", in the unrolled letter after the why (home-fit S4). */
 .dromos-root .dromos-briefing-near {
-	margin: 0 0 8px;
+	margin: 0 0 14px;
 	font-size: 14px;
 	line-height: 1.5;
 }
@@ -1967,31 +1974,12 @@
 .dromos-root .dromos-briefing-near-icon { display: inline-flex; vertical-align: -0.15em; }
 .dromos-root .dromos-briefing-near-icon svg { width: 1.1em; height: 1.1em; }
 
-.dromos-root .dromos-briefing-excerpt {
-	display: -webkit-box;
-	margin: 0 0 4px;
-	overflow: hidden;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	color: var(--dromos-ink-muted);
-	font-family: var(--dromos-font-display);
-	font-size: 17px;
-	font-style: italic;
-	line-height: 1.45;
-}
-
-/* Folded, the mission stops at two lines and the closest skill at one. */
+/* Folded, the mission stops at two lines. */
 .dromos-root .dromos-briefing:not(.is-open) .dromos-briefing-title {
 	display: -webkit-box;
 	overflow: hidden;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
-}
-
-.dromos-root .dromos-briefing:not(.is-open) .dromos-briefing-near {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .dromos-root .dromos-briefing-row,

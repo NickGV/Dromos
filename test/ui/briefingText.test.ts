@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { codeSegments, excerptOf, plainText, readingMinutes, shortHash } from '../../src/ui/presenters/briefingText';
+import { codeSegments, plainText, readingMinutes, shortHash } from '../../src/ui/presenters/briefingText';
 
-// game-ui S13: the folded letter shows a plain-text excerpt and the minutes it takes to read.
+// game-ui S13: the folded letter offers the minutes it takes to read the plain text.
 describe('plainText', () => {
 	it('strips the markdown syntax and keeps the words a reader sees', () => {
 		const markdown = [
@@ -26,23 +26,6 @@ describe('plainText', () => {
 
 	it('keeps underscores and asterisks that are part of a word or a sum', () => {
 		expect(plainText('snake_case_name and 2 * 3')).toBe('snake_case_name and 2 * 3');
-	});
-});
-
-describe('excerptOf', () => {
-	it('is the plain text of the letter', () => {
-		expect(excerptOf('Shalom, Nicolás.\n\nDatos hasta **2026-11-02**.')).toBe('Shalom, Nicolás. Datos hasta 2026-11-02.');
-	});
-
-	it('cuts a long letter at a word, with an ellipsis', () => {
-		const excerpt = excerptOf(`${'palabra '.repeat(80)}fin`, 40);
-
-		expect(excerpt).toBe('palabra palabra palabra palabra palabra…');
-	});
-
-	it('is null when nothing is written', () => {
-		expect(excerptOf('')).toBeNull();
-		expect(excerptOf('---\n\n![[mapa.png]]')).toBeNull();
 	});
 });
 
