@@ -129,11 +129,12 @@ describe('Chronicle (game-ui S18)', () => {
 });
 
 describe('HomeScreen: the chronicle (game-ui S18)', () => {
-	it('comes after the skills, on the home screen only', () => {
+	it('comes last in the second column, after the campaigns, on the home screen only (home-header S1)', () => {
 		const deps = homeDeps({ game: withDeeds([deed()]) });
 		const home = renderToStaticMarkup(<HomeScreen deps={deps} />);
 
-		expect(home.indexOf('dromos-chronicle')).toBeGreaterThan(home.indexOf('dromos-skills'));
+		expect(home.indexOf('dromos-chronicle')).toBeGreaterThan(home.indexOf('dromos-campaigns'));
+		expect(home).toMatch(/<section class="dromos-section dromos-chronicle"[^>]*>.*<\/section><\/div><\/main>/);
 		expect(home).toContain('Yesterday');
 		expect(renderToStaticMarkup(<HomeScreen deps={deps} initialScreen="skills" />)).not.toContain('dromos-chronicle');
 		expect(renderToStaticMarkup(<HomeScreen deps={deps} initialScreen="campaigns" />)).not.toContain('dromos-chronicle');

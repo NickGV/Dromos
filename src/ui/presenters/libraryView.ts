@@ -1,4 +1,4 @@
-import type { CampaignSnapshot } from '../../application';
+import type { CampaignSnapshot, LibraryState } from '../../application';
 import { bookState, compareBooks, daysSince, groupByShelf, isReadingHabit, type Book, type BookState, type Shelf } from '../../domain';
 import { plural, type MessageKey, type Translator } from '../../i18n';
 import { habitRow, type HabitRowView } from './campaignView';
@@ -161,18 +161,31 @@ export function libraryRoomView(books: readonly Book[], today: string, t: Transl
 	const shelvesTitle = t('library.shelves');
 	if (shown.length === 0) return { summary: null, empty: t('library.empty'), shelvesTitle, alcoves: [], desk: { title: t('library.desk'), scrolls: [], empty: null } };
 
-	const reading = shown.filter(({ state }) => state === 'reading').map(({ book }) => book);
+	const scrolls = deskScrolls(shown, today, t);
 	return {
 		summary: summaryText(shown, t),
 		empty: null,
 		shelvesTitle,
 		alcoves: shelvesOf(shown).map((shelf) => alcoveView(shelf, t)),
-		desk: {
-			title: t('library.desk'),
-			scrolls: [...reading].sort(compareBooks).map((book) => ({ path: book.path, title: book.title, author: book.author, since: readingSince(book.started, today, t), openLabel: t('library.openCard', { title: book.title }) })),
-			empty: reading.length === 0 ? t('library.desk.empty') : null,
-		},
+		desk: { title: t('library.desk'), scrolls, empty: scrolls.length === 0 ? t('library.desk.empty') : null },
 	};
+}
+
+/**
+ * The small reading desk on home (home-header S1): the books being read, as the library's desk
+ * draws them. `null` while the library is read, when it cannot be read, and while no book is
+ * being read, so home draws no desk.
+ */
+export function homeDeskView(library: LibraryState | null, today: string, t: Translator): DeskView | null {
+	if (library?.kind !== 'loaded') return null;
+	const scrolls = deskScrolls(shownBooks(library.books), today, t);
+	return scrolls.length === 0 ? null : { title: t('library.desk'), scrolls, empty: null };
+}
+
+/** The books being read, by title, each as a scroll on the desk. */
+function deskScrolls(shown: readonly ShownBook[], today: string, t: Translator): DeskScrollView[] {
+	const reading = shown.filter(({ state }) => state === 'reading').map(({ book }) => book);
+	return [...reading].sort(compareBooks).map((book) => ({ path: book.path, title: book.title, author: book.author, since: readingSince(book.started, today, t), openLabel: t('library.openCard', { title: book.title }) }));
 }
 
 /**

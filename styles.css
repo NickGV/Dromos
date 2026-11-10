@@ -1419,9 +1419,15 @@
 	border: 0;
 }
 
-/* Wide panes (760 px and more): quests and campaigns side by side, the rest across both
-   columns. Obsidian pads the view 12 px on each side and the query measures inside that
-   padding, so 760 px reads as 736. */
+/* The two columns of home (home-header S1) are drawn on every screen, so the campaigns panel keeps
+   its parent: they make no box of their own, and their sections flow as the screen's, one column
+   in their order (the letter, the quests, the campaigns, the reading desk, the chronicle). */
+.dromos-root .dromos-home-column { display: contents; }
+
+/* Wide panes (760 px and more): home in two columns, each flowing on its own, so a long letter or
+   a long campaign list leaves no gap in the other; the level-up panel spans both above them.
+   Obsidian pads the view 12 px on each side and the query measures inside that padding, so 760 px
+   reads as 736. */
 @container dromos-view (min-width: 736px) {
 	.dromos-root .dromos-home { max-width: 1100px; }
 
@@ -1433,8 +1439,14 @@
 	}
 
 	.dromos-root .dromos-home.is-home > * { grid-column: 1 / -1; }
-	.dromos-root .dromos-home.is-home > .dromos-quests,
-	.dromos-root .dromos-home.is-home > .dromos-campaigns { grid-column: auto; }
+	.dromos-root .dromos-home.is-home > .dromos-home-column {
+		display: flex;
+		flex-direction: column;
+		gap: 28px;
+		min-width: 0;
+	}
+	.dromos-root .dromos-home.is-home > .dromos-home-column.is-start { grid-column: 1; }
+	.dromos-root .dromos-home.is-home > .dromos-home-column.is-end { grid-column: 2; }
 }
 
 /* Campaigns (M2) */
@@ -2854,9 +2866,24 @@
 .dromos-root .dromos-library-lamp-flame { fill: var(--dromos-lamp-flame); stroke: var(--dromos-umber); stroke-width: 0.8; }
 .dromos-root .dromos-library-lamp-halo { fill: var(--dromos-lamp-halo); }
 /* The lamp is lit at night only, and the desk takes its warmth; by day it is put away. */
-.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-lamp { display: none; }
+.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-lamp { display: none; }
 .dromos-root .dromos-library-scene.is-desk > .is-drawing { background: radial-gradient(ellipse 260px 140px at 62px 22px, var(--dromos-lamp-warmth), transparent); }
-.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
+.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
+
+/* The small desk on home (home-header S1): the same wood, lamp and ink pot, drawn smaller, and
+   smaller scrolls, two to a row where they fit. */
+.dromos-root .dromos-reading-desk .dromos-card-title { margin-bottom: 10px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini { box-shadow: inset 0 -7px 0 var(--dromos-wood-edge), 0 1px 0 var(--dromos-shadow); }
+.dromos-root .dromos-library-scene.is-desk.is-mini > .is-panels { padding: 34px 12px 18px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-lamp { top: 1px; left: 10px; width: 48px; height: 32px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-inkwell { top: 1px; right: 12px; width: 26px; height: 30px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini > .is-drawing { background: radial-gradient(ellipse 180px 100px at 44px 16px, var(--dromos-lamp-warmth), transparent); }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scrolls { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini button.dromos-desk-scroll { padding: 10px 12px 12px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll .dromos-scroll-art { max-width: 150px; margin-bottom: 6px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-title { font-size: 18px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini :is(.dromos-desk-scroll-author, .dromos-desk-scroll-since) { font-size: 13px; }
+.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-since { margin-top: 4px; }
 
 .dromos-root .dromos-desk-scrolls {
 	display: grid;

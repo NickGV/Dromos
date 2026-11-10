@@ -35,6 +35,7 @@ import { openLetter, storedLetterMark } from './briefingLetter';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
 import { LibraryPanel, type LibraryDeps } from './LibraryPanel';
+import { ReadingDeskPanel } from './ReadingDeskPanel';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -127,6 +128,10 @@ let viewCount = 0;
  * The world reacts (game-ui S17): the scene's sky follows the hour of the clock, read on every
  * render, so the periodic re-render turns it with no timer of its own, and a campfire burns once
  * every daily is done. On home, the chronicle lists the last deeds of the ledger (S18).
+ *
+ * Home (home-header S1) holds Esdras's letter and today's quests in its first column, the
+ * campaigns, the small reading desk (the books being read, the library's cards) and the chronicle
+ * in its second; narrow panes stack them in that order, under the level-up panel when there is one.
  */
 export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
@@ -319,33 +324,40 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					/>
 				</div>
 				<main className={`dromos-home is-${screen}`} lang={language} ref={main} tabIndex={-1}>
-					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted. */}
+					{/* Every slot keeps its place on every screen, so React keeps the campaigns panel mounted: the two
+					    columns of home (S1) are drawn on every screen, the campaigns panel always first in the second.
+					    Off home and on narrow panes the stylesheet lets their content flow as the screen's own. */}
 					{screen === 'skills' ? <ScreenHeader title={t('screen.skills')} /> : null}
 					{showCeremony ? <LevelUpPanel view={ceremony} onDismiss={dismissEvents} renderIcon={deps.renderIcon} /> : null}
-					{home && briefing ? (
-						<BriefingPanel
-							view={briefingView(briefing, deps.clock.today(), skills.locked, t, readMark)}
-							renderMarkdown={deps.renderMarkdown}
-							onRequest={onRequestBriefing}
-							renderIcon={deps.renderIcon}
-							open={letterOpen}
-							letterId={letterId}
-							onToggle={toggleLetter}
-							onFold={foldLetter}
+					<div className="dromos-home-column is-start">
+						{home && briefing ? (
+							<BriefingPanel
+								view={briefingView(briefing, deps.clock.today(), skills.locked, t, readMark)}
+								renderMarkdown={deps.renderMarkdown}
+								onRequest={onRequestBriefing}
+								renderIcon={deps.renderIcon}
+								open={letterOpen}
+								letterId={letterId}
+								onToggle={toggleLetter}
+								onFold={foldLetter}
+							/>
+						) : null}
+						{home ? (
+							<QuestList view={questPanel} onToggleMore={() => setQuestsExpanded((current) => !current)} onToggleSubtasks={(questId) => setOpenMissions((current) => toggled(current, questId))} onFilter={setQuestFilter} />
+						) : null}
+					</div>
+					<div className="dromos-home-column is-end">
+						{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
+						<CampaignsPanel
+							deps={deps.campaigns}
+							syncKey={syncKey}
+							hidden={screen === 'skills' || screen === 'library'}
+							onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
+							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
-					) : null}
-					{home ? (
-						<QuestList view={questPanel} onToggleMore={() => setQuestsExpanded((current) => !current)} onToggleSubtasks={(questId) => setOpenMissions((current) => toggled(current, questId))} onFilter={setQuestFilter} />
-					) : null}
-					{/* On the campaigns screen the panel draws the header card too: it alone knows the campaign's name. */}
-					<CampaignsPanel
-						deps={deps.campaigns}
-						syncKey={syncKey}
-						hidden={screen === 'skills' || screen === 'library'}
-						onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
-						screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
-					/>
-					{chronicle ? <Chronicle view={chronicle} /> : null}
+						{home ? <ReadingDeskPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} /> : null}
+						{chronicle ? <Chronicle view={chronicle} /> : null}
+					</div>
 					{screen === 'skills' ? (
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}

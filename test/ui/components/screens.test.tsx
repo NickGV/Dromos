@@ -7,7 +7,7 @@ import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { I18nProvider } from '../../../src/ui/i18n';
 import { Signpost, type DromosScreen } from '../../../src/ui/molecules/Signpost';
 import { ScreenHeader } from '../../../src/ui/organisms/ScreenHeader';
-import { IDLE_QUESTS, homeDeps, noop } from './homeDeps';
+import { IDLE_GAME, IDLE_QUESTS, homeDeps, noop } from './homeDeps';
 
 /** The accessible name and the text of every plank of the signpost, in order; the current one's name is its text. */
 function planks(html: string): string[][] {
@@ -19,10 +19,14 @@ function currentPlank(html: string): string[] {
 	return [...html.matchAll(/<button[^>]*class="dromos-plank is-current"[^>]*aria-current="page"[^>]*>(.*?)<\/button>/g)].map((match) => match[1] ?? '');
 }
 
-/** The markup of the first element inside `<main>`. */
+/**
+ * The markup of the first element inside `<main>`. The columns of home (home-header S1) are layout
+ * only, drawn on every screen; off home they hold the screen's own content, so they are skipped.
+ */
 function firstInMain(html: string): string {
 	const main = /<main[^>]*>/.exec(html);
-	return main ? html.slice(main.index + main[0].length) : '';
+	const rest = main ? html.slice(main.index + main[0].length) : '';
+	return rest.replace(/^(?:<div class="dromos-home-column is-(?:start|end)">(?:<\/div>)?)+/, '');
 }
 
 const at = (iso: string): Date => new Date(iso);
@@ -222,6 +226,44 @@ describe('HomeScreen screens', () => {
 		for (const screen of ['home', 'campaigns', 'skills', 'library'] as const) {
 			expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).toContain('<div class="dromos-scene" data-period="day">');
 		}
+	});
+});
+
+describe('HomeScreen home layout (S1)', () => {
+	const deed = { date: '2026-11-02', task: 'Read 20 pages', xp: 10, source: 'complete' as const, skills: [] };
+	const game = { ...IDLE_GAME, status: { kind: 'synced' as const }, deeds: [deed] };
+
+	it('puts the quests in the first column, and the campaigns then the chronicle in the second', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} />);
+		const main = /<main[^>]*>(.*)<\/main>/.exec(html)?.[1] ?? '';
+
+		expect(main).toMatch(/^<div class="dromos-home-column is-start"><section class="dromos-section dromos-quests"/);
+		const end = main.slice(main.indexOf('<div class="dromos-home-column is-end">'));
+		expect(end).toMatch(/^<div class="dromos-home-column is-end"><section class="dromos-section dromos-campaigns"/);
+		expect(end.indexOf('dromos-chronicle')).toBeGreaterThan(end.indexOf('dromos-campaigns'));
+		expect(main.indexOf('dromos-home-column is-end')).toBeGreaterThan(main.indexOf('dromos-quests'));
+	});
+
+	it('opens the level-up panel above both columns', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game: { ...game, events: [{ kind: 'character-level', level: 4 }] } })} />);
+
+		expect(html).toMatch(/<main[^>]*><section class="dromos-card dromos-ceremony"[^>]*>.*?<\/section><div class="dromos-home-column is-start">/);
+	});
+
+	it('keeps the columns on every screen, so the campaigns panel keeps its parent and stays mounted', () => {
+		for (const screen of ['home', 'campaigns', 'skills', 'library'] as const) {
+			const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} initialScreen={screen} />);
+			expect(html.match(/<div class="dromos-home-column is-(start|end)">/g)).toEqual(['<div class="dromos-home-column is-start">', '<div class="dromos-home-column is-end">']);
+		}
+		const campaigns = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="campaigns" />);
+		expect(campaigns).toMatch(/<div class="dromos-home-column is-end"><header class="dromos-panel dromos-screen-header"><h2[^>]*>Campaigns<\/h2><\/header><div class="dromos-campaign-screen/);
+	});
+
+	it('leaves the reading desk out while the library loads, and the library to its own screen', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game })} />);
+
+		expect(html).not.toContain('dromos-reading-desk');
+		expect(html).not.toContain('dromos-library-room');
 	});
 });
 
