@@ -2,8 +2,10 @@ import { AlcoveArt } from '../atoms/AlcoveArt';
 import { DeskArt, WallArt } from '../atoms/LibraryArt';
 import { SceneLayers } from '../atoms/SceneLayers';
 import { AlcoveButton } from '../molecules/AlcoveButton';
+import { ArchiveDoor } from '../molecules/ArchiveDoor';
 import { DeskScroll } from '../molecules/DeskScroll';
 import { HabitRow } from '../molecules/HabitRow';
+import type { ArchiveDoorView } from '../presenters/archiveView';
 import type { LibraryHabitsView, LibraryRoomView } from '../presenters/libraryView';
 
 /** A habit beside the desk on its way to Habitica: the area it is declared in and its title. */
@@ -26,6 +28,10 @@ export interface LibraryRoomProps {
 	readonly sendingHabit?: SendingHabit | null;
 	/** "Enviar a Habitica" for the habit `title` of the area at `areaPath`. */
 	readonly onSendHabit?: (areaPath: string, title: string) => void;
+	/** The doorway "El archivo" in the wall, after the alcoves (M8 S2); absent or `null`, no doorway. */
+	readonly archive?: ArchiveDoorView | null;
+	/** Opens the archive in place of the room. */
+	readonly onOpenArchive?: () => void;
 }
 
 /**
@@ -34,9 +40,10 @@ export interface LibraryRoomProps {
  * (ADR-017), each with its streak and, while unsent, "Enviar a Habitica". The wall comes first, as
  * the back of the room on wide panes; on phones the stylesheet puts the desk and the habits first,
  * so what is being read shows without scrolling. Each scene is built in layers (S6). An empty
- * library keeps a bare niche and a bare desk, which says so.
+ * library keeps a bare niche and a bare desk, which says so. When given, the doorway to the archive
+ * (M8 S2) opens in the wall after the alcoves, in an empty library too.
  */
-export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-library', habits = null, sendingHabit = null, onSendHabit }: LibraryRoomProps) {
+export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-library', habits = null, sendingHabit = null, onSendHabit, archive = null, onOpenArchive }: LibraryRoomProps) {
 	const deskLine = view.empty ?? view.desk.empty;
 	return (
 		<div className="dromos-library-room">
@@ -59,6 +66,11 @@ export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-
 							))}
 						</ul>
 					)}
+					{archive ? (
+						<div className="dromos-archive-doorway">
+							<ArchiveDoor view={archive} onOpen={() => onOpenArchive?.()} />
+						</div>
+					) : null}
 				</SceneLayers>
 			</section>
 			<section className="dromos-section dromos-library-desk" aria-labelledby={`${idPrefix}-desk`}>

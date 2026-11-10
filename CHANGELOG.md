@@ -2,6 +2,15 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The archive**, a room of the Library for the links you save to read, watch or listen to later: the `type: resource` notes with a `saved` date. A doorway in the reading room opens it, with how many are not processed yet. Pigeonholes by kind (articles, papers, videos, podcasts, pages, courses) filter the list, which shows what is still to read and watch, what is missing what it left you, and what is processed, sealed once `## Lo que me dejó` has text. Each row opens the link in the browser or the resource's card.
+- The resource card shows the dates, what it is useful for and what it left you, read-only, with the seal. **Mark as read** (or watched, or listened to) writes only `finished` into the note; it sends nothing to Habitica and gives no XP.
+- A resource whose link is a YouTube video plays it inside its card, drawn by Obsidian as it embeds a video in a note.
+- With the core **Web viewer** plugin on and opening external links (desktop), a resource's link opens in an Obsidian tab; from the card, the card closes first so the page opens as a tab. Otherwise, and on Android, links open in the browser as before.
+
 ## [0.12.1] - 2026-11-09
 
 ### Fixed

@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
-import type { CampaignSnapshot, LibraryState, LoadLibrary, ReadReflection, SyncCampaigns } from '../../application';
+import type { CampaignSnapshot, LibraryState, LoadLibrary, ReadReflection, ReadTakeaway, SyncCampaigns } from '../../application';
 import type { Language } from '../../i18n';
 import type { Clock, ReflectionText } from '../../ports';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
 import { useT } from '../i18n';
+import { ArchiveRoom } from '../organisms/ArchiveRoom';
 import { BookCard, type BookCardBusy } from '../organisms/BookCard';
 import { LibraryRoom, type SendingHabit } from '../organisms/LibraryRoom';
 import { LibraryShelf } from '../organisms/LibraryShelf';
+import { ResourceCard } from '../organisms/ResourceCard';
 import { ScreenHeader, type ScreenHeaderCharacter } from '../organisms/ScreenHeader';
+import { archiveDoorView, archiveView, type ArchiveFilter } from '../presenters/archiveView';
 import { bookCardView } from '../presenters/bookCardView';
 import type { DayPeriod } from '../presenters/dayPeriod';
 import { libraryHabitsView, libraryRoomView, libraryShelfView } from '../presenters/libraryView';
-import { reflectionLoader, runBookAction, runHabitSend, type BookAction, type HabitSend } from './libraryActions';
+import { resourceCardView } from '../presenters/resourceCardView';
+import { closeForWebViewer, reflectionLoader, runBookAction, runHabitSend, type BookAction, type HabitSend } from './libraryActions';
 
 /** A card open over the workspace (an Obsidian `Modal`, built in `src/adapters`). */
 export interface CardModal {
@@ -59,6 +63,12 @@ export interface LibraryDeps {
 	readonly startReading?: BookAction;
 	/** "Terminar" (M7 S4); absent, the card shows no such button. */
 	readonly finishReading?: BookAction;
+	/** Reads what was written under "Lo que me dejó" in a resource, for its card (M8 S6); never rejects. */
+	readonly readTakeaway: Pick<ReadTakeaway, 'execute'>;
+	/** "Marcar como leído" (visto, escuchado) on a resource (M8 S6); absent, its card shows no such button. */
+	readonly markResourceFinished?: BookAction;
+	/** Whether Obsidian's Web viewer opens external links in a tab (M8 S9); absent, the browser is assumed. */
+	readonly linksOpenInObsidian?: () => boolean;
 	/** The habits beside the desk (ADR-017). */
 	readonly habits: LibraryHabitsDeps;
 	readonly clock: Clock;
@@ -79,15 +89,26 @@ export interface LibraryPanelProps {
 /** Numbers the open libraries, so the ids of each one's described buttons are its own. */
 let libraryCount = 0;
 
+/** The card open over the workspace: a book's or a resource's, by the path of its note. */
+interface OpenCard {
+	readonly kind: 'book' | 'resource';
+	readonly path: string;
+}
+
+/** The state action under way: a book's "Empezar a leer" or "Terminar", or a resource's "Marcar como leído". */
+type LibraryBusy = BookCardBusy | 'mark';
+
 /**
- * Container of the library screen (M7 S5): reads the books when the screen opens, after a state
- * action and when a card closes (the note may have been written meanwhile); none of it touches the
- * network. It holds which level is on show: the room, or one shelf in its place with "←
- * Biblioteca" in the header card. A card opens through `deps.openCard` and is drawn again on every
- * render here, so it follows the books; a state action runs once at a time, and the books are read
- * again when it settles. The text of the reflection is read each time a card opens and after each
- * state action, and the card is drawn again when it arrives; until then its written parts say
- * "Escrita". "Abrir la nota", or a link followed in that text, closes the card and opens the note.
+ * Container of the library screen (M7 S5, M8 S2): reads the books and the archive's resources when
+ * the screen opens, after a state action and when a card closes (the note may have been written
+ * meanwhile); none of it touches the network. It holds which level is on show: the room, one shelf
+ * in its place, or the archive (with its pigeonhole and whether its processed ones are unfolded),
+ * each but the room with "← Biblioteca" in the header card. A card, a book's or a resource's, opens
+ * through `deps.openCard` and is drawn again on every render here, so it follows the notes; a
+ * state action runs once at a time, and the notes are read again when it settles. The text of a
+ * book's reflection, or of what a resource left, is read each time its card opens and after each
+ * state action, and the card is drawn again when it arrives; until then the card says "Escrita"
+ * ("Escrito"). "Abrir la nota", or a link followed in that text, closes the card and opens the note.
  *
  * The habits beside the desk (ADR-017) are read from the campaigns' snapshot when the screen opens,
  * with no request; a sync still running then is joined. Each bump of `syncKey` after that joins the
@@ -99,10 +120,16 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 	// `null` while the first read runs: saying the library is empty would be a guess.
 	const [library, setLibrary] = useState<LibraryState | null>(null);
 	const [shelf, setShelf] = useState<string | null>(null);
-	const [cardPath, setCardPath] = useState<string | null>(null);
-	const [busy, setBusy] = useState<BookCardBusy>(null);
+	// The archive (M8 S2) is on show in place of the room, with its pigeonhole and its unfolded processed ones.
+	const [inArchive, setInArchive] = useState(false);
+	const [pigeonhole, setPigeonhole] = useState<ArchiveFilter>('all');
+	const [processedOpen, setProcessedOpen] = useState(false);
+	const [card, setCard] = useState<OpenCard | null>(null);
+	const [busy, setBusy] = useState<LibraryBusy>(null);
 	// The text of the open card's reflection, with the path it was read for; `null` while none is read.
 	const [reflection, setReflection] = useState<{ readonly path: string; readonly text: ReflectionText | null } | null>(null);
+	// The same for what a resource left (M8 S6).
+	const [takeaway, setTakeaway] = useState<{ readonly path: string; readonly text: string | null } | null>(null);
 	const [idPrefix] = useState(() => `dromos-library-${(libraryCount += 1)}`);
 	const [habits, setHabits] = useState<CampaignSnapshot>(deps.habits.snapshot);
 	const [sendingHabit, setSendingHabit] = useState<SendingHabit | null>(null);
@@ -114,7 +141,7 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 	const mounted = useRef(false);
 	const body = useRef<HTMLDivElement>(null);
 	const today = deps.clock.today();
-	useShelfFocus(shelf, body);
+	useLevelFocus(inArchive ? 'archive' : shelf === null ? null : `shelf:${shelf}`, body);
 
 	const reload = useCallback(async (): Promise<void> => {
 		const next = await deps.loadLibrary.execute();
@@ -123,12 +150,21 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 
 	const reflections = useMemo(() => reflectionLoader(deps.readReflection, (path, text) => setReflection({ path, text })), [deps.readReflection]);
 	useEffect(() => () => reflections.stop(), [reflections]);
+	const takeaways = useMemo(() => reflectionLoader<string>(deps.readTakeaway, (path, text) => setTakeaway({ path, text })), [deps.readTakeaway]);
+	useEffect(() => () => takeaways.stop(), [takeaways]);
 
 	// Every open reads the note again: the reflection may have been written since the card last closed.
 	const openCard = (path: string): void => {
 		setReflection(null);
-		setCardPath(path);
+		setCard({ kind: 'book', path });
 		reflections.load(path);
+	};
+
+	// The same for a resource: what it left may have been written since its card last closed.
+	const openResourceCard = (path: string): void => {
+		setTakeaway(null);
+		setCard({ kind: 'resource', path });
+		takeaways.load(path);
 	};
 
 	useEffect(() => {
@@ -170,20 +206,21 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 		});
 	};
 
-	const act = (kind: 'start' | 'finish', path: string): void => {
-		const action = kind === 'start' ? deps.startReading : deps.finishReading;
+	const act = (kind: 'start' | 'finish' | 'mark', path: string): void => {
+		const action = kind === 'start' ? deps.startReading : kind === 'finish' ? deps.finishReading : deps.markResourceFinished;
 		if (!action || acting.current) return;
 		acting.current = true;
 		setBusy(kind);
 		void runBookAction(action, path, deps.loadLibrary).then((next) => {
 			acting.current = false;
 			if (!mounted.current) return;
-			// "Terminar" takes its own button away: the focus goes on to "Abrir la nota", the next step.
-			focusNote.current = kind === 'finish';
+			// "Terminar" and "Marcar como leído" take their own button away: the focus goes on to "Abrir la nota", the next step.
+			focusNote.current = kind !== 'start';
 			setLibrary(next);
 			setBusy(null);
 			// The text shown stays until the new read arrives, so the card does not flicker.
-			reflections.load(path);
+			if (kind === 'mark') takeaways.load(path);
+			else reflections.load(path);
 		});
 	};
 
@@ -192,63 +229,121 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 		deps.openNote(path);
 	};
 
-	// The open card follows every render: the books, the busy button and the language.
+	/** What the open card draws now, with its accessible name; `null` once its note is gone. */
+	const cardContent = (open: OpenCard, loaded: Extract<LibraryState, { kind: 'loaded' }>): { readonly label: string; readonly content: ReactNode } | null => {
+		if (open.kind === 'resource') {
+			const resource = loaded.resources.find((candidate) => candidate.path === open.path);
+			if (!resource) return null;
+			const text = takeaway !== null && takeaway.path === resource.path ? takeaway.text : null;
+			const view = resourceCardView(resource, today, t, deps.markResourceFinished !== undefined, text);
+			return {
+				label: view.ariaLabel,
+				content: (
+					<ResourceCard
+						view={view}
+						busy={busy === 'mark'}
+						onMark={() => act('mark', resource.path)}
+						onOpenNote={() => openNote(resource.path)}
+						renderMarkdown={deps.renderMarkdown}
+						onFollowLink={() => modal.current?.close()}
+						onOpenLink={closeForWebViewer(deps.linksOpenInObsidian, () => modal.current?.close())}
+						focusNote={focusNote.current}
+					/>
+				),
+			};
+		}
+		const book = loaded.books.find((candidate) => candidate.path === open.path);
+		if (!book) return null;
+		const text = reflection !== null && reflection.path === book.path ? reflection.text : null;
+		const view = bookCardView(book, today, t, { start: deps.startReading !== undefined, finish: deps.finishReading !== undefined }, text);
+		return {
+			label: view.ariaLabel,
+			content: (
+				<BookCard
+					view={view}
+					busy={busy === 'mark' ? null : busy}
+					onStart={() => act('start', book.path)}
+					onFinish={() => act('finish', book.path)}
+					onOpenNote={() => openNote(book.path)}
+					renderMarkdown={deps.renderMarkdown}
+					onFollowLink={() => modal.current?.close()}
+					focusNote={focusNote.current}
+					idPrefix={idPrefix}
+				/>
+			),
+		};
+	};
+
+	// The open card follows every render: the notes, the busy button and the language.
 	useEffect(() => {
-		if (cardPath === null || library === null) return;
-		const book = library.kind === 'loaded' ? library.books.find((candidate) => candidate.path === cardPath) : undefined;
-		if (!book) {
-			// The note is gone (renamed, deleted) since the card opened, or the books could not be read again.
+		if (card === null || library === null) return;
+		const drawn = library.kind === 'loaded' ? cardContent(card, library) : null;
+		if (!drawn) {
+			// The note is gone (renamed, deleted) since the card opened, or the library could not be read again.
+			// The focus asked for this card is dropped with it, so the next card opens with no jump.
+			focusNote.current = false;
 			modal.current?.close();
 			return;
 		}
-		const text = reflection !== null && reflection.path === book.path ? reflection.text : null;
-		const view = bookCardView(book, today, t, { start: deps.startReading !== undefined, finish: deps.finishReading !== undefined }, text);
-		const content = (
-			<BookCard
-				view={view}
-				busy={busy}
-				onStart={() => act('start', book.path)}
-				onFinish={() => act('finish', book.path)}
-				onOpenNote={() => openNote(book.path)}
-				renderMarkdown={deps.renderMarkdown}
-				onFollowLink={() => modal.current?.close()}
-				focusNote={focusNote.current}
-				idPrefix={idPrefix}
-			/>
-		);
 		focusNote.current = false;
 		if (modal.current) {
-			modal.current.show(content);
+			modal.current.show(drawn.content);
 			return;
 		}
 		modal.current = deps.openCard({
-			label: view.ariaLabel,
+			label: drawn.label,
 			lang: language,
-			content,
+			content: drawn.content,
 			onClose: () => {
 				modal.current = null;
 				if (!mounted.current) return;
-				setCardPath(null);
+				setCard(null);
 				void reload();
 			},
 		});
 	});
 
-	const shelfView = shelf !== null && library?.kind === 'loaded' ? libraryShelfView(library.books, shelf, today, t) : null;
+	const loaded = library?.kind === 'loaded' ? library : null;
+	const archive = inArchive && loaded ? archiveView(loaded.resources, today, { filter: pigeonhole, expanded: processedOpen }, t) : null;
+	// A pigeonhole whose last resource left is no filter to keep: back to "Todos".
+	const pigeonholeGone = archive !== null && archive.filter !== pigeonhole;
+	useEffect(() => {
+		if (pigeonholeGone) setPigeonhole('all');
+	}, [pigeonholeGone]);
+	const shelfView = !inArchive && shelf !== null && loaded ? libraryShelfView(loaded.books, shelf, today, t) : null;
 	// A shelf whose last book left (archived, moved) is no place to be: back to the room.
-	const shelfGone = shelf !== null && library?.kind === 'loaded' && shelfView === null;
+	const shelfGone = !inArchive && shelf !== null && loaded !== null && shelfView === null;
 	useEffect(() => {
 		if (shelfGone) setShelf(null);
 	}, [shelfGone]);
-	const back =shelfView ? { label: shelfView.backLabel, ariaLabel: shelfView.backAria, onBack: () => setShelf(null) } : undefined;
+
+	const openArchive = (): void => {
+		setPigeonhole('all');
+		setProcessedOpen(false);
+		setShelf(null);
+		setInArchive(true);
+	};
+	const selectPigeonhole = (id: ArchiveFilter): void => {
+		setPigeonhole(id);
+		setProcessedOpen(false);
+	};
+
+	const back = inArchive
+		? { label: t('library.back'), ariaLabel: t('library.back.aria'), onBack: () => setInArchive(false) }
+		: shelfView
+			? { label: shelfView.backLabel, ariaLabel: shelfView.backAria, onBack: () => setShelf(null) }
+			: undefined;
+	const title = inArchive ? t('archive.title') : shelfView ? shelfView.title : t('screen.library');
 	return (
 		<>
-			<ScreenHeader title={shelfView ? shelfView.title : t('screen.library')} character={character} back={back} />
+			<ScreenHeader title={title} character={character} back={back} />
 			<div className="dromos-library" data-period={period} ref={body}>
 				{library === null ? (
 					<p className="dromos-library-note">{t('library.loading')}</p>
 				) : library.kind === 'unreadable' ? (
 					<p className="dromos-library-note is-error">{t('library.unreadable')}</p>
+				) : archive ? (
+					<ArchiveRoom view={archive} onSelect={selectPigeonhole} onOpenCard={openResourceCard} onToggleMore={() => setProcessedOpen((open) => !open)} idPrefix={idPrefix} />
 				) : shelfView ? (
 					<LibraryShelf view={shelfView} onOpenCard={openCard} idPrefix={idPrefix} />
 				) : (
@@ -260,6 +355,8 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 						habits={libraryHabitsView(habits, t)}
 						sendingHabit={sendingHabit}
 						onSendHabit={sendHabit}
+						archive={archiveDoorView(library.resources, t)}
+						onOpenArchive={openArchive}
 					/>
 				)}
 			</div>
@@ -268,16 +365,17 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 }
 
 /**
- * After the shelf on show changes (not on the first paint), scrolls the view back to the top and
- * moves the focus to the header card's title, which names the new level.
+ * After the level on show changes (a shelf, the archive, or back to the room; not on the first
+ * paint), scrolls the view back to the top and moves the focus to the header card's title, which
+ * names the new level.
  */
-function useShelfFocus(shelf: string | null, body: RefObject<HTMLElement>): void {
-	const shown = useRef(shelf);
+function useLevelFocus(level: string | null, body: RefObject<HTMLElement>): void {
+	const shown = useRef(level);
 	useEffect(() => {
-		if (shown.current === shelf) return;
-		shown.current = shelf;
+		if (shown.current === level) return;
+		shown.current = level;
 		const scroller = body.current?.closest<HTMLElement>('.dromos-root');
 		if (scroller) scroller.scrollTop = 0;
 		body.current?.parentElement?.querySelector<HTMLElement>('[data-screen-heading]')?.focus({ preventScroll: true });
-	}, [shelf, body]);
+	}, [level, body]);
 }

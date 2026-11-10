@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { CampaignSnapshot, LibraryState } from '../../src/application';
 import type { ReflectionText } from '../../src/ports';
-import { reflectionLoader, runBookAction, runHabitSend } from '../../src/ui/containers/libraryActions';
+import { closeForWebViewer, reflectionLoader, runBookAction, runHabitSend } from '../../src/ui/containers/libraryActions';
 import { aBook } from '../fakes/books';
 
-const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })] };
+const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })], resources: [] };
 
 describe('runBookAction (M7 S5)', () => {
 	it('runs the state action on the book, then reads the books again and answers with them', async () => {
@@ -126,6 +126,20 @@ describe('reflectionLoader: the text of the open card (M7 S5)', () => {
 
 		expect(delivered).toEqual([['a.md', null]]);
 	});
+
+	it('loads the takeaway of a resource card the same way, a slow read of another card dropped (M8 S6)', async () => {
+		const delivered: [string, string | null][] = [];
+		const pending: { path: string; settle: (text: string | null) => void }[] = [];
+		const loader = reflectionLoader<string>({ execute: (path) => new Promise<string | null>((resolve) => pending.push({ path, settle: resolve })) }, (path, text) => delivered.push([path, text]));
+
+		loader.load('old.md');
+		loader.load('new.md');
+		pending[0]?.settle('viejo');
+		pending[1]?.settle('');
+		await settled();
+
+		expect(delivered).toEqual([['new.md', '']]);
+	});
 });
 
 describe('runHabitSend: "Send to Habitica" beside the desk (ADR-017, S2)', () => {
@@ -156,5 +170,32 @@ describe('runHabitSend: "Send to Habitica" beside the desk (ADR-017, S2)', () =>
 		const snapshot = await runHabitSend(() => Promise.reject(new Error('offline')), 'Archeion.md', 'Leer', { reload: () => Promise.resolve(reloaded) });
 
 		expect(snapshot).toBe(reloaded);
+	});
+});
+
+describe('closeForWebViewer (M8 S9)', () => {
+	it('closes the card when the Web viewer will open the link, so it opens as a tab', () => {
+		let closed = 0;
+		closeForWebViewer(() => true, () => (closed += 1))();
+
+		expect(closed).toBe(1);
+	});
+
+	it('leaves the card open when the browser opens the link, or nobody can tell', () => {
+		let closed = 0;
+		closeForWebViewer(() => false, () => (closed += 1))();
+		closeForWebViewer(undefined, () => (closed += 1))();
+
+		expect(closed).toBe(0);
+	});
+
+	it('asks at the click, not when the card is drawn', () => {
+		let takes = false;
+		let closed = 0;
+		const follow = closeForWebViewer(() => takes, () => (closed += 1));
+		takes = true;
+		follow();
+
+		expect(closed).toBe(1);
 	});
 });

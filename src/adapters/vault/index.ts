@@ -17,3 +17,5 @@ export * from './rulesMapper';
 export * from './skillMapper';
 export * from './ledgerNote';
 export * from './projections';
+export * from './resourceMapper';
+export * from './VaultResourceRepository';

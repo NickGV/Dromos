@@ -1,9 +1,9 @@
 import { BookSeal } from '../atoms/BookSeal';
 import { Umbilicus } from '../atoms/LibraryArt';
-import type { MouseEvent } from 'react';
 import { MarkdownBlock, type MarkdownRender } from '../atoms/MarkdownBlock';
 import { SceneLayers } from '../atoms/SceneLayers';
 import type { BookCardView } from '../presenters/bookCardView';
+import { focusOnDraw, followedLink } from './cardEvents';
 
 /** The state action under way, whose button says so; `null` while none is. */
 export type BookCardBusy = 'start' | 'finish' | null;
@@ -99,13 +99,4 @@ export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMark
 			</div>
 		</div>
 	);
-}
-
-/** Calls `then` when the click was on an internal link of the rendered text, which a link activated by the keyboard also fires. */
-function followedLink(event: MouseEvent<HTMLElement>, then: () => void): void {
-	if ((event.target as HTMLElement).closest('a.internal-link')) then();
-}
-
-function focusOnDraw(button: HTMLButtonElement | null): void {
-	button?.focus({ preventScroll: true });
 }
