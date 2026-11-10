@@ -14,7 +14,7 @@ export type CachedHeading = {
 	readonly level: number;
 	readonly position: CachedPosition & { readonly end: { readonly line: number } };
 };
-type CachedSection = { readonly type: string; readonly position: CachedPosition };
+export type CachedSection = { readonly type: string; readonly position: CachedPosition };
 
 /** A book note as the mapper sees it: the parts of `CachedMetadata` it reads, no `obsidian` types. */
 export interface BookNote {
@@ -75,12 +75,18 @@ export function buildBooks(notes: readonly BookNote[]): Book[] {
  * part (see `reflectionSpan`), sub-headings included; a missing heading is not written.
  */
 export function reflectionFrom(headings: readonly CachedHeading[], sections: readonly CachedSection[]): ReflectionSection[] {
-	return REFLECTION_SECTIONS.map((section) => {
-		const span = reflectionSpan(headings, section.heading);
-		if (span === null) return { ...section, written: false };
-		const written = sections.some((entry) => CONTENT_TYPES.has(entry.type) && entry.position.start.line > span.heading && entry.position.start.line < span.end);
-		return { ...section, written };
-	});
+	return REFLECTION_SECTIONS.map((section) => ({ ...section, written: sectionWritten(headings, sections, section.heading) }));
+}
+
+/**
+ * True when a content block starts inside the part headed `expected` (see `reflectionSpan`), its
+ * sub-headings included; a missing heading is not written. Read from the cache only: the reflection
+ * of a book and the takeaway of a resource (ADR-018) are both decided here.
+ */
+export function sectionWritten(headings: readonly CachedHeading[], sections: readonly CachedSection[], expected: string): boolean {
+	const span = reflectionSpan(headings, expected);
+	if (span === null) return false;
+	return sections.some((entry) => CONTENT_TYPES.has(entry.type) && entry.position.start.line > span.heading && entry.position.start.line < span.end);
 }
 
 /** Where one part of the reflection sits in a note, in the cache's line numbers (0-based). */

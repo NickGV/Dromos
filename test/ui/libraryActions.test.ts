@@ -4,7 +4,7 @@ import type { ReflectionText } from '../../src/ports';
 import { reflectionLoader, runBookAction, runHabitSend } from '../../src/ui/containers/libraryActions';
 import { aBook } from '../fakes/books';
 
-const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })] };
+const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })], resources: [] };
 
 describe('runBookAction (M7 S5)', () => {
 	it('runs the state action on the book, then reads the books again and answers with them', async () => {

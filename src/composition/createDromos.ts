@@ -11,7 +11,7 @@ import {
 	type HabiticaCredentials,
 } from '../adapters/habitica';
 import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
-import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
+import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultResourceRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, QuestState, ReadReflection, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
@@ -67,6 +67,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		noteLink: (path: string) => obsidianNoteLink(createTranslator(settings.language)('link.openInObsidian'), plugin.app.vault.getName(), path),
 	};
 	const books = new VaultBookRepository(plugin.app);
+	// The archive's resources (ADR-018): read with the books; Dromos writes only `finished`.
+	const resources = new VaultResourceRepository(plugin.app);
 	const startReading = new StartReading({
 		repository: books,
 		creator: sendDeps.creator,
@@ -145,7 +147,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			},
 			// "Empezar a leer", "Terminar" (M7 S3, S4) and a habit's "Enviar a Habitica" (ADR-017) toast their outcome; the screen reads again after.
 			library: {
-				loadLibrary: new LoadLibrary({ books }),
+				loadLibrary: new LoadLibrary({ books, resources }),
 				readReflection: new ReadReflection({ books }),
 				renderMarkdown,
 				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),

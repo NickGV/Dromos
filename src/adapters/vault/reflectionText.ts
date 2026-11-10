@@ -13,11 +13,22 @@ import { reflectionSpan, type CachedHeading } from './bookMapper';
  */
 export function reflectionText(text: string, headings: readonly CachedHeading[]): ReflectionText {
 	const lines = text.split(/\r?\n/);
-	const parts = REFLECTION_SECTIONS.map(({ id, heading }) => {
-		const span = reflectionSpan(headings, heading);
-		return [id, span === null ? '' : withoutBlankEdges(lines.slice(span.body, span.end))] as const;
-	});
+	const parts = REFLECTION_SECTIONS.map(({ id, heading }) => [id, partText(lines, headings, heading)] as const);
 	return Object.fromEntries(parts) as Record<(typeof parts)[number][0], string>;
+}
+
+/**
+ * The text of the one part headed `expected`, cut as `reflectionText` cuts each part of a book's
+ * reflection: used for the takeaway of a resource, `## Lo que me dejó` (ADR-018). `''` when the
+ * note has no such heading or nothing under it.
+ */
+export function sectionText(text: string, headings: readonly CachedHeading[], expected: string): string {
+	return partText(text.split(/\r?\n/), headings, expected);
+}
+
+function partText(lines: readonly string[], headings: readonly CachedHeading[], expected: string): string {
+	const span = reflectionSpan(headings, expected);
+	return span === null ? '' : withoutBlankEdges(lines.slice(span.body, span.end));
 }
 
 function withoutBlankEdges(lines: readonly string[]): string {
