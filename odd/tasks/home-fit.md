@@ -23,7 +23,7 @@ The user's request: "chat sabes que podemos hacer para quizas lograr que se pued
 |----|-------|------|-------|--------|--------|
 | T1 | S1-S4 | The four changes, one commit per spec where they stand apart | delegated, writer E (context backstop: the parent session is long) | done (L4); the user accepts the 135 px left (L6) | `9dab41a`, `e765cf0`, `d369c89`, `23b6f07` |
 | T2 | S1-S4 | Seam check, live measure in Obsidian, README and CHANGELOG, dev build | inline | done (L5) | docs (this commit) |
-| R1 | | Release with the user's go-ahead | inline | pending | |
+| R1 | S1-S4 | Release 0.15.0 with the user's go-ahead | inline | go-ahead given (L7) | |
 
 ## Log
 
@@ -33,3 +33,4 @@ The user's request: "chat sabes que podemos hacer para quizas lograr que se pued
 - **L4** (2026-11-10): writer E finished T1: S1 `9dab41a` (home campaign cards folded to one row, toggle in the `h3` with `aria-expanded`, **Open campaign** inside, the open set per device under `home-campaigns-open`), S2 `e765cf0` (one-line home desk, chronicle of three with **View more (2)**), S3 `d369c89` (`QUEST_LIMIT` 4), S4 `23b6f07` (folded letter: head line, mission, buttons; the closest skill inside the letter; the excerpt and `excerptOf` removed; the scene 300 px up to 960 px wide, 320 px from 1024, back to 380 only between about 1862 and 2211 px; the sky group's shift re-tuned and the ridge hidden from 1783 px so the sun and clouds are not cut). Its checks: 138 files, 1813 tests; lint 0 errors and the 4 old warnings; build ok. Preview: 1625 to 1116 px.
 - **L5** (2026-11-10): T2. Seam check on the branch: 138 files, 1813 tests; lint 0 errors, 4 old warnings. Dev build installed and measured live at 1546 × 970: 1884 to 1105 px (scene 320, letter 200, quests 472, campaigns 277, desk 87, chronicle 229; left column 701, right 649). About 135 px of scroll remain: the fourth quest's foot and the two **View more** buttons. Closing it needs a denser quest row or three rows (beyond the approved S3): the user's call. README and CHANGELOG `[Unreleased]` written. Risk: item 6 (geometry by screenshots).
 - **L6** (2026-11-10, user): "asi lo veo bien". The home stays as measured in L5 (1105 px, about 135 px of scroll); no denser quest rows, no three rows. Next: R1 (0.15.0, minor: the folding campaign cards are new) when the user gives the go-ahead.
+- **L7** (2026-11-10, user): "si dale" — go-ahead for R1: merge `feat/home-fit` into `main`, release 0.15.0, push `main` and the tag.
