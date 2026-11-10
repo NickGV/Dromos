@@ -1569,6 +1569,7 @@
 /* Quests (game-ui S6): one panel, its header line, and rows split by a dashed hairline. */
 .dromos-root .dromos-quest-panel { padding: 0; }
 .dromos-root .dromos-quest-panel > .dromos-empty { padding: 16px; }
+.dromos-root .dromos-quest-panel > .dromos-list-toggle { margin: 4px 16px 12px; }
 
 .dromos-root .dromos-quest-header {
 	display: flex;

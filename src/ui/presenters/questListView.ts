@@ -90,13 +90,16 @@ export interface QuestPanelView {
 	readonly dayComplete: boolean;
 	readonly rows: readonly QuestPanelRowView[];
 	readonly emptyText: string | null;
-	/** "View more (N)" or "View less", only on a list longer than 6 (missions S3). */
+	/** "View more (N)" or "View less", only on a list longer than `QUEST_LIMIT` (missions S3, home-fit S3). */
 	readonly more?: ListToggleView;
 	/** The filters above the panel (missions S6); absent while there is no quest to filter. */
 	readonly filters?: QuestFiltersView;
 	/** "No quests of this kind today", only when the chosen filter leaves no row. */
 	readonly filteredEmptyText?: string;
 }
+
+/** The rows today's quests fold to (home-fit S3: four, so the home screen fits one view; missions S3 had six). */
+export const QUEST_LIMIT = 4;
 
 /** The filters above today's quests (missions S6), by Habitica's type: a mission is also a to-do or a daily. */
 export type QuestFilter = 'all' | 'missions' | 'todos' | 'dailies';
@@ -118,7 +121,7 @@ export interface QuestFiltersView {
 
 /** What the reader chose on the panel; every choice starts off on each open of the view. */
 export interface QuestPanelOptions {
-	/** The long list is expanded; folded, it shows 6 rows (missions S3). */
+	/** The long list is expanded; folded, it shows `QUEST_LIMIT` rows (missions S3, home-fit S3). */
 	readonly expanded?: boolean;
 	/** Ids of the missions whose subtasks are open (missions S5). */
 	readonly openMissions?: ReadonlySet<string>;
@@ -130,7 +133,7 @@ export function questPanelView(list: QuestListView, t: Translator, options: Ques
 	const { expanded = false, openMissions = new Set<string>(), filter = 'all' } = options;
 	const entries: QuestEntry[] = [...list.dailies.map((quest) => ({ quest, kind: 'quests.kind.daily' as const })), ...list.todos.map((quest) => ({ quest, kind: 'quests.kind.todo' as const }))];
 	const filtered = entries.filter((entry) => kept(entry, filter)).map((entry) => panelRow(entry.quest, entry.kind, t, openMissions.has(entry.quest.id)));
-	const { rows, more } = limitRows(filtered, expanded, t, (row) => row.completed);
+	const { rows, more } = limitRows(filtered, expanded, t, (row) => row.completed, QUEST_LIMIT);
 	const hasQuests = list.emptyText === null;
 	const shown = {
 		rows,

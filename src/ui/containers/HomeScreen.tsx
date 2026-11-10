@@ -145,7 +145,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
 	// The letter folds on every open of the view and stays as it was while the screen changes (S13).
 	const [letterOpen, setLetterOpen] = useState(false);
-	// Today's quests fold to 6 rows on every open of the view (missions S3).
+	// Today's quests fold to 4 rows on every open of the view (missions S3, home-fit S3).
 	const [questsExpanded, setQuestsExpanded] = useState(false);
 	// The chronicle folds to its three newest deeds on every open of the view (home-fit S2).
 	const [chronicleExpanded, setChronicleExpanded] = useState(false);

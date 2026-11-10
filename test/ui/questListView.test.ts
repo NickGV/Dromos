@@ -225,18 +225,26 @@ describe('questListView: missions (missions S1)', () => {
 describe('questPanelView: "View more" (missions S3)', () => {
 	const many = Array.from({ length: 8 }, (_, index) => aQuest(`t${index}`, { type: 'todo' }));
 
-	it('folds a list of more than 6 quests to 6, and shows them all once expanded', () => {
+	// home-fit S3: four rows instead of six.
+	it('folds a list of more than 4 quests to 4, and shows them all once expanded', () => {
 		const folded = questPanelView(questListView(many, TODAY, t), t);
 		const expanded = questPanelView(questListView(many, TODAY, t), t, { expanded: true });
 
-		expect(folded.rows).toHaveLength(6);
-		expect(folded.more).toEqual({ label: 'Ver más (2)', expanded: false });
+		expect(folded.rows).toHaveLength(4);
+		expect(folded.more).toEqual({ label: 'Ver más (4)', expanded: false });
 		expect(expanded.rows).toHaveLength(8);
 		expect(expanded.more).toEqual({ label: 'Ver menos', expanded: true });
 	});
 
-	it('gives a list of 6 or fewer no toggle', () => {
-		expect(questPanelView(questListView(many.slice(0, 6), TODAY, t), t)).not.toHaveProperty('more');
+	it('gives a list of 4 or fewer no toggle', () => {
+		expect(questPanelView(questListView(many.slice(0, 4), TODAY, t), t)).not.toHaveProperty('more');
+		expect(questPanelView(questListView(many.slice(0, 5), TODAY, t), t).more).toEqual({ label: 'Ver más (1)', expanded: false });
+	});
+
+	it('keeps the open quests in sight first when it folds, as before', () => {
+		const list = [aQuest('d1', { completed: true }), aQuest('d2', { completed: true }), ...many.slice(0, 4)];
+
+		expect(questPanelView(questListView(list, TODAY, t), t).rows.map((row) => row.id)).toEqual(['t0', 't1', 't2', 't3']);
 	});
 });
 
@@ -304,7 +312,7 @@ describe('questPanelView: filters (missions S6)', () => {
 	it('folds the filtered rows under "View more", counting only what the filter shows', () => {
 		const many = questListView([aQuest('d1'), ...Array.from({ length: 8 }, (_, index) => aQuest(`t${index}`, { type: 'todo' }))], TODAY, t);
 
-		expect(questPanelView(many, t, { filter: 'todos' }).more).toEqual({ label: 'Ver más (2)', expanded: false });
+		expect(questPanelView(many, t, { filter: 'todos' }).more).toEqual({ label: 'Ver más (4)', expanded: false });
 		expect(questPanelView(many, t, { filter: 'dailies' })).not.toHaveProperty('more');
 	});
 
