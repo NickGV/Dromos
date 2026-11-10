@@ -1,4 +1,4 @@
-import { SHEEP, WINDMILL } from './spots';
+import { SHEEP, WINDMILL, type SheepSpot } from './spots';
 
 /*
  * The far life of the landscape (home-header S4), in its line style: flat token fills and the
@@ -59,23 +59,33 @@ export function Windmill() {
 
 /**
  * Three sheep on the far hill: one looks around, one grazes, and one lowers its head now and then.
- * The head turns about the neck, the bottom left corner of its box.
  */
 export function Sheep() {
 	return (
 		<g className="dromos-scene-sheep dromos-scene-life">
 			{SHEEP.map((sheep) => (
-				<g key={sheep.x} className="dromos-scene-ewe" transform={`translate(${sheep.x} ${sheep.y})${sheep.facing === 'left' ? ' scale(-1 1)' : ''}`}>
-					<path className="dromos-scene-legs" d="M-2.2 0V-2.8M2.1 0V-2.8" />
-					<ellipse className="dromos-scene-wool" cx="0" cy="-4.8" rx="4.5" ry="2.9" />
-					<g transform="translate(3.3 -5.6)">
-						<g className={`dromos-scene-sheep-head is-${sheep.head}`}>
-							<path d="M0 0L2 -1.2" />
-							<ellipse cx="2.8" cy="-1.5" rx="1.8" ry="1.2" />
-						</g>
-					</g>
-				</g>
+				<Ewe key={sheep.x} sheep={sheep} />
 			))}
+		</g>
+	);
+}
+
+/**
+ * A sheep standing, or lying with its legs folded under it, its foot at its spot. The head turns
+ * about the neck, the bottom left corner of its box.
+ */
+export function Ewe({ sheep }: { readonly sheep: SheepSpot }) {
+	const lying = sheep.lying === true;
+	return (
+		<g className="dromos-scene-ewe" transform={`translate(${sheep.x} ${sheep.y})${sheep.facing === 'left' ? ' scale(-1 1)' : ''}`}>
+			{lying ? null : <path className="dromos-scene-legs" d="M-2.2 0V-2.8M2.1 0V-2.8" />}
+			<ellipse className="dromos-scene-wool" cx="0" cy={lying ? -2.4 : -4.8} rx="4.5" ry={lying ? 2.4 : 2.9} />
+			<g transform={`translate(3.3 ${lying ? -3.4 : -5.6})`}>
+				<g className={`dromos-scene-sheep-head is-${sheep.head}`}>
+					<path d="M0 0L2 -1.2" />
+					<ellipse cx="2.8" cy="-1.5" rx="1.8" ry="1.2" />
+				</g>
+			</g>
 		</g>
 	);
 }

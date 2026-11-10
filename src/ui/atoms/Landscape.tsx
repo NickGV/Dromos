@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { FAR_SCALE, GATE, GATE_SHAPE } from '../presenters/walkerView';
 import { ChimneySmoke, Flock, Ridge, Sheep, Windmill } from './landscape/FarLife';
 import { Butterflies, Fireflies, Flowers, Tufts } from './landscape/NearLife';
+import { Pasture } from './landscape/Pasture';
 import { watchSight } from './landscape/sight';
 
 export interface LandscapeProps {
@@ -18,8 +19,9 @@ export interface LandscapeProps {
  * sky. It is a drawing: screen readers skip it.
  *
  * It lives (home-header S4): a far ridge, a windmill, sheep and chimney smoke, flowers, grass,
- * butterflies by day and fireflies at night, with slow loops the stylesheet holds still under
- * reduced motion, offline, and while the scene is out of sight (the `is-still` class).
+ * butterflies by day and fireflies at night, and a shepherd with his sheep and a lion at peace
+ * beside them (S7, S8), with slow loops the stylesheet holds still under reduced motion, offline,
+ * and while the scene is out of sight (the `is-still` class).
  */
 export function Landscape({ children = null }: LandscapeProps) {
 	// Unique per view: two open Dromos tabs must not share one gradient, since Chromium stops
@@ -75,6 +77,7 @@ export function Landscape({ children = null }: LandscapeProps) {
 			<path className="dromos-scene-hill is-far" d="M0 190C120 150 220 160 330 178S560 150 700 168 900 150 960 160V300H0z" />
 			<Windmill />
 			<Sheep />
+			<Pasture />
 			<g className="dromos-scene-village">
 				<rect x="318" y="164" width="22" height="14" />
 				<rect x="344" y="160" width="26" height="18" />

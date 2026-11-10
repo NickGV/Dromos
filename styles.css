@@ -347,6 +347,12 @@
 	   sandals. */
 	--dromos-scene-mantle: #7d5541;
 	--dromos-scene-satchel: #5c4130;
+	/* The pasture (home-header S7, S8): the shepherd's brown robe and pale head cloth, the lion's
+	   tawny body and darker mane, all under the moon. */
+	--dromos-scene-coat: #6e5a45;
+	--dromos-scene-cloth: #b3a98f;
+	--dromos-scene-lion: #a2865a;
+	--dromos-scene-mane: #6b4a2f;
 	/* How far the time of day lowers the sun (S17); the dark theme's moon keeps its place. */
 	--dromos-sun-drop: 0px;
 }
@@ -382,6 +388,10 @@
 	--dromos-scene-firefly: #f2d675;
 	--dromos-scene-mantle: #a65d3b;
 	--dromos-scene-satchel: #7a4f30;
+	--dromos-scene-coat: #96714c;
+	--dromos-scene-cloth: #faf5ea;
+	--dromos-scene-lion: #d8a95b;
+	--dromos-scene-mane: #9a5b2d;
 }
 
 /* The time of day (game-ui S17): the scene's data-period sets only token values. By day the
@@ -703,6 +713,53 @@
 @keyframes dromos-graze {
 	0%, 48%, 92%, 100% { transform: rotate(0deg); }
 	56%, 84% { transform: rotate(70deg); }
+}
+
+/* The pasture (home-header S7, S8): the shepherd and the lion in the far life's line, finer at
+   their scale. The shepherd leans on his crook and now and then looks back at the sheep; the lion
+   breathes, flicks the tip of its tail and every so often lifts its head and settles it. Each
+   moves about its own foot, by a few degrees, on loops of different lengths. */
+.dromos-root .dromos-scene-shepherd,
+.dromos-root .dromos-scene-lion { stroke: var(--dromos-scene-line); stroke-width: 0.7; stroke-linejoin: round; stroke-linecap: round; }
+.dromos-root .dromos-scene-pasture .dromos-scene-fold { stroke-width: 0.55; }
+.dromos-root .dromos-scene-coat { fill: var(--dromos-scene-coat); }
+.dromos-root .dromos-scene-cloth { fill: var(--dromos-scene-cloth); }
+.dromos-root .dromos-scene-crook { fill: none; stroke-width: 1; }
+.dromos-root .dromos-scene-pelt { fill: var(--dromos-scene-lion); }
+.dromos-root .dromos-scene-mane,
+.dromos-root .dromos-scene-tail-tuft { fill: var(--dromos-scene-mane); }
+.dromos-root .dromos-scene-tail { fill: none; stroke-width: 0.9; }
+.dromos-root .dromos-scene-pasture .dromos-scene-sheep-head.is-grazing { animation-delay: -10s; }
+.dromos-root .dromos-scene-shepherd-lean { transform-box: fill-box; transform-origin: 40% 100%; animation: dromos-rest 9s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-shepherd-head { transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-look 17s ease-in-out -2s infinite; }
+.dromos-root .dromos-scene-lion-breath { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-lion-breath 7.5s ease-in-out infinite; }
+.dromos-root .dromos-scene-lion-head { transform-box: fill-box; transform-origin: 90% 85%; animation: dromos-lift 23s ease-in-out -6s infinite; }
+.dromos-root .dromos-scene-tail-tip { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-flick 11s ease-in-out -4s infinite; }
+
+@keyframes dromos-rest {
+	from { transform: rotate(-1deg); }
+	to { transform: rotate(1.5deg); }
+}
+
+@keyframes dromos-look {
+	0%, 58%, 86%, 100% { transform: scaleX(1); }
+	62%, 82% { transform: scaleX(-1); }
+}
+
+@keyframes dromos-lion-breath {
+	0%, 100% { transform: scaleY(1); }
+	50% { transform: scaleY(1.04); }
+}
+
+@keyframes dromos-lift {
+	0%, 60%, 88%, 100% { transform: rotate(0deg); }
+	66%, 80% { transform: rotate(7deg) translateY(-0.5px); }
+}
+
+@keyframes dromos-flick {
+	0%, 82%, 96%, 100% { transform: rotate(0deg); }
+	86% { transform: rotate(-24deg); }
+	90% { transform: rotate(10deg); }
 }
 
 /* Smoke from two chimneys: puffs that rise, grow and fade, a third of the way apart. At rest, a
