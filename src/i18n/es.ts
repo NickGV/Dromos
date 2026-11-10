@@ -376,6 +376,7 @@ export const es = {
 	'archive.card.finished.read': 'Leído el {date}',
 	'archive.card.finished.watch': 'Visto el {date}',
 	'archive.card.finished.listen': 'Escuchado el {date}',
+	'archive.card.video': 'Video',
 	'archive.card.why': 'Para qué me sirve',
 	'archive.card.takeaway': 'Lo que me dejó',
 	'archive.card.takeaway.written': 'Escrito',

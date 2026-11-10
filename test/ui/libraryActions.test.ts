@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CampaignSnapshot, LibraryState } from '../../src/application';
 import type { ReflectionText } from '../../src/ports';
-import { reflectionLoader, runBookAction, runHabitSend } from '../../src/ui/containers/libraryActions';
+import { closeForWebViewer, reflectionLoader, runBookAction, runHabitSend } from '../../src/ui/containers/libraryActions';
 import { aBook } from '../fakes/books';
 
 const after: LibraryState = { kind: 'loaded', books: [aBook({ status: 'active' })], resources: [] };
@@ -170,5 +170,32 @@ describe('runHabitSend: "Send to Habitica" beside the desk (ADR-017, S2)', () =>
 		const snapshot = await runHabitSend(() => Promise.reject(new Error('offline')), 'Archeion.md', 'Leer', { reload: () => Promise.resolve(reloaded) });
 
 		expect(snapshot).toBe(reloaded);
+	});
+});
+
+describe('closeForWebViewer (M8 S9)', () => {
+	it('closes the card when the Web viewer will open the link, so it opens as a tab', () => {
+		let closed = 0;
+		closeForWebViewer(() => true, () => (closed += 1))();
+
+		expect(closed).toBe(1);
+	});
+
+	it('leaves the card open when the browser opens the link, or nobody can tell', () => {
+		let closed = 0;
+		closeForWebViewer(() => false, () => (closed += 1))();
+		closeForWebViewer(undefined, () => (closed += 1))();
+
+		expect(closed).toBe(0);
+	});
+
+	it('asks at the click, not when the card is drawn', () => {
+		let takes = false;
+		let closed = 0;
+		const follow = closeForWebViewer(() => takes, () => (closed += 1));
+		takes = true;
+		follow();
+
+		expect(closed).toBe(1);
 	});
 });

@@ -4,6 +4,7 @@ import type { MessageKey, Translator } from '../../i18n';
 import { resourceKindLabel, resourceSource, resourceStateLabel } from './archiveView';
 import { longDate } from './dates';
 import type { LinkOutcomeView } from './linkOutcomeView';
+import { youtubeEmbed, youtubeVideoId } from './youtubeVideo';
 
 /** The resource card (M8 S6): one resource unrolled in a modal, the same frame as the book card. */
 export interface ResourceCardView {
@@ -17,6 +18,11 @@ export interface ResourceCardView {
 	readonly source: string | null;
 	/** "Guardado el 9 de noviembre · Leído el 10 de noviembre". */
 	readonly dates: string;
+	/**
+	 * The video played inside the card when the link is a YouTube video (M8 S8): the Markdown Obsidian
+	 * embeds, and the box's accessible name; `null` for any other link or none.
+	 */
+	readonly video: { readonly label: string; readonly markdown: string } | null;
 	/** "Para qué me sirve" with the note's `why`; `null` without one. */
 	readonly why: { readonly heading: string; readonly text: string } | null;
 	/**
@@ -52,8 +58,9 @@ const FINISHED_LABELS: Readonly<Record<ResourceVerb, MessageKey>> = {
 };
 
 /**
- * The card of `resource` (M8 S6): its kind, state, source and dates, why it was saved, what it
- * left (the text of `takeaway` once read), the seal, and the buttons. As in the book card, the
+ * The card of `resource` (M8 S6): its kind, state, source and dates, its video when the link is a
+ * YouTube video (S8), why it was saved, what it left (the text of `takeaway` once read), the
+ * seal, and the buttons. As in the book card, the
  * text shows only where the cache counts the section as written (Q031): while it is on its way, or
  * could not be read (`null`), or came back empty, the card says "Escrito"; a section the cache
  * does not count says "Sin escribir todavía". "Marcar como leído" shows only while the resource
@@ -63,6 +70,7 @@ export function resourceCardView(resource: Resource, today: string, t: Translato
 	const state = resourceState(resource);
 	const verb = resourceVerb(resource.kind);
 	const dates = [t('archive.card.saved', { date: longDate(resource.saved, today, t) })];
+	const videoId = resource.url === null ? null : youtubeVideoId(resource.url);
 	if (resource.finished !== null) dates.push(t(FINISHED_LABELS[verb], { date: longDate(resource.finished, today, t) }));
 	return {
 		path: resource.path,
@@ -73,6 +81,7 @@ export function resourceCardView(resource: Resource, today: string, t: Translato
 		stateLabel: resourceStateLabel(resource, t),
 		source: resourceSource(resource),
 		dates: dates.join(' · '),
+		video: videoId === null ? null : { label: t('archive.card.video'), markdown: youtubeEmbed(videoId) },
 		why: resource.why === null ? null : { heading: t('archive.card.why'), text: resource.why },
 		takeaway: {
 			heading: t('archive.card.takeaway'),

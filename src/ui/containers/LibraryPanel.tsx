@@ -15,7 +15,7 @@ import { bookCardView } from '../presenters/bookCardView';
 import type { DayPeriod } from '../presenters/dayPeriod';
 import { libraryHabitsView, libraryRoomView, libraryShelfView } from '../presenters/libraryView';
 import { resourceCardView } from '../presenters/resourceCardView';
-import { reflectionLoader, runBookAction, runHabitSend, type BookAction, type HabitSend } from './libraryActions';
+import { closeForWebViewer, reflectionLoader, runBookAction, runHabitSend, type BookAction, type HabitSend } from './libraryActions';
 
 /** A card open over the workspace (an Obsidian `Modal`, built in `src/adapters`). */
 export interface CardModal {
@@ -67,6 +67,8 @@ export interface LibraryDeps {
 	readonly readTakeaway: Pick<ReadTakeaway, 'execute'>;
 	/** "Marcar como leído" (visto, escuchado) on a resource (M8 S6); absent, its card shows no such button. */
 	readonly markResourceFinished?: BookAction;
+	/** Whether Obsidian's Web viewer opens external links in a tab (M8 S9); absent, the browser is assumed. */
+	readonly linksOpenInObsidian?: () => boolean;
 	/** The habits beside the desk (ADR-017). */
 	readonly habits: LibraryHabitsDeps;
 	readonly clock: Clock;
@@ -244,6 +246,7 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 						onOpenNote={() => openNote(resource.path)}
 						renderMarkdown={deps.renderMarkdown}
 						onFollowLink={() => modal.current?.close()}
+						onOpenLink={closeForWebViewer(deps.linksOpenInObsidian, () => modal.current?.close())}
 						focusNote={focusNote.current}
 					/>
 				),

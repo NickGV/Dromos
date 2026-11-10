@@ -10,7 +10,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, linksOpenInObsidian, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultResourceRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
 import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, MarkResourceFinished, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
@@ -157,6 +157,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				finishReading: async (path) => showNotice(readingOutcomeView(await finishReading.execute(path), createTranslator(settings.language)).message),
 				readTakeaway: new ReadTakeaway({ resources }),
 				markResourceFinished: async (path) => showNotice(resourceOutcomeView(await markResourceFinished.execute(path), createTranslator(settings.language)).message),
+				// With the Web viewer taking external links, a card's link closes the card so the page opens as a tab (M8 S9).
+				linksOpenInObsidian: () => linksOpenInObsidian(plugin.app),
 				habits: {
 					snapshot: () => campaignState.snapshot(),
 					sync: syncCampaigns,

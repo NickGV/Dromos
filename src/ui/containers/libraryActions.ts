@@ -70,3 +70,16 @@ export function reflectionLoader<T = ReflectionText>(read: { execute(path: strin
 		},
 	};
 }
+
+/**
+ * What the click of a card's "Abrir el enlace" does before the page opens (M8 S9). With the card
+ * open, Obsidian's Web viewer would open the page in a pop-out window, so the card closes first and
+ * the page opens as a tab. When the browser opens it, or `linksOpenInObsidian` is not wired, the
+ * card stays open for "Marcar como leído". The question is asked at the click: the setting may
+ * change while the card is open.
+ */
+export function closeForWebViewer(linksOpenInObsidian: (() => boolean) | undefined, close: () => void): () => void {
+	return () => {
+		if (linksOpenInObsidian?.() === true) close();
+	};
+}

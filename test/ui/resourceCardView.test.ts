@@ -116,3 +116,24 @@ describe('resourceOutcomeView: the toast after "Marcar como leído" (M8 S6)', ()
 		expect(toast({ kind: 'already-finished' }, en).message).toBe('That resource was already marked.');
 	});
 });
+
+describe('resourceCardView: the video in the card (M8 S8)', () => {
+	it('plays a YouTube link inside the card, as Obsidian embeds it in a note', () => {
+		const talk = modules({ kind: 'video', url: 'https://youtu.be/dQw4w9WgXcQ?si=AbCdEf' });
+
+		expect(resourceCardView(talk, TODAY, es, true).video).toEqual({ label: 'Video', markdown: '![](https://www.youtube.com/watch?v=dQw4w9WgXcQ)' });
+		expect(resourceCardView(talk, TODAY, en, true).video?.label).toBe('Video');
+	});
+
+	it('keeps the link to open, whatever the video', () => {
+		const talk = modules({ kind: 'video', url: 'https://youtu.be/dQw4w9WgXcQ?si=AbCdEf' });
+
+		expect(resourceCardView(talk, TODAY, es, true).actions.openLink).toEqual({ href: 'https://youtu.be/dQw4w9WgXcQ?si=AbCdEf', label: 'Abrir el enlace' });
+	});
+
+	it('shows no video for another link, a YouTube playlist, or no link', () => {
+		expect(resourceCardView(modules(), TODAY, es, true).video).toBeNull();
+		expect(resourceCardView(modules({ kind: 'course', url: 'https://www.youtube.com/playlist?list=PL590L5WQmH8f' }), TODAY, es, true).video).toBeNull();
+		expect(resourceCardView(modules({ url: null }), TODAY, es, true).video).toBeNull();
+	});
+});

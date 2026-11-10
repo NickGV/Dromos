@@ -375,6 +375,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'archive.card.finished.read': 'Read on {date}',
 	'archive.card.finished.watch': 'Watched on {date}',
 	'archive.card.finished.listen': 'Listened to on {date}',
+	'archive.card.video': 'Video',
 	'archive.card.why': 'What it is useful for',
 	'archive.card.takeaway': 'What it left me',
 	'archive.card.takeaway.written': 'Written',

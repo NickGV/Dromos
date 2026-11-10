@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { Resource } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import { MarkdownBlock, type MarkdownRender } from '../../../src/ui/atoms/MarkdownBlock';
+import { ResourceLink } from '../../../src/ui/atoms/ResourceLink';
 import { ResourceCard } from '../../../src/ui/organisms/ResourceCard';
 import { resourceCardView } from '../../../src/ui/presenters/resourceCardView';
 import { aResource } from '../../fakes/resources';
@@ -138,6 +139,43 @@ describe('ResourceCard: the card in the modal (M8 S6)', () => {
 		expect(closed).toBe(0);
 		click?.({ target: target(true) });
 		expect(closed).toBe(1);
+	});
+
+	it('plays a YouTube video between the dates and what it was saved for, drawn by the note renderer (M8 S8)', () => {
+		const talk = modules({ kind: 'video', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' });
+		const render: MarkdownRender = () => noop;
+		const tree = ResourceCard({ view: resourceCardView(talk, TODAY, es, true), busy: false, onMark: noop, onOpenNote: noop, renderMarkdown: render });
+		const blocks = componentsOf(tree, MarkdownBlock).map((element) => element.props);
+		const html = card(talk);
+
+		expect(blocks.map((props) => [props.markdown, props.sourcePath, props.render, props.className])).toEqual([['![](https://www.youtube.com/watch?v=dQw4w9WgXcQ)', PATH, render, 'dromos-resource-card-video-frame']]);
+		expect(html).toMatch(/<p class="dromos-book-card-dates">[^<]*<\/p><section class="dromos-resource-card-video" aria-label="Video"><div class="dromos-resource-card-video-frame markdown-rendered"><\/div><\/section><div class="dromos-resource-card-parts">/);
+	});
+
+	it('draws no video box for a link that is not a YouTube video (M8 S8)', () => {
+		const tree = ResourceCard({ view: resourceCardView(modules(), TODAY, es, true), busy: false, onMark: noop, onOpenNote: noop, renderMarkdown: renderNothing });
+
+		expect(componentsOf(tree, MarkdownBlock)).toEqual([]);
+		expect(card(modules())).not.toContain('dromos-resource-card-video');
+	});
+
+	it('tells the card when its link is followed, and leaves the link to open the page (M8 S9)', () => {
+		let followed = 0;
+		const tree = ResourceCard({ view: resourceCardView(modules(), TODAY, es, true), busy: false, onMark: noop, onOpenNote: noop, renderMarkdown: renderNothing, onOpenLink: () => (followed += 1) });
+		const links = componentsOf(tree, ResourceLink);
+
+		expect(links.map((element) => element.props.href)).toEqual(['https://martinfowler.com/articles/modules.html']);
+		(links[0]?.props.onClick as (() => void) | undefined)?.();
+		expect(followed).toBe(1);
+	});
+
+	it('hands the click of the link to whoever asked, and keeps it a link to a new window (M8 S9)', () => {
+		const follow = () => undefined;
+		const [withCallback] = elementsOf(ResourceLink({ href: 'https://youtu.be/dQw4w9WgXcQ', label: 'Abrir el enlace', onClick: follow }));
+		const [plain] = elementsOf(ResourceLink({ href: 'https://youtu.be/dQw4w9WgXcQ', label: 'Abrir', small: true }));
+
+		expect(withCallback?.props).toMatchObject({ href: 'https://youtu.be/dQw4w9WgXcQ', target: '_blank', rel: 'noopener noreferrer', onClick: follow });
+		expect(plain?.props.onClick).toBeUndefined();
 	});
 
 	it('leaves out the link and why when the note has none, and adds no close button of its own', () => {

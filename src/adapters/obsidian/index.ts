@@ -11,3 +11,4 @@ export * from './onStartup';
 export * from './openSettings';
 export * from './renderIcon';
 export * from './showNotice';
+export * from './webViewer';

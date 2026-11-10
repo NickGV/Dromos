@@ -3321,6 +3321,10 @@
 .dromos-root .dromos-resource-card-kind .dromos-resource-art { width: 30px; height: 30px; }
 .dromos-root .dromos-resource-card-parts { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
 .dromos-root .dromos-resource-card-why { margin: 4px 0 0; color: var(--dromos-ink); font-size: 15px; line-height: 1.55; overflow-wrap: anywhere; }
+/* The video of a YouTube link (M8 S8): Obsidian's own embed, as wide as the sheet, at 16:9. */
+.dromos-root .dromos-resource-card-video { margin: 12px 0 4px; }
+.dromos-root .dromos-resource-card-video-frame p { margin: 0; }
+.dromos-root .dromos-resource-card-video iframe { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; border-radius: 6px; background: #000; }
 .dromos-root .dromos-book-card-state.is-takeaway-missing,
 .dromos-root .dromos-resource-card.is-takeaway-missing .dromos-book-seal-text { color: var(--dromos-clay-ink); }
 
