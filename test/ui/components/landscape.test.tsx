@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CAMPFIRE } from '../../../src/ui/atoms/Campfire';
 import { Landscape } from '../../../src/ui/atoms/Landscape';
 import { watchSight, type SightObserver } from '../../../src/ui/atoms/landscape/sight';
-import { BUTTERFLIES, FIREFLIES, FLOWERS, SHEEP, TUFTS, WINDMILL } from '../../../src/ui/atoms/landscape/spots';
+import { BUTTERFLIES, FIREFLIES, FLOWERS, LION, PASTURE_SHEEP, SHEEP, SHEPHERD, TUFTS, WINDMILL } from '../../../src/ui/atoms/landscape/spots';
 
 const css = readFileSync(new URL('../../../styles.css', import.meta.url), 'utf8');
 const drawing = (): string =>
@@ -49,14 +49,14 @@ describe('Landscape: more life in the scene (home-header S4)', () => {
 		expect(at('dromos-scene-smoke')).toBeGreaterThan(at('dromos-scene-village'));
 		expect(at('dromos-scene-flowers')).toBeGreaterThan(at('dromos-scene-road'));
 		expect(at('dromos-scene-fireflies')).toBeLessThan(at('dromos-scene-gate'));
-		expect(html.match(/class="dromos-scene-ewe/g)).toHaveLength(SHEEP.length);
+		expect(html.slice(at('dromos-scene-sheep'), at('dromos-scene-pasture')).match(/class="dromos-scene-ewe/g)).toHaveLength(SHEEP.length);
 		expect(html.indexOf('the-walker')).toBeGreaterThan(at('dromos-scene-fireflies'));
 	});
 
 	it('marks every part that moves as life, so one rule holds it still', () => {
 		const html = drawing();
 
-		for (const part of ['stars', 'flock', 'windmill', 'sheep', 'smoke', 'cypresses', 'tufts', 'butterflies', 'fireflies']) {
+		for (const part of ['stars', 'flock', 'windmill', 'sheep', 'pasture', 'smoke', 'cypresses', 'tufts', 'butterflies', 'fireflies']) {
 			expect(html).toContain(`class="dromos-scene-${part} dromos-scene-life"`);
 		}
 	});
@@ -70,6 +70,9 @@ describe('Landscape: more life in the scene (home-header S4)', () => {
 		const reach = [
 			...[WINDMILL].map((spot) => ({ spot, width: 15, height: 35 })),
 			...SHEEP.map((spot) => ({ spot, width: 7, height: 8 })),
+			...PASTURE_SHEEP.map((spot) => ({ spot, width: 8, height: 9 })),
+			{ spot: SHEPHERD, width: 11, height: 21 },
+			{ spot: LION, width: 15, height: 13 },
 			...FLOWERS.map((spot) => ({ spot, width: 2, height: 2 })),
 			...TUFTS.map((spot) => ({ spot, width: 7, height: 10 })),
 			...BUTTERFLIES.map((spot) => ({ spot, width: 5, height: 5 })),
@@ -94,10 +97,42 @@ describe('Landscape: more life in the scene (home-header S4)', () => {
 		const dark = rulesOf(css, '.dromos-root');
 		const light = rulesOf(css, '.theme-light .dromos-root');
 
-		for (const token of ['ridge', 'wool', 'flower', 'bloom', 'wing', 'firefly']) {
+		for (const token of ['ridge', 'wool', 'flower', 'bloom', 'wing', 'firefly', 'mantle', 'satchel', 'coat', 'cloth', 'lion', 'mane']) {
 			expect(dark, token).toMatch(new RegExp(`--dromos-scene-${token}: #[0-9a-f]{6};`));
 			expect(light, token).toMatch(new RegExp(`--dromos-scene-${token}: #[0-9a-f]{6};`));
 			expect(css, token).toContain(`var(--dromos-scene-${token})`);
+		}
+	});
+});
+
+// home-header S7, S8: "agregaras un leon en algun lado" … "un pastor con las ovejas".
+describe('Landscape: a shepherd among his sheep and a lion at peace beside them (home-header S7, S8)', () => {
+	it('draws the shepherd with his crook, the sheep and the lion lying beside them on the far hill, every part that moves as life', () => {
+		const html = drawing();
+		const at = (name: string): number => html.indexOf(`class="${name}`);
+
+		for (const part of ['dromos-scene-shepherd', 'dromos-scene-crook', 'dromos-scene-coat', 'dromos-scene-cloth', 'dromos-scene-lion', 'dromos-scene-pelt', 'dromos-scene-mane', 'dromos-scene-tail-tuft']) {
+			expect(at(part), part).toBeGreaterThan(at('dromos-scene-pasture dromos-scene-life'));
+		}
+		expect(at('dromos-scene-pasture')).toBeGreaterThan(at('dromos-scene-hill is-far'));
+		expect(at('dromos-scene-pasture')).toBeLessThan(at('dromos-scene-hill"'));
+		expect(html.match(/class="dromos-scene-ewe/g)).toHaveLength(SHEEP.length + PASTURE_SHEEP.length);
+	});
+
+	it('stands them where every pane shows them: right of the plaque on an 840 px pane, left of the walker and the signpost of phones, above the campfire', () => {
+		// How far each reaches from its foot: left, right and up.
+		const figures = [
+			{ name: 'the shepherd', spot: SHEPHERD, left: 5, right: 11, up: 21 },
+			{ name: 'the lion', spot: LION, left: 12, right: 15, up: 13 },
+			// A sheep's head reaches 8 units out on the side it faces, its wool 5 on the other.
+			...PASTURE_SHEEP.map((spot) => ({ name: `the sheep at ${spot.x}`, spot, left: spot.facing === 'left' ? 8 : 5, right: spot.facing === 'left' ? 5 : 8, up: 9 })),
+		];
+
+		for (const { name, spot, left, right, up } of figures) {
+			expect(spot.x - left, name).toBeGreaterThan(448);
+			expect(spot.x + right, name).toBeLessThan(520);
+			expect(spot.y, name).toBeLessThan(CAMPFIRE.y - 29);
+			expect(spot.y - up, name).toBeGreaterThan(166);
 		}
 	});
 });

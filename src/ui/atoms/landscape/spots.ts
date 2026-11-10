@@ -21,13 +21,38 @@ export interface SheepSpot extends Spot {
 	readonly facing: 'left' | 'right';
 	/** `up` looks around, `down` grazes, `grazing` lowers its head now and then. */
 	readonly head: 'up' | 'down' | 'grazing';
+	/** Lying down, its legs folded under it. */
+	readonly lying?: boolean;
 }
 
-/** Three sheep on the far hill, between the gate and the cypresses. */
+/** Three sheep on the far hill, between the gate and the cypresses, where wide panes show them. */
 export const SHEEP: readonly SheepSpot[] = [
 	{ x: 650, y: 184, facing: 'right', head: 'up' },
 	{ x: 664, y: 189, facing: 'right', head: 'grazing' },
 	{ x: 679, y: 182, facing: 'left', head: 'down' },
+];
+
+/*
+ * The pasture (home-header S7, S8): the shepherd among his sheep and the lion lying beside them, on
+ * the far hill between the windmill and the walker's start. It is the one stretch of the far hill
+ * every pane shows: right of the character plaque's edge on an 840 px pane (447), left of the
+ * walker's way (520) and of the signpost on phones (640), above the campfire (202), their feet
+ * above the darker patch of the middle hill (about 196 there).
+ */
+
+/** The shepherd, leaning on his crook among the sheep. */
+export const SHEPHERD: Spot = { x: 473, y: 193 };
+
+/** The lion lying at peace beside the flock, facing it. */
+export const LION: Spot = { x: 504, y: 195 };
+
+/**
+ * The shepherd's sheep: one grazing behind him, and a lamb lying with its back to the lion's paws,
+ * looking at the shepherd: a picture of peace, never of a hunt.
+ */
+export const PASTURE_SHEEP: readonly SheepSpot[] = [
+	{ x: 462, y: 190, facing: 'right', head: 'grazing' },
+	{ x: 488.5, y: 195.5, facing: 'left', head: 'up', lying: true },
 ];
 
 export interface FlowerSpot extends Spot {
