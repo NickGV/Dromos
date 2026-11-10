@@ -8,8 +8,9 @@ import { CampaignRoad } from '../../../src/ui/molecules/CampaignRoad';
 import { campaignHomeCardView } from '../../../src/ui/presenters/campaignHomeView';
 import { campaignCardView } from '../../../src/ui/presenters/campaignView';
 import { campaign, phase, task } from '../../domain/campaign/campaignFixtures';
-import { clickOf } from './elements';
+import { elementsOf } from './elements';
 import { homeDeps, noop } from './homeDeps';
+import { InMemoryDeviceStore } from '../../fakes/InMemoryDeviceStore';
 
 const en = createTranslator('en');
 const ctx = { today: '2026-10-31', defaultStaleAfterDays: 14, issues: [], canSend: true, habiticaKnown: true, t: en };
@@ -59,34 +60,64 @@ describe('CampaignRoad (game-ui S7)', () => {
 	});
 });
 
-describe('CampaignHomeCard (game-ui S7)', () => {
+describe('CampaignHomeCard (game-ui S7, folded on home by home-fit S1)', () => {
+	const card = (view = moving, open = false, handlers: { onToggle?: (path: string) => void; onOpen?: (path: string) => void } = {}) =>
+		CampaignHomeCard({ view, open, cardId: 'dromos-campaigns-1-0', onToggle: handlers.onToggle ?? noop, onOpen: handlers.onOpen ?? noop });
+	const html = (view = moving, open = false) => renderToStaticMarkup(card(view, open));
+	const buttons = (node: ReturnType<typeof card>) => elementsOf(node).filter((element) => element.type === 'button');
+
 	it('shows the count while the campaign moves, and the clay seal instead while it is stalled', () => {
-		const running = renderToStaticMarkup(<CampaignHomeCard view={moving} onOpen={noop} />);
-		const stuck = renderToStaticMarkup(<CampaignHomeCard view={stalled} onOpen={noop} />);
+		const running = html();
+		const stuck = html(stalled);
 
 		expect(running).toContain('<span class="dromos-campaign-card-count">3 of 6 tasks</span>');
 		expect(running).not.toContain('dromos-seal');
-		expect(stuck).toContain('<span class="dromos-seal">stalled</span>');
+		expect(stuck).toContain('<span class="dromos-seal is-small">stalled</span>');
 		expect(stuck).not.toContain('dromos-campaign-card-count');
 		expect(stuck).toContain('<p class="dromos-campaign-card-note">No progress for 26 days</p>');
 	});
 
 	it('gives the next step in italics after its label', () => {
-		expect(renderToStaticMarkup(<CampaignHomeCard view={moving} onOpen={noop} />)).toContain('<span class="dromos-campaign-card-next-label">Next step · </span><em>Timer</em>');
+		expect(html()).toContain('<span class="dromos-campaign-card-next-label">Next step · </span><em>Timer</em>');
 	});
 
-	it('is one button, named to open the campaign, inside the heading of the card', () => {
-		const html = renderToStaticMarkup(<CampaignHomeCard view={moving} onOpen={noop} />);
+	it('makes its header row the toggle: one button inside the heading, folded, controlling the road', () => {
+		const folded = html();
 
-		expect(html.match(/<button/g)).toHaveLength(1);
-		expect(html).toMatch(/<h3 class="dromos-campaign-card-title"><button type="button" class="dromos-campaign-card-open" aria-label="Open campaign Kairos">Kairos<\/button><\/h3>/);
+		expect(folded).toMatch(
+			/<h3 class="dromos-campaign-card-title"><button type="button" class="dromos-campaign-card-toggle" aria-expanded="false" aria-controls="dromos-campaigns-1-0-road"><span class="dromos-campaign-card-name">Kairos<\/span><span class="dromos-campaign-card-count">3 of 6 tasks<\/span><svg class="dromos-campaign-card-chevron"[^>]*aria-hidden="true"/,
+		);
+		expect(folded).toMatch(/^<article class="dromos-panel dromos-campaign-card">/);
 	});
 
-	it('opens its own campaign', () => {
+	it('folded, shows one thin bar of the whole campaign and the next step, and hides the road', () => {
+		const folded = html();
+
+		expect(folded).toContain(
+			'<div class="dromos-campaign-card-summary"><p class="dromos-campaign-card-next"><span class="dromos-campaign-card-next-label">Next step · </span><em>Timer</em></p><span class="dromos-campaign-card-bar" role="progressbar" aria-label="Progress of Kairos" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="3 of 6 tasks"><span class="dromos-campaign-card-bar-fill" style="width:50%"></span></span></div>',
+		);
+		expect(folded).toContain('<div class="dromos-campaign-card-body" id="dromos-campaigns-1-0-road" hidden="">');
+	});
+
+	it('open, shows its road as before and a way to the campaigns screen, and drops the thin bar', () => {
+		const open = html(moving, true);
+
+		expect(open).toMatch(/^<article class="dromos-panel dromos-campaign-card is-open">/);
+		expect(open).toContain('aria-expanded="true" aria-controls="dromos-campaigns-1-0-road"');
+		expect(open).toContain('<div class="dromos-campaign-card-body" id="dromos-campaigns-1-0-road"><div class="dromos-trail is-compact" role="progressbar"');
+		expect(open).not.toContain('dromos-campaign-card-summary');
+		expect(open).toContain('<button type="button" class="dromos-btn is-small dromos-campaign-card-open" aria-label="Open campaign Kairos">Open campaign</button>');
+	});
+
+	it('toggles its own campaign from the header, and opens it on the campaigns screen from the open card', () => {
+		const toggledPaths: string[] = [];
 		const opened: string[] = [];
+		const [toggle, open] = buttons(card(moving, true, { onToggle: (path) => toggledPaths.push(path), onOpen: (path) => opened.push(path) }));
 
-		clickOf(CampaignHomeCard({ view: moving, onOpen: (path) => opened.push(path) }))();
+		(toggle?.props.onClick as () => void)();
+		(open?.props.onClick as () => void)();
 
+		expect(toggledPaths).toEqual(['P/Kairos/README.md']);
 		expect(opened).toEqual(['P/Kairos/README.md']);
 	});
 
@@ -94,7 +125,7 @@ describe('CampaignHomeCard (game-ui S7)', () => {
 		const issues = [{ campaignPath: kairos.path, taskTitle: 'Timer', kind: 'habitica-task-missing' as const }];
 		const view = campaignHomeCardView(campaignCardView(kairos, { ...ctx, issues }), en);
 
-		expect(renderToStaticMarkup(<CampaignHomeCard view={view} onOpen={noop} />)).toContain('<p class="dromos-campaign-card-problem">1 task or habit not found in Habitica</p>');
+		expect(html(view, true)).toContain('<p class="dromos-campaign-card-problem">1 task or habit not found in Habitica</p>');
 	});
 });
 
@@ -121,6 +152,19 @@ describe('HomeScreen shows compact campaign cards on home, and the campaign scre
 		expect(html).toContain('<div class="dromos-campaign-screen dromos-campaigns">');
 		expect(html).toContain('dromos-task-group');
 		expect(html).not.toContain('dromos-campaign-card');
+	});
+
+	it('folds every card on home at first (home-fit S1)', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={deps()} />);
+
+		expect(html).toMatch(/<button type="button" class="dromos-campaign-card-toggle" aria-expanded="false" aria-controls="dromos-campaigns-\d+-0-road">/);
+	});
+
+	it('opens the cards this device kept open (home-fit S1)', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={{ ...deps(), deviceStore: new InMemoryDeviceStore({ 'home-campaigns-open': ['P/Kairos/README.md'] }) }} />);
+
+		expect(html).toMatch(/<button type="button" class="dromos-campaign-card-toggle" aria-expanded="true"/);
+		expect(html).toContain('>Open campaign</button>');
 	});
 
 	it('keeps the empty state on home before the first sync', () => {

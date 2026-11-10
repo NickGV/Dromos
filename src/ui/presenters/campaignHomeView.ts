@@ -69,13 +69,19 @@ function stretch(id: string, name: string, rows: readonly TaskRowView[], nextInd
 	};
 }
 
-/** One campaign as the home screen shows it (game-ui S7): the whole card opens the campaigns screen on it. */
+/**
+ * One campaign as the home screen shows it (game-ui S7). Folded (home-fit S1) it is one row with
+ * its name and seal or count, a thin bar of the whole campaign and the next step; open, its road
+ * and a button to the campaigns screen.
+ */
 export interface CampaignHomeCardView {
 	/** The campaign the card opens. */
 	readonly path: string;
 	readonly title: string;
-	/** The card button's name: "Open campaign Kairos". */
+	/** The name of the open card's button to the campaigns screen: "Open campaign Kairos". */
 	readonly openLabel: string;
+	/** That button's text: "Open campaign". */
+	readonly openText: string;
 	/** "stalled" while the campaign is stale, else `null`. */
 	readonly seal: string | null;
 	/** "3 of 7 tasks" (phases for a campaign without tasks); `null` while the seal shows. */
@@ -83,6 +89,8 @@ export interface CampaignHomeCardView {
 	readonly road: RoadView;
 	/** What screen readers hear for the road: one progress bar. */
 	readonly progress: { readonly label: string; readonly percent: number; readonly valueText: string };
+	/** The thin bar of the folded card: tasks done over tasks (phases without tasks), 0..100, and "3 of 7 tasks". */
+	readonly overall: { readonly percent: number; readonly text: string };
 	readonly nextLabel: string;
 	readonly next: string;
 	/** "No progress for 9 days" while stale. */
@@ -92,14 +100,18 @@ export interface CampaignHomeCardView {
 }
 
 export function campaignHomeCardView(card: CampaignCardView, t: Translator): CampaignHomeCardView {
+	const overall = overallProgress(card);
+	const countText = overallCountText(overall, t);
 	return {
 		path: card.path,
 		title: card.title,
 		openLabel: t('campaign.open', { title: card.title }),
+		openText: t('campaign.home.open'),
 		seal: card.stale ? t('campaign.seal') : null,
-		countText: card.stale ? null : countOf(card, t),
+		countText: card.stale ? null : countText,
 		road: roadView(card),
 		progress: { label: t('campaign.progress.aria', { title: card.title }), percent: card.progress.percent, valueText: card.chip },
+		overall: { percent: overall.total > 0 ? Math.round((overall.done / overall.total) * 100) : card.progress.percent, text: countText },
 		nextLabel: t('campaign.home.next'),
 		next: card.next ?? t('campaign.next.none'),
 		staleText: card.stale ? plural(t, 'campaign.home.stale', card.stale.days) : null,
@@ -124,8 +136,4 @@ export function overallProgress(card: CampaignCardView): OverallProgress {
 /** "3 of 7 tasks", or "1 of 3 phases" for a campaign without tasks. */
 export function overallCountText(progress: OverallProgress, t: Translator): string {
 	return t(progress.unit === 'phases' ? 'campaign.home.phases' : 'campaign.home.tasks', { done: progress.done, total: progress.total });
-}
-
-function countOf(card: CampaignCardView, t: Translator): string {
-	return overallCountText(overallProgress(card), t);
 }

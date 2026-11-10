@@ -118,3 +118,27 @@ describe('campaignHomeCardView: the compact card of the home screen (game-ui S7)
 		expect(campaignHomeCardView(campaignCardView(kairos, { ...ctx, issues }), es).problem).toBe('2 tareas o hábitos no encontrados en Habitica');
 	});
 });
+
+describe('campaignHomeCardView: the folded card (home-fit S1)', () => {
+	it('carries the overall progress the thin bar draws: tasks done over tasks, and its count in words', () => {
+		expect(campaignHomeCardView(card, en).overall).toEqual({ percent: 50, text: '3 of 6 tasks' });
+		expect(campaignHomeCardView(card, es).overall).toEqual({ percent: 50, text: '3 de 6 tareas' });
+	});
+
+	it('keeps the count in words for the bar of a stalled campaign, whose seal hides the count', () => {
+		const stalled = campaignCardView(kairos, { ...ctx, today: '2026-11-20' });
+
+		expect(campaignHomeCardView(stalled, en)).toMatchObject({ countText: null, overall: { percent: 50, text: '3 of 6 tasks' } });
+	});
+
+	it('measures a campaign without tasks by its phases', () => {
+		const research = campaignCardView(campaign({ kind: 'research', created: '2026-10-28', phases: [phase('read', 'completed'), phase('sum', 'active')] }), ctx);
+
+		expect(campaignHomeCardView(research, en).overall).toEqual({ percent: 50, text: '1 of 2 phases' });
+	});
+
+	it('names the way to the campaigns screen in the open card', () => {
+		expect(campaignHomeCardView(card, en).openText).toBe('Open campaign');
+		expect(campaignHomeCardView(card, es).openText).toBe('Abrir campaña');
+	});
+});

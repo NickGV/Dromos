@@ -222,6 +222,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'campaign.seal': 'stalled',
 	'campaign.home.tasks': '{done} of {total} tasks',
 	'campaign.home.phases': '{done} of {total} phases',
+	'campaign.home.open': 'Open campaign',
 	'campaign.home.next': 'Next step',
 	'campaign.home.stale.one': 'No progress for 1 day',
 	'campaign.home.stale.other': 'No progress for {count} days',

@@ -32,6 +32,7 @@ import { skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
 import { walkerView } from '../presenters/walkerView';
 import { openLetter, storedLetterMark } from './briefingLetter';
+import { storedOpenCampaigns, toggleCampaign } from './campaignFold';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
 import { LibraryPanel, type LibraryDeps } from './LibraryPanel';
@@ -149,6 +150,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [openMissions, setOpenMissions] = useState<ReadonlySet<string>>(() => new Set());
 	const [questFilter, setQuestFilter] = useState<QuestFilter>('all');
 	const [readMark, setReadMark] = useState<unknown>(() => storedLetterMark(deps.deviceStore));
+	// The campaign cards of home fold to one row; the ones left open are remembered on this device (home-fit S1).
+	const [openCampaigns, setOpenCampaigns] = useState<ReadonlySet<string>>(() => storedOpenCampaigns(deps.deviceStore));
 	const [letterId] = useState(() => `dromos-letter-${(viewCount += 1)}`);
 	const [lastSeen] = useState(() => storedLastSeen(deps.deviceStore));
 	const [visit, setVisit] = useState<Visit>({ kind: 'waiting' });
@@ -166,6 +169,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const phase = useCeremonyPhase(ceremony?.level ?? null);
 	const go = useCallback((next: DromosScreen): void => setPlace((current) => ({ ...current, screen: next })), []);
 	const selectCampaign = useCallback((path: string): void => setPlace((current) => ({ ...current, campaign: path })), []);
+	const toggleCampaignCard = (path: string): void => setOpenCampaigns(toggleCampaign(deps.deviceStore, openCampaigns, path));
 	// Closing the panel takes its button away: the focus goes back to the character's name, on the plaque.
 	const dismissEvents = useCallback((): void => {
 		deps.dismissGameEvents();
@@ -352,7 +356,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							deps={deps.campaigns}
 							syncKey={syncKey}
 							hidden={screen === 'skills' || screen === 'library'}
-							onOpenCampaign={home ? (path) => setPlace({ screen: 'campaigns', campaign: path }) : undefined}
+							home={home ? { open: openCampaigns, onToggle: toggleCampaignCard, onOpen: (path) => setPlace({ screen: 'campaigns', campaign: path }) } : undefined}
 							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
 						{home ? <ReadingDeskPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} /> : null}

@@ -223,6 +223,7 @@ export const es = {
 	'campaign.seal': 'detenida',
 	'campaign.home.tasks': '{done} de {total} tareas',
 	'campaign.home.phases': '{done} de {total} fases',
+	'campaign.home.open': 'Abrir campaña',
 	'campaign.home.next': 'Siguiente paso',
 	'campaign.home.stale.one': 'Sin avance hace 1 día',
 	'campaign.home.stale.other': 'Sin avance hace {count} días',
