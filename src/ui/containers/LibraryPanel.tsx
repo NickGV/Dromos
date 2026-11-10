@@ -277,6 +277,8 @@ export function LibraryPanel({ deps, character, language, period, syncKey }: Lib
 		const drawn = library.kind === 'loaded' ? cardContent(card, library) : null;
 		if (!drawn) {
 			// The note is gone (renamed, deleted) since the card opened, or the library could not be read again.
+			// The focus asked for this card is dropped with it, so the next card opens with no jump.
+			focusNote.current = false;
 			modal.current?.close();
 			return;
 		}
