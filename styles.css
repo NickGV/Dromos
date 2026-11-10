@@ -583,6 +583,10 @@
 	.dromos-root .dromos-scene-sun { transform: translateX(190px); }
 }
 
+/* Out of sight (the landscape's is-still, set from an IntersectionObserver) everything in the
+   drawing holds where it is. */
+.dromos-root .dromos-landscape.is-still * { animation-play-state: paused; }
+
 /* The signpost (S1): a post with its five planks (M7 S5), each a 44 px target, the current
    screen's burnt in (game-ui S14). They hang on both sides of the post, staggered as in the
    library design: the first, third and fifth to its left, the second and fourth to its right, so

@@ -1,5 +1,6 @@
-import { useId, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { FAR_SCALE, GATE, GATE_SHAPE } from '../presenters/walkerView';
+import { watchSight } from './landscape/sight';
 
 export interface LandscapeProps {
 	/** Drawn last, over the road and in front of the gate: the campfire (game-ui S17) and the walker (S16). */
@@ -12,14 +13,16 @@ export interface LandscapeProps {
  * with a gate at the path's far end (S16) and what it is given: the walker, and the campfire of a
  * complete day (S17). Every fill and stroke is a `--dromos-scene-*` token, so the dark theme turns
  * it into a night with stars, a moon, lit windows and a lamp, and the time of day repaints the
- * sky. It is a drawing: screen readers skip it.
+ * sky. It is a drawing: screen readers skip it. Its loops hold still while the scene is out of
+ * sight (the `is-still` class).
  */
 export function Landscape({ children = null }: LandscapeProps) {
 	// Unique per view: two open Dromos tabs must not share one gradient, since Chromium stops
 	// painting a gradient whose element sits in a hidden tab.
 	const sky = `dromos-sky-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+	const { ref, still } = useStillOutOfSight();
 	return (
-		<svg className="dromos-landscape" viewBox="0 0 960 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+		<svg ref={ref} className={still ? 'dromos-landscape is-still' : 'dromos-landscape'} viewBox="0 0 960 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
 			<defs>
 				<linearGradient id={sky} x1="0" y1="0" x2="0" y2="1">
 					<stop className="dromos-scene-sky-top" offset="0" />
@@ -100,6 +103,20 @@ export function Landscape({ children = null }: LandscapeProps) {
 			{children}
 		</svg>
 	);
+}
+
+/**
+ * The landscape's element and whether it is out of sight, so its loops hold still there. It starts
+ * in sight, and stays so where there is no IntersectionObserver.
+ */
+function useStillOutOfSight() {
+	const ref = useRef<SVGSVGElement>(null);
+	const [still, setStill] = useState(false);
+	useEffect(() => {
+		const svg = ref.current;
+		return svg ? watchSight(svg, (inSight) => setStill(!inSight)) : undefined;
+	}, []);
+	return { ref, still };
 }
 
 /** A post of the gate from `left` to `right`, standing on the ground at 0. */
