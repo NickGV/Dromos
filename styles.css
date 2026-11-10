@@ -334,6 +334,15 @@
 	--dromos-scene-flame: #f0c36a;
 	--dromos-scene-log: #6e5038;
 	--dromos-scene-stone: #6f675e;
+	/* The life of the landscape (home-header S4): the far ridge, the sky's haze over blue stone, so
+	   it is set again for each hour of the light theme; the sheep's wool; flowers in cream and
+	   ochre; a butterfly's clay wings (by day only) and the fireflies' light (at night only). */
+	--dromos-scene-ridge: #2d364f;
+	--dromos-scene-wool: #a59d89;
+	--dromos-scene-flower: #b3aa92;
+	--dromos-scene-bloom: #b58a3e;
+	--dromos-scene-wing: #c8673e;
+	--dromos-scene-firefly: #f2d675;
 	/* How far the time of day lowers the sun (S17); the dark theme's moon keeps its place. */
 	--dromos-sun-drop: 0px;
 }
@@ -361,6 +370,12 @@
 	--dromos-scene-flame: #f2c14e;
 	--dromos-scene-log: #7a4f30;
 	--dromos-scene-stone: #d6cdbf;
+	--dromos-scene-ridge: #b9ced2;
+	--dromos-scene-wool: #faf5ea;
+	--dromos-scene-flower: #faf5ea;
+	--dromos-scene-bloom: #d9a33a;
+	--dromos-scene-wing: #c8673e;
+	--dromos-scene-firefly: #f2d675;
 }
 
 /* The time of day (game-ui S17): the scene's data-period sets only token values. By day the
@@ -376,6 +391,7 @@
 	--dromos-scene-sky-bottom: #f4dcc6;
 	--dromos-scene-sun: #f8dfae;
 	--dromos-scene-cloud: #fcf1e6;
+	--dromos-scene-ridge: #b8c2cf;
 	--dromos-sun-drop: 30px;
 }
 
@@ -384,6 +400,7 @@
 	--dromos-scene-sky-bottom: #f1caa6;
 	--dromos-scene-sun: #f3c48c;
 	--dromos-scene-cloud: #f7e4d4;
+	--dromos-scene-ridge: #b3bccb;
 	--dromos-sun-drop: 30px;
 }
 
@@ -397,6 +414,7 @@
 	--dromos-scene-leaf: #33492c;
 	--dromos-scene-gate: #cbb993;
 	--dromos-scene-fire: #f08a50;
+	--dromos-scene-ridge: #2f4169;
 	--dromos-sun-drop: -14px;
 }
 
@@ -578,6 +596,170 @@
 	.dromos-root .dromos-scene-sun { transform: translateX(190px); }
 }
 
+/* The life of the landscape (home-header S4): more to look at in the same line style, every color
+   a token, and only slow loops of transform and opacity, 6 s or longer and staggered so nothing
+   beats in time. The walker's walk and the level-up stay the moments; nothing here is near them.
+   What moves is marked .dromos-scene-life: reduced motion (below) shows the pose it is drawn in,
+   and out of sight or offline it holds where it is. */
+.dromos-root .dromos-scene-ridge { fill: var(--dromos-scene-ridge); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-opacity: 0.35; transition: fill 2s ease-in-out; }
+
+/* From 1700 px the sky's figures have come down their full 100 units, into the ridge's band: the
+   ridge gives the sky back to them. */
+@container dromos-view (min-width: 1700px) {
+	.dromos-root .dromos-scene-ridge { display: none; }
+}
+
+/* Wind: the cypresses lean less than a degree from their foot, the grass a few degrees. */
+.dromos-root .dromos-scene-cypress { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-lean 10s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-cypress:nth-child(2n) { animation-duration: 12.5s; animation-delay: -5s; }
+.dromos-root .dromos-scene-cypress:nth-child(3) { animation-delay: -8s; }
+.dromos-root .dromos-scene-tuft { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-sway 7s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-tufts g:nth-child(2n) .dromos-scene-tuft { animation-duration: 8.5s; animation-delay: -3s; }
+.dromos-root .dromos-scene-tufts g:nth-child(3n) .dromos-scene-tuft { animation-delay: -5.5s; }
+
+@keyframes dromos-lean {
+	from { transform: rotate(-0.7deg); }
+	to { transform: rotate(0.7deg); }
+}
+
+@keyframes dromos-sway {
+	from { transform: rotate(-4deg); }
+	to { transform: rotate(3deg); }
+}
+
+/* The birds cross the sky in 150 s, rising and falling a little, with two slow wing beats now and
+   then; at rest they keep the place the design gave them. */
+.dromos-root .dromos-scene-flock { animation: dromos-cross 150s linear -69s infinite; }
+.dromos-root .dromos-scene-glide { animation: dromos-glide 11s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-birds { transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-wingbeat 7s ease-in-out infinite; }
+.dromos-root .dromos-scene-birds + .dromos-scene-birds { animation-duration: 8.5s; animation-delay: -3s; }
+
+@keyframes dromos-cross {
+	from { transform: translateX(-480px); }
+	to { transform: translateX(560px); }
+}
+
+@keyframes dromos-glide {
+	from { transform: translateY(0); }
+	to { transform: translateY(5px); }
+}
+
+@keyframes dromos-wingbeat {
+	0%, 70%, 100% { transform: scaleY(1); }
+	76% { transform: scaleY(0.4); }
+	82% { transform: scaleY(1); }
+	88% { transform: scaleY(0.45); }
+	94% { transform: scaleY(1); }
+}
+
+/* The windmill: tower and sails in the village's colors, the sails turning once in 24 s. */
+.dromos-root .dromos-scene-mill,
+.dromos-root .dromos-scene-chimneys { fill: var(--dromos-scene-house); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linejoin: round; }
+.dromos-root .dromos-scene-mill-door { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-scene-sail { fill: var(--dromos-scene-house); stroke: var(--dromos-scene-line); stroke-width: 0.9; stroke-linejoin: round; }
+.dromos-root .dromos-scene-hub { fill: var(--dromos-scene-line); }
+.dromos-root .dromos-scene-sails { transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-turn 24s linear infinite; }
+
+@keyframes dromos-turn {
+	to { transform: rotate(360deg); }
+}
+
+/* The sheep: one grazes, one looks around, one lowers its head now and then, about its neck. */
+.dromos-root .dromos-scene-wool { fill: var(--dromos-scene-wool); stroke: var(--dromos-scene-line); stroke-width: 0.9; }
+.dromos-root .dromos-scene-legs { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linecap: round; }
+.dromos-root .dromos-scene-sheep-head { fill: var(--dromos-scene-hair); stroke: var(--dromos-scene-hair); stroke-width: 1.1; stroke-linecap: round; transform-box: fill-box; transform-origin: 0% 100%; }
+.dromos-root .dromos-scene-sheep-head.is-down { transform: rotate(70deg); }
+.dromos-root .dromos-scene-sheep-head.is-grazing { animation: dromos-graze 14s ease-in-out -3s infinite; }
+
+@keyframes dromos-graze {
+	0%, 48%, 92%, 100% { transform: rotate(0deg); }
+	56%, 84% { transform: rotate(70deg); }
+}
+
+/* Smoke from two chimneys: puffs that rise, grow and fade, a third of the way apart. At rest, a
+   trail of three. */
+.dromos-root .dromos-scene-smoke circle { fill: var(--dromos-scene-cloud); stroke: var(--dromos-scene-line); stroke-width: 0.8; stroke-opacity: 0.6; transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-smoke 10s linear infinite; }
+.dromos-root .dromos-scene-smoke circle:nth-child(1) { transform: translate(0.8px, -4px) scale(0.8); opacity: 0.75; animation-delay: -1s; }
+.dromos-root .dromos-scene-smoke circle:nth-child(2) { transform: translate(2.4px, -10px) scale(1.15); opacity: 0.5; animation-delay: -4.4s; }
+.dromos-root .dromos-scene-smoke circle:nth-child(3) { transform: translate(4.4px, -16px) scale(1.5); opacity: 0.28; animation-delay: -7.8s; }
+.dromos-root .dromos-scene-smoke g + g circle { animation-duration: 12s; }
+
+@keyframes dromos-smoke {
+	0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+	15% { opacity: 0.75; }
+	100% { transform: translate(5px, -20px) scale(1.7); opacity: 0; }
+}
+
+/* Flowers on the near hill and the roadside; butterflies rest on them by day and slowly open and
+   close their wings; fireflies drift over the road at night, glowing and fading. The dark theme is
+   a night at every hour, so it has fireflies and no butterflies. */
+.dromos-root .dromos-scene-flower { fill: var(--dromos-scene-flower); }
+.dromos-root .dromos-scene-bloom { fill: var(--dromos-scene-bloom); }
+.dromos-root .dromos-scene-butterflies { display: none; }
+.theme-light .dromos-root .dromos-scene:not([data-period='night']) .dromos-scene-butterflies { display: inline; }
+.theme-light .dromos-root .dromos-scene:not([data-period='night']) .dromos-scene-fireflies { display: none; }
+.dromos-root .dromos-scene-wings { fill: var(--dromos-scene-wing); stroke: var(--dromos-scene-line); stroke-width: 0.6; stroke-linejoin: round; transform-box: fill-box; transform-origin: 50% 50%; animation: dromos-bask 8s ease-in-out infinite; }
+.dromos-root .dromos-scene-butterflies g + g .dromos-scene-wings { animation-duration: 10.5s; animation-delay: -4s; }
+.dromos-root .dromos-scene-butterfly-body { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-linecap: round; }
+.dromos-root .dromos-scene-firefly { animation: dromos-hover 13s ease-in-out infinite; }
+.dromos-root .dromos-scene-fireflies g:nth-child(2n) .dromos-scene-firefly { animation-duration: 16s; animation-delay: -6s; }
+.dromos-root .dromos-scene-fireflies g:nth-child(3n) .dromos-scene-firefly { animation-duration: 19s; animation-delay: -11s; animation-direction: reverse; }
+.dromos-root .dromos-scene-firefly-glow { fill: var(--dromos-scene-firefly); opacity: 0.22; animation: dromos-glimmer 6s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-firefly-spark { fill: var(--dromos-scene-firefly); animation: dromos-glimmer-spark 6s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-fireflies g:nth-child(2n) circle { animation-duration: 7.5s; animation-delay: -2.5s; }
+.dromos-root .dromos-scene-fireflies g:nth-child(3n) circle { animation-duration: 9s; animation-delay: -5s; }
+
+@keyframes dromos-bask {
+	0%, 40%, 100% { transform: scaleX(1); }
+	48% { transform: scaleX(0.2); }
+	56%, 72% { transform: scaleX(1); }
+	78% { transform: scaleX(0.35); }
+	84% { transform: scaleX(1); }
+}
+
+@keyframes dromos-hover {
+	0%, 100% { transform: translate(0, 0); }
+	25% { transform: translate(5px, -4px); }
+	50% { transform: translate(9px, 1px); }
+	75% { transform: translate(3px, 4px); }
+}
+
+@keyframes dromos-glimmer {
+	from { opacity: 0.06; }
+	to { opacity: 0.3; }
+}
+
+@keyframes dromos-glimmer-spark {
+	from { opacity: 0.35; }
+	to { opacity: 1; }
+}
+
+/* The stars twinkle, each on its own time. */
+.dromos-root .dromos-scene-stars circle { animation: dromos-twinkle 7s ease-in-out infinite alternate; }
+.dromos-root .dromos-scene-stars circle:nth-child(2n) { animation-duration: 9.5s; animation-delay: -4s; }
+.dromos-root .dromos-scene-stars circle:nth-child(3n) { animation-duration: 12s; animation-delay: -7s; }
+
+@keyframes dromos-twinkle {
+	from { opacity: 1; }
+	to { opacity: 0.35; }
+}
+
+/* The walker breathes while it stands, rising less than a unit from its feet; walking, it steps. */
+.dromos-root .dromos-walker-body { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-breathe 7s ease-in-out infinite; }
+
+@keyframes dromos-breathe {
+	0%, 100% { transform: scaleY(1); }
+	50% { transform: scaleY(1.012); }
+}
+
+/* Out of sight (the landscape's is-still, set from an IntersectionObserver) everything in the
+   drawing holds where it is. Offline the life, the clouds and the walker's breath hold still. */
+.dromos-root .dromos-landscape.is-still *,
+.dromos-root .dromos-scene.is-offline .dromos-scene-drift,
+.dromos-root .dromos-scene.is-offline .dromos-scene-life,
+.dromos-root .dromos-scene.is-offline .dromos-scene-life *,
+.dromos-root .dromos-scene.is-offline .dromos-walker:not(.is-walking) .dromos-walker-body { animation-play-state: paused; }
+
 /* The signpost (S1): a post with its five planks (M7 S5), each a 44 px target, the current
    screen's burnt in (game-ui S14). They hang on both sides of the post, staggered as in the
    library design: the first, third and fifth to its left, the second and fourth to its right, so
@@ -716,9 +898,12 @@
 	.dromos-root .dromos-scene-sun { transform: translateX(230px); }
 }
 
-/* Reduced motion: the clouds, the fire and the spinner hold still, the scene changes color and
-   period at once, and the campfire is lit from the start. */
+/* Reduced motion: the clouds, the fire, the life of the landscape and the spinner hold still in
+   their drawn pose, the walker does not breathe, the scene changes color and period at once, and
+   the campfire is lit from the start. */
 @media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-landscape .dromos-scene-life,
+	.dromos-root .dromos-landscape .dromos-scene-life *,
 	.dromos-root .dromos-scene-drift,
 	.dromos-root .dromos-walker-body,
 	.dromos-root .dromos-campfire,
@@ -727,6 +912,7 @@
 	.dromos-root .dromos-spinner { animation: none; }
 	.dromos-root .dromos-scene,
 	.dromos-root .dromos-landscape,
+	.dromos-root .dromos-scene-ridge,
 	.dromos-root .dromos-gate-plaque { transition: none; }
 }
 
