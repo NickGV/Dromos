@@ -147,12 +147,15 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [letterOpen, setLetterOpen] = useState(false);
 	// Today's quests fold to 6 rows on every open of the view (missions S3).
 	const [questsExpanded, setQuestsExpanded] = useState(false);
+	// The chronicle folds to its three newest deeds on every open of the view (home-fit S2).
+	const [chronicleExpanded, setChronicleExpanded] = useState(false);
 	const [openMissions, setOpenMissions] = useState<ReadonlySet<string>>(() => new Set());
 	const [questFilter, setQuestFilter] = useState<QuestFilter>('all');
 	const [readMark, setReadMark] = useState<unknown>(() => storedLetterMark(deps.deviceStore));
 	// The campaign cards of home fold to one row; the ones left open are remembered on this device (home-fit S1).
 	const [openCampaigns, setOpenCampaigns] = useState<ReadonlySet<string>>(() => storedOpenCampaigns(deps.deviceStore));
 	const [letterId] = useState(() => `dromos-letter-${(viewCount += 1)}`);
+	const [chronicleId] = useState(() => `dromos-chronicle-${(viewCount += 1)}`);
 	const [lastSeen] = useState(() => storedLastSeen(deps.deviceStore));
 	const [visit, setVisit] = useState<Visit>({ kind: 'waiting' });
 	const visitSettled = useRef(false);
@@ -279,7 +282,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const home = screen === 'home';
 	const offline = quests.status.kind === 'offline';
 	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t, { expanded: questsExpanded, openMissions, filter: questFilter });
-	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t) : null;
+	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t, { expanded: chronicleExpanded }) : null;
 	const banner = syncBannerView(quests, deps.clock.now(), t);
 	const language = deps.language();
 	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
@@ -359,8 +362,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							home={home ? { open: openCampaigns, onToggle: toggleCampaignCard, onOpen: (path) => setPlace({ screen: 'campaigns', campaign: path }) } : undefined}
 							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
-						{home ? <ReadingDeskPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} /> : null}
-						{chronicle ? <Chronicle view={chronicle} /> : null}
+						{home ? <ReadingDeskPanel deps={deps.library} language={language} /> : null}
+						{chronicle ? <Chronicle view={chronicle} listId={chronicleId} onToggleMore={() => setChronicleExpanded((current) => !current)} /> : null}
 					</div>
 					{screen === 'skills' ? (
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />

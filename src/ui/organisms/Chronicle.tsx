@@ -1,17 +1,27 @@
+import { ListToggle } from '../atoms/ListToggle';
 import type { ChronicleView } from '../presenters/chronicleView';
+
+export interface ChronicleProps {
+	readonly view: ChronicleView;
+	/** The id of the list of deeds, unique in the window: the "View more" toggle controls it. */
+	readonly listId: string;
+	/** Shows every deed, or folds back to the three newest (home-fit S2). */
+	readonly onToggleMore?: () => void;
+}
 
 /**
  * The chronicle of deeds on the home screen (game-ui S18): the section title, then the last deeds
  * of the ledger as journal lines, newest first, "Yesterday · Read 20 pages · Reader +10 XP". A deed
  * undone reads "Undone". Each part stays whole when a line wraps, and the dot before a part keeps
- * to the end of the line, never the start of the next.
+ * to the end of the line, never the start of the next. Folded to the three newest, "View more"
+ * under them shows the rest (home-fit S2).
  */
-export function Chronicle({ view }: { readonly view: ChronicleView }) {
+export function Chronicle({ view, listId, onToggleMore }: ChronicleProps) {
 	return (
 		<section className="dromos-section dromos-chronicle" aria-label={view.title}>
 			<h2 className="dromos-card-title">{view.title}</h2>
 			<div className="dromos-panel dromos-chronicle-panel">
-				<ol className="dromos-deeds">
+				<ol className="dromos-deeds" id={listId}>
 					{view.lines.map((line) => (
 						<li key={line.key} className={line.undone ? 'dromos-deed is-undone' : 'dromos-deed'}>
 							<span className="dromos-deed-day">{line.day}</span>
@@ -24,6 +34,7 @@ export function Chronicle({ view }: { readonly view: ChronicleView }) {
 						</li>
 					))}
 				</ol>
+				{view.more ? <ListToggle view={view.more} onToggle={onToggleMore} controls={listId} /> : null}
 			</div>
 		</section>
 	);

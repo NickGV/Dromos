@@ -2940,6 +2940,7 @@
    small caps, the task in ink and what it gained in ochre ink. An undone deed says "Undone" in
    clay ink, its task struck through and its XP muted. Parts stay whole when a line wraps. */
 .dromos-root .dromos-chronicle-panel { padding: 4px 18px; }
+.dromos-root .dromos-chronicle-panel > .dromos-list-toggle { margin: 4px 0 12px; }
 .dromos-root .dromos-deeds { margin: 0; padding: 0; list-style: none; }
 
 .dromos-root .dromos-deed {
@@ -3184,24 +3185,50 @@
 .dromos-root .dromos-library-lamp-flame { fill: var(--dromos-lamp-flame); stroke: var(--dromos-umber); stroke-width: 0.8; }
 .dromos-root .dromos-library-lamp-halo { fill: var(--dromos-lamp-halo); }
 /* The lamp is lit at night only, and the desk takes its warmth; by day it is put away. */
-.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-lamp { display: none; }
+.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-lamp { display: none; }
 .dromos-root .dromos-library-scene.is-desk > .is-drawing { background: radial-gradient(ellipse 260px 140px at 62px 22px, var(--dromos-lamp-warmth), transparent); }
-.theme-light .dromos-root :is(.dromos-library, .dromos-reading-desk):not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
+.theme-light .dromos-root .dromos-library:not([data-period='night']) .dromos-library-scene.is-desk > .is-drawing { background: none; }
 
-/* The small desk on home (home-header S1): the same wood, lamp and ink pot, drawn smaller, and
-   smaller scrolls, two to a row where they fit. */
+/* The small desk on home (home-header S1), one line per book (home-fit S2): a parchment panel, each
+   line a button with a small scroll, the title, the author and the days, split by a dashed rule as
+   the quests are. The library keeps the drawn desk. */
 .dromos-root .dromos-reading-desk .dromos-card-title { margin-bottom: 10px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini { box-shadow: inset 0 -7px 0 var(--dromos-wood-edge), 0 1px 0 var(--dromos-shadow); }
-.dromos-root .dromos-library-scene.is-desk.is-mini > .is-panels { padding: 34px 12px 18px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-lamp { top: 1px; left: 10px; width: 48px; height: 32px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-library-inkwell { top: 1px; right: 12px; width: 26px; height: 30px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini > .is-drawing { background: radial-gradient(ellipse 180px 100px at 44px 16px, var(--dromos-lamp-warmth), transparent); }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scrolls { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 10px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini button.dromos-desk-scroll { padding: 10px 12px 12px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll .dromos-scroll-art { max-width: 150px; margin-bottom: 6px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-title { font-size: 18px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini :is(.dromos-desk-scroll-author, .dromos-desk-scroll-since) { font-size: 13px; }
-.dromos-root .dromos-library-scene.is-desk.is-mini .dromos-desk-scroll-since { margin-top: 4px; }
+.dromos-root .dromos-reading-lines { margin: 0; padding: 4px 0; list-style: none; }
+.dromos-root .dromos-reading-lines > li + li { border-top: 1px dashed var(--dromos-rule-dashed); }
+.dromos-root button.dromos-reading-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px 12px;
+	box-sizing: border-box;
+	width: 100%;
+	height: auto;
+	min-height: 44px;
+	padding: 8px 16px;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--dromos-ink);
+	font: inherit;
+	text-align: left;
+	white-space: normal;
+	cursor: pointer;
+}
+.dromos-root button.dromos-reading-line:hover { background-color: var(--dromos-card-hover); }
+.dromos-root button.dromos-reading-line:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: -2px; box-shadow: none; }
+.dromos-root .dromos-reading-line .dromos-scroll-art { flex: none; width: 36px; height: 13px; }
+.dromos-root .dromos-reading-line-book { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; }
+.dromos-root .dromos-reading-line-title {
+	font-family: var(--dromos-font-display);
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-decoration: underline dotted var(--dromos-umber);
+	text-underline-offset: 3px;
+}
+.dromos-root .dromos-reading-line-author { color: var(--dromos-ink-muted); font-size: 13px; }
+.dromos-root .dromos-reading-line-since { flex: none; margin-left: auto; color: var(--dromos-ochre-ink); font-size: 13px; font-weight: 600; }
 
 .dromos-root .dromos-desk-scrolls {
 	display: grid;

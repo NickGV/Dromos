@@ -29,4 +29,11 @@ describe('limitRows (missions S3)', () => {
 
 		expect(limitRows(list, false, en, isDone).rows.map((row) => row.index)).toEqual([0, 4, 5, 6, 7, 8]);
 	});
+
+	it('folds to a shorter limit when the list asks for one, the toggle counting from it', () => {
+		const list = rows(5);
+
+		expect(limitRows(list, false, en, isDone, 3)).toEqual({ rows: list.slice(0, 3), more: { label: 'View more (2)', expanded: false } });
+		expect(limitRows(list.slice(0, 3), false, en, isDone, 3)).toEqual({ rows: list.slice(0, 3) });
+	});
 });

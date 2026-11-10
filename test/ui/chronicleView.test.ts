@@ -60,6 +60,31 @@ describe('chronicleView: each deed as a journal line (game-ui S18)', () => {
 	});
 });
 
+describe('chronicleView: the three newest, the rest under "View more" (home-fit S2)', () => {
+	const five = ['Read 20 pages', 'Morning run', 'Plan the week', 'Call the bank', 'Stretch'].map((task) => deed({ task, skills: [] }));
+	const tasks = (view: ReturnType<typeof chronicleView>) => view?.lines.map((line) => line.parts[0]) ?? [];
+
+	it('shows the three newest deeds under "View more (2)" at first', () => {
+		const view = chronicleView(five, TODAY, en);
+
+		expect(tasks(view)).toEqual(['Read 20 pages', 'Morning run', 'Plan the week']);
+		expect(view?.more).toEqual({ label: 'View more (2)', expanded: false });
+		expect(chronicleView(five, TODAY, es)?.more).toEqual({ label: 'Ver más (2)', expanded: false });
+	});
+
+	it('shows all five once expanded, under "View less"', () => {
+		const view = chronicleView(five, TODAY, en, { expanded: true });
+
+		expect(tasks(view)).toEqual(['Read 20 pages', 'Morning run', 'Plan the week', 'Call the bank', 'Stretch']);
+		expect(view?.more).toEqual({ label: 'View less', expanded: true });
+	});
+
+	it('gives three deeds or fewer no toggle', () => {
+		expect(chronicleView(five.slice(0, 3), TODAY, en)).not.toHaveProperty('more');
+		expect(tasks(chronicleView(five.slice(0, 3), TODAY, en))).toHaveLength(3);
+	});
+});
+
 describe('chronicleView: nothing to tell (game-ui S18)', () => {
 	it('shows nothing before the first game sync and while the ledger has no deed', () => {
 		expect(chronicleView(undefined, TODAY, en)).toBeNull();
