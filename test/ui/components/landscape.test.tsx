@@ -94,7 +94,7 @@ describe('Landscape: more life in the scene (home-header S4)', () => {
 		const dark = rulesOf(css, '.dromos-root');
 		const light = rulesOf(css, '.theme-light .dromos-root');
 
-		for (const token of ['ridge', 'wool', 'flower', 'bloom', 'wing', 'firefly']) {
+		for (const token of ['ridge', 'wool', 'flower', 'bloom', 'wing', 'firefly', 'mantle', 'satchel']) {
 			expect(dark, token).toMatch(new RegExp(`--dromos-scene-${token}: #[0-9a-f]{6};`));
 			expect(light, token).toMatch(new RegExp(`--dromos-scene-${token}: #[0-9a-f]{6};`));
 			expect(css, token).toContain(`var(--dromos-scene-${token})`);

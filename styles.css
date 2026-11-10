@@ -343,6 +343,10 @@
 	--dromos-scene-bloom: #b58a3e;
 	--dromos-scene-wing: #c8673e;
 	--dromos-scene-firefly: #f2d675;
+	/* The pilgrim runner (home-header S6): a sienna mantle, moonlit, and leather for its satchel and
+	   sandals. */
+	--dromos-scene-mantle: #7d5541;
+	--dromos-scene-satchel: #5c4130;
 	/* How far the time of day lowers the sun (S17); the dark theme's moon keeps its place. */
 	--dromos-sun-drop: 0px;
 }
@@ -376,6 +380,8 @@
 	--dromos-scene-bloom: #d9a33a;
 	--dromos-scene-wing: #c8673e;
 	--dromos-scene-firefly: #f2d675;
+	--dromos-scene-mantle: #a65d3b;
+	--dromos-scene-satchel: #7a4f30;
 }
 
 /* The time of day (game-ui S17): the scene's data-period sets only token values. By day the
@@ -532,6 +538,29 @@
 .dromos-root .dromos-scene-gate { fill: var(--dromos-scene-gate); stroke: var(--dromos-scene-marker-line); stroke-width: 1.4; stroke-linejoin: round; }
 .dromos-root .dromos-walker .dromos-scene-figure { stroke: var(--dromos-scene-marker-line); }
 .dromos-root .dromos-walker.is-walking .dromos-walker-body { animation: dromos-step 0.4s steps(2, jump-none) infinite; }
+
+/* The pilgrim runner (home-header S6): its tunic and arm in the robe's cream, a sienna mantle with
+   two folds and an ochre hem, leather for the satchel, its strap and the sandals, a lantern on the
+   staff whose glass takes the lamp's light at night. Folds are a finer line than the outline. */
+.dromos-root .dromos-scene-mantle { fill: var(--dromos-scene-mantle); }
+.dromos-root .dromos-scene-skin { fill: var(--dromos-scene-skin); }
+.dromos-root .dromos-scene-fold { fill: none; stroke-width: 0.8; }
+.dromos-root .dromos-scene-hem { fill: none; stroke: var(--dromos-scene-belt); stroke-width: 1.4; }
+.dromos-root .dromos-scene-strap { fill: none; stroke: var(--dromos-scene-satchel); stroke-width: 1.8; }
+.dromos-root .dromos-scene-satchel { fill: var(--dromos-scene-satchel); }
+.dromos-root .dromos-scene-sandal { fill: none; stroke: var(--dromos-scene-satchel); stroke-width: 1.2; }
+.dromos-root .dromos-scene-eye { fill: var(--dromos-scene-hair); stroke: none; }
+.dromos-root .dromos-scene-lantern { fill: var(--dromos-scene-house); stroke-width: 0.9; }
+.dromos-root .dromos-scene-sash { fill: var(--dromos-scene-belt); stroke-width: 0.8; }
+
+/* The sash's ends stir about their knot, a few degrees, slower than the breath and out of time
+   with it. */
+.dromos-root .dromos-walker-sash { transform-box: fill-box; transform-origin: 50% 0%; animation: dromos-stir 6.5s ease-in-out -2s infinite alternate; }
+
+@keyframes dromos-stir {
+	from { transform: rotate(-3deg); }
+	to { transform: rotate(6deg); }
+}
 
 @keyframes dromos-step {
 	from { transform: translateY(0); }
