@@ -1,7 +1,8 @@
 import { isValidElement, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
+import type { ShopSnapshot } from '../../src/application';
 import type { CardModalOptions } from '../../src/ui/containers/LibraryPanel';
-import { askToConfirm, buyAfterConfirming } from '../../src/ui/containers/shopActions';
+import { askToConfirm, buyAfterConfirming, shopAfter } from '../../src/ui/containers/shopActions';
 
 /** Opens a fake card: records what it was opened with and whether it was closed. */
 function fakeCard() {
@@ -102,5 +103,34 @@ describe('buyAfterConfirming (M10 S1)', () => {
 
 		expect(result).toBeNull();
 		expect(bought).toBe(0);
+	});
+});
+
+describe('shopAfter: the shop once a purchase settles (M10 S1-S3)', () => {
+	const COFFEE = { id: 'r-coffee', name: 'Coffee out', notes: null, price: 20, alias: null };
+	const BOOK_WEEK = { id: 'book-week', offer: 'A book of the week', price: 40, why: null, until: null };
+	const shop: ShopSnapshot = { status: { kind: 'ready' }, gold: 124, rewards: [COFFEE], purchases: [], purseUnreadable: [], offers: [BOOK_WEEK], offersUnreadable: [] };
+	const offerRow = { date: '2026-11-11', kind: 'purchase', what: 'A book of the week', gold: -40, level: null, offer: 'book-week' } as const;
+
+	it('shows the gold Habitica returned, the purchase first in the purse, and takes a bought offer away', () => {
+		const after = shopAfter(shop, { kind: 'bought', item: { name: 'A book of the week', price: 40 }, gold: 84, recorded: true, entry: offerRow });
+
+		expect(after).toEqual({ ...shop, gold: 84, purchases: [offerRow], offers: [] });
+	});
+
+	it('keeps the purse as it was when the row could not be written, but still takes the offer away', () => {
+		const after = shopAfter(shop, { kind: 'bought', item: { name: 'A book of the week', price: 40 }, gold: 84, recorded: false, entry: offerRow });
+
+		expect(after).toEqual({ ...shop, gold: 84, offers: [] });
+	});
+
+	it('shows the gold a refusal read, and changes nothing after a failure', () => {
+		expect(shopAfter(shop, { kind: 'too-dear', item: COFFEE, gold: 12 })).toEqual({ ...shop, gold: 12 });
+		expect(shopAfter(shop, { kind: 'failed', item: COFFEE, status: { kind: 'offline' } })).toBe(shop);
+	});
+
+	it('asks for a new read when it cannot tell the gold or the offer is gone', () => {
+		expect(shopAfter(shop, { kind: 'bought', item: COFFEE, gold: null, recorded: true, entry: { ...offerRow, what: 'Coffee out', gold: -20, offer: null } })).toBeNull();
+		expect(shopAfter(shop, { kind: 'already-bought', item: { name: 'A book of the week', price: 40 } })).toBeNull();
 	});
 });

@@ -4063,6 +4063,8 @@
 .dromos-root .dromos-shop-item-name { margin: 0; color: var(--dromos-ink); font-family: var(--dromos-font-display); font-size: 18px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
 .dromos-root .dromos-shop-item-notes { margin: 3px 0 0; color: var(--dromos-ink-muted); font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
 
+.dromos-root .dromos-shop-item-until { margin: 4px 0 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 15px; font-style: italic; }
+
 .dromos-root .dromos-shop-price {
 	grid-column: 2;
 	grid-row: 1;
@@ -4112,6 +4114,8 @@
 .dromos-root .dromos-shop-ledger-empty { margin: 0; padding: 12px 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; }
 .dromos-root .dromos-shop-unreadable { margin: 0; padding: 10px 0 12px; border-top: 1px dashed var(--dromos-rule-dashed); color: var(--dromos-ink-warning); font-size: 13px; }
 .dromos-root .dromos-shop-ledger-empty + .dromos-shop-unreadable { border-top: 0; padding-top: 0; }
+/* Under a section's panel, the rows of a note that could not be read (Shop.md). */
+.dromos-root .dromos-shop-unreadable.is-note { margin: 8px 2px 0; padding: 0; border-top: 0; }
 
 /* Phones and narrow panes: the name and its notes take the line; the price and the button share
    the one under it, the price at its start, and the reason goes under them. */

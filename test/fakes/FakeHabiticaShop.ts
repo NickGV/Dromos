@@ -1,5 +1,5 @@
 import type { Reward } from '../../src/domain';
-import type { GoldAccount, RewardCatalog } from '../../src/ports';
+import type { GoldAccount, NewReward, RewardCatalog } from '../../src/ports';
 
 /**
  * Habitica's gold and rewards held in memory, as the shop and the level bonus reach them. Every
@@ -35,6 +35,25 @@ export class FakeHabiticaShop implements GoldAccount, RewardCatalog {
 
 	list(): Promise<Reward[]> {
 		return this.run('list', '', () => [...this.rewards]);
+	}
+
+	findByAlias(alias: string): Promise<Reward | null> {
+		return this.run('findByAlias', alias, () => this.rewards.find((reward) => reward.alias === alias) ?? null);
+	}
+
+	create(reward: NewReward): Promise<Reward> {
+		return this.run('create', reward.alias, () => {
+			if (this.rewards.some((candidate) => candidate.alias === reward.alias)) throw new Error('Task alias already used on another task.');
+			const created: Reward = { id: `created-${this.rewards.length + 1}`, name: reward.name, notes: reward.notes === '' ? null : reward.notes, price: reward.price, alias: reward.alias };
+			this.rewards.push(created);
+			return created;
+		});
+	}
+
+	remove(id: string): Promise<void> {
+		return this.run('remove', id, () => {
+			this.rewards = this.rewards.filter((reward) => reward.id !== id);
+		});
 	}
 
 	buy(id: string): Promise<number | null> {

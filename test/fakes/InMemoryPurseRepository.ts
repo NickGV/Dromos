@@ -1,5 +1,5 @@
 import type { PurseEntry } from '../../src/domain';
-import type { PurseLoadResult, PurseRepository, UnreadablePurseLine } from '../../src/ports';
+import type { PurseLoadResult, PurseRepository, UnreadableNoteRow } from '../../src/ports';
 
 /**
  * The purse held in memory. `appended` keeps each batch; `reads` counts the reads, so a test can
@@ -15,7 +15,7 @@ export class InMemoryPurseRepository implements PurseRepository {
 
 	constructor(
 		public entries: PurseEntry[] = [],
-		private readonly unreadable: readonly UnreadablePurseLine[] = [],
+		private readonly unreadable: readonly UnreadableNoteRow[] = [],
 	) {}
 
 	read(): Promise<PurseLoadResult> {

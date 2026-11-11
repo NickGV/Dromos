@@ -1,20 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { LoadShop } from '../../src/application/LoadShop';
-import type { PurseEntry } from '../../src/domain';
+import type { Offer, PurseEntry } from '../../src/domain';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { aReward, FakeHabiticaShop } from '../fakes/FakeHabiticaShop';
+import { FixedClock } from '../fakes/FixedClock';
+import { InMemoryOfferRepository } from '../fakes/InMemoryOfferRepository';
 import { InMemoryPurseRepository } from '../fakes/InMemoryPurseRepository';
+
+const clock = new FixedClock(new Date('2026-11-11T15:00:00Z'), '2026-11-11');
 
 const COFFEE = aReward('r-coffee', 'Coffee out', 20, { notes: 'At the corner café' });
 const BOOK = aReward('r-book', 'A new book', 75);
 
 const bought = (date: string, what: string, gold: number): PurseEntry => ({ date, kind: 'purchase', what, gold, level: null, offer: null });
 
-function setup(options: { credentials?: boolean; gold?: number; purse?: PurseEntry[] } = {}) {
+function setup(options: { credentials?: boolean; gold?: number; purse?: PurseEntry[]; offers?: Offer[] } = {}) {
 	const habitica = new FakeHabiticaShop(options.gold ?? 124.62, [COFFEE, BOOK]);
 	const purse = new InMemoryPurseRepository(options.purse ?? []);
-	const load = new LoadShop({ gold: habitica, rewards: habitica, purse, hasCredentials: () => options.credentials ?? true });
-	return { habitica, purse, load };
+	const offers = new InMemoryOfferRepository(options.offers ?? []);
+	const load = new LoadShop({ gold: habitica, rewards: habitica, purse, offers, clock, hasCredentials: () => options.credentials ?? true });
+	return { habitica, purse, offers, load };
 }
 
 describe('LoadShop: the gold and the Habitica rewards (M10 S1)', () => {
@@ -101,12 +106,53 @@ describe('LoadShop: the last purchases from the purse (M10 S3, S4)', () => {
 	it('passes on the rows of the purse it could not read, and shows no purchases when it cannot read the note', async () => {
 		const unreadable = new InMemoryPurseRepository([], [{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
 		const habitica = new FakeHabiticaShop(10);
-		expect((await new LoadShop({ gold: habitica, rewards: habitica, purse: unreadable, hasCredentials: () => true }).execute()).purseUnreadable).toEqual([{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
+		expect((await new LoadShop({ gold: habitica, rewards: habitica, purse: unreadable, offers: new InMemoryOfferRepository(), clock, hasCredentials: () => true }).execute()).purseUnreadable).toEqual([{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
 
 		const broken = setup({ purse });
 		broken.purse.failReadWith = new Error('locked');
 		const shop = await broken.load.execute();
 		expect(shop.status).toEqual({ kind: 'ready' });
 		expect(shop.purchases).toEqual([]);
+	});
+});
+
+describe("LoadShop: Esdras's offers (M10 S2)", () => {
+	const offer = (id: string, until: string | null = null): Offer => ({ id, offer: `Offer ${id}`, price: 30, why: null, until });
+	const OFFERS = [offer('gone', '2026-11-10'), offer('today', '2026-11-11'), offer('later', '2026-12-01'), offer('done')];
+	const DONE: PurseEntry = { date: '2026-11-05', kind: 'purchase', what: 'Offer done', gold: -30, level: null, offer: 'done' };
+
+	it('shows the open offers: not bought, and not past their last day', async () => {
+		const shop = await setup({ offers: OFFERS, purse: [DONE] }).load.execute();
+
+		expect(shop.offers.map((entry) => entry.id)).toEqual(['today', 'later']);
+		expect(shop.offersUnreadable).toEqual([]);
+	});
+
+	it('shows them offline too, from the vault, with nothing to buy them with', async () => {
+		const { habitica, load } = setup({ offers: OFFERS });
+		habitica.failNext('readGold', new TaskSourceError('Offline', null, 'x'));
+
+		const shop = await load.execute();
+
+		expect(shop.status).toEqual({ kind: 'offline' });
+		expect(shop.offers.map((entry) => entry.id)).toEqual(['today', 'later', 'done']);
+	});
+
+	it("never lists an offer's reward as the user's own, even when its delete failed", async () => {
+		const { habitica, load } = setup();
+		habitica.rewards = [...habitica.rewards, aReward('left', 'Offer walk', 15, { alias: 'dromos-offer-walk' }), aReward('mine', 'Tea', 3, { alias: 'tea' })];
+
+		expect((await load.execute()).rewards?.map((reward) => reward.id)).toEqual(['r-coffee', 'r-book', 'mine']);
+	});
+
+	it('passes on the rows of Shop.md it could not read, and shows no offers when it cannot read the note', async () => {
+		const habitica = new FakeHabiticaShop(10);
+		const unreadable = new InMemoryOfferRepository([], [{ path: 'Dromos/Shop.md', line: 7, text: '| x |' }]);
+		const shop = await new LoadShop({ gold: habitica, rewards: habitica, purse: new InMemoryPurseRepository(), offers: unreadable, clock, hasCredentials: () => true }).execute();
+		expect(shop.offersUnreadable).toEqual([{ path: 'Dromos/Shop.md', line: 7, text: '| x |' }]);
+
+		const broken = setup({ offers: OFFERS });
+		broken.offers.failWith = new Error('locked');
+		expect((await broken.load.execute()).offers).toEqual([]);
 	});
 });

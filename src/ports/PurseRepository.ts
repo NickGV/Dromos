@@ -1,7 +1,7 @@
 import type { PurseEntry } from '../domain';
 
 /** A row of the purse that could not be read, reported as the ledger reports its own. */
-export interface UnreadablePurseLine {
+export interface UnreadableNoteRow {
 	readonly path: string;
 	/** 1-based line of the note. */
 	readonly line: number;
@@ -11,7 +11,7 @@ export interface UnreadablePurseLine {
 export interface PurseLoadResult {
 	/** Every row, in the note's order; none when the note does not exist. */
 	readonly entries: readonly PurseEntry[];
-	readonly unreadable: readonly UnreadablePurseLine[];
+	readonly unreadable: readonly UnreadableNoteRow[];
 }
 
 /**

@@ -1,5 +1,5 @@
 import { Coin } from '../atoms/Coin';
-import type { PurchasesView, ShopItemView, ShopSectionView, ShopView } from '../presenters/shopView';
+import type { PurchasesView, ShopItemView, ShopOffersView, ShopSectionView, ShopView } from '../presenters/shopView';
 import { ScreenHeader } from './ScreenHeader';
 
 export interface ShopScreenProps {
@@ -14,9 +14,11 @@ export interface ShopScreenProps {
  * The Shop screen (M10 S1, S4): its header card, "Shop", with the gold hung at its other end, then
  * a note when the shop cannot sell (offline, without credentials) or is being read, then the
  * user's Habitica rewards, each with its notes, its price and a button that names what it buys and
- * its price. A reward dearer than the gold keeps its button focusable but held, described by how
- * much gold is missing. Under them, the last purchases from the purse, as journal lines (M10 S3),
- * shown offline too. Every amount is a coin and a number on screen and words for screen readers.
+ * its price, and Esdras's offers (M10 S2), each with why he offers it and its last day. Something
+ * dearer than the gold keeps its button focusable but held, described by how much gold is missing.
+ * Under them, the last purchases from the purse, as journal lines (M10 S3). The offers and the
+ * purchases show offline too, with no button. Every amount is a coin and a number on screen and
+ * words for screen readers.
  */
 export function ShopScreen({ view, onBuy, idPrefix = 'dromos-shop' }: ShopScreenProps) {
 	const gold = view.gold ? (
@@ -33,55 +35,64 @@ export function ShopScreen({ view, onBuy, idPrefix = 'dromos-shop' }: ShopScreen
 			<ScreenHeader title={view.title} aside={gold} />
 			{view.note ? <p className={`dromos-panel dromos-shop-note is-${view.note.tone}`}>{view.note.text}</p> : null}
 			{view.rewards ? section(view.rewards, 'rewards', onBuy, idPrefix) : null}
+			{view.offers ? section(view.offers, 'offers', onBuy, idPrefix) : null}
 			{view.purchases ? purchases(view.purchases) : null}
 		</div>
 	);
 }
 
-function section(view: ShopSectionView, name: string, onBuy: (key: string) => void, idPrefix: string) {
+function section(view: ShopSectionView | ShopOffersView, name: string, onBuy: (key: string) => void, idPrefix: string) {
+	const unreadable = 'unreadable' in view && view.unreadable ? <p className="dromos-shop-unreadable is-note">{view.unreadable}</p> : null;
 	return (
 		<section className={`dromos-section dromos-shop-${name}`}>
 			<h3 className="dromos-card-title">{view.title}</h3>
 			{view.empty ? <p className="dromos-panel dromos-shop-empty">{view.empty}</p> : <ul className="dromos-panel dromos-shop-list">{view.rows.map((row) => item(row, onBuy, idPrefix))}</ul>}
+			{unreadable}
 		</section>
 	);
 }
 
 function item(row: ShopItemView, onBuy: (key: string) => void, idPrefix: string) {
-	const { buy } = row;
-	const reasonId = `${idPrefix}-${row.key.replace(/[^a-zA-Z0-9-]/g, '-')}-reason`;
-	const classes = ['dromos-btn is-small dromos-shop-buy-button', buy.enabled || buy.busy ? 'is-primary' : 'is-unavailable'].join(' ');
 	return (
 		<li key={row.key} className="dromos-shop-item">
 			<div className="dromos-shop-item-text">
 				<p className="dromos-shop-item-name">{row.name}</p>
 				{row.notes ? <p className="dromos-shop-item-notes">{row.notes}</p> : null}
+				{row.until ? <p className="dromos-shop-item-until">{row.until}</p> : null}
 			</div>
 			<p className="dromos-shop-price">
 				<Coin />
 				<span aria-hidden="true">{row.price}</span>
 				<span className="dromos-visually-hidden">{row.priceLabel}</span>
 			</p>
-			<div className="dromos-shop-buy">
-				<button
-					type="button"
-					className={classes}
-					data-shop-key={row.key}
-					aria-label={buy.ariaLabel}
-					aria-disabled={buy.enabled ? undefined : true}
-					aria-busy={buy.busy ? true : undefined}
-					aria-describedby={buy.reason ? reasonId : undefined}
-					onClick={buy.enabled ? () => onBuy(row.key) : undefined}
-				>
-					{buy.text}
-				</button>
-				{buy.reason ? (
-					<p className="dromos-shop-reason" id={reasonId}>
-						{buy.reason}
-					</p>
-				) : null}
-			</div>
+			{row.buy ? buyButton(row.key, row.buy, onBuy, idPrefix) : null}
 		</li>
+	);
+}
+
+function buyButton(key: string, buy: NonNullable<ShopItemView['buy']>, onBuy: (key: string) => void, idPrefix: string) {
+	const reasonId = `${idPrefix}-${key.replace(/[^a-zA-Z0-9-]/g, '-')}-reason`;
+	const classes = ['dromos-btn is-small dromos-shop-buy-button', buy.enabled || buy.busy ? 'is-primary' : 'is-unavailable'].join(' ');
+	return (
+		<div className="dromos-shop-buy">
+			<button
+				type="button"
+				className={classes}
+				data-shop-key={key}
+				aria-label={buy.ariaLabel}
+				aria-disabled={buy.enabled ? undefined : true}
+				aria-busy={buy.busy ? true : undefined}
+				aria-describedby={buy.reason ? reasonId : undefined}
+				onClick={buy.enabled ? () => onBuy(key) : undefined}
+			>
+				{buy.text}
+			</button>
+			{buy.reason ? (
+				<p className="dromos-shop-reason" id={reasonId}>
+					{buy.reason}
+				</p>
+			) : null}
+		</div>
 	);
 }
 

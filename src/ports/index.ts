@@ -10,6 +10,7 @@ export * from './GameStateRepository';
 export * from './GameTaskSource';
 export * from './GoldAccount';
 export * from './LedgerRepository';
+export * from './OfferRepository';
 export * from './Projections';
 export * from './PurseRepository';
 export * from './ResourceRepository';

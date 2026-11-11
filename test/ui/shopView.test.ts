@@ -9,9 +9,10 @@ const es = createTranslator('es');
 
 const COFFEE = aReward('r-coffee', 'Coffee out', 20, { notes: 'At the corner café' });
 const BOOK = aReward('r-book', 'A new book', 175);
+const ROW = { date: '2026-11-11', kind: 'purchase', what: 'Coffee out', gold: -20, level: null, offer: null } as const;
 
-const ready = (gold: number, rewards = [COFFEE, BOOK]): ShopSnapshot => ({ status: { kind: 'ready' }, gold, rewards, purchases: [], purseUnreadable: [] });
-const failed = (status: ShopSnapshot['status']): ShopSnapshot => ({ status, gold: null, rewards: null, purchases: [], purseUnreadable: [] });
+const ready = (gold: number, rewards = [COFFEE, BOOK]): ShopSnapshot => ({ status: { kind: 'ready' }, gold, rewards, purchases: [], purseUnreadable: [], offers: [], offersUnreadable: [] });
+const failed = (status: ShopSnapshot['status']): ShopSnapshot => ({ status, gold: null, rewards: null, purchases: [], purseUnreadable: [], offers: [], offersUnreadable: [] });
 
 describe('shopView: the gold (M10 S1, S4)', () => {
 	it('shows the gold as a whole number, named in words for screen readers', () => {
@@ -44,14 +45,15 @@ describe('shopView: the Habitica rewards (M10 S1)', () => {
 			{ name: 'A new book', notes: null, price: '175', priceLabel: '175 gold' },
 		]);
 		expect(rows[0]?.buy).toEqual({ text: 'Buy', ariaLabel: 'Buy Coffee out for 20 gold', enabled: true, reason: null, busy: false });
+		expect(rows[0]?.until).toBeNull();
 	});
 
 	it('does not let a reward dearer than the gold be bought, and says how much is missing', () => {
 		const book = shopView(ready(124.62), null, en).rewards?.rows[1];
 
-		expect(book?.buy.enabled).toBe(false);
-		expect(book?.buy.reason).toBe('You need 51 more gold');
-		expect(shopView(ready(174), null, es).rewards?.rows[1]?.buy.reason).toBe('Te falta 1 moneda de oro');
+		expect(book?.buy?.enabled).toBe(false);
+		expect(book?.buy?.reason).toBe('You need 51 more gold');
+		expect(shopView(ready(174), null, es).rewards?.rows[1]?.buy?.reason).toBe('Te falta 1 moneda de oro');
 	});
 
 	it('marks the reward being bought as busy and holds every other button meanwhile', () => {
@@ -105,28 +107,33 @@ describe('purchaseMessage (M10 S1)', () => {
 	const message = (outcome: PurchaseOutcome) => purchaseMessage(outcome, en);
 
 	it('says what was bought and the gold Habitica returned', () => {
-		expect(message({ kind: 'bought', reward: COFFEE, gold: 104.62, recorded: true })).toBe('Bought Coffee out. You have 104 gold left.');
-		expect(message({ kind: 'bought', reward: COFFEE, gold: null, recorded: true })).toBe('Bought Coffee out.');
+		expect(message({ kind: 'bought', item: COFFEE, gold: 104.62, recorded: true, entry: ROW })).toBe('Bought Coffee out. You have 104 gold left.');
+		expect(message({ kind: 'bought', item: COFFEE, gold: null, recorded: true, entry: ROW })).toBe('Bought Coffee out.');
 	});
 
 	it('says when the purse could not keep the purchase (M10 S3)', () => {
-		expect(message({ kind: 'bought', reward: COFFEE, gold: 104.62, recorded: false })).toBe('Bought Coffee out. You have 104 gold left. Purse.md could not be written.');
+		expect(message({ kind: 'bought', item: COFFEE, gold: 104.62, recorded: false, entry: ROW })).toBe('Bought Coffee out. You have 104 gold left. Purse.md could not be written.');
 	});
 
 	it('says why nothing was bought', () => {
-		expect(message({ kind: 'too-dear', reward: BOOK, gold: 60 })).toBe('A new book costs 175 gold and you have 60 gold. Nothing was bought.');
+		expect(message({ kind: 'too-dear', item: BOOK, gold: 60 })).toBe('A new book costs 175 gold and you have 60 gold. Nothing was bought.');
 		expect(message({ kind: 'not-configured' })).toBe('Connect your Habitica account to shop.');
-		expect(message({ kind: 'failed', reward: COFFEE, status: { kind: 'unauthorized' } })).toBe('Habitica refused the purchase: check the credentials in the Dromos settings. Nothing was bought.');
-		expect(message({ kind: 'failed', reward: COFFEE, status: { kind: 'rate-limited', retryAfterSeconds: 1 } })).toBe('Too many requests to Habitica: wait 1 second and try again. Nothing was bought.');
-		expect(message({ kind: 'failed', reward: COFFEE, status: { kind: 'error' } })).toBe('Habitica could not complete the purchase. Nothing was bought.');
+		expect(message({ kind: 'failed', item: COFFEE, status: { kind: 'unauthorized' } })).toBe('Habitica refused the purchase: check the credentials in the Dromos settings. Nothing was bought.');
+		expect(message({ kind: 'failed', item: COFFEE, status: { kind: 'rate-limited', retryAfterSeconds: 1 } })).toBe('Too many requests to Habitica: wait 1 second and try again. Nothing was bought.');
+		expect(message({ kind: 'failed', item: COFFEE, status: { kind: 'error' } })).toBe('Habitica could not complete the purchase. Nothing was bought.');
 	});
 
 	it('does not claim nothing was bought when Habitica did not answer', () => {
-		expect(message({ kind: 'failed', reward: COFFEE, status: { kind: 'offline' } })).toBe('No answer from Habitica. Check your gold there before buying again.');
+		expect(message({ kind: 'failed', item: COFFEE, status: { kind: 'offline' } })).toBe('No answer from Habitica. Check your gold there before buying again.');
 	});
 
 	it('says nothing for a click that came while another purchase ran', () => {
 		expect(message({ kind: 'busy' })).toBeNull();
+	});
+
+	it('says an offer was already bought (M10 S2)', () => {
+		expect(message({ kind: 'already-bought', item: { name: 'A book of the week', price: 40 } })).toBe('You already bought A book of the week.');
+		expect(purchaseMessage({ kind: 'already-bought', item: { name: 'Un libro', price: 40 } }, es)).toBe('Ya compraste Un libro.');
 	});
 });
 
@@ -166,5 +173,42 @@ describe('shopView: the last purchases (M10 S3, S4)', () => {
 
 	it('has nothing to show while the shop is read', () => {
 		expect(shopView(null, null, en).purchases).toBeNull();
+	});
+});
+
+describe("shopView: Esdras's offers (M10 S2)", () => {
+	const BOOK_WEEK = { id: 'book-week', offer: 'A book of the week', price: 40, why: 'Five days of reading in a row', until: '2026-11-20' } as const;
+	const WALK = { id: 'walk', offer: 'A long walk', price: 150, why: null, until: null } as const;
+
+	it('lists each offer with its why, its price and its last day, and a button that names it and its price', () => {
+		const offers = shopView({ ...ready(124.62), offers: [BOOK_WEEK, WALK] }, null, en).offers;
+
+		expect(offers?.title).toBe("Esdras's offers");
+		expect(offers?.rows.map(({ key, name, notes, priceLabel, until }) => ({ key, name, notes, priceLabel, until }))).toEqual([
+			{ key: 'offer:book-week', name: 'A book of the week', notes: 'Five days of reading in a row', priceLabel: '40 gold', until: 'Until 20 Nov' },
+			{ key: 'offer:walk', name: 'A long walk', notes: null, priceLabel: '150 gold', until: null },
+		]);
+		expect(offers?.rows[0]?.buy).toMatchObject({ ariaLabel: 'Buy A book of the week for 40 gold', enabled: true });
+		expect(offers?.rows[1]?.buy).toMatchObject({ enabled: false, reason: 'You need 26 more gold' });
+	});
+
+	it('speaks Spanish', () => {
+		const offers = shopView({ ...ready(124.62), offers: [BOOK_WEEK] }, null, es).offers;
+
+		expect(offers?.title).toBe('Ofertas de Esdras');
+		expect(offers?.rows[0]?.until).toBe('Hasta el 20 nov');
+	});
+
+	it('says when Esdras has none, and which rows of Shop.md it could not read', () => {
+		const view = shopView({ ...ready(10), offersUnreadable: [{ path: 'Dromos/Shop.md', line: 7, text: '| x |' }] }, null, en);
+
+		expect(view.offers).toEqual({ title: "Esdras's offers", rows: [], empty: 'Esdras has no offers right now.', unreadable: '1 row of Dromos/Shop.md could not be read (line 7).' });
+	});
+
+	it('shows the offers offline without a button to buy them', () => {
+		const view = shopView({ ...failed({ kind: 'offline' }), offers: [BOOK_WEEK] }, null, en);
+
+		expect(view.offers?.rows.map((row) => row.name)).toEqual(['A book of the week']);
+		expect(view.offers?.rows[0]?.buy).toBeNull();
 	});
 });

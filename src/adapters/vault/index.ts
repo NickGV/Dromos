@@ -19,6 +19,8 @@ export * from './skillMapper';
 export * from './ledgerNote';
 export * from './purseNote';
 export * from './VaultPurseRepository';
+export * from './shopNote';
+export * from './VaultOfferRepository';
 export * from './projections';
 export * from './resourceMapper';
 export * from './VaultResourceRepository';

@@ -48,6 +48,7 @@ export function homeDeps(
 	const shop: ShopDeps = {
 		loadShop: { execute: never },
 		buyReward: { execute: never },
+		buyOffer: { execute: never },
 		openCard: () => ({ show: noop, close: noop }),
 		notify: noop,
 	};

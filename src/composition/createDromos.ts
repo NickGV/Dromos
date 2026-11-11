@@ -16,17 +16,19 @@ import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSe
 import {
 	notePathIn,
 	purseNotePath,
+	shopNotePath,
 	VaultBookRepository,
 	VaultBriefingRepository,
 	VaultCampaignRepository,
 	VaultGameStateRepository,
 	VaultLedgerRepository,
+	VaultOfferRepository,
 	VaultPurseRepository,
 	VaultResourceRepository,
 	VaultRulesRepository,
 	VaultSkillRepository,
 } from '../adapters/vault';
-import { BuyReward, CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, LoadShop, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { BuyOffer, BuyReward, CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, LoadShop, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
@@ -116,6 +118,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const rewardCatalog = new HabiticaRewardCatalog(habitica);
 	// The purse (M10 S3): every purchase and level bonus, written once Habitica confirms it.
 	const purse = new VaultPurseRepository(plugin.app, notePathIn(vaultFolder, purseNotePath), () => clock.today());
+	// Esdras's offers (M10 S2): Shop.md, which only Esdras writes; Dromos reads it with the shop.
+	const offers = new VaultOfferRepository(plugin.app, notePathIn(vaultFolder, shopNotePath));
 	// Per-device marks (the letter last opened, the levels whose bonus this device still owes) in Obsidian's local storage, never in the vault or data.json.
 	const deviceStore = new LocalDeviceStore(plugin.app);
 	const gameState = new GameState();
@@ -192,8 +196,9 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			},
 			// The Shop (M10 S1, S4): a purchase is confirmed in a card first, and its outcome is a toast.
 			shop: {
-				loadShop: new LoadShop({ gold: goldAccount, rewards: rewardCatalog, purse, hasCredentials }),
+				loadShop: new LoadShop({ gold: goldAccount, rewards: rewardCatalog, purse, offers, clock, hasCredentials }),
 				buyReward: new BuyReward({ rewards: rewardCatalog, gold: goldAccount, purse, clock, hasCredentials }),
+				buyOffer: new BuyOffer({ rewards: rewardCatalog, gold: goldAccount, purse, clock, hasCredentials }),
 				openCard: createOpenCardModal(plugin.app),
 				notify: showNotice,
 			},

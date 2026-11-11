@@ -15,7 +15,7 @@ const es = createTranslator('es');
 
 const COFFEE = aReward('r-coffee', 'Coffee out', 20, { notes: 'At the corner café' });
 const BOOK = aReward('r-book', 'A new book', 175);
-const READY: ShopSnapshot = { status: { kind: 'ready' }, gold: 124.62, rewards: [COFFEE, BOOK], purchases: [], purseUnreadable: [] };
+const READY: ShopSnapshot = { status: { kind: 'ready' }, gold: 124.62, rewards: [COFFEE, BOOK], purchases: [], purseUnreadable: [], offers: [], offersUnreadable: [] };
 
 const screen = (shop: ShopSnapshot | null, busy: string | null = null, t = en) => renderToStaticMarkup(<ShopScreen view={shopView(shop, busy, t)} onBuy={noop} />);
 
@@ -66,7 +66,7 @@ describe('ShopScreen (M10 S1, S4)', () => {
 	});
 
 	it('says offline that nothing can be bought, and draws no buy button', () => {
-		const html = screen({ status: { kind: 'offline' }, gold: null, rewards: null, purchases: [], purseUnreadable: [] });
+		const html = screen({ status: { kind: 'offline' }, gold: null, rewards: null, purchases: [], purseUnreadable: [], offers: [], offersUnreadable: [] });
 
 		expect(html).toContain('Habitica cannot be reached, so nothing can be bought now. Select Sync to try again.');
 		expect(buttons(html)).toEqual([]);
@@ -83,6 +83,35 @@ describe('ShopScreen (M10 S1, S4)', () => {
 		expect(html).toMatch(/<h2[^>]*>Tienda<\/h2>/);
 		expect(html).toContain('Tu oro: 124 monedas de oro');
 		expect(buttons(html)[0]?.tag).toContain('aria-label="Comprar Coffee out por 20 monedas de oro"');
+	});
+});
+
+describe("ShopScreen: Esdras's offers (M10 S2)", () => {
+	const OFFERS: ShopSnapshot = { ...READY, offers: [{ id: 'book-week', offer: 'A book of the week', price: 40, why: 'Five days of reading in a row', until: '2026-11-20' }] };
+
+	it('lists them under their title, each with its why, its last day and a button naming it and its price', () => {
+		const html = screen(OFFERS);
+
+		expect(html).toContain('<h3 class="dromos-card-title">Esdras&#x27;s offers</h3>');
+		expect(html).toContain('Five days of reading in a row');
+		expect(html).toContain('<p class="dromos-shop-item-until">Until 20 Nov</p>');
+		expect(buttons(html).map(({ tag }) => /aria-label="([^"]*)"/.exec(tag)?.[1])).toContain('Buy A book of the week for 40 gold');
+	});
+
+	it('hands the click the key of the offer', () => {
+		const clicked: string[] = [];
+		const tree = ShopScreen({ view: shopView({ ...OFFERS, rewards: [] }, null, en), onBuy: (key) => clicked.push(key) });
+		const [offer] = elementsOf(tree).filter((element) => element.type === 'button');
+
+		(offer?.props.onClick as () => void)();
+		expect(clicked).toEqual(['offer:book-week']);
+	});
+
+	it('shows them offline with no button', () => {
+		const html = screen({ ...OFFERS, status: { kind: 'offline' }, gold: null, rewards: null });
+
+		expect(html).toContain('A book of the week');
+		expect(buttons(html)).toEqual([]);
 	});
 });
 

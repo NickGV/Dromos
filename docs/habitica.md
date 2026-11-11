@@ -79,9 +79,32 @@ The **Shop** plank of the signpost opens the Shop: your Habitica gold and your o
 - Offline or without credentials the Shop says so and nothing can be bought.
 - A purchase that fails says what happened. When Habitica did not answer at all, Dromos cannot tell whether the gold was taken: check your gold in Habitica before buying again.
 
+### Esdras's offers
+
+Esdras can offer you things in `<folder>/Shop.md` (`type: dromos-shop`), a table he writes and Dromos only reads:
+
+| Column | What it holds |
+|---|---|
+| `id` | A short name of lowercase letters, digits and hyphens, never used again |
+| `offer` | What is offered |
+| `price` | Whole gold above 0 |
+| `why` | Why he offers it; may be empty |
+| `until` | The last day it is offered, `YYYY-MM-DD`, or empty |
+
+The Shop shows the offers not bought yet whose last day is today or later. Dromos reads the first table with that header, by the names of its columns, so their order and the Table Editor's spacing do not matter. A row with a bad `id`, `price` or `until`, or with no offer, is skipped and the Shop names its line; with a repeated `id` the first row counts.
+
+Buying an offer, after the same confirmation as a reward:
+
+1. Dromos looks up the Habitica reward with alias `dromos-offer-<id>` and creates it only when it does not exist, so trying again never creates a second one.
+2. It buys that reward, which spends the gold.
+3. It writes the purchase into `Purse.md` with the offer's `id`, so the offer is not offered again.
+4. It deletes that reward from Habitica.
+
+A reward whose alias starts with `dromos-offer-` is never listed among your own, even when deleting it failed.
+
 ### The purse
 
-Every purchase is written into `<folder>/Purse.md` (`type: dromos-purse`) once Habitica confirms it: a table `| date | kind | what | gold | level | offer |`, one `purchase` row with the price as negative gold. Only Dromos writes it; the Shop lists its last five purchases, offline too. A purchase that fails writes nothing. If Habitica bought it but the note could not be written, the toast says so.
+Every purchase is written into `<folder>/Purse.md` (`type: dromos-purse`) once Habitica confirms it: a table `| date | kind | what | gold | level | offer |`, one `purchase` row with the price as negative gold, and the offer's `id` for one of Esdras's offers. Only Dromos writes it; the Shop lists its last five purchases, offline too. A purchase that fails writes nothing. If Habitica bought it but the note could not be written, the toast says so.
 
 ### The level bonus
 
@@ -104,6 +127,7 @@ Only when the tab opens, when you select **Sync**, when you open the Shop and wh
 | **Terminar** | None |
 | Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards |
 | **Buy** on one of your rewards, once confirmed | One write, `POST /tasks/<id>/score/up`, which spends the gold and answers with it. If Habitica refuses (it answers a short purse as it answers bad credentials), one more read of the gold tells which it was |
+| **Buy** on one of Esdras's offers, once confirmed | One read, `GET /tasks/dromos-offer-<id>`; one write to create the reward when it does not exist, `POST /tasks/user`; one write to buy it, `POST /tasks/<id>/score/up`; one write to delete it, `DELETE /tasks/<id>`. Opening the Shop reads `Shop.md` from the vault, with no request |
 | A sync that finds a new level, or a bonus still owed | One read of the gold, `GET /user?userFields=stats`, and one write per level, `PUT /user` with `stats.gp` set to that gold plus the bonus. None when no bonus is owed |
 
 Habitica allows 30 requests per minute. A request with no answer after 15 seconds counts as offline.

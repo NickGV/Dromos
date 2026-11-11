@@ -1,5 +1,5 @@
 import type { PurchaseOutcome, ShopSnapshot, ShopStatus } from '../../application';
-import { canAfford, goldShort, wholeGold, type PurseEntry, type Reward } from '../../domain';
+import { canAfford, goldShort, wholeGold, type Offer, type PurseEntry } from '../../domain';
 import { plural, type Translator } from '../../i18n';
 import { dayMonth } from './dates';
 import { waitText } from './syncBanner';
@@ -31,15 +31,19 @@ export interface ShopBuyView {
 
 /** One thing for sale. */
 export interface ShopItemView {
-	/** `reward:<id>`: what the screen hands back when its button is clicked. */
+	/** `reward:<id>` or `offer:<id>`: what the screen hands back when its button is clicked. */
 	readonly key: string;
 	readonly name: string;
+	/** A reward's notes, or why Esdras offers it; `null` when there are none. */
 	readonly notes: string | null;
 	/** The whole price, "20". */
 	readonly price: string;
 	/** The price in words, "20 gold". */
 	readonly priceLabel: string;
-	readonly buy: ShopBuyView;
+	/** An offer's last day, "Until 20 Nov"; `null` for a reward or an offer without one. */
+	readonly until: string | null;
+	/** `null` when the shop cannot sell (offline, without credentials): the offers are still listed. */
+	readonly buy: ShopBuyView | null;
 }
 
 export interface ShopSectionView {
@@ -47,6 +51,11 @@ export interface ShopSectionView {
 	readonly rows: readonly ShopItemView[];
 	/** Said in place of the rows when there are none; `null` otherwise. */
 	readonly empty: string | null;
+}
+
+/** Esdras's offers (M10 S2): a section that also says which rows of `Shop.md` could not be read. */
+export interface ShopOffersView extends ShopSectionView {
+	readonly unreadable: string | null;
 }
 
 /** One purchase of the purse: its day, what it was, and the gold it took. */
@@ -79,6 +88,8 @@ export interface ShopView {
 	readonly note: ShopNoteView | null;
 	/** `null` when nothing could be read. */
 	readonly rewards: ShopSectionView | null;
+	/** `null` while the shop is read; shown offline too, since `Shop.md` is in the vault. */
+	readonly offers: ShopOffersView | null;
 	/** `null` while the shop is read; shown offline too, since the purse is in the vault. */
 	readonly purchases: PurchasesView | null;
 }
@@ -88,33 +99,53 @@ export function rewardKey(id: string): string {
 	return `reward:${id}`;
 }
 
+/** The key the screen hands back for the offer `id`. */
+export function offerKey(id: string): string {
+	return `offer:${id}`;
+}
+
 /** "20 gold", "1 moneda de oro": a whole amount of gold in words. */
 export function goldText(gold: number, t: Translator): string {
 	return plural(t, 'shop.gold', wholeGold(gold));
 }
 
 /**
- * The Shop screen from what the last read found (M10 S1): `shop` is `null` while it is read. `busy`
- * is the key of the item being bought, which holds every other button meanwhile. A reward dearer
- * than the gold cannot be bought and says how much is missing; offline or without credentials no
- * button is drawn at all, and a note says why.
+ * The Shop screen from what the last read found (M10 S1, S2): `shop` is `null` while it is read.
+ * `busy` is the key of the item being bought, which holds every other button meanwhile. A reward or
+ * an offer dearer than the gold cannot be bought and says how much is missing; offline or without
+ * credentials no button is drawn at all, and a note says why. Esdras's offers and the last purchases
+ * come from the vault, so they show then too.
  */
 export function shopView(shop: ShopSnapshot | null, busy: string | null, t: Translator): ShopView {
 	const title = t('screen.shop');
-	if (shop === null) return { title, gold: null, note: { text: t('shop.loading'), tone: 'quiet' }, rewards: null, purchases: null };
+	if (shop === null) return { title, gold: null, note: { text: t('shop.loading'), tone: 'quiet' }, rewards: null, offers: null, purchases: null };
 	const purchases = purchasesView(shop, t);
-	if (shop.status.kind !== 'ready' || shop.gold === null || shop.rewards === null) return { title, gold: null, note: statusNote(shop.status, t), rewards: null, purchases };
-	const { gold } = shop;
+	const ready = shop.status.kind === 'ready' && shop.gold !== null && shop.rewards !== null;
+	const gold = ready ? shop.gold : null;
+	const offers = offersView(shop, gold, busy, t);
+	if (!ready || gold === null || shop.rewards === null) return { title, gold: null, note: statusNote(shop.status, t), rewards: null, offers, purchases };
 	return {
 		title,
 		gold: { amount: String(wholeGold(gold)), label: t('shop.gold.aria', { gold: goldText(gold, t) }) },
 		note: null,
 		rewards: {
 			title: t('shop.rewards.title'),
-			rows: shop.rewards.map((reward) => itemView(rewardKey(reward.id), reward, gold, busy, t)),
+			rows: shop.rewards.map((reward) => itemView(rewardKey(reward.id), reward, null, gold, busy, t)),
 			empty: shop.rewards.length === 0 ? t('shop.rewards.empty') : null,
 		},
+		offers,
 		purchases,
+	};
+}
+
+/** Esdras's open offers; `gold` is `null` when the shop cannot sell, and then they have no button. */
+function offersView(shop: ShopSnapshot, gold: number | null, busy: string | null, t: Translator): ShopOffersView {
+	const item = (offer: Offer) => ({ name: offer.offer, notes: offer.why, price: offer.price });
+	return {
+		title: t('shop.offers.title'),
+		rows: shop.offers.map((offer) => itemView(offerKey(offer.id), item(offer), offer.until === null ? null : t('shop.until', { date: dayMonth(offer.until, t) }), gold, busy, t)),
+		empty: shop.offers.length === 0 ? t('shop.offers.empty') : null,
+		unreadable: unreadableText(shop.offersUnreadable, t),
 	};
 }
 
@@ -139,23 +170,20 @@ export function unreadableText(lines: readonly { readonly path: string; readonly
 	return plural(t, 'shop.unreadable', lines.length, { path: first.path, lines: lines.map((line) => line.line).join(', ') });
 }
 
-function itemView(key: string, item: Pick<Reward, 'name' | 'notes' | 'price'>, gold: number, busy: string | null, t: Translator): ShopItemView {
+function itemView(key: string, item: { readonly name: string; readonly notes: string | null; readonly price: number }, until: string | null, gold: number | null, busy: string | null, t: Translator): ShopItemView {
 	const priceLabel = goldText(item.price, t);
+	return { key, name: item.name, notes: item.notes, price: String(wholeGold(item.price)), priceLabel, until, buy: gold === null ? null : buyView(key, item, priceLabel, gold, busy, t) };
+}
+
+function buyView(key: string, item: { readonly name: string; readonly price: number }, priceLabel: string, gold: number, busy: string | null, t: Translator): ShopBuyView {
 	const affordable = canAfford(gold, item.price);
 	const here = busy === key;
 	return {
-		key,
-		name: item.name,
-		notes: item.notes,
-		price: String(wholeGold(item.price)),
-		priceLabel,
-		buy: {
-			text: t(here ? 'shop.buy.busy' : 'shop.buy'),
-			ariaLabel: t('shop.buy.aria', { name: item.name, price: priceLabel }),
-			enabled: affordable && busy === null,
-			reason: affordable || busy !== null ? null : plural(t, 'shop.short', goldShort(gold, item.price)),
-			busy: here,
-		},
+		text: t(here ? 'shop.buy.busy' : 'shop.buy'),
+		ariaLabel: t('shop.buy.aria', { name: item.name, price: priceLabel }),
+		enabled: affordable && busy === null,
+		reason: affordable || busy !== null ? null : plural(t, 'shop.short', goldShort(gold, item.price)),
+		busy: here,
 	};
 }
 
@@ -211,11 +239,13 @@ export function purchaseMessage(outcome: PurchaseOutcome, t: Translator): string
 		case 'not-configured':
 			return t('shop.failed.notConfigured');
 		case 'bought': {
-			const bought = outcome.gold === null ? t('shop.bought.noGold', { name: outcome.reward.name }) : t('shop.bought', { name: outcome.reward.name, gold: goldText(outcome.gold, t) });
+			const bought = outcome.gold === null ? t('shop.bought.noGold', { name: outcome.item.name }) : t('shop.bought', { name: outcome.item.name, gold: goldText(outcome.gold, t) });
 			return outcome.recorded ? bought : `${bought} ${t('shop.unrecorded')}`;
 		}
+		case 'already-bought':
+			return t('shop.alreadyBought', { name: outcome.item.name });
 		case 'too-dear':
-			return t('shop.tooDear', { name: outcome.reward.name, price: goldText(outcome.reward.price, t), gold: goldText(outcome.gold, t) });
+			return t('shop.tooDear', { name: outcome.item.name, price: goldText(outcome.item.price, t), gold: goldText(outcome.gold, t) });
 		case 'failed':
 			switch (outcome.status.kind) {
 				case 'offline':

@@ -1,4 +1,5 @@
 // Use cases. They depend only on src/domain and src/ports (ADR-002).
+export * from './BuyOffer';
 export * from './BuyReward';
 export * from './CampaignState';
 export * from './gameEvents';

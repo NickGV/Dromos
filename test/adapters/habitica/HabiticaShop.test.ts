@@ -138,3 +138,43 @@ describe('HabiticaGoldAccount.setGold (M10 S3)', () => {
 		expect(error.message).not.toContain(TOKEN);
 	});
 });
+
+describe('HabiticaRewardCatalog: the reward of an offer (M10 S2)', () => {
+	const OFFER = '3f2a1c8e-0000-4000-8000-0000000000aa';
+
+	it('looks a reward up by its alias, with one GET of /tasks/<alias>', async () => {
+		const url = `${API}/tasks/dromos-offer-book-week`;
+		const http = new FakeHttp().on(url, respond(200, { success: true, data: reward(OFFER, 'A book of the week', 40, { alias: 'dromos-offer-book-week', notes: 'Five days' }) }));
+
+		expect(await shop(http).rewards.findByAlias('dromos-offer-book-week')).toEqual({ id: OFFER, name: 'A book of the week', notes: 'Five days', price: 40, alias: 'dromos-offer-book-week' });
+		expect(http.sent()).toEqual([`GET ${url}`]);
+	});
+
+	it('answers null when Habitica has no task with that alias', async () => {
+		expect(await shop(new FakeHttp()).rewards.findByAlias('dromos-offer-walk')).toBeNull();
+	});
+
+	it('fails as Unknown when the task found is not a reward', async () => {
+		const http = new FakeHttp().on(`${API}/tasks/dromos-offer-walk`, respond(200, { success: true, data: { id: OFFER, type: 'todo', text: 'Walk' } }));
+
+		expect((await errorOf(shop(http).rewards.findByAlias('dromos-offer-walk'))).kind).toBe('Unknown');
+	});
+
+	it('creates a reward with its name, notes, price and alias, and answers with it', async () => {
+		const http = new FakeHttp().onPost(`${API}/tasks/user`, respond(201, { success: true, data: reward(OFFER, 'A walk', 15, { alias: 'dromos-offer-walk' }) }));
+
+		const created = await shop(http).rewards.create({ name: 'A walk', notes: 'Fresh air', price: 15, alias: 'dromos-offer-walk' });
+
+		expect(created).toEqual({ id: OFFER, name: 'A walk', notes: null, price: 15, alias: 'dromos-offer-walk' });
+		expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({ type: 'reward', text: 'A walk', notes: 'Fresh air', value: 15, alias: 'dromos-offer-walk' });
+	});
+
+	it('deletes a reward with one DELETE of /tasks/<id>', async () => {
+		const url = `${API}/tasks/${OFFER}`;
+		const http = new FakeHttp().onMethod('DELETE', url, respond(200, { success: true, data: {} }));
+
+		await shop(http).rewards.remove(OFFER);
+
+		expect(http.sent()).toEqual([`DELETE ${url}`]);
+	});
+});
