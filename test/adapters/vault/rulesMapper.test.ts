@@ -13,7 +13,7 @@ const FULL_NOTE = {
 	level_curve: { kind: 'polynomial', base: 10, exponent: 1.2 },
 	skill_curve: { kind: 'polynomial', base: 20, exponent: 1.1 },
 	rank_levels: [1, 2, 3, 4, 5],
-	goldPerLevel: 25,
+	gold_per_level: 25,
 };
 
 const FULL_RULES: GameRules = {
@@ -29,15 +29,15 @@ const FULL_RULES: GameRules = {
 };
 
 describe('rulesFromFrontmatter: the gold of a level (M10 S3)', () => {
-	it('reads goldPerLevel, and is 10 when the note does not set it', () => {
-		expect(rulesFromFrontmatter({ goldPerLevel: 25 }).rules.goldPerLevel).toBe(25);
-		expect(rulesFromFrontmatter({ goldPerLevel: '15' }).rules.goldPerLevel).toBe(15);
+	it('reads gold_per_level, and is 10 when the note does not set it', () => {
+		expect(rulesFromFrontmatter({ gold_per_level: 25 }).rules.goldPerLevel).toBe(25);
+		expect(rulesFromFrontmatter({ gold_per_level: '15' }).rules.goldPerLevel).toBe(15);
 		expect(rulesFromFrontmatter({}).rules.goldPerLevel).toBe(10);
 		expect(rulesFromFrontmatter({}).invalidFields).toEqual([]);
 	});
 
-	it.each([['ten'], [0], [-5], [2.5], [true]])('keeps 10 for a goldPerLevel that is not a whole number above 0 (%s), and names it', (value) => {
-		expect(rulesFromFrontmatter({ goldPerLevel: value })).toEqual({ rules: DEFAULT_RULES, invalidFields: ['goldPerLevel'] });
+	it.each([['ten'], [0], [-5], [2.5], [true]])('keeps 10 for a gold_per_level that is not a whole number above 0 (%s), and names it', (value) => {
+		expect(rulesFromFrontmatter({ gold_per_level: value })).toEqual({ rules: DEFAULT_RULES, invalidFields: ['gold_per_level'] });
 	});
 });
 

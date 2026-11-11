@@ -108,7 +108,7 @@ Every purchase is written into `<folder>/Purse.md` (`type: dromos-purse`) once H
 
 ### The level bonus
 
-Each new level of the character adds gold in Habitica: `goldPerLevel` times the level reached, 10 a level unless `Rules.md` sets `goldPerLevel` (a whole number above 0), so reaching level 3 adds 30. Two levels at once pay both. A toast tells it, "+30 gold for reaching level 3".
+Each new level of the character adds gold in Habitica: `gold_per_level` times the level reached, 10 a level unless `Rules.md` sets `gold_per_level` (a whole number above 0), so reaching level 3 adds 30. Two levels at once pay both. A toast tells it, "+30 gold for reaching level 3".
 
 - Only a level-up a sync finds is paid: levels reached before this version are not.
 - Each level is paid once. Right before paying, Dromos reads `Purse.md` again; a level with a `bonus` row there is never paid again. The row is written once Habitica confirms the gold.
