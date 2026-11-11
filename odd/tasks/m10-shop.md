@@ -40,7 +40,7 @@ The user's idea (L1): "estaba pensando en realizar algo asi como una tienda dond
 | T3 | S3 | The level bonus and the purse | delegated, writer G | done (L6), key renamed (L7), unknown payments settled (L9); user review pending | `1e68ebe`, `edac991` |
 | T4 | S1-S4 | Independent verification (Risk: item 1, a purchase or a bonus changes the user's Habitica gold), seam check, live check, README, CHANGELOG, docs/habitica.md | verifier delegated; the rest inline | done (L9): blocker fixed and rechecked, docs written, live read check | `3ae1a7d`, `774154e`, docs `00332a7` |
 | T5 | S6 | The Shop as a stall of the era, with drawn wares, tabs and a detail panel | delegated, writer H (context backstop) | done (L11); user review pending | `8679271`, `3fe791b` |
-| R1 | S5 | Release with the user's go-ahead | inline | pending | |
+| R1 | S5 | Release 0.17.0 with the user's go-ahead (L16) | inline | in progress | |
 
 ## Log
 
@@ -59,3 +59,4 @@ The user's idea (L1): "estaba pensando en realizar algo asi como una tienda dond
 - **L13** (2026-11-11, the Kairos session): Kairos knows its rewards only by 27 hardcoded Habitica task ids (9 offers × 3 price tiers, `DefaultOffersSeeder.kt`); no tag, alias or name. It suggests the tag `kairos`, applied once to the 27 (a Habitica write: Nick decides who) and on create in its planned 2.0 outbox (alias `kairos_<offerId>_t<n>`). Some `[GT]` rewards are not Kairos's (Reddit, Twitch, "30m media"). Buying a Kairos reward elsewhere breaks nothing in Kairos but spends gold with no minutes; editing or deleting one would break Kairos. S1: rewards tagged `kairos` are hidden (Dromos reads `GET /tags` to find the tag's id). Built by writer G (resumed).
 - **L14** (2026-11-11): writer G built the `kairos` rule (`8ff78a7`): rewards keep their tag ids; `LoadShop` leaves out rewards carrying a tag named `kairos` (trimmed, any case) before the tiers and the first ware; `GET /tags` read through `HabiticaTagCatalog.listTags()` (which `ensureSkillTags` now uses too) only when a reward carries a tag; when `/tags` fails every reward shows. Its checks: 158 files, 2097 tests; lint 0 errors (4 old warnings); build ok. Seam check here the same; dev build reinstalled. README and CHANGELOG updated. Open for Nick: who tags the 27 existing Kairos rewards (by hand, or the Kairos session through its MCP with his ok), and the three `[GT]` leftovers that are not Kairos's.
 - **L15** (2026-11-11, user): "luego lo pongo": Nick tags the Kairos rewards in Habitica himself, later. Until then they show in the Shop. Next: R1 (0.17.0) when he gives the go-ahead.
+- **L16** (2026-11-11, user): "dale sube todo porfavor" — go-ahead for R1: merge `feat/m10-shop` into `main`, release 0.17.0, push `main` and the tag.
