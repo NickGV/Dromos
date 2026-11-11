@@ -27,8 +27,8 @@ The user chose the module: "hagamoslo porfavor" (L1), to Claude's recommendation
 |----|-------|------|-------|--------|--------|
 | T1 | S1 | The weekly history from the ledger rows, in the game result and snapshot | delegated, writer F (context backstop: the parent session is long) | done (L4); user review pending | `ce57080` |
 | T2 | S2, S3 | The Chronicle screen, its charts and the way in from home | delegated, writer F (depends on T1) | done (L4); user review pending | `3c027e5`, `67e9d92` |
-| T3 | S1-S3 | Seam check, live check in Obsidian, README, CHANGELOG, vault ticks | inline | partial (L5): live check and vault ticks pending | docs (this commit) |
-| R1 | S4 | Release 0.16.0 with the user's go-ahead | inline | go-ahead given (L7) | |
+| T3 | S1-S3 | Seam check, live check in Obsidian, README, CHANGELOG, vault ticks | inline | done (L9) | docs (this commit) |
+| R1 | S4 | Release 0.16.0 with the user's go-ahead | inline | done: released (L8), Android verified (L9) | tag `0.16.0`, `main` `365102e` |
 
 ## Log
 
@@ -39,3 +39,5 @@ The user chose the module: "hagamoslo porfavor" (L1), to Claude's recommendation
 - **L5** (2026-11-11): T3 in part. Seam check: 142 files, 1867 tests; lint 0 errors and the 4 old warnings. Dev build installed into the vault, but Obsidian was not running (`obsidian plugin:reload`: "unable to find Obsidian"), so no live check yet. README (the Chronicle) and CHANGELOG `[Unreleased]` written. Pending: the live check, the user's review and the open question on XP by stat versus the radar.
 - **L6** (2026-11-11, user): "se ve bien, dejemoslo como esta", to the open question of L4-L5. XP by stat stays as built (every skill row of a known skill, even before it unlocks, plus "No skill"), and the section keeps its title "By stat" (Claude's suggested rename not taken). Next: R1 (0.16.0, minor) when the user gives the go-ahead.
 - **L7** (2026-11-11, user): "si dale subela" — go-ahead for R1: merge `feat/m9-chronicle` into `main`, release 0.16.0, push `main` and the tag.
+- **L8** (2026-11-11): 0.16.0 published. `feat/m9-chronicle` merged `--no-ff` into `main`; `release/0.16.0` (changelog dated 2026-11-11, `npm version minor`, annotated tag `0.16.0`) merged into `main` (`365102e`). All 12 new commits by NickGV <nickgomvelez@gmail.com>, no co-author or AI lines, no `main.js`, `data.json` or `node_modules`. Checks on `main`: 142 files, 1867 tests; lint 0 errors (4 old warnings); build ok. `gh auth status`: NickGV active. Pushed `main` and the tag; `release.yml` run 43041029515 succeeded; the release is not a draft or pre-release, with the three files. Local plugin reinstalled from `main` (0.16.0). Live check in Obsidian (dark theme, the user's ledger): **View history** opens "Chronicle"; three weeks (26 Oct, 2 Nov, this week 50 XP, "−30 XP vs the week before"); Monday 40 and Tuesday 10 match the four deeds of the week; XP by stat Intelligence 10 and No skill 40. Pending: Android, then the M9 ticks in `02-Phases`.
+- **L9** (2026-11-11, user): "ya probe en android y funciono perfecto". 0.16.0 verified on Android. The four M9 plugin tasks ticked in the vault's `02-Phases.md`. M9 has no open tasks.
