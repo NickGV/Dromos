@@ -20,6 +20,7 @@ const RULES: GameRules = {
 	characterCurve: { base: 10, exponent: 1 },
 	skillCurve: { base: 20, exponent: 1 },
 	rankLevels: [1, 2, 3, 4, 5],
+	goldPerLevel: 10,
 };
 
 function observation(overrides: Partial<TaskObservation> = {}): TaskObservation {
@@ -28,7 +29,7 @@ function observation(overrides: Partial<TaskObservation> = {}): TaskObservation 
 
 describe('DEFAULT_RULES: what rules the game with no Rules.md (S16)', () => {
 	it('are the values of 04-Game-Design', () => {
-		expect(DEFAULT_RULES).toEqual({ xp: XP_TABLE, characterCurve: CHARACTER_CURVE, skillCurve: SKILL_CURVE, rankLevels: RANK_LEVELS });
+		expect(DEFAULT_RULES).toEqual({ xp: XP_TABLE, characterCurve: CHARACTER_CURVE, skillCurve: SKILL_CURVE, rankLevels: RANK_LEVELS, goldPerLevel: 10 });
 	});
 });
 

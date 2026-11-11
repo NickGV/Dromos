@@ -1,4 +1,5 @@
 import { CHARACTER_CURVE, SKILL_CURVE, type CurveConfig } from './LevelCurve';
+import { DEFAULT_GOLD_PER_LEVEL } from '../shop/Purse';
 import { RANK_LEVELS } from './Ranks';
 import { XP_TABLE, type XpTable } from './XpRules';
 
@@ -13,6 +14,8 @@ export interface GameRules {
 	readonly skillCurve: CurveConfig;
 	/** The level each rank starts at, in order. */
 	readonly rankLevels: readonly number[];
+	/** The gold each new level pays, times the level reached (M10 S3, ADR-019): 10 unless the note says otherwise. */
+	readonly goldPerLevel: number;
 }
 
-export const DEFAULT_RULES: GameRules = { xp: XP_TABLE, characterCurve: CHARACTER_CURVE, skillCurve: SKILL_CURVE, rankLevels: RANK_LEVELS };
+export const DEFAULT_RULES: GameRules = { xp: XP_TABLE, characterCurve: CHARACTER_CURVE, skillCurve: SKILL_CURVE, rankLevels: RANK_LEVELS, goldPerLevel: DEFAULT_GOLD_PER_LEVEL };

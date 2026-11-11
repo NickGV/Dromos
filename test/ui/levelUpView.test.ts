@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameEvent } from '../../src/application';
 import { createTranslator } from '../../src/i18n';
-import { ceremonyView, unlockNotices } from '../../src/ui/presenters/levelUpView';
+import { ceremonyView, gameNotices } from '../../src/ui/presenters/levelUpView';
 import type { SkillCardView } from '../../src/ui/presenters/skillsView';
 
 const es = createTranslator('es');
@@ -74,12 +74,12 @@ describe('ceremonyView', () => {
 	});
 });
 
-describe('unlockNotices: the toast of an unlock (S18)', () => {
+describe('gameNotices: the toast of an unlock (S18)', () => {
 	const unlocked: GameEvent = { kind: 'skill-unlocked', skillId: 'lector', name: 'Lector' };
 
 	it('words each unlock, in both languages', () => {
-		expect(unlockNotices([unlocked], en)).toEqual(['Skill unlocked: Lector.']);
-		expect(unlockNotices([unlocked], es)).toEqual(['Skill desbloqueada: Lector.']);
+		expect(gameNotices([unlocked], en)).toEqual(['Skill unlocked: Lector.']);
+		expect(gameNotices([unlocked], es)).toEqual(['Skill desbloqueada: Lector.']);
 	});
 
 	it('leaves level-ups to the ceremony', () => {
@@ -89,10 +89,39 @@ describe('unlockNotices: the toast of an unlock (S18)', () => {
 			unlocked,
 		];
 
-		expect(unlockNotices(events, en)).toEqual(['Skill unlocked: Lector.']);
+		expect(gameNotices(events, en)).toEqual(['Skill unlocked: Lector.']);
 	});
 
 	it('has nothing to say without an unlock', () => {
-		expect(unlockNotices([], en)).toEqual([]);
+		expect(gameNotices([], en)).toEqual([]);
+	});
+});
+
+describe('gameNotices: the gold bonus of a level (M10 S3)', () => {
+	it('tells the bonus as other game news, in both languages', () => {
+		const bonus: GameEvent = { kind: 'level-bonus', level: 3, gold: 30, recorded: true };
+
+		expect(gameNotices([bonus], en)).toEqual(['+30 gold for reaching level 3.']);
+		expect(gameNotices([bonus], es)).toEqual(['+30 monedas de oro por llegar al nivel 3.']);
+	});
+
+	it('says when the purse could not keep it, so the row can be written by hand', () => {
+		expect(gameNotices([{ kind: 'level-bonus', level: 4, gold: 40, recorded: false }], en)).toEqual(['+40 gold for reaching level 4. Purse.md could not be written: add its bonus row by hand so no device pays it again.']);
+	});
+
+	it('tells the user to check their gold when Dromos cannot tell whether a bonus landed (L8)', () => {
+		const unknown: GameEvent = { kind: 'level-bonus-unknown', level: 3, gold: 30 };
+
+		expect(gameNotices([unknown], en)).toEqual(['Dromos could not tell whether 30 gold for reaching level 3 reached Habitica, so it will not pay it again. Check your gold there.']);
+		expect(gameNotices([unknown], es)).toEqual(['Dromos no pudo saber si 30 monedas de oro por llegar al nivel 3 llegaron a Habitica, así que no las pagará otra vez. Revisa tu oro allí.']);
+		expect(ceremonyView([unknown], [], en)).toBeNull();
+	});
+
+	it('keeps the bonus out of the ceremony, which is the level\'s', () => {
+		const view = ceremonyView([{ kind: 'character-level', level: 3 }, { kind: 'level-bonus', level: 3, gold: 30, recorded: true }], [], en);
+
+		expect(view?.level).toBe(3);
+		expect(view?.rows).toEqual([]);
+		expect(ceremonyView([{ kind: 'level-bonus', level: 3, gold: 30, recorded: true }], [], en)).toBeNull();
 	});
 });

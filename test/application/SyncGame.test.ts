@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GameState } from '../../src/application/GameState';
+import type { LevelBonusNews } from '../../src/application/PayLevelBonus';
 import { SyncGame } from '../../src/application/SyncGame';
 import type { Campaign, Character, LedgerRow, Skill } from '../../src/domain';
 import { DEFAULT_RULES, type GameRules } from '../../src/domain/rules/GameRules';
@@ -58,6 +59,23 @@ interface Options {
 	day?: string;
 	rules?: RulesLoadResult;
 	unreadable?: UnreadableLedgerEvent[];
+	bonus?: FakeLevelBonus;
+}
+
+/** The level bonus as the sync sees it: records the levels it was handed and answers with what it paid. */
+class FakeLevelBonus {
+	readonly calls: number[][] = [];
+	/** The number of ledger batches written when each call came, to see the order. */
+	readonly ledgerAtCall: number[] = [];
+	constructor(
+		private readonly paid: (levels: readonly number[]) => LevelBonusNews[] = () => [],
+		private readonly ledger: InMemoryLedgerRepository | null = null,
+	) {}
+	execute(levels: readonly number[]): Promise<LevelBonusNews[]> {
+		this.calls.push([...levels]);
+		this.ledgerAtCall.push(this.ledger?.appended.length ?? -1);
+		return Promise.resolve(this.paid(levels));
+	}
 }
 
 function setup(options: Options = {}) {
@@ -77,6 +95,7 @@ function setup(options: Options = {}) {
 		clock: new FixedClock(NOW, options.day ?? TODAY),
 		state,
 		hasCredentials: () => options.credentials ?? true,
+		...(options.bonus ? { bonus: options.bonus } : {}),
 	});
 	return { state, skills, ledger, characters, source, rules, sync };
 }
@@ -410,6 +429,86 @@ describe('SyncGame: level-ups', () => {
 	});
 });
 
+describe('SyncGame: the level bonus (M10 S3)', () => {
+	const hardTodos = (count: number) => Array.from({ length: count }, (_, n) => todo(`h${n}`, { priority: 2 }));
+
+	it('hands the levels a sync reached to the bonus once its notes are written, and announces what it paid', async () => {
+		const bonus = new FakeLevelBonus((levels) => [...levels.map((level) => ({ kind: 'paid' as const, level, gold: level * 10, recorded: true })), { kind: 'unknown' as const, level: 9, gold: 90 }]);
+		const { sync, state, ledger } = setup({ skills: [owned()], tasks: hardTodos(4), bonus });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.character?.level).toBe(2);
+		expect(bonus.calls).toEqual([[2]]);
+		expect(ledger.appended).toHaveLength(1);
+		const told = state.takeAnnouncements();
+		expect(told[0]).toEqual({ kind: 'character-level', level: 2 });
+		expect(told.slice(-2)).toEqual([
+			{ kind: 'level-bonus', level: 2, gold: 20, recorded: true },
+			{ kind: 'level-bonus-unknown', level: 9, gold: 90 },
+		]);
+		// The ceremony is the level's; the bonus is only told.
+		expect(snapshot.events.map((event) => event.kind)).not.toContain('level-bonus');
+		expect(snapshot.events).toContainEqual({ kind: 'character-level', level: 2 });
+	});
+
+	it('pays the bonus only after the ledger is written', async () => {
+		const ledger = new InMemoryLedgerRepository();
+		const bonus = new FakeLevelBonus(() => [], ledger);
+		const sync = new SyncGame({
+			skills: new InMemorySkillRepository([owned()]),
+			ledger,
+			characters: new InMemoryGameStateRepository({ kind: 'found', character: NICO }),
+			campaigns: new InMemoryCampaignRepository(),
+			rules: new InMemoryRulesRepository(),
+			source: new FakeGameTaskSource(hardTodos(4)),
+			clock: new FixedClock(NOW, TODAY),
+			state: new GameState(),
+			hasCredentials: () => true,
+			bonus,
+		});
+
+		await sync.execute();
+
+		expect(bonus.ledgerAtCall).toEqual([1]);
+	});
+
+	it('hands every level of a double level-up', async () => {
+		const bonus = new FakeLevelBonus();
+		const rules: GameRules = { ...DEFAULT_RULES, characterCurve: { base: 10, exponent: 1 } };
+		const { sync } = setup({ skills: [owned()], tasks: hardTodos(2), rules: { rules, invalid: null }, bonus });
+
+		const level = (await sync.execute()).character?.level ?? 0;
+
+		expect(level).toBeGreaterThan(2);
+		expect(bonus.calls).toEqual([Array.from({ length: level - 1 }, (_, n) => n + 2)]);
+	});
+
+	it('hands no level when the sync reached none, so levels reached before are never paid', async () => {
+		const bonus = new FakeLevelBonus();
+		const before = Array.from({ length: 12 }, (_, n) => row({ habiticaId: `old${n}`, xp: 25, date: '2026-11-01' }));
+		const { sync } = setup({ skills: [owned()], rows: before, tasks: [], bonus });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.character?.level).toBeGreaterThan(1);
+		expect(bonus.calls).toEqual([[]]);
+	});
+
+	it('pays nothing when the sync fails, nor on a rebuild', async () => {
+		const failing = new FakeLevelBonus();
+		const failed = setup({ skills: [owned()], tasks: hardTodos(4), bonus: failing });
+		failed.source.failWith = new TaskSourceError('Offline', null, 'x');
+		await failed.sync.execute();
+		expect(failing.calls).toEqual([]);
+
+		const rebuilding = new FakeLevelBonus();
+		const rebuilt = setup({ skills: [owned()], rows: hardTodos(4).map((task, n) => row({ habiticaId: task.habiticaId, xp: 25, n: 1, date: TODAY, task: `t${n}` })), bonus: rebuilding });
+		await rebuilt.sync.rebuild();
+		expect(rebuilding.calls).toEqual([]);
+	});
+});
+
 describe('SyncGame: what it shows', () => {
 	it('lists the skill notes it could not read and the ledger rows it could not parse', async () => {
 		const state = new GameState();
@@ -440,6 +539,7 @@ describe('SyncGame: Rules.md (S16)', () => {
 		characterCurve: { base: 10, exponent: 1 },
 		skillCurve: { base: 20, exponent: 1 },
 		rankLevels: [1, 2, 3, 4, 5],
+		goldPerLevel: 10,
 	};
 	const withRules = { rules: RULES, invalid: null };
 

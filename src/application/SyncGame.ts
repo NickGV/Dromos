@@ -4,6 +4,7 @@ import {
 	completedQuestCount,
 	evaluateUnlock,
 	foldLedger,
+	levelsReached,
 	longestStreakBySkill,
 	rankOf,
 	recentDeeds,
@@ -37,6 +38,7 @@ import type {
 	SkillRepository,
 } from '../ports';
 import { detectEvents, type GameEvent, type SkillChange } from './gameEvents';
+import type { PayLevelBonus } from './PayLevelBonus';
 import type { CharacterStanding, DeedEntry, GameResult, GameSnapshot, GameState, QuestPrice, SkillEntry, WeekEntry } from './GameState';
 import { statusForFailure } from './statusForFailure';
 
@@ -51,6 +53,11 @@ export interface SyncGameDeps {
 	readonly state: GameState;
 	/** True when both the Habitica user ID and token are set. */
 	readonly hasCredentials: () => boolean;
+	/**
+	 * The gold bonus of a new level (M10 S3): handed the levels each successful sync reached, after
+	 * its notes are written; what it paid is announced. Absent, no bonus is paid.
+	 */
+	readonly bonus?: Pick<PayLevelBonus, 'execute'>;
 }
 
 /** What a rebuild did, for the command to answer with. */
@@ -79,6 +86,8 @@ interface GameProjection {
 	readonly stats: Readonly<Record<StatId, number>>;
 	readonly entries: readonly SkillEntry[];
 	readonly events: readonly GameEvent[];
+	/** The character's level before the rows this run adds. */
+	readonly levelBefore: number;
 	readonly questPrices: ReadonlyMap<string, QuestPrice>;
 	readonly completedQuests: number;
 	readonly deeds: readonly DeedEntry[];
@@ -161,13 +170,28 @@ export class SyncGame {
 			return state.snapshot();
 		}
 
+		let reached: number[];
 		try {
 			const observations = await source.fetchObservations(clock.today());
-			await this.apply(character, vault, observations);
+			reached = await this.apply(character, vault, observations);
 		} catch (error) {
 			state.setStatus(statusForFailure(error));
+			return state.snapshot();
 		}
+		await this.payBonus(reached);
 		return state.snapshot();
+	}
+
+	/**
+	 * Hands the levels this sync reached to the bonus (M10 S3), which also pays the ones still owed,
+	 * and announces what it paid. Only a sync reaches levels: a rebuild never pays, and levels reached
+	 * before a sync detected them are never handed over.
+	 */
+	private async payBonus(reached: readonly number[]): Promise<void> {
+		const { bonus, state } = this.deps;
+		if (!bonus) return;
+		const paid = await bonus.execute(reached);
+		state.announce(paid.map((news): GameEvent => (news.kind === 'paid' ? { kind: 'level-bonus', level: news.level, gold: news.gold, recorded: news.recorded } : { kind: 'level-bonus-unknown', level: news.level, gold: news.gold })));
 	}
 
 	private async readVault(): Promise<VaultReads> {
@@ -176,7 +200,8 @@ export class SyncGame {
 		return { skills: skillLoad, ledger: ledgerLoad, completedCampaigns, rules: rulesLoad };
 	}
 
-	private async apply(character: Character, vault: VaultReads, observations: readonly ObservedTask[]): Promise<void> {
+	/** Writes what the observations add and records the result; answers with the levels the character reached. */
+	private async apply(character: Character, vault: VaultReads, observations: readonly ObservedTask[]): Promise<number[]> {
 		const { ledger, characters, clock, state } = this.deps;
 		const history = vault.ledger.rows;
 		const gameStart = resolveGameStart(character.gameStart, history, clock.today());
@@ -195,6 +220,7 @@ export class SyncGame {
 		this.lastStreaks = streaks;
 		this.lastObservations = observations;
 		state.recordSuccess(gameResult(vault, game), clock.now());
+		return levelsReached(game.levelBefore, game.character.level);
 	}
 
 	private async runRebuild(): Promise<RebuildOutcome> {
@@ -266,12 +292,14 @@ export class SyncGame {
 		}
 
 		const character = { ...characterCurve.progressFor(after.characterXp), totalXp: after.characterXp };
-		const events = detectEvents(characterCurve.levelFor(before.characterXp), character.level, changes);
+		const levelBefore = characterCurve.levelFor(before.characterXp);
+		const events = detectEvents(levelBefore, character.level, changes);
 		return {
 			character,
 			stats: after.stats,
 			entries,
 			events,
+			levelBefore,
 			questPrices: questPrices(observations, vault),
 			completedQuests: standingCompletionCount(rows),
 			deeds: chronicle(rows, vault),

@@ -1,4 +1,6 @@
 // Use cases. They depend only on src/domain and src/ports (ADR-002).
+export * from './BuyOffer';
+export * from './BuyReward';
 export * from './CampaignState';
 export * from './gameEvents';
 export * from './GameState';
@@ -9,7 +11,10 @@ export * from './FinishReading';
 export * from './mergeTaskStatuses';
 export * from './LoadHome';
 export * from './LoadLibrary';
+export * from './LoadShop';
 export * from './MarkResourceFinished';
+export * from './PayLevelBonus';
+export * from './pendingOfferRows';
 export * from './RequestBriefing';
 export * from './QuestState';
 export * from './ReadReflection';

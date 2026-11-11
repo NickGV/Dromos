@@ -55,11 +55,11 @@ describe('HomeScreen: the Chronicle screen (M9 S3)', () => {
 	const planks = (html: string): string[] => [...html.matchAll(/<button[^>]*class="dromos-plank[^"]*"[^>]*>(.*?)<\/button>/g)].map((match) => match[1] ?? '');
 	const currentPlank = (html: string): string[] => [...html.matchAll(/<button[^>]*class="dromos-plank is-current"[^>]*aria-current="page"[^>]*>(.*?)<\/button>/g)].map((match) => match[1] ?? '');
 
-	it('shows the header card, the weeks and nothing of home, the signpost with its five planks and Path burnt in', () => {
+	it('shows the header card, the weeks and nothing of home, the signpost with its six planks and Path burnt in', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ game: game(), openSettings: noop })} initialScreen="chronicle" />);
 		const main = /<main[^>]*>(.*)<\/main>/.exec(html)?.[1] ?? '';
 
-		expect(planks(html)).toEqual(['Path', 'Campaigns', 'Skills', 'Library', 'Settings']);
+		expect(planks(html)).toEqual(['Path', 'Campaigns', 'Skills', 'Library', 'Shop', 'Settings']);
 		expect(currentPlank(html)).toEqual(['Path']);
 		expect(main).toMatch(/<header class="dromos-panel dromos-screen-header has-back">.*<h2[^>]*>Chronicle<\/h2><\/header>/);
 		expect(main).toContain('dromos-weeks');
@@ -85,10 +85,10 @@ describe('HomeScreen: the Chronicle screen (M9 S3)', () => {
 });
 
 describe('Signpost on the Chronicle screen (M9 S3)', () => {
-	it('keeps its five planks and burns Path in, as the screen belongs to the path', () => {
+	it('keeps its six planks and burns Path in, as the screen belongs to the path', () => {
 		const html = renderToStaticMarkup(<Signpost current="chronicle" onGo={noop} onSettings={noop} />);
 
-		expect(html.match(/<button type="button"/g)).toHaveLength(5);
+		expect(html.match(/<button type="button"/g)).toHaveLength(6);
 		expect(html).toMatch(/<button type="button" class="dromos-plank is-current" aria-current="page">Path<\/button>/);
 		expect(html.match(/aria-current/g)).toHaveLength(1);
 	});

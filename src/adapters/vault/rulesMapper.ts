@@ -10,7 +10,7 @@ export interface RulesReading {
 const DIFFICULTIES: readonly Difficulty[] = ['trivial', 'easy', 'medium', 'hard'];
 
 /** What the note holds, and what any note may carry next to it. */
-const NOTE_FIELDS = ['xp', 'level_curve', 'skill_curve', 'rank_levels', 'type', 'created', 'updated', 'tags', 'aliases', 'cssclasses', 'position'];
+const NOTE_FIELDS = ['xp', 'level_curve', 'skill_curve', 'rank_levels', 'gold_per_level', 'type', 'created', 'updated', 'tags', 'aliases', 'cssclasses', 'position'];
 
 /** Below 1 a curve can round to 0 XP per level, and `LevelCurve.progressFor` would never end. */
 const MIN_CURVE_BASE = 1;
@@ -41,6 +41,8 @@ export function rulesFromFrontmatter(frontmatter: unknown): RulesReading {
 			characterCurve: curve(fields.level_curve, defaults.characterCurve, 'level_curve', invalid),
 			skillCurve: curve(fields.skill_curve, defaults.skillCurve, 'skill_curve', invalid),
 			rankLevels: rankLevels(fields.rank_levels, invalid),
+			// `gold_per_level`, snake case like the note's other fields (ADR-019); a whole number above 0, else the default 10 (M10 S3).
+			goldPerLevel: wholeNumber(fields.gold_per_level, defaults.goldPerLevel, 'gold_per_level', invalid),
 		},
 		invalidFields: invalid,
 	};

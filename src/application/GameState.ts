@@ -192,6 +192,11 @@ export class GameState {
 		this.current = { ...this.current, events: [...this.current.events, ...events] };
 	}
 
+	/** News only told, as a toast, never shown in the ceremony: a level's gold bonus (M10 S3). */
+	announce(events: readonly GameEvent[]): void {
+		this.unannounced = [...this.unannounced, ...events];
+	}
+
 	/** The events not handed over yet. Each comes out once, so a toast is never repeated. */
 	takeAnnouncements(): readonly GameEvent[] {
 		const events = this.unannounced;

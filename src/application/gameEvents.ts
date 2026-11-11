@@ -1,8 +1,15 @@
 import { rankOf, type Skill, type SkillStanding } from '../domain';
 
-/** Something worth a banner the next time the view opens (S10). */
+/**
+ * Something worth a banner the next time the view opens (S10). A level's gold bonus (M10 S3) is
+ * only told, as a toast: the ceremony is the level's.
+ */
 export type GameEvent =
 	| { readonly kind: 'character-level'; readonly level: number }
+	/** `gold` was added to Habitica for reaching `level`; `recorded` is false when the purse could not keep its row. */
+	| { readonly kind: 'level-bonus'; readonly level: number; readonly gold: number; readonly recorded: boolean }
+	/** A bonus payment whose outcome could not be told (L8): it is never paid again, and the user should check the gold. */
+	| { readonly kind: 'level-bonus-unknown'; readonly level: number; readonly gold: number }
 	| { readonly kind: 'skill-unlocked'; readonly skillId: string; readonly name: string }
 	| {
 			readonly kind: 'skill-level';

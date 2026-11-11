@@ -2,6 +2,19 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The Shop** (M10), a sixth plank of the signpost, set in a merchant's stall of the era: the merchant at his counter, the market and the sky of the hour behind him, your Habitica gold on a coin plaque (shown only there). Your own Habitica rewards and the offers Esdras writes in `Shop.md` are drawn tiles (an object by price, from a basket of figs to a chest), locked with the gold they lack, under tabs for rewards, offers and last purchases; the chosen ware's detail holds **Buy**. Rewards tagged `kairos` in Habitica are left out: the Kairos app buys them itself. **Buy** asks for a confirmation (it opens on Cancel) and spends the gold in Habitica; an offer is created as a reward, bought and deleted again, and each offer is bought once.
+- **A gold bonus for each new level**: `gold_per_level` (10, set it in `Rules.md`) times the level reached, added in Habitica once per level. If Habitica's answer is lost, the next sync reads your gold to tell whether it was paid, and never pays a level twice.
+- **The purse**, `Purse.md`: a row for every purchase and every bonus; the Shop lists the last purchases.
+
+### Changed
+
+- The signpost has six planks, three on each side.
+- Dromos now changes your gold in Habitica, only when you confirm a purchase and when your character reaches a new level ([what it sends](docs/habitica.md)).
+
 ## [0.16.0] - 2026-11-11
 
 ### Added

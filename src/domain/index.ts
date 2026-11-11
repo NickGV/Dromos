@@ -6,6 +6,7 @@ export * from './ledger';
 export * from './library';
 export * from './quest';
 export * from './rules/GameRules';
+export * from './shop';
 export * from './rules/LevelCurve';
 export * from './rules/Ranks';
 export * from './rules/XpRules';

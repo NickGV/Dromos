@@ -1,5 +1,6 @@
 import type { GameEvent } from '../../application';
 import type { Translator } from '../../i18n';
+import { goldText } from './shopView';
 import type { SkillCardView } from './skillsView';
 
 /**
@@ -36,7 +37,9 @@ export interface CeremonyView {
 }
 
 /** `null` when there is nothing to celebrate. `skills` gives each row its icon and stat. */
-export function ceremonyView(events: readonly GameEvent[], skills: readonly SkillCardView[], t: Translator): CeremonyView | null {
+export function ceremonyView(all: readonly GameEvent[], skills: readonly SkillCardView[], t: Translator): CeremonyView | null {
+	// A level's gold bonus is only told (M10 S3): the ceremony is the level's.
+	const events = all.filter((event) => event.kind !== 'level-bonus' && event.kind !== 'level-bonus-unknown');
 	if (events.length === 0) return null;
 	const levels = events.flatMap((event) => (event.kind === 'character-level' ? [event.level] : []));
 	const level = levels.length > 0 ? Math.max(...levels) : null;
@@ -57,7 +60,16 @@ export function ceremonyView(events: readonly GameEvent[], skills: readonly Skil
 	};
 }
 
-/** The toasts of a sync (S18): an unlock only, since the ceremony shows the levels. */
-export function unlockNotices(events: readonly GameEvent[], t: Translator): string[] {
-	return events.flatMap((event) => (event.kind === 'skill-unlocked' ? [t('event.skillUnlocked', { name: event.name })] : []));
+/**
+ * The toasts of a sync (S18): an unlock, since the ceremony shows the levels, and the gold bonus of a
+ * level (M10 S3), "+30 gold for reaching level 3", which says so when the purse could not keep it,
+ * and asks the user to check the gold when Dromos could not tell whether a payment landed (L8).
+ */
+export function gameNotices(events: readonly GameEvent[], t: Translator): string[] {
+	return events.flatMap((event) => {
+		if (event.kind === 'skill-unlocked') return [t('event.skillUnlocked', { name: event.name })];
+		if (event.kind === 'level-bonus') return [t(event.recorded ? 'event.levelBonus' : 'event.levelBonus.unrecorded', { gold: goldText(event.gold, t), level: event.level })];
+		if (event.kind === 'level-bonus-unknown') return [t('event.levelBonus.unknown', { gold: goldText(event.gold, t), level: event.level })];
+		return [];
+	});
 }

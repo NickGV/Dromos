@@ -27,6 +27,8 @@ export interface CardModalOptions {
 	readonly lang: string;
 	readonly content: ReactNode;
 	readonly onClose: () => void;
+	/** A class the card wears besides the book card's, as the Shop's confirmation does (M10 S1); none when absent. */
+	readonly className?: string;
 }
 
 /**

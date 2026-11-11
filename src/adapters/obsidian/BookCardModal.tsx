@@ -8,6 +8,8 @@ export interface CardModalRequest {
 	readonly lang: string;
 	readonly content: ReactNode;
 	readonly onClose: () => void;
+	/** A class the card wears besides the book card's (the Shop's confirmation, M10 S1). */
+	readonly className?: string;
 }
 
 /** An open card: draws new content in place, or closes. */
@@ -34,7 +36,7 @@ class BookCardModal extends Modal {
 	}
 
 	onOpen(): void {
-		this.modalEl.addClasses(['dromos-root', 'dromos-book-modal']);
+		this.modalEl.addClasses(['dromos-root', 'dromos-book-modal', ...(this.request.className ? [this.request.className] : [])]);
 		this.modalEl.setAttr('aria-label', this.request.label);
 		this.modalEl.setAttr('lang', this.request.lang);
 		this.root = createRoot(this.contentEl);
