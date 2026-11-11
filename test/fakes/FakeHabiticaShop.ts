@@ -10,6 +10,8 @@ export class FakeHabiticaShop implements GoldAccount, RewardCatalog {
 	readonly calls: string[] = [];
 	/** Makes the method named reject with the error, once per entry, in order. */
 	readonly failures = new Map<string, Error[]>();
+	/** Makes the method named do its work and then reject with the error, as a request whose answer is lost. */
+	readonly lostAnswers = new Map<string, Error[]>();
 
 	constructor(
 		public gold: number,
@@ -19,6 +21,12 @@ export class FakeHabiticaShop implements GoldAccount, RewardCatalog {
 	/** Makes the next call of `method` reject with `error`. */
 	failNext(method: string, error: Error): this {
 		this.failures.set(method, [...(this.failures.get(method) ?? []), error]);
+		return this;
+	}
+
+	/** Makes the next call of `method` take effect in Habitica and then reject with `error`: its answer never arrives. */
+	loseAnswerNext(method: string, error: Error): this {
+		this.lostAnswers.set(method, [...(this.lostAnswers.get(method) ?? []), error]);
 		return this;
 	}
 
@@ -70,8 +78,10 @@ export class FakeHabiticaShop implements GoldAccount, RewardCatalog {
 		const queued = this.failures.get(method);
 		const failure = queued?.shift();
 		if (failure) return Promise.reject(failure);
+		const lost = this.lostAnswers.get(method)?.shift();
 		try {
-			return Promise.resolve(act());
+			const result = act();
+			return lost ? Promise.reject(lost) : Promise.resolve(result);
 		} catch (error) {
 			return Promise.reject(error instanceof Error ? error : new Error(String(error)));
 		}

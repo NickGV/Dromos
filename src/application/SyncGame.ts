@@ -191,7 +191,7 @@ export class SyncGame {
 		const { bonus, state } = this.deps;
 		if (!bonus) return;
 		const paid = await bonus.execute(reached);
-		state.announce(paid.map(({ level, gold, recorded }) => ({ kind: 'level-bonus', level, gold, recorded })));
+		state.announce(paid.map((news): GameEvent => (news.kind === 'paid' ? { kind: 'level-bonus', level: news.level, gold: news.gold, recorded: news.recorded } : { kind: 'level-bonus-unknown', level: news.level, gold: news.gold })));
 	}
 
 	private async readVault(): Promise<VaultReads> {

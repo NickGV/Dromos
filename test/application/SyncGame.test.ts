@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GameState } from '../../src/application/GameState';
-import type { LevelBonusPaid } from '../../src/application/PayLevelBonus';
+import type { LevelBonusNews } from '../../src/application/PayLevelBonus';
 import { SyncGame } from '../../src/application/SyncGame';
 import type { Campaign, Character, LedgerRow, Skill } from '../../src/domain';
 import { DEFAULT_RULES, type GameRules } from '../../src/domain/rules/GameRules';
@@ -68,10 +68,10 @@ class FakeLevelBonus {
 	/** The number of ledger batches written when each call came, to see the order. */
 	readonly ledgerAtCall: number[] = [];
 	constructor(
-		private readonly paid: (levels: readonly number[]) => LevelBonusPaid[] = () => [],
+		private readonly paid: (levels: readonly number[]) => LevelBonusNews[] = () => [],
 		private readonly ledger: InMemoryLedgerRepository | null = null,
 	) {}
-	execute(levels: readonly number[]): Promise<LevelBonusPaid[]> {
+	execute(levels: readonly number[]): Promise<LevelBonusNews[]> {
 		this.calls.push([...levels]);
 		this.ledgerAtCall.push(this.ledger?.appended.length ?? -1);
 		return Promise.resolve(this.paid(levels));
@@ -433,7 +433,7 @@ describe('SyncGame: the level bonus (M10 S3)', () => {
 	const hardTodos = (count: number) => Array.from({ length: count }, (_, n) => todo(`h${n}`, { priority: 2 }));
 
 	it('hands the levels a sync reached to the bonus once its notes are written, and announces what it paid', async () => {
-		const bonus = new FakeLevelBonus((levels) => levels.map((level) => ({ level, gold: level * 10, recorded: true })));
+		const bonus = new FakeLevelBonus((levels) => [...levels.map((level) => ({ kind: 'paid' as const, level, gold: level * 10, recorded: true })), { kind: 'unknown' as const, level: 9, gold: 90 }]);
 		const { sync, state, ledger } = setup({ skills: [owned()], tasks: hardTodos(4), bonus });
 
 		const snapshot = await sync.execute();
@@ -443,7 +443,10 @@ describe('SyncGame: the level bonus (M10 S3)', () => {
 		expect(ledger.appended).toHaveLength(1);
 		const told = state.takeAnnouncements();
 		expect(told[0]).toEqual({ kind: 'character-level', level: 2 });
-		expect(told.at(-1)).toEqual({ kind: 'level-bonus', level: 2, gold: 20, recorded: true });
+		expect(told.slice(-2)).toEqual([
+			{ kind: 'level-bonus', level: 2, gold: 20, recorded: true },
+			{ kind: 'level-bonus-unknown', level: 9, gold: 90 },
+		]);
 		// The ceremony is the level's; the bonus is only told.
 		expect(snapshot.events.map((event) => event.kind)).not.toContain('level-bonus');
 		expect(snapshot.events).toContainEqual({ kind: 'character-level', level: 2 });

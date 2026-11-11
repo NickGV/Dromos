@@ -112,7 +112,8 @@ Each new level of the character adds gold in Habitica: `gold_per_level` times th
 
 - Only a level-up a sync finds is paid: levels reached before this version are not.
 - Each level is paid once. Right before paying, Dromos reads `Purse.md` again; a level with a `bonus` row there is never paid again. The row is written once Habitica confirms the gold.
-- A payment that fails writes nothing and is tried again on the next sync, also after Obsidian restarts on that device.
+- A payment Habitica refuses (invalid token, too many requests) writes nothing and is tried again on the next sync, also after Obsidian restarts on that device.
+- A payment with no clear answer (no answer within 15 seconds, an error status) may still have reached Habitica. That device keeps the gold it read and the gold it asked for, and the next sync reads your gold first. If it is the gold asked for, the bonus was paid: Dromos writes its row and sends nothing. If it is the gold read before, it was not: Dromos pays it again. If it is neither, Dromos never pays that level again and a toast asks you to check your gold in Habitica.
 - Dromos reads your gold and writes it back plus the bonus. If you spend gold in Habitica at that very second, one can overwrite the other. If two devices find the same level-up before `Purse.md` syncs between them, the bonus can be paid twice.
 
 ## When Dromos talks to Habitica

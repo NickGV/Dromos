@@ -174,6 +174,7 @@ export const es = {
 	'event.skillUnlocked': 'Skill desbloqueada: {name}.',
 	'event.levelBonus': '+{gold} por llegar al nivel {level}.',
 	'event.levelBonus.unrecorded': '+{gold} por llegar al nivel {level}. No se pudo escribir Purse.md: añade su fila de bono a mano para que ningún dispositivo lo pague otra vez.',
+	'event.levelBonus.unknown': 'Dromos no pudo saber si {gold} por llegar al nivel {level} llegaron a Habitica, así que no las pagará otra vez. Revisa tu oro allí.',
 	'event.dismiss': 'Cerrar',
 	'ceremony.aria': 'Subida de nivel',
 	'ceremony.ribbon': 'Nuevo nivel',

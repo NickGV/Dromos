@@ -173,6 +173,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'event.skillUnlocked': 'Skill unlocked: {name}.',
 	'event.levelBonus': '+{gold} for reaching level {level}.',
 	'event.levelBonus.unrecorded': '+{gold} for reaching level {level}. Purse.md could not be written: add its bonus row by hand so no device pays it again.',
+	'event.levelBonus.unknown': 'Dromos could not tell whether {gold} for reaching level {level} reached Habitica, so it will not pay it again. Check your gold there.',
 	'event.dismiss': 'Dismiss',
 	'ceremony.aria': 'Level up',
 	'ceremony.ribbon': 'New level',

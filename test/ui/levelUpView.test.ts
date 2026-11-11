@@ -109,6 +109,14 @@ describe('gameNotices: the gold bonus of a level (M10 S3)', () => {
 		expect(gameNotices([{ kind: 'level-bonus', level: 4, gold: 40, recorded: false }], en)).toEqual(['+40 gold for reaching level 4. Purse.md could not be written: add its bonus row by hand so no device pays it again.']);
 	});
 
+	it('tells the user to check their gold when Dromos cannot tell whether a bonus landed (L8)', () => {
+		const unknown: GameEvent = { kind: 'level-bonus-unknown', level: 3, gold: 30 };
+
+		expect(gameNotices([unknown], en)).toEqual(['Dromos could not tell whether 30 gold for reaching level 3 reached Habitica, so it will not pay it again. Check your gold there.']);
+		expect(gameNotices([unknown], es)).toEqual(['Dromos no pudo saber si 30 monedas de oro por llegar al nivel 3 llegaron a Habitica, así que no las pagará otra vez. Revisa tu oro allí.']);
+		expect(ceremonyView([unknown], [], en)).toBeNull();
+	});
+
 	it('keeps the bonus out of the ceremony, which is the level\'s', () => {
 		const view = ceremonyView([{ kind: 'character-level', level: 3 }, { kind: 'level-bonus', level: 3, gold: 30, recorded: true }], [], en);
 
