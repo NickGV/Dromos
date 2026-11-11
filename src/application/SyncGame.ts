@@ -14,8 +14,10 @@ import {
 	skillStanding,
 	standingCompletionCount,
 	taskPrice,
+	weeklyHistory,
 	type Campaign,
 	type Character,
+	type Deed,
 	type LedgerRow,
 	type StatId,
 	type UnlockEvidence,
@@ -35,7 +37,7 @@ import type {
 	SkillRepository,
 } from '../ports';
 import { detectEvents, type GameEvent, type SkillChange } from './gameEvents';
-import type { CharacterStanding, DeedEntry, GameResult, GameSnapshot, GameState, QuestPrice, SkillEntry } from './GameState';
+import type { CharacterStanding, DeedEntry, GameResult, GameSnapshot, GameState, QuestPrice, SkillEntry, WeekEntry } from './GameState';
 import { statusForFailure } from './statusForFailure';
 
 export interface SyncGameDeps {
@@ -80,6 +82,7 @@ interface GameProjection {
 	readonly questPrices: ReadonlyMap<string, QuestPrice>;
 	readonly completedQuests: number;
 	readonly deeds: readonly DeedEntry[];
+	readonly history: readonly WeekEntry[];
 }
 
 /** How many deeds the chronicle of the home screen lists (game-ui S18). */
@@ -220,8 +223,8 @@ export class SyncGame {
 	/**
 	 * Decides the unlocks and turns `rows` into levels. Compared with the ledger as it was read, it also says what is new.
 	 * It keeps each skill's last rows, prices `observations` as the ledger would pay them, and counts
-	 * the completions that stand, and keeps the last deeds for the chronicle. Counting reads the rows
-	 * only: what the ledger writes is unchanged.
+	 * the completions that stand, and keeps the last deeds and the last weeks for the chronicle (M9 S1).
+	 * Counting reads the rows only: what the ledger writes is unchanged.
 	 */
 	private project(vault: VaultReads, rows: readonly LedgerRow[], streaks: ReadonlyMap<string, number>, observations: readonly ObservedTask[]): GameProjection {
 		const { rules } = vault.rules;
@@ -272,6 +275,7 @@ export class SyncGame {
 			questPrices: questPrices(observations, vault),
 			completedQuests: standingCompletionCount(rows),
 			deeds: chronicle(rows, vault),
+			history: weeks(rows, vault, today),
 		};
 	}
 
@@ -311,13 +315,29 @@ function gameResult(vault: VaultReads, game: GameProjection): GameResult {
 		questPrices: game.questPrices,
 		completedQuests: game.completedQuests,
 		deeds: game.deeds,
+		history: game.history,
 	};
 }
 
 /** The last deeds of `rows` (game-ui S18), each skill named by its note, or by its id when the vault has none. */
 function chronicle(rows: readonly LedgerRow[], vault: VaultReads): DeedEntry[] {
+	const name = skillNames(vault);
+	return recentDeeds(rows, CHRONICLE_DEEDS).map((deed) => deedEntry(deed, name));
+}
+
+/** The last weeks of `rows` up to the week of `today` (M9 S1), their deeds named as the chronicle names them. */
+function weeks(rows: readonly LedgerRow[], vault: VaultReads, today: string): WeekEntry[] {
+	const name = skillNames(vault);
+	return weeklyHistory(rows, vault.skills.skills, today).map((week) => ({ ...week, deeds: week.deeds.map((deed) => deedEntry(deed, name)) }));
+}
+
+function skillNames(vault: VaultReads): (id: string) => string {
 	const names = new Map(vault.skills.skills.map((skill) => [skill.id, skill.name]));
-	return recentDeeds(rows, CHRONICLE_DEEDS).map(({ date, task, xp, source, skills }) => ({ date, task, xp, source, skills: skills.map((id) => ({ id, name: names.get(id) ?? id })) }));
+	return (id) => names.get(id) ?? id;
+}
+
+function deedEntry({ date, task, xp, source, skills }: Deed, name: (id: string) => string): DeedEntry {
+	return { date, task, xp, source, skills: skills.map((id) => ({ id, name: name(id) })) };
 }
 
 /** Every task read, priced by the XP table of the rules with `taskPrice`, the function the ledger rows are built from. */

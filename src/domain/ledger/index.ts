@@ -5,3 +5,4 @@ export * from './questCounts';
 export * from './streakRows';
 export * from './planRows';
 export * from './recentRows';
+export * from './weeklyHistory';
