@@ -45,9 +45,13 @@ export interface ChronicleOptions {
  */
 export function chronicleView(deeds: readonly DeedEntry[] | undefined, today: string, t: Translator, options: ChronicleOptions = {}): ChronicleView | null {
 	if (deeds === undefined || deeds.length === 0) return null;
-	const lines = deeds.map((deed, index) => lineOf(deed, index, today, t));
-	const { rows, more } = limitRows(lines, options.expanded ?? false, t, () => false, CHRONICLE_LIMIT);
+	const { rows, more } = limitRows(deedLines(deeds, today, t), options.expanded ?? false, t, () => false, CHRONICLE_LIMIT);
 	return { title: t('chronicle.title'), lines: rows, ...(more ? { more } : {}) };
+}
+
+/** Every deed as a journal line of the chronicle, in the order given; the Chronicle screen lists a week's with it (M9 S2). */
+export function deedLines(deeds: readonly DeedEntry[], today: string, t: Translator): DeedLineView[] {
+	return deeds.map((deed, index) => lineOf(deed, index, today, t));
 }
 
 function lineOf(deed: DeedEntry, index: number, today: string, t: Translator): DeedLineView {

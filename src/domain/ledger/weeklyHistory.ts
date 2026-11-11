@@ -94,8 +94,9 @@ function addDays(date: string, days: number): string {
 	return new Date(toUtc(date) + days * MS_PER_DAY).toISOString().slice(0, 10);
 }
 
-/** The Monday of the week of `date`, read as a calendar day so no time zone moves it. */
+/** The Monday of the week of `date`, read as a calendar day so no time zone moves it; anything else comes back as it is. */
 export function mondayOf(date: string): string {
+	if (!LOCAL_DATE.test(date)) return date;
 	const weekday = new Date(toUtc(date)).getUTCDay();
 	return addDays(date, -((weekday + 6) % DAYS_PER_WEEK));
 }

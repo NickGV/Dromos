@@ -53,3 +53,27 @@ export function longDate(date: string, today: string, t: Translator): string {
 	const params = { day: Number(match[3]), month: t(month), year: match[1] ?? '' };
 	return today.startsWith(`${match[1]}-`) ? t('date.long', params) : t('date.long.year', params);
 }
+
+const WEEKDAYS = ['date.weekday.mon', 'date.weekday.tue', 'date.weekday.wed', 'date.weekday.thu', 'date.weekday.fri', 'date.weekday.sat', 'date.weekday.sun'] as const satisfies readonly MessageKey[];
+
+const LONG_WEEKDAYS = [
+	'date.weekdayLong.mon',
+	'date.weekdayLong.tue',
+	'date.weekdayLong.wed',
+	'date.weekdayLong.thu',
+	'date.weekdayLong.fri',
+	'date.weekdayLong.sat',
+	'date.weekdayLong.sun',
+] as const satisfies readonly MessageKey[];
+
+/** The short name of a day of the week counted from Monday (0) to Sunday (6), "Mon"; empty past Sunday. */
+export function weekdayShort(index: number, t: Translator): string {
+	const key = WEEKDAYS[index];
+	return key === undefined ? '' : t(key);
+}
+
+/** The full name of a day of the week counted from Monday (0) to Sunday (6), "Monday"; empty past Sunday. */
+export function weekdayLong(index: number, t: Translator): string {
+	const key = LONG_WEEKDAYS[index];
+	return key === undefined ? '' : t(key);
+}

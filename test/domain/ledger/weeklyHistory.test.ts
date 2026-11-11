@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { foldLedger } from '../../../src/domain/ledger/foldLedger';
-import { HISTORY_WEEKS, weeklyHistory, type WeekTally } from '../../../src/domain/ledger/weeklyHistory';
+import { HISTORY_WEEKS, mondayOf, weeklyHistory, type WeekTally } from '../../../src/domain/ledger/weeklyHistory';
 import type { SkillXpSource } from '../../../src/domain/ledger/foldLedger';
 import { row } from './ledgerFixtures';
 
@@ -173,6 +173,13 @@ describe('weeklyHistory (M9 S1): the deeds of a week and the week before', () =>
 		expect(weeks[0]).toMatchObject({ xp: 120, previousXp: 130 });
 		expect(weeks[11]).toMatchObject({ xp: 10, previousXp: 20 });
 		expect(fresh.map((week) => week.previousXp)).toEqual([null, 10]);
+	});
+});
+
+describe('mondayOf (M9 S1)', () => {
+	it('gives the Monday of a day\'s week, and an unreadable date back as it is', () => {
+		expect(['2026-11-09', '2026-11-11', '2026-11-15', '2026-11-16'].map(mondayOf)).toEqual(['2026-11-09', '2026-11-09', '2026-11-09', '2026-11-16']);
+		expect(mondayOf('someday')).toBe('someday');
 	});
 });
 
