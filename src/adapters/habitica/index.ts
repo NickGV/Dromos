@@ -8,3 +8,5 @@ export * from './HabiticaTaskStatusSource';
 export * from './gameTaskMapper';
 export * from './HabiticaGameTaskSource';
 export * from './HabiticaTagCatalog';
+export * from './HabiticaGoldAccount';
+export * from './HabiticaRewardCatalog';

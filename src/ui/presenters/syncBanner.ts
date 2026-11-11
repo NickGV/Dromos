@@ -74,7 +74,8 @@ function prominent(banner: SyncBannerView): SyncBannerView {
 	return { ...banner, prominent: true };
 }
 
-function waitText(seconds: number | null, t: Translator): string {
+/** "30 seconds", or "a moment" when Habitica did not say how long to wait. */
+export function waitText(seconds: number | null, t: Translator): string {
 	return seconds === null ? t('time.wait.moment') : plural(t, 'time.wait', seconds);
 }
 

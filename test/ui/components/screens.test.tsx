@@ -33,7 +33,7 @@ const at = (iso: string): Date => new Date(iso);
 const quests = (status: QuestSnapshot['status'], lastSyncedAt: Date | null = at('2026-11-03T12:00:00Z')): QuestSnapshot => ({ quests: [], lastSyncedAt, status });
 
 describe('Signpost', () => {
-	it('always shows its five planks in a fixed order, the one of the current screen burnt in and marked as the page (game-ui S14, M7 S5)', () => {
+	it('always shows its six planks in a fixed order, the one of the current screen burnt in and marked as the page (game-ui S14, M7 S5, M10 S4)', () => {
 		const html = (current: DromosScreen) => renderToStaticMarkup(<Signpost current={current} onGo={noop} onSettings={noop} />);
 
 		expect(planks(html('home'))).toEqual([
@@ -41,6 +41,7 @@ describe('Signpost', () => {
 			['Go to Campaigns', 'Campaigns'],
 			['Go to Skills', 'Skills'],
 			['Go to Library', 'Library'],
+			['Go to Shop', 'Shop'],
 			['Go to Settings', 'Settings'],
 		]);
 		expect(planks(html('campaigns'))).toEqual([
@@ -48,6 +49,7 @@ describe('Signpost', () => {
 			['Campaigns', 'Campaigns'],
 			['Go to Skills', 'Skills'],
 			['Go to Library', 'Library'],
+			['Go to Shop', 'Shop'],
 			['Go to Settings', 'Settings'],
 		]);
 		expect(planks(html('library'))).toEqual([
@@ -55,19 +57,29 @@ describe('Signpost', () => {
 			['Go to Campaigns', 'Campaigns'],
 			['Go to Skills', 'Skills'],
 			['Library', 'Library'],
+			['Go to Shop', 'Shop'],
 			['Go to Settings', 'Settings'],
 		]);
-		expect(planks(html('skills')).map(([, text]) => text)).toEqual(['Path', 'Campaigns', 'Skills', 'Library', 'Settings']);
-		expect([currentPlank(html('home')), currentPlank(html('campaigns')), currentPlank(html('skills')), currentPlank(html('library'))]).toEqual([['Path'], ['Campaigns'], ['Skills'], ['Library']]);
+		expect(planks(html('shop'))).toEqual([
+			['Go to Path', 'Path'],
+			['Go to Campaigns', 'Campaigns'],
+			['Go to Skills', 'Skills'],
+			['Go to Library', 'Library'],
+			['Shop', 'Shop'],
+			['Go to Settings', 'Settings'],
+		]);
+		expect(planks(html('skills')).map(([, text]) => text)).toEqual(['Path', 'Campaigns', 'Skills', 'Library', 'Shop', 'Settings']);
+		expect([currentPlank(html('home')), currentPlank(html('campaigns')), currentPlank(html('skills')), currentPlank(html('library')), currentPlank(html('shop'))]).toEqual([['Path'], ['Campaigns'], ['Skills'], ['Library'], ['Shop']]);
 		expect(html('home').match(/aria-current/g)).toHaveLength(1);
 		expect(html('library').match(/aria-current/g)).toHaveLength(1);
+		expect(html('shop').match(/aria-current/g)).toHaveLength(1);
 	});
 
 	it('keeps the other planks named "Go to X" as before, and no plank disabled', () => {
 		const html = renderToStaticMarkup(<Signpost current="skills" onGo={noop} onSettings={noop} />);
 
 		expect(html).not.toContain('disabled');
-		expect(planks(html).map(([name]) => name)).toEqual(['Go to Path', 'Go to Campaigns', 'Skills', 'Go to Library', 'Go to Settings']);
+		expect(planks(html).map(([name]) => name)).toEqual(['Go to Path', 'Go to Campaigns', 'Skills', 'Go to Library', 'Go to Shop', 'Go to Settings']);
 	});
 
 	it('speaks Spanish when the interface does', () => {
@@ -81,25 +93,26 @@ describe('Signpost', () => {
 			['Campañas', 'Campañas'],
 			['Ir a Skills', 'Skills'],
 			['Ir a Biblioteca', 'Biblioteca'],
+			['Ir a Tienda', 'Tienda'],
 			['Ir a Ajustes', 'Ajustes'],
 		]);
 	});
 
 	it('hides the settings plank where the settings cannot be opened', () => {
-		expect(planks(renderToStaticMarkup(<Signpost current="home" onGo={noop} onSettings={null} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library']);
+		expect(planks(renderToStaticMarkup(<Signpost current="home" onGo={noop} onSettings={null} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library', 'Go to Shop']);
 	});
 
 	it('is a navigation landmark of buttons', () => {
 		const html = renderToStaticMarkup(<Signpost current="home" onGo={noop} onSettings={noop} />);
 		expect(html).toMatch(/^<nav[^>]*class="dromos-signpost"[^>]*aria-label="Sections"/);
-		expect(html.match(/<button type="button"/g)).toHaveLength(5);
+		expect(html.match(/<button type="button"/g)).toHaveLength(6);
 	});
 });
 
 describe('HomeScreen signpost', () => {
 	it('offers the settings plank only when the settings can be opened', () => {
-		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library']);
-		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps({ openSettings: noop })} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library', 'Go to Settings']);
+		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library', 'Go to Shop']);
+		expect(planks(renderToStaticMarkup(<HomeScreen deps={homeDeps({ openSettings: noop })} />)).map(([name]) => name)).toEqual(['Path', 'Go to Campaigns', 'Go to Skills', 'Go to Library', 'Go to Shop', 'Go to Settings']);
 		expect(currentPlank(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="campaigns" />))).toEqual(['Campaigns']);
 	});
 
@@ -219,11 +232,11 @@ describe('HomeScreen screens', () => {
 	});
 
 	it('keeps the library off the other screens', () => {
-		for (const screen of ['home', 'campaigns', 'skills'] as const) expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).not.toContain('dromos-library');
+		for (const screen of ['home', 'campaigns', 'skills', 'shop'] as const) expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).not.toContain('dromos-library');
 	});
 
 	it('draws the same scene on every screen, as tall as the home screen had it (S2)', () => {
-		for (const screen of ['home', 'campaigns', 'skills', 'library'] as const) {
+		for (const screen of ['home', 'campaigns', 'skills', 'library', 'shop'] as const) {
 			expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).toContain('<div class="dromos-scene" data-period="day">');
 		}
 	});

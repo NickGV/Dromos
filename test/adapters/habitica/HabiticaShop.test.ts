@@ -1,0 +1,115 @@
+import { describe, expect, it } from 'vitest';
+import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
+import { HabiticaGoldAccount } from '../../../src/adapters/habitica/HabiticaGoldAccount';
+import { HabiticaRewardCatalog } from '../../../src/adapters/habitica/HabiticaRewardCatalog';
+import { TaskSourceError } from '../../../src/ports/TaskSourceError';
+import { FakeHttp, respond } from './FakeHttp';
+
+const API = 'https://habitica.com/api/v3';
+const TOKEN = 'secret-token-0000-4000-8000-123456789abc';
+const COFFEE = '3f2a1c8e-0000-4000-8000-000000000001';
+const BOOK = '3f2a1c8e-0000-4000-8000-000000000002';
+
+function shop(http: FakeHttp) {
+	const client = new HabiticaClient(http.send, () => ({ userId: 'user-1', apiToken: TOKEN }));
+	return { gold: new HabiticaGoldAccount(client), rewards: new HabiticaRewardCatalog(client) };
+}
+
+async function errorOf(promise: Promise<unknown>): Promise<TaskSourceError> {
+	const error: unknown = await promise.then(
+		() => null,
+		(reason: unknown) => reason,
+	);
+	if (!(error instanceof TaskSourceError)) throw new Error(`expected a TaskSourceError, got ${String(error)}`);
+	return error;
+}
+
+const reward = (id: string, text: string, value: unknown, extra: Record<string, unknown> = {}) => ({ id, _id: id, type: 'reward', text, notes: '', value, ...extra });
+
+describe('HabiticaGoldAccount.readGold (M10 S1)', () => {
+	it("reads the gold from the user's stats, with one GET of only the stats", async () => {
+		const http = new FakeHttp().on(`${API}/user?userFields=stats`, respond(200, { success: true, data: { stats: { gp: 124.62, hp: 50 } } }));
+
+		expect(await shop(http).gold.readGold()).toBe(124.62);
+		expect(http.sent()).toEqual([`GET ${API}/user?userFields=stats`]);
+	});
+
+	it('fails as Unknown when the answer has no gold, without the token in the message', async () => {
+		const http = new FakeHttp().on(`${API}/user?userFields=stats`, respond(200, { success: true, data: { stats: {} } }));
+
+		const error = await errorOf(shop(http).gold.readGold());
+
+		expect(error.kind).toBe('Unknown');
+		expect(error.message).not.toContain(TOKEN);
+	});
+
+	it('passes the typed errors through', async () => {
+		const http = new FakeHttp().on(`${API}/user?userFields=stats`, respond(401, {}));
+
+		expect((await errorOf(shop(http).gold.readGold())).kind).toBe('Unauthorized');
+	});
+});
+
+describe('HabiticaRewardCatalog.list (M10 S1)', () => {
+	it('lists the rewards with their name, their notes when they have any, and their price', async () => {
+		const http = new FakeHttp().on(`${API}/tasks/user?type=rewards`, respond(200, { success: true, data: [reward(COFFEE, 'Coffee out', 20, { notes: 'At the corner café' }), reward(BOOK, 'A new book', 75)] }));
+
+		expect(await shop(http).rewards.list()).toEqual([
+			{ id: COFFEE, name: 'Coffee out', notes: 'At the corner café', price: 20, alias: null },
+			{ id: BOOK, name: 'A new book', notes: null, price: 75, alias: null },
+		]);
+		expect(http.sent()).toEqual([`GET ${API}/tasks/user?type=rewards`]);
+	});
+
+	it('keeps the alias of a reward that has one', async () => {
+		const http = new FakeHttp().on(`${API}/tasks/user?type=rewards`, respond(200, { success: true, data: [reward(COFFEE, 'Coffee out', 20, { alias: 'coffee' })] }));
+
+		expect((await shop(http).rewards.list())[0]?.alias).toBe('coffee');
+	});
+
+	it('leaves out a reward with no usable price instead of making one up', async () => {
+		const http = new FakeHttp().on(`${API}/tasks/user?type=rewards`, respond(200, { success: true, data: [reward(COFFEE, 'Coffee out', 'cheap'), reward(BOOK, 'A new book', -5), reward('c', 'Tea', 3)] }));
+
+		expect((await shop(http).rewards.list()).map((entry) => entry.name)).toEqual(['Tea']);
+	});
+
+	it('fails as Unknown when the list is not a task list', async () => {
+		const http = new FakeHttp().on(`${API}/tasks/user?type=rewards`, respond(200, { success: true, data: { nope: true } }));
+
+		expect((await errorOf(shop(http).rewards.list())).kind).toBe('Unknown');
+	});
+});
+
+describe('HabiticaRewardCatalog.buy (M10 S1)', () => {
+	it('buys the reward by scoring it up, with no body, and resolves with the gold Habitica returns', async () => {
+		const url = `${API}/tasks/${COFFEE}/score/up`;
+		const http = new FakeHttp().onPost(url, respond(200, { success: true, data: { delta: 0, gp: 104.62, hp: 50 } }));
+
+		expect(await shop(http).rewards.buy(COFFEE)).toBe(104.62);
+		expect(http.sent()).toEqual([`POST ${url}`]);
+		expect(http.requests[0]?.body).toBeUndefined();
+	});
+
+	it('resolves null when Habitica bought it but sent no readable gold', async () => {
+		const http = new FakeHttp().onPost(`${API}/tasks/${COFFEE}/score/up`, respond(200, { success: true, data: { delta: 0 } }));
+
+		expect(await shop(http).rewards.buy(COFFEE)).toBeNull();
+	});
+
+	it('escapes the id in the path', async () => {
+		const http = new FakeHttp();
+
+		await shop(http).rewards.buy('a/b').catch(() => undefined);
+
+		expect(http.sent()).toEqual([`POST ${API}/tasks/a%2Fb/score/up`]);
+	});
+
+	it('fails with the typed error Habitica gives, Unauthorized when it refuses the gold', async () => {
+		const http = new FakeHttp().onPost(`${API}/tasks/${COFFEE}/score/up`, respond(401, { success: false, error: 'NotAuthorized', message: 'Not enough gold.' }));
+
+		const error = await errorOf(shop(http).rewards.buy(COFFEE));
+
+		expect(error.kind).toBe('Unauthorized');
+		expect(error.message).not.toContain(TOKEN);
+	});
+});

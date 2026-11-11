@@ -4,6 +4,8 @@ import {
 	createObsidianHttp,
 	HabiticaClient,
 	HabiticaGameTaskSource,
+	HabiticaGoldAccount,
+	HabiticaRewardCatalog,
 	HabiticaTagCatalog,
 	HabiticaTaskCreator,
 	HabiticaTaskSource,
@@ -12,7 +14,7 @@ import {
 } from '../adapters/habitica';
 import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, linksOpenInObsidian, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import { VaultBookRepository, VaultBriefingRepository, VaultCampaignRepository, VaultGameStateRepository, VaultLedgerRepository, VaultResourceRepository, VaultRulesRepository, VaultSkillRepository } from '../adapters/vault';
-import { CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, MarkResourceFinished, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { BuyReward, CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, LoadShop, MarkResourceFinished, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
@@ -97,6 +99,9 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 		const file = plugin.app.vault.getFileByPath(path);
 		if (file) void plugin.app.workspace.getLeaf('tab').openFile(file);
 	};
+	// The Shop (M10, ADR-019): Habitica's gold and the user's own rewards, read on open and on Sync.
+	const goldAccount = new HabiticaGoldAccount(habitica);
+	const rewardCatalog = new HabiticaRewardCatalog(habitica);
 	const gameState = new GameState();
 	const syncGame = new SyncGame({
 		skills: new VaultSkillRepository(plugin.app, vaultFolder),
@@ -167,6 +172,13 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				openCard: createOpenCardModal(plugin.app),
 				openNote,
 				clock,
+			},
+			// The Shop (M10 S1, S4): a purchase is confirmed in a card first, and its outcome is a toast.
+			shop: {
+				loadShop: new LoadShop({ gold: goldAccount, rewards: rewardCatalog, hasCredentials }),
+				buyReward: new BuyReward({ rewards: rewardCatalog, gold: goldAccount, hasCredentials }),
+				openCard: createOpenCardModal(plugin.app),
+				notify: showNotice,
 			},
 		},
 		settings: () => settings,

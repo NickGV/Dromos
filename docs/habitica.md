@@ -69,9 +69,19 @@ If Habitica fails, nothing is written and the book stays pending. If the to-do w
 
 **Terminar** on a book being read writes `status: completed` and `finished` (today). It does not complete the to-do in Habitica; that stays yours, once the reflection is written. Dromos seals the book only when the four sections of the reflection have text.
 
+## The Shop
+
+The **Shop** plank of the signpost opens the Shop: your Habitica gold and your own Habitica rewards (Habitica's *Rewards* column). Dromos keeps no currency of its own: the gold is Habitica's, and the Shop is the only place Dromos shows it, as a whole number.
+
+- **Buy** asks first. The confirmation names the reward, its price and the gold you will have left; only **Buy** in it spends gold. Cancel, Escape or closing it buys nothing.
+- Buying spends the gold in Habitica, exactly as clicking the reward there does, and the Shop shows the gold Habitica answers with. Habitica keeps the reward, so you can buy it again.
+- A reward that costs more than your gold cannot be bought: its button stays quiet and says how much gold is missing.
+- Offline or without credentials the Shop says so and nothing can be bought.
+- A purchase that fails says what happened. When Habitica did not answer at all, Dromos cannot tell whether the gold was taken: check your gold in Habitica before buying again.
+
 ## When Dromos talks to Habitica
 
-Only when the tab opens and when you select **Sync**. Nothing runs on a timer, and there is no telemetry.
+Only when the tab opens, when you select **Sync**, when you open the Shop and when you act on a button. Nothing runs on a timer, and there is no telemetry.
 
 | Action | Requests |
 |---|---|
@@ -79,6 +89,8 @@ Only when the tab opens and when you select **Sync**. Nothing runs on a timer, a
 | **Send to Habitica** | One write for the task. With skills, one read of your tags and one write for each that does not exist. The same for a habit beside the Library's desk |
 | **Empezar a leer** | One read of your tags, one write for `skill/lector` if it does not exist, and one write for the to-do. None for a book that already has a `habitica_id` |
 | **Terminar** | None |
+| Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards |
+| **Buy** on one of your rewards, once confirmed | One write, `POST /tasks/<id>/score/up`, which spends the gold and answers with it. If Habitica refuses (it answers a short purse as it answers bad credentials), one more read of the gold tells which it was |
 
 Habitica allows 30 requests per minute. A request with no answer after 15 seconds counts as offline.
 

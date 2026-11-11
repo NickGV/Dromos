@@ -39,6 +39,7 @@ import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
 import { LibraryPanel, type LibraryDeps } from './LibraryPanel';
 import { ReadingDeskPanel } from './ReadingDeskPanel';
+import { ShopPanel, type ShopDeps } from './ShopPanel';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -71,6 +72,8 @@ export interface HomeScreenDeps {
 	readonly campaigns: CampaignsDeps;
 	/** The library screen (M7 S5): the books, the card and its actions. */
 	readonly library: LibraryDeps;
+	/** The Shop screen (M10 S4): the gold, the rewards and buying them. */
+	readonly shop: ShopDeps;
 	/** The translator for the language chosen in the settings; read on every render. */
 	readonly translator: () => Translator;
 	/** The interface language, for the `lang` of the screen; read on every render. */
@@ -112,8 +115,8 @@ let viewCount = 0;
  * when it finishes, the character is read again because the sync rewrites its note. Each run
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  *
- * It holds the screens of the view (game-ui S1): home, campaigns, skills, the library (M7 S5) and the
- * Chronicle (M9 S3), under one scene with a signpost and the character's plaque (home-header S2), which
+ * It holds the screens of the view (game-ui S1): home, campaigns, skills, the library (M7 S5), the
+ * Chronicle (M9 S3) and the Shop (M10 S4), under one scene with a signpost and the character's plaque (home-header S2), which
  * shows on every screen with the skills nearest to unlocking (S3). Changing screen, campaign tab
  * or skill spends no
  * request: they are only state here, and the campaigns panel stays mounted in its slot on every
@@ -368,7 +371,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						<CampaignsPanel
 							deps={deps.campaigns}
 							syncKey={syncKey}
-							hidden={screen === 'skills' || screen === 'library' || screen === 'chronicle'}
+							hidden={screen === 'skills' || screen === 'library' || screen === 'chronicle' || screen === 'shop'}
 							home={home ? { open: openCampaigns, onToggle: toggleCampaignCard, onOpen: (path) => setPlace({ screen: 'campaigns', campaign: path }) } : undefined}
 							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
@@ -384,6 +387,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					{screen === 'library' ? (
 						<LibraryPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} syncKey={syncKey} />
 					) : null}
+					{/* The Shop draws its own header card, with the gold in it (M10 S4); it reads Habitica on open and on Sync. */}
+					{screen === 'shop' ? <ShopPanel deps={deps.shop} language={language} syncKey={syncKey} /> : null}
 				</main>
 				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
 				<p className="dromos-visually-hidden dromos-since-news" role="status">

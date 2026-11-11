@@ -3,6 +3,7 @@ import { createTranslator, type Language } from '../../../src/i18n';
 import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
 import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
 import type { LibraryDeps } from '../../../src/ui/containers/LibraryPanel';
+import type { ShopDeps } from '../../../src/ui/containers/ShopPanel';
 import { InMemoryDeviceStore } from '../../fakes/InMemoryDeviceStore';
 
 export const noop = (): void => undefined;
@@ -44,6 +45,12 @@ export function homeDeps(
 		habits: { snapshot: () => options.campaigns ?? IDLE_CAMPAIGNS, sync: { execute: never, reload: never }, send: never },
 		clock,
 	};
+	const shop: ShopDeps = {
+		loadShop: { execute: never },
+		buyReward: { execute: never },
+		openCard: () => ({ show: noop, close: noop }),
+		notify: noop,
+	};
 	return {
 		loadHome: { execute: never },
 		syncQuests: { execute: never },
@@ -61,6 +68,7 @@ export function homeDeps(
 		deviceStore: new InMemoryDeviceStore(),
 		campaigns,
 		library,
+		shop,
 		translator: () => createTranslator(language),
 		language: () => language,
 		subscribeSettings: () => noop,

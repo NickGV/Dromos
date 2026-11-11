@@ -859,11 +859,11 @@
 .dromos-root .dromos-scene.is-offline .dromos-scene-life *,
 .dromos-root .dromos-scene.is-offline .dromos-walker:not(.is-walking) .dromos-walker-body { animation-play-state: paused; }
 
-/* The signpost (S1): a post with its five planks (M7 S5), each a 44 px target, the current
-   screen's burnt in (game-ui S14). They hang on both sides of the post, staggered as in the
-   library design: the first, third and fifth to its left, the second and fourth to its right, so
-   five fit in the height four took. The grid runs in half steps (--dromos-plank-step, half a plank
-   and its gap): each plank spans two, the right ones start one lower. A plank is 36 px tall and its
+/* The signpost (S1): a post with its six planks (M7 S5, M10 S4), each a 44 px target, the current
+   screen's burnt in (game-ui S14). They hang three a side of the post, staggered as in the
+   library design: the first, third and fifth to its left, the second, fourth and sixth to its
+   right. The grid runs in half steps (--dromos-plank-step, half a plank and its gap): each plank
+   spans two, the right ones start one lower, so six take seven steps. A plank is 36 px tall and its
    ::after reaches 4 px above and below; 8 px apart within a side, targets never overlap. Shorter
    scenes take shorter planks (below). */
 .dromos-root .dromos-signpost {
@@ -874,7 +874,7 @@
 	bottom: 50px;
 	display: grid;
 	grid-template-columns: auto 5px auto;
-	grid-template-rows: repeat(6, var(--dromos-plank-step));
+	grid-template-rows: repeat(7, var(--dromos-plank-step));
 	column-gap: 7px;
 	align-items: start;
 }
@@ -923,6 +923,7 @@
 .dromos-root .dromos-plank:nth-of-type(3) { grid-row: 3 / span 2; transform: rotate(-0.8deg); }
 .dromos-root .dromos-plank:nth-of-type(4) { grid-row: 4 / span 2; transform: rotate(1.3deg); }
 .dromos-root .dromos-plank:nth-of-type(5) { grid-row: 5 / span 2; transform: rotate(-1.2deg); }
+.dromos-root .dromos-plank:nth-of-type(6) { grid-row: 6 / span 2; transform: rotate(0.9deg); }
 .dromos-root .dromos-plank:hover { background: var(--dromos-plank-hover); }
 
 /* The plank of the screen on show is burnt into the wood: darker, scorched at its edges, its
@@ -982,8 +983,10 @@
 @container dromos-view (max-width: 472px) {
 	/* Every screen gets the 220 px scene here (game-ui L15). */
 	.dromos-root .dromos-scene { --dromos-scene-h: 220px; height: 220px; }
-	/* 44 px targets over the 220 px scene: 34 px planks reaching 5 px out, 10 px apart within a side. */
-	.dromos-root .dromos-signpost { right: 14px; bottom: 47px; }
+	/* 44 px targets over the 220 px scene: 34 px planks reaching 5 px out, 10 px apart within a side.
+	   The sixth plank (M10 S4) took one more step: the post stands that step lower, so its top plank
+	   stays 41 px from the scene's top and the ribbon of a level-up still fits above it. */
+	.dromos-root .dromos-signpost { right: 14px; bottom: 25px; }
 	.dromos-root .dromos-plank { min-height: 34px; padding: 4px 12px; }
 	.dromos-root .dromos-plank::after { inset: -5px 0; }
 	/* The drawing is framed at least 60 px further left, so the walker stands clear of the
@@ -4012,3 +4015,100 @@
 	.dromos-root .dromos-archive-doorway { padding: 0 12px 12px; }
 	.dromos-root button.dromos-archive-door { width: 100%; }
 }
+
+/* ── The Shop (M10 S1, S4) ─────────────────────────────────────────────────────────────────────
+   A market stall on the parchment: the gold hangs at the header card's other end, a struck ochre
+   coin beside a number in the display face; each thing for sale is a journal line, its name in
+   ink, its notes muted, its price in ochre ink beside a small coin, and its buy button. A reward
+   dearer than the gold keeps a dashed, quiet button and says, under it, how much is missing. */
+.dromos-root .dromos-shop-frame { min-width: 0; }
+.dromos-root .dromos-shop { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.dromos-root .dromos-coin { flex: none; overflow: visible; }
+.dromos-root .dromos-coin-face { fill: var(--dromos-ochre); stroke: var(--dromos-umber); stroke-width: 1.1; }
+.dromos-root .dromos-coin-rim { fill: none; stroke: var(--dromos-on-ochre); stroke-width: 0.9; opacity: 0.4; }
+.dromos-root .dromos-coin-mark { fill: var(--dromos-on-ochre); opacity: 0.55; }
+
+.dromos-root .dromos-shop-gold {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	color: var(--dromos-ochre-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 1.65em;
+	font-weight: 600;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 1.1;
+	white-space: nowrap;
+}
+
+.dromos-root .dromos-shop-note { margin: 0; padding: 14px 18px; color: var(--dromos-ink); font-size: 15px; line-height: 1.5; }
+.dromos-root .dromos-shop-note.is-quiet { color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; font-style: italic; }
+.dromos-root .dromos-shop-note.is-warning { color: var(--dromos-ink-warning); }
+.dromos-root .dromos-shop-note.is-error { color: var(--dromos-ink-error); }
+.dromos-root .dromos-shop-empty { margin: 0; padding: 16px 18px; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; }
+
+.dromos-root .dromos-shop-list { margin: 0; padding: 2px 18px; list-style: none; }
+.dromos-root .dromos-shop-item {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto auto;
+	align-items: center;
+	gap: 4px 18px;
+	padding: 12px 0;
+	border-top: 1px dashed var(--dromos-rule-dashed);
+}
+.dromos-root .dromos-shop-item:first-child { border-top: 0; }
+.dromos-root .dromos-shop-item-text { grid-column: 1; grid-row: 1; min-width: 0; }
+.dromos-root .dromos-shop-item-name { margin: 0; color: var(--dromos-ink); font-family: var(--dromos-font-display); font-size: 18px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.dromos-root .dromos-shop-item-notes { margin: 3px 0 0; color: var(--dromos-ink-muted); font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+
+.dromos-root .dromos-shop-price {
+	grid-column: 2;
+	grid-row: 1;
+	justify-self: end;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	color: var(--dromos-ochre-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 18px;
+	font-weight: 600;
+	font-variant-numeric: lining-nums tabular-nums;
+	white-space: nowrap;
+}
+
+/* The button and its reason are items of the row's grid: the button in the last column, the reason
+   on a line of its own under the row, flush right, so it never pushes the prices out of line. */
+.dromos-root .dromos-shop-buy { display: contents; }
+.dromos-root .dromos-shop-buy-button { grid-column: 3; grid-row: 1; min-width: 104px; justify-content: center; }
+.dromos-root .dromos-shop-reason { grid-column: 1 / -1; grid-row: 2; justify-self: end; margin: 0; color: var(--dromos-ink-muted); font-size: 13px; text-align: right; }
+/* A reward dearer than the gold: the button stays focusable (aria-disabled) with its reason as its
+   description, quiet and dashed, and takes no click. */
+.dromos-root .dromos-btn.dromos-shop-buy-button.is-unavailable,
+.dromos-root .dromos-btn.dromos-shop-buy-button.is-unavailable:hover { border-style: dashed; background-color: transparent; color: var(--dromos-ink-muted); cursor: not-allowed; }
+.dromos-root .dromos-btn.dromos-shop-buy-button[aria-busy="true"] { cursor: progress; }
+
+/* Phones and narrow panes: the name and its notes take the line; the price and the button share
+   the one under it, the price at its start, and the reason goes under them. */
+@container dromos-view (max-width: 472px) {
+	.dromos-root .dromos-shop-list { padding-inline: 14px; }
+	.dromos-root .dromos-shop-item { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; }
+	.dromos-root .dromos-shop-item-text { grid-column: 1 / -1; }
+	.dromos-root .dromos-shop-price { grid-column: 1; grid-row: 2; justify-self: start; }
+	.dromos-root .dromos-shop-buy-button { grid-column: 2; grid-row: 2; }
+	.dromos-root .dromos-shop-reason { grid-row: 3; margin-top: -4px; }
+}
+
+/* The confirmation of a purchase: the book card's frame, narrower, its lines a small ledger. */
+.dromos-root.dromos-book-modal.dromos-confirm-modal { --dialog-width: 440px; }
+.dromos-root .dromos-shop-confirm { display: flex; flex-direction: column; gap: 18px; padding-right: 28px; }
+.dromos-root .dromos-shop-confirm-title { margin: 0; color: var(--dromos-ink); font-family: var(--dromos-font-display); font-size: 26px; font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.dromos-root .dromos-shop-confirm-lines { margin: 0; }
+.dromos-root .dromos-shop-confirm-line { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 8px 0; border-top: 1px dashed var(--dromos-rule-dashed); }
+.dromos-root .dromos-shop-confirm-line:first-child { border-top: 0; }
+.dromos-root .dromos-shop-confirm-line dt { color: var(--dromos-ink-muted); font-variant: small-caps; letter-spacing: 0.06em; }
+.dromos-root .dromos-shop-confirm-value { margin: 0; color: var(--dromos-ochre-ink); font-family: var(--dromos-font-display); font-size: 18px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; text-align: right; white-space: nowrap; }
+.dromos-root .dromos-shop-confirm-actions { display: flex; flex-wrap: wrap; gap: 10px 12px; }
+.dromos-root .dromos-shop-confirm-actions .dromos-btn { flex: 1 1 8em; justify-content: center; }

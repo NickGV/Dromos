@@ -1,5 +1,5 @@
 import { TaskSourceError } from '../../ports';
-import type { HttpFunction, HttpResponse } from './http';
+import type { HttpFunction, HttpMethod, HttpResponse } from './http';
 
 /** Root of Habitica's API v3; request paths are appended to it. */
 export const HABITICA_BASE_URL = 'https://habitica.com/api/v3';
@@ -37,9 +37,22 @@ export class HabiticaClient {
 		return dataOf(await this.request('GET', path));
 	}
 
-	/** `POST` a JSON body and resolve with the envelope's `data` (for example the created task). */
-	async post(path: string, body: unknown): Promise<unknown> {
+	/**
+	 * `POST` a JSON body and resolve with the envelope's `data` (for example the created task).
+	 * Without a body, as scoring a task (`/tasks/:id/score/up`), nothing but the headers is sent.
+	 */
+	async post(path: string, body?: unknown): Promise<unknown> {
 		return dataOf(await this.request('POST', path, body));
+	}
+
+	/** `PUT` a JSON body, such as `{ "stats.gp": 40 }` on `/user`, and resolve with the envelope's `data`. */
+	async put(path: string, body: unknown): Promise<unknown> {
+		return dataOf(await this.request('PUT', path, body));
+	}
+
+	/** `DELETE` a path such as `/tasks/<id>` and resolve with the envelope's `data`. */
+	async delete(path: string): Promise<unknown> {
+		return dataOf(await this.request('DELETE', path));
 	}
 
 	/**
@@ -51,7 +64,7 @@ export class HabiticaClient {
 		return response.status === 404 ? null : dataOf(response);
 	}
 
-	private async request(method: 'GET' | 'POST', path: string, body?: unknown): Promise<HttpResponse> {
+	private async request(method: HttpMethod, path: string, body?: unknown): Promise<HttpResponse> {
 		const { userId, apiToken } = await this.credentials();
 		// A value a header cannot carry makes the HTTP layer throw, which would read as offline.
 		if (!isHeaderSafe(userId) || !isHeaderSafe(apiToken)) {
