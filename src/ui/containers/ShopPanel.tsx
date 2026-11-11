@@ -4,6 +4,7 @@ import type { Language } from '../../i18n';
 import { useT } from '../i18n';
 import { ShopConfirm } from '../organisms/ShopConfirm';
 import { ShopScreen } from '../organisms/ShopScreen';
+import type { DayPeriod } from '../presenters/dayPeriod';
 import { offerKey, purchaseConfirmView, purchaseMessage, rewardKey } from '../presenters/shopView';
 import { NO_CHOICE, stallView, type ShopTab, type StallChoice, type WareTab } from '../presenters/stallView';
 import type { CardModal } from './LibraryPanel';
@@ -29,6 +30,8 @@ export interface ShopPanelProps {
 	readonly language: Language;
 	/** The home's sync counter: each bump after the first read, Sync was selected, and the shop is read again. */
 	readonly syncKey: number;
+	/** The time of day the stall's sky shows (M10 S6). */
+	readonly period?: DayPeriod;
 }
 
 /**
@@ -42,7 +45,7 @@ export interface ShopPanelProps {
  * request, or is read again when that cannot be told. Leaving the screen closes an open
  * confirmation, which buys nothing.
  */
-export function ShopPanel({ deps, language, syncKey }: ShopPanelProps) {
+export function ShopPanel({ deps, language, syncKey, period = 'day' }: ShopPanelProps) {
 	const t = useT();
 	const idPrefix = `dromos-shop-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 	const [shop, setShop] = useState<ShopSnapshot | null>(null);
@@ -124,7 +127,7 @@ export function ShopPanel({ deps, language, syncKey }: ShopPanelProps) {
 
 	return (
 		<div className="dromos-shop-frame" ref={body}>
-			<ShopScreen view={stallView(shop, busy, choice, t)} onBuy={buy} onTab={pickTab} onChoose={choose} idPrefix={idPrefix} />
+			<ShopScreen view={stallView(shop, busy, choice, t)} period={period} onBuy={buy} onTab={pickTab} onChoose={choose} idPrefix={idPrefix} />
 		</div>
 	);
 }

@@ -1,12 +1,16 @@
 import type { KeyboardEvent } from 'react';
 import { Coin } from '../atoms/Coin';
+import { StallArt } from '../atoms/StallArt';
 import { WareArt, WareLock } from '../atoms/WareArt';
+import type { DayPeriod } from '../presenters/dayPeriod';
 import type { PurchasesView } from '../presenters/shopView';
 import { nextTab, type ShopTab, type StallTabView, type StallView, type WareDetailView, type WaresView, type WareTab, type WareTileView } from '../presenters/stallView';
 import { ScreenHeader } from './ScreenHeader';
 
 export interface ShopScreenProps {
 	readonly view: StallView;
+	/** The time of day the stall's sky shows; the stylesheet sets its colors from it. */
+	readonly period?: DayPeriod;
 	/** Buy was clicked: the key of the chosen ware. A held Buy calls nothing. */
 	readonly onBuy: (key: string) => void;
 	/** A tab was picked, by a click or a key. */
@@ -18,9 +22,10 @@ export interface ShopScreenProps {
 }
 
 /**
- * The Shop's wares (M10 S1, S2, S4, S6): its header card, "Shop", with the gold hung at its other
- * end, then on a wooden counter a note when the shop cannot sell (offline, without credentials) or
- * is being read, then the tabs: the user's Habitica rewards, Esdras's offers and the last purchases. A tab of wares holds a
+ * The Shop as a stall of the era (M10 S1, S2, S4, S6): its header card, "Shop", then the stall, the
+ * merchant behind his counter with the gold on a coin plaque hung at its corner, and on the counter
+ * below it a note when the shop cannot sell (offline, without credentials) or is being read, then the
+ * tabs: the user's Habitica rewards, Esdras's offers and the last purchases. A tab of wares holds a
  * grid of tiles, each the ware's drawing, name and price, locked with the gold it lacks when the gold
  * cannot reach it, and the detail panel of the chosen one: drawn large, with its notes or Esdras's
  * why and last day, its price, the gold left after it, and Buy, which names what it buys and its
@@ -28,26 +33,31 @@ export interface ShopScreenProps {
  * tab panel stays in the page, hidden but the chosen one. Offline the offers and the purchases show
  * with no Buy. Every amount is words for screen readers; the drawings are skipped.
  */
-export function ShopScreen({ view, onBuy, onTab, onChoose, idPrefix = 'dromos-shop' }: ShopScreenProps) {
+export function ShopScreen({ view, period = 'day', onBuy, onTab, onChoose, idPrefix = 'dromos-shop' }: ShopScreenProps) {
 	const selected = view.tabs.find((tab) => tab.selected)?.id ?? null;
-	const gold = view.gold ? (
-		<p className="dromos-shop-gold">
-			<span className="dromos-visually-hidden">{view.gold.label}</span>
-			<Coin size={22} />
-			<span className="dromos-shop-gold-amount" aria-hidden="true">
-				{view.gold.amount}
-			</span>
-		</p>
-	) : undefined;
 	return (
 		<div className="dromos-shop">
-			<ScreenHeader title={view.title} aside={gold} />
-			<div className="dromos-stall-counter">
-				{view.note ? <p className={`dromos-panel dromos-shop-note is-${view.note.tone}`}>{view.note.text}</p> : null}
-				{view.tabs.length > 0 ? tabList(view, onTab, idPrefix) : null}
-				{view.rewards ? waresPanel(view.rewards, selected === 'rewards', onBuy, onChoose, idPrefix) : null}
-				{view.offers ? waresPanel(view.offers, selected === 'offers', onBuy, onChoose, idPrefix) : null}
-				{view.purchases ? purchasesPanel(view.purchases, selected === 'purchases', idPrefix) : null}
+			<ScreenHeader title={view.title} />
+			<div className="dromos-stall-frame">
+				<div className={view.offline ? 'dromos-stall is-offline' : 'dromos-stall'} data-period={period}>
+					<StallArt />
+					{view.gold ? (
+						<p className="dromos-stall-plaque">
+							<span className="dromos-visually-hidden">{view.gold.label}</span>
+							<Coin size={22} />
+							<span className="dromos-stall-plaque-amount" aria-hidden="true">
+								{view.gold.amount}
+							</span>
+						</p>
+					) : null}
+				</div>
+				<div className="dromos-stall-counter">
+					{view.note ? <p className={`dromos-panel dromos-shop-note is-${view.note.tone}`}>{view.note.text}</p> : null}
+					{view.tabs.length > 0 ? tabList(view, onTab, idPrefix) : null}
+					{view.rewards ? waresPanel(view.rewards, selected === 'rewards', onBuy, onChoose, idPrefix) : null}
+					{view.offers ? waresPanel(view.offers, selected === 'offers', onBuy, onChoose, idPrefix) : null}
+					{view.purchases ? purchasesPanel(view.purchases, selected === 'purchases', idPrefix) : null}
+				</div>
 			</div>
 		</div>
 	);

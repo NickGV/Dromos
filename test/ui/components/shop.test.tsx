@@ -39,14 +39,21 @@ const shownPanels = (html: string): string =>
 		.filter((part) => part.startsWith('<div role="tabpanel"') && !/^<div role="tabpanel"[^>]*hidden=""/.test(part))
 		.join('');
 
-describe('ShopScreen: the wares (M10 S1, S4, S6)', () => {
-	it('opens with its header card, "Shop", and the gold in it, named in words', () => {
+describe('ShopScreen: the stall (M10 S1, S4, S6)', () => {
+	it('opens with its header card, "Shop", and the gold on a coin plaque hung in the stall, named in words', () => {
 		const html = screen(READY);
 
-		expect(html).toMatch(/^<div class="dromos-shop"><header class="dromos-panel dromos-screen-header has-aside"><h2[^>]*data-screen-heading="true">Shop<\/h2>/);
-		expect(html).toContain('<span class="dromos-visually-hidden">Your gold: 124 gold</span>');
-		expect(html).toMatch(/<span class="dromos-shop-gold-amount" aria-hidden="true">124<\/span>/);
+		expect(html).toMatch(/^<div class="dromos-shop"><header class="dromos-panel dromos-screen-header"><h2[^>]*data-screen-heading="true">Shop<\/h2><\/header>/);
+		expect(html).toMatch(/<p class="dromos-stall-plaque"><span class="dromos-visually-hidden">Your gold: 124 gold<\/span>/);
+		expect(html).toMatch(/<span class="dromos-stall-plaque-amount" aria-hidden="true">124<\/span>/);
 		expect(html).not.toContain('124.62');
+	});
+
+	it('draws the stall for the time of day as a picture screen readers skip, and still and faded offline', () => {
+		const html = renderToStaticMarkup(<ShopScreen view={stallView(READY, null, NO_CHOICE, en)} period="dusk" onBuy={noop} onTab={noop} onChoose={noop} />);
+
+		expect(html).toMatch(/<div class="dromos-stall" data-period="dusk"><svg class="dromos-stall-art[^"]*"[^>]*aria-hidden="true"/);
+		expect(screen({ ...READY, status: { kind: 'offline' }, gold: null, rewards: null })).toContain('<div class="dromos-stall is-offline" data-period="day">');
 	});
 
 	it("puts the tabs in a real tab list, each controlling its panel, the user's Habitica rewards shown first and the others hidden", () => {

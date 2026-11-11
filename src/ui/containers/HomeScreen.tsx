@@ -387,8 +387,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					{screen === 'library' ? (
 						<LibraryPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} syncKey={syncKey} />
 					) : null}
-					{/* The Shop draws its own header card, with the gold in it (M10 S4); it reads Habitica on open and on Sync. */}
-					{screen === 'shop' ? <ShopPanel deps={deps.shop} language={language} syncKey={syncKey} /> : null}
+					{/* The Shop draws its own header card and its stall, the gold on its plaque (M10 S4, S6); it reads Habitica on open and on Sync. */}
+					{screen === 'shop' ? <ShopPanel deps={deps.shop} language={language} syncKey={syncKey} period={dayPeriod(deps.clock.now())} /> : null}
 				</main>
 				{/* Outside the screens, so it is never mounted again: it announces the line of the visit once. */}
 				<p className="dromos-visually-hidden dromos-since-news" role="status">

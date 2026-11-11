@@ -404,11 +404,12 @@
    light theme is the design's afternoon. Dawn and dusk warm the horizon and lower the sun. At
    night the light theme turns to a deep-blue sky with the moon and no stars, the hills darken
    and the gate becomes moonlit stone, so the gate, the walker's robe and the fire keep 3:1. The
-   dark theme keeps its night at every hour; only dawn and dusk warm its horizon a little. */
-.dromos-root .dromos-scene[data-period='dawn'] { --dromos-scene-sky-bottom: #393352; }
-.dromos-root .dromos-scene[data-period='dusk'] { --dromos-scene-sky-bottom: #44334c; }
+   dark theme keeps its night at every hour; only dawn and dusk warm its horizon a little. The
+   Shop's stall (M10 S6) paints its market and sky with the same values. */
+.dromos-root :is(.dromos-scene, .dromos-stall)[data-period='dawn'] { --dromos-scene-sky-bottom: #393352; }
+.dromos-root :is(.dromos-scene, .dromos-stall)[data-period='dusk'] { --dromos-scene-sky-bottom: #44334c; }
 
-.theme-light .dromos-root .dromos-scene[data-period='dawn'] {
+.theme-light .dromos-root :is(.dromos-scene, .dromos-stall)[data-period='dawn'] {
 	--dromos-scene-sky-top: #d4d9ea;
 	--dromos-scene-sky-bottom: #f4dcc6;
 	--dromos-scene-sun: #f8dfae;
@@ -417,7 +418,7 @@
 	--dromos-sun-drop: 30px;
 }
 
-.theme-light .dromos-root .dromos-scene[data-period='dusk'] {
+.theme-light .dromos-root :is(.dromos-scene, .dromos-stall)[data-period='dusk'] {
 	--dromos-scene-sky-top: #bcc4de;
 	--dromos-scene-sky-bottom: #f1caa6;
 	--dromos-scene-sun: #f3c48c;
@@ -426,7 +427,7 @@
 	--dromos-sun-drop: 30px;
 }
 
-.theme-light .dromos-root .dromos-scene[data-period='night'],
+.theme-light .dromos-root :is(.dromos-scene, .dromos-stall)[data-period='night'],
 .theme-light .dromos-root .dromos-library[data-period='night'] .dromos-archive-window {
 	--dromos-scene-sky-top: #1a2646;
 	--dromos-scene-sky-bottom: #2c3f6e;
@@ -4017,10 +4018,11 @@
 }
 
 /* ── The Shop (M10 S1, S4, S6) ─────────────────────────────────────────────────────────────────
-   The gold hangs at the header card's other end, a struck ochre coin beside a number in the display
-   face. Below it, on a wooden counter, the tabs and, on parchment, the wares as tiles with the
-   chosen one's detail beside them, or under them on narrow panes. Text always sits on paper or
-   parchment, never on the wood. */
+   A stall of the era (S6): the merchant behind his counter under a striped linen awning, the
+   market and the sky of the hour behind him, the gold on a coin plaque hung at the corner. On the
+   counter below, the tabs and, on parchment, the wares as tiles with the chosen one's detail beside
+   them, or under them on narrow panes. Text always sits on paper or parchment, never on the wood
+   or the drawing. */
 .dromos-root .dromos-shop-frame { min-width: 0; }
 .dromos-root .dromos-shop { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 
@@ -4033,6 +4035,12 @@
 	--dromos-stall-basket: #8a7348;
 	--dromos-stall-purple: #6a3d6a;
 	--dromos-stall-bronze: #a5813f;
+	/* The stall's own: cream and madder linen for the awning, the merchant's woad mantle, the shade
+	   inside the stall. */
+	--dromos-stall-linen: #b4a584;
+	--dromos-stall-dyed: #84432f;
+	--dromos-stall-mantle: #42596e;
+	--dromos-stall-inside: #211b16;
 }
 
 .theme-light .dromos-root {
@@ -4042,28 +4050,199 @@
 	--dromos-stall-basket: #d8b878;
 	--dromos-stall-purple: #7e3f7a;
 	--dromos-stall-bronze: #b58b3a;
+	--dromos-stall-linen: #faf5ea;
+	--dromos-stall-dyed: #b5593c;
+	--dromos-stall-mantle: #5f7f9c;
+	--dromos-stall-inside: #e6d6b4;
 }
 
-.dromos-root .dromos-coin { flex: none; overflow: visible; }
-.dromos-root .dromos-coin-face { fill: var(--dromos-ochre); stroke: var(--dromos-umber); stroke-width: 1.1; }
-.dromos-root .dromos-coin-rim { fill: none; stroke: var(--dromos-on-ochre); stroke-width: 0.9; opacity: 0.4; }
-.dromos-root .dromos-coin-mark { fill: var(--dromos-on-ochre); opacity: 0.55; }
+/* The light theme's night hours dim the inside of the stall with the sky. */
+.theme-light .dromos-root .dromos-stall[data-period='night'] { --dromos-stall-inside: #b9a684; --dromos-stall-linen: #e4dccb; }
 
-.dromos-root .dromos-shop-gold {
+/* The stall and its counter make one block: the drawing above, the wood below it. */
+.dromos-root .dromos-stall-frame { display: flex; flex-direction: column; min-width: 0; }
+.dromos-root .dromos-stall + .dromos-stall-counter { border-top: 0; border-radius: 0 0 8px 8px; }
+
+.dromos-root .dromos-stall {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+	/* A band on phones, the merchant in it; as tall as the landscape's scene on wide panes. */
+	height: clamp(170px, 27.2cqi, 290px);
+	border: 1px solid var(--dromos-umber);
+	border-bottom: 0;
+	border-radius: 8px 8px 0 0;
+	/* The counter's wood, should the drawing ever fall a pixel short of the foot. */
+	background: var(--dromos-wood);
+	transition-property: --dromos-scene-sky-top, --dromos-scene-sky-bottom, --dromos-scene-sun, --dromos-scene-cloud, --dromos-scene-hill, --dromos-scene-leaf, --dromos-sun-drop;
+	transition-duration: 2s;
+	transition-timing-function: ease-in-out;
+}
+
+.dromos-root .dromos-stall-art {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	transition: filter 0.8s;
+}
+
+/* Outlines keep one pixel at every size, as the scene's 1 px line; the broad strokes (cords, the
+   moustache, a handle's clay) scale with the drawing. */
+.dromos-root .dromos-stall-art :is(path, rect, circle, ellipse) { vector-effect: non-scaling-stroke; }
+.dromos-root .dromos-stall-art :is(.dromos-stall-moustache, .dromos-stall-cord, .dromos-stall-sash, .dromos-stall-trunk, .dromos-stall-tie, .dromos-ware-handle.is-wide, .dromos-ware-handle.is-clay, .dromos-ware-border) { vector-effect: none; }
+
+.dromos-root .dromos-stall.is-offline .dromos-stall-art { filter: saturate(0.62) sepia(0.14); }
+
+/* The market and the sky, in the landscape's tokens. */
+.dromos-root .dromos-stall-sun { fill: var(--dromos-scene-sun); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-sun-height { transform: translateY(var(--dromos-sun-drop)); }
+.dromos-root .dromos-stall-cloud { fill: var(--dromos-scene-cloud); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-stars { fill: var(--dromos-scene-star); }
+.dromos-root .dromos-stall-ridge { fill: var(--dromos-scene-ridge); stroke: var(--dromos-scene-line); stroke-width: 1; stroke-opacity: 0.35; }
+.dromos-root .dromos-stall-hill { fill: var(--dromos-scene-hill); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-hill.is-far { opacity: 0.55; stroke-opacity: 0.5; }
+.dromos-root .dromos-stall-house { fill: var(--dromos-scene-house); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-door { fill: none; }
+.dromos-root .dromos-stall-windows { fill: var(--dromos-scene-window); }
+.dromos-root .dromos-stall-leaf { fill: var(--dromos-scene-leaf); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-trunk { fill: none; stroke: var(--dromos-scene-line); stroke-width: 2.4; }
+.dromos-root .dromos-stall-dates { fill: var(--dromos-stall-date); stroke: var(--dromos-scene-line); stroke-width: 0.6; }
+.dromos-root .dromos-stall-street { fill: var(--dromos-scene-road); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-pole { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1.2; }
+
+/* Stars and lit windows belong to the night, as in the landscape. */
+.theme-light .dromos-root .dromos-stall-stars,
+.theme-light .dromos-root .dromos-stall-windows { display: none; }
+
+/* The stall: linen, wood, clay, straw and bronze, outlined in the scene's line. */
+.dromos-root .dromos-stall-linen { fill: var(--dromos-stall-linen); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-dyed { fill: var(--dromos-stall-dyed); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-hem { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; stroke-opacity: 0.55; }
+.dromos-root .dromos-stall-wood { fill: var(--dromos-wood); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-clay { fill: var(--dromos-stall-clay); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-band { fill: none; stroke: var(--dromos-scene-line); stroke-width: 0.8; }
+.dromos-root .dromos-stall-basket { fill: var(--dromos-stall-basket); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-inside { fill: var(--dromos-stall-inside); }
+.dromos-root .dromos-stall-boards { fill: none; stroke: var(--dromos-stone-joint); stroke-width: 1; }
+.dromos-root .dromos-stall-string { fill: none; stroke: var(--dromos-scene-line); stroke-width: 0.9; }
+.dromos-root .dromos-stall-ring { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-halo { fill: var(--dromos-lamp-halo); stroke: none; }
+.dromos-root .dromos-stall-bronze { fill: var(--dromos-stall-bronze); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-coin,
+.dromos-root .dromos-stall-coins ellipse { fill: var(--dromos-ochre); stroke: var(--dromos-scene-line); stroke-width: 0.9; }
+.dromos-root .dromos-stall-leather { fill: var(--dromos-scene-satchel); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-tie { fill: none; stroke: var(--dromos-scene-line); stroke-width: 1.8; }
+.dromos-root .dromos-stall-counter-top { fill: var(--dromos-wood); stroke: var(--dromos-scene-line); stroke-width: 1; }
+.dromos-root .dromos-stall-counter-front { fill: var(--dromos-wood); }
+
+/* The wares of the tiles on the shelves take the scene's outline and light. */
+.dromos-root .dromos-stall-art :is(.dromos-ware-fig, .dromos-ware-leaf, .dromos-ware-basket, .dromos-ware-clay, .dromos-ware-purple, .dromos-ware-wood, .dromos-ware-bronze, .dromos-ware-flame, .dromos-ware-hole, .dromos-ware-fine, .dromos-ware-band, .dromos-ware-handle:not(.is-clay), .dromos-scroll-paper, .dromos-scroll-knob, .dromos-scroll-cord, .dromos-scroll-line, .dromos-scroll-tail) { stroke: var(--dromos-scene-line); }
+.dromos-root .dromos-stall-art .dromos-ware-keyhole { fill: var(--dromos-scene-line); }
+
+/* The merchant: a cream tunic with madder clavi, a woad mantle, a pale head cloth held by an ochre
+   cord, a dark beard. Folds are a finer line than the outline. */
+.dromos-root .dromos-stall-merchant { stroke: var(--dromos-scene-line); stroke-width: 1.1; }
+.dromos-root .dromos-stall-tunic { fill: var(--dromos-scene-robe); }
+.dromos-root .dromos-stall-clavus { fill: var(--dromos-stall-dyed); stroke: none; }
+.dromos-root .dromos-stall-mantle { fill: var(--dromos-stall-mantle); }
+.dromos-root .dromos-stall-cloth { fill: var(--dromos-scene-cloth); }
+.dromos-root .dromos-stall-skin { fill: var(--dromos-scene-skin); }
+.dromos-root .dromos-stall-beard { fill: var(--dromos-scene-hair); }
+.dromos-root .dromos-stall-moustache { fill: none; stroke: var(--dromos-scene-hair); stroke-width: 2.2; }
+.dromos-root .dromos-stall-smile { fill: none; stroke: var(--dromos-scene-skin); stroke-width: 1.1; }
+.dromos-root .dromos-stall-cord { fill: none; stroke: var(--dromos-scene-belt); stroke-width: 2.4; }
+.dromos-root .dromos-stall-sash { fill: none; stroke: var(--dromos-scene-belt); stroke-width: 3; }
+.dromos-root .dromos-stall-eye { fill: var(--dromos-scene-hair); stroke: none; }
+.dromos-root .dromos-stall-brow { fill: none; stroke: var(--dromos-scene-hair); stroke-width: 1.1; }
+.dromos-root .dromos-stall-fold { fill: none; stroke-width: 0.8; }
+
+/* The clay lamps are lit at night: always in the dark theme, from dusk in the light one. */
+.theme-light .dromos-root .dromos-stall:not([data-period='dusk'], [data-period='night']) :is(.dromos-stall-halo, .dromos-stall-art .dromos-ware-flame) { display: none; }
+
+/* The stall's life, in slow loops of transform and opacity like the landscape's: the merchant
+   breathes, now and then lifts his open hand a little and nods; the lamps sway on their cords and
+   their flames flicker; the clouds drift; the stars twinkle. */
+.dromos-root .dromos-stall-breath { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-breathe 7.5s ease-in-out infinite; }
+.dromos-root .dromos-stall-welcome { transform-box: fill-box; transform-origin: 100% 70%; animation: dromos-welcome 13s ease-in-out -4s infinite; }
+.dromos-root .dromos-stall-nod { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-nod 19s ease-in-out -7s infinite; }
+.dromos-root .dromos-stall-hanging { transform-box: fill-box; transform-origin: 50% 0%; animation: dromos-lamp-sway 9s ease-in-out infinite alternate; }
+.dromos-root .dromos-stall-hanging + .dromos-stall-hanging { animation-duration: 11.5s; animation-delay: -5s; }
+.dromos-root .dromos-stall-flicker .dromos-ware-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: dromos-flicker 1.9s ease-in-out infinite alternate; }
+.dromos-root .dromos-stall-drift { animation: dromos-drift 60s ease-in-out infinite alternate; }
+.dromos-root .dromos-stall-drift.is-slow { animation-duration: 85s; animation-direction: alternate-reverse; }
+.dromos-root .dromos-stall-stars circle { animation: dromos-twinkle 7s ease-in-out infinite alternate; }
+.dromos-root .dromos-stall-stars circle:nth-child(2n) { animation-duration: 9.5s; animation-delay: -4s; }
+.dromos-root .dromos-stall-stars circle:nth-child(3n) { animation-duration: 12s; animation-delay: -7s; }
+
+@keyframes dromos-welcome {
+	0%, 52%, 100% { transform: rotate(0deg); }
+	62%, 80% { transform: rotate(6deg); }
+}
+
+@keyframes dromos-nod {
+	0%, 70%, 94%, 100% { transform: rotate(0deg); }
+	76%, 88% { transform: rotate(-3deg) translateY(0.6px); }
+}
+
+@keyframes dromos-lamp-sway {
+	from { transform: rotate(-1.4deg); }
+	to { transform: rotate(1.4deg); }
+}
+
+/* Out of sight, and offline, the stall holds still where it is. */
+.dromos-root .dromos-stall .dromos-stall-art.is-still *,
+.dromos-root .dromos-stall.is-offline .dromos-stall-art * { animation-play-state: paused; }
+
+/* The gold on a coin plaque hung from the awning's beam by two cords, at the stall's corner: a
+   struck coin and the whole gold in the display face, on parchment with an inner rule. */
+.dromos-root .dromos-stall-plaque {
+	position: absolute;
+	z-index: 1;
+	/* Just under the scallops of the awning, which end 57 units down the drawing's 272. */
+	top: calc(21% + 6px);
+	right: 14px;
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
 	margin: 0;
+	padding: 5px 14px 6px 10px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 4px;
+	background-color: var(--dromos-panel);
+	background-image: repeating-linear-gradient(93deg, var(--dromos-grain) 0 1px, transparent 1px 6px);
+	box-shadow: inset 0 0 0 3px var(--dromos-panel), inset 0 0 0 4px var(--dromos-rule), 0 2px 4px var(--dromos-shadow);
 	color: var(--dromos-ochre-ink);
 	font-family: var(--dromos-font-display);
-	font-size: 1.65em;
+	font-size: 1.5em;
 	font-weight: 600;
 	font-variant-numeric: lining-nums tabular-nums;
 	line-height: 1.1;
 	white-space: nowrap;
 }
 
-/* The counter: a wooden board where the tabs and the parchment lie. */
+.dromos-root .dromos-stall-plaque::before,
+.dromos-root .dromos-stall-plaque::after {
+	content: '';
+	position: absolute;
+	bottom: 100%;
+	width: 1px;
+	height: 64px;
+	background: var(--dromos-umber);
+}
+
+.dromos-root .dromos-stall-plaque::before { left: 16px; }
+.dromos-root .dromos-stall-plaque::after { right: 16px; }
+
+.dromos-root .dromos-coin { flex: none; overflow: visible; }
+.dromos-root .dromos-coin-face { fill: var(--dromos-ochre); stroke: var(--dromos-umber); stroke-width: 1.1; }
+.dromos-root .dromos-coin-rim { fill: none; stroke: var(--dromos-on-ochre); stroke-width: 0.9; opacity: 0.4; }
+.dromos-root .dromos-coin-mark { fill: var(--dromos-on-ochre); opacity: 0.55; }
+
+/* The counter: the stall's wood, where the tabs and the parchment lie. */
 .dromos-root .dromos-stall-counter {
 	display: flex;
 	flex-direction: column;
@@ -4296,8 +4475,8 @@
 /* Under a tab's panel, the rows of a note that could not be read (Shop.md), on the wood: a parchment strip. */
 .dromos-root .dromos-shop-unreadable.is-note { margin: 0; padding: 8px 14px; border: 1px solid var(--dromos-umber); border-radius: 6px; background: var(--dromos-panel); }
 
-/* Phones and narrow panes: a closer counter, the tabs sharing the width under their short labels,
-   smaller tiles, the detail under them. */
+/* Phones and narrow panes: the stall's band, a closer counter, the tabs sharing the width under
+   their short labels, the detail under the tiles. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-stall-counter { padding: 16px 10px 20px; }
 	.dromos-root .dromos-stall-tabs { padding-inline: 4px; }
@@ -4311,6 +4490,15 @@
 	.dromos-root .dromos-ware-name { font-size: 14.5px; }
 	.dromos-root .dromos-ware-detail { padding-inline: 14px; }
 	.dromos-root .dromos-ware-detail-art .dromos-ware-art { width: 84px; height: 84px; }
+	.dromos-root .dromos-stall-plaque { right: 10px; padding: 4px 11px 5px 8px; font-size: 1.3em; }
+}
+
+/* Reduced motion: the stall holds still in its drawn pose, and changes color and period at once. */
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-stall .dromos-stall-art *,
+	.dromos-root .dromos-stall .dromos-stall-art .dromos-scene-life * { animation: none; }
+	.dromos-root .dromos-stall,
+	.dromos-root .dromos-stall-art { transition: none; }
 }
 
 /* The confirmation of a purchase: the book card's frame, narrower, its lines a small ledger. */
