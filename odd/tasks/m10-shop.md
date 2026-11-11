@@ -40,7 +40,7 @@ The user's idea (L1): "estaba pensando en realizar algo asi como una tienda dond
 | T3 | S3 | The level bonus and the purse | delegated, writer G | done (L6), key renamed (L7), unknown payments settled (L9); user review pending | `1e68ebe`, `edac991` |
 | T4 | S1-S4 | Independent verification (Risk: item 1, a purchase or a bonus changes the user's Habitica gold), seam check, live check, README, CHANGELOG, docs/habitica.md | verifier delegated; the rest inline | done (L9): blocker fixed and rechecked, docs written, live read check | `3ae1a7d`, `774154e`, docs `00332a7` |
 | T5 | S6 | The Shop as a stall of the era, with drawn wares, tabs and a detail panel | delegated, writer H (context backstop) | done (L11); user review pending | `8679271`, `3fe791b` |
-| R1 | S5 | Release 0.17.0 with the user's go-ahead (L16) | inline | done: released (L17); Android pending | tag `0.17.0`, `main` `9ba1757` |
+| R1 | S5 | Release 0.17.0 with the user's go-ahead (L16) | inline | done: released (L17), Android verified (L18) | tag `0.17.0`, `main` `9ba1757` |
 
 ## Log
 
@@ -61,3 +61,4 @@ The user's idea (L1): "estaba pensando en realizar algo asi como una tienda dond
 - **L15** (2026-11-11, user): "luego lo pongo": Nick tags the Kairos rewards in Habitica himself, later. Until then they show in the Shop. Next: R1 (0.17.0) when he gives the go-ahead.
 - **L16** (2026-11-11, user): "dale sube todo porfavor" — go-ahead for R1: merge `feat/m10-shop` into `main`, release 0.17.0, push `main` and the tag.
 - **L17** (2026-11-11): 0.17.0 published. `feat/m10-shop` merged `--no-ff` into `main` (`a8ef4be`); `release/0.17.0` (changelog dated 2026-11-11, `npm version minor`, annotated tag `0.17.0`) merged into `main` (`9ba1757`). All 27 new commits by NickGV <nickgomvelez@gmail.com>, no co-author or AI lines, no `main.js`, `data.json` or `node_modules`. Checks on `main`: 158 files, 2097 tests; lint 0 errors (4 old warnings); build ok. `gh auth status`: NickGV active. Pushed `main` and the tag; `release.yml` run 43090517298 succeeded; the release is not a draft or pre-release, with `main.js`, `manifest.json` and `styles.css`. Local plugin reinstalled from `main` (0.17.0) and reloaded. Pending: the user's check on Android through BRAT, then the M10 plugin ticks in `02-Phases`.
+- **L18** (2026-11-11, user): "listo ya se le pusieron las tags, ya probe la version en android. Dime como le pido esdras las ofertas". 0.17.0 verified on Android; the Kairos rewards carry the tag `kairos`. The five M10 plugin tasks ticked in the vault's `02-Phases.md`. Left: Esdras's `Shop.md` (his task, on Nick's ask).
