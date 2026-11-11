@@ -14,6 +14,7 @@ import { StatusBanner } from '../molecules/StatusBanner';
 import { BriefingPanel } from '../organisms/BriefingPanel';
 import { CharacterPanel, type CharacterPanelState } from '../organisms/CharacterPanel';
 import { Chronicle } from '../organisms/Chronicle';
+import { ChronicleScreen } from '../organisms/ChronicleScreen';
 import { LevelUpPanel } from '../organisms/LevelUpPanel';
 import { QuestList } from '../organisms/QuestList';
 import { Scene } from '../organisms/Scene';
@@ -23,6 +24,7 @@ import { briefingRequestMessage, briefingView } from '../presenters/briefingView
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
+import { historyView } from '../presenters/historyView';
 import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
 import { plaqueSkillsView } from '../presenters/plaqueSkillsView';
 import { questListView, questPanelView, type QuestFilter } from '../presenters/questListView';
@@ -110,8 +112,8 @@ let viewCount = 0;
  * when it finishes, the character is read again because the sync rewrites its note. Each run
  * also bumps `syncKey`, which makes the campaigns panel sync too. No polling (S7).
  *
- * It holds the four screens of the view (game-ui S1): home, campaigns, skills and the library
- * (M7 S5), under one scene with a signpost and the character's plaque (home-header S2), which
+ * It holds the screens of the view (game-ui S1): home, campaigns, skills, the library (M7 S5) and the
+ * Chronicle (M9 S3), under one scene with a signpost and the character's plaque (home-header S2), which
  * shows on every screen with the skills nearest to unlocking (S3). Changing screen, campaign tab
  * or skill spends no
  * request: they are only state here, and the campaigns panel stays mounted in its slot on every
@@ -128,7 +130,8 @@ let viewCount = 0;
  *
  * The world reacts (game-ui S17): the scene's sky follows the hour of the clock, read on every
  * render, so the periodic re-render turns it with no timer of its own, and a campfire burns once
- * every daily is done. On home, the chronicle lists the last deeds of the ledger (S18).
+ * every daily is done. On home, the chronicle lists the last deeds of the ledger (S18); its "View
+ * history" opens the Chronicle screen (M9 S3) on the current week, which "← Path" leaves for home.
  *
  * Home (home-header S1) holds Esdras's letter and today's quests in its first column, the
  * campaigns, the small reading desk (the books being read, the library's cards) and the chronicle
@@ -142,6 +145,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [game, setGame] = useState<GameSnapshot>(deps.gameSnapshot);
 	const [syncKey, setSyncKey] = useState(0);
 	const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+	// The week the Chronicle screen shows; `null` is the current one, which every opening shows first (M9 S2).
+	const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
 	// The letter folds on every open of the view and stays as it was while the screen changes (S13).
 	const [letterOpen, setLetterOpen] = useState(false);
@@ -171,6 +176,11 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const ceremony = ceremonyView(game.events, [...skills.earned, ...skills.locked], t);
 	const phase = useCeremonyPhase(ceremony?.level ?? null);
 	const go = useCallback((next: DromosScreen): void => setPlace((current) => ({ ...current, screen: next })), []);
+	const openHistory = useCallback((): void => {
+		setSelectedWeek(null);
+		go('chronicle');
+	}, [go]);
+	const goHome = useCallback((): void => go('home'), [go]);
 	const selectCampaign = useCallback((path: string): void => setPlace((current) => ({ ...current, campaign: path })), []);
 	const toggleCampaignCard = (path: string): void => setOpenCampaigns(toggleCampaign(deps.deviceStore, openCampaigns, path));
 	// Closing the panel takes its button away: the focus goes back to the character's name, on the plaque.
@@ -358,16 +368,18 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						<CampaignsPanel
 							deps={deps.campaigns}
 							syncKey={syncKey}
-							hidden={screen === 'skills' || screen === 'library'}
+							hidden={screen === 'skills' || screen === 'library' || screen === 'chronicle'}
 							home={home ? { open: openCampaigns, onToggle: toggleCampaignCard, onOpen: (path) => setPlace({ screen: 'campaigns', campaign: path }) } : undefined}
 							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
 						{home ? <ReadingDeskPanel deps={deps.library} language={language} /> : null}
-						{chronicle ? <Chronicle view={chronicle} listId={chronicleId} onToggleMore={() => setChronicleExpanded((current) => !current)} /> : null}
+						{chronicle ? <Chronicle view={chronicle} listId={chronicleId} onToggleMore={() => setChronicleExpanded((current) => !current)} onOpenHistory={openHistory} /> : null}
 					</div>
 					{screen === 'skills' ? (
 						<SkillsScreen page={skills} view={skillsScreenView(skills, selectedSkill, t)} onSelect={setSelectedSkill} renderIcon={deps.renderIcon} />
 					) : null}
+					{/* The Chronicle draws its own header card, which leads back to the path (M9 S3). */}
+					{screen === 'chronicle' ? <ChronicleScreen view={historyView(game.history, selectedWeek, deps.clock.today(), t)} onSelectWeek={setSelectedWeek} onBack={goHome} /> : null}
 					{/* The library draws its own header card: on a shelf it names the shelf and leads back. */}
 					{screen === 'library' ? (
 						<LibraryPanel deps={deps.library} language={language} period={dayPeriod(deps.clock.now())} syncKey={syncKey} />

@@ -117,3 +117,11 @@ describe('deedDayText: the day of a deed next to today (game-ui S18)', () => {
 		expect(deedDayText('not a day', TODAY, en)).toBe('not a day');
 	});
 });
+
+describe('chronicleView: the way into the history (M9 S3)', () => {
+	it('offers "View history" with any number of deeds, also with fewer than three', () => {
+		expect(chronicleView([deed()], TODAY, en)?.history).toBe('View history');
+		expect(chronicleView([deed(), deed(), deed(), deed()], TODAY, en)?.history).toBe('View history');
+		expect(chronicleView([deed()], TODAY, es)?.history).toBe('Ver historial');
+	});
+});

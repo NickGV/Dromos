@@ -221,6 +221,7 @@ export const es = {
 	'chronicle.streak': 'Bonus de racha',
 	'chronicle.skills': '{skills} {xp}',
 	'chronicle.and': '{list} y {last}',
+	'chronicle.history': 'Ver historial',
 	'chronicle.back.aria': 'Volver al camino',
 
 	'history.empty': 'Todavía no hay logros en el registro. Completa una quest en Habitica y sincroniza: su semana aparecerá aquí.',

@@ -2935,7 +2935,9 @@
    small caps, the task in ink and what it gained in ochre ink. An undone deed says "Undone" in
    clay ink, its task struck through and its XP muted. Parts stay whole when a line wraps. */
 .dromos-root .dromos-chronicle-panel { padding: 4px 18px; }
-.dromos-root .dromos-chronicle-panel > .dromos-list-toggle { margin: 4px 0 12px; }
+/* "View more" and "View history" under the lines (home-fit S2, M9 S3), side by side. */
+.dromos-root .dromos-chronicle-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.dromos-root .dromos-chronicle-actions > .dromos-btn { margin: 0; }
 .dromos-root .dromos-deeds { margin: 0; padding: 0; list-style: none; }
 
 .dromos-root .dromos-deed {

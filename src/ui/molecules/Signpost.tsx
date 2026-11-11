@@ -1,10 +1,16 @@
 import type { MessageKey } from '../../i18n';
 import { useT } from '../i18n';
 
-/** The screens inside the Dromos view (game-ui S1), the library added by M7 (S5). */
-export type DromosScreen = 'home' | 'campaigns' | 'skills' | 'library';
+/**
+ * The screens inside the Dromos view (game-ui S1), the library added by M7 (S5) and the Chronicle by
+ * M9 (S3), which has no plank: it is reached from the home chronicle and belongs to the path.
+ */
+export type DromosScreen = 'home' | 'campaigns' | 'skills' | 'library' | 'chronicle';
 
-const SCREENS: readonly { readonly id: DromosScreen; readonly label: MessageKey }[] = [
+/** The screens with a plank of their own, in the signpost's order. */
+type PlankScreen = Exclude<DromosScreen, 'chronicle'>;
+
+const SCREENS: readonly { readonly id: PlankScreen; readonly label: MessageKey }[] = [
 	{ id: 'home', label: 'nav.home' },
 	{ id: 'campaigns', label: 'nav.campaigns' },
 	{ id: 'skills', label: 'nav.skills' },
@@ -12,7 +18,7 @@ const SCREENS: readonly { readonly id: DromosScreen; readonly label: MessageKey 
 ];
 
 export interface SignpostProps {
-	/** The screen on show: its plank is burnt in and marked as the page. */
+	/** The screen on show: its plank is burnt in and marked as the page; the Chronicle's is Path (M9 S3). */
 	readonly current: DromosScreen;
 	readonly onGo: (screen: DromosScreen) => void;
 	/** Opens the plugin's settings tab; `null` where it cannot be opened, and the plank does not show. */
@@ -24,10 +30,12 @@ export interface SignpostProps {
  * (the library fourth, M7 S5) and then the settings (game-ui S14), so a plank never moves under
  * the pointer. The stylesheet hangs them on both sides of the post, so five fit on a phone. The current
  * screen's plank is burnt into the wood and carries `aria-current="page"`; its name is its label.
- * The others are named "Go to X", so the visible label is part of the accessible name.
+ * The others are named "Go to X", so the visible label is part of the accessible name. The Chronicle
+ * has no plank of its own: while it is shown, Path is burnt in (M9 S3), as a shelf keeps the Library's.
  */
 export function Signpost({ current, onGo, onSettings }: SignpostProps) {
 	const t = useT();
+	const here: PlankScreen = current === 'chronicle' ? 'home' : current;
 	const plank = (key: string, label: string, onClick: () => void, here = false) => (
 		<button
 			key={key}
@@ -42,7 +50,7 @@ export function Signpost({ current, onGo, onSettings }: SignpostProps) {
 	);
 	return (
 		<nav className="dromos-signpost" aria-label={t('nav.aria')}>
-			{SCREENS.map((screen) => plank(screen.id, t(screen.label), () => onGo(screen.id), screen.id === current))}
+			{SCREENS.map((screen) => plank(screen.id, t(screen.label), () => onGo(screen.id), screen.id === here))}
 			{onSettings ? plank('settings', t('nav.settings'), onSettings) : null}
 		</nav>
 	);

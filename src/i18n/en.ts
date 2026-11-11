@@ -220,6 +220,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'chronicle.streak': 'Streak bonus',
 	'chronicle.skills': '{skills} {xp}',
 	'chronicle.and': '{list} and {last}',
+	'chronicle.history': 'View history',
 	'chronicle.back.aria': 'Back to the path',
 
 	'history.empty': 'No deeds in the ledger yet. Complete a quest in Habitica and sync: its week will show here.',
