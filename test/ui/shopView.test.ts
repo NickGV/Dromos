@@ -131,6 +131,11 @@ describe('purchaseMessage (M10 S1)', () => {
 		expect(message({ kind: 'busy' })).toBeNull();
 	});
 
+	it('says the purse could not be read, and that nothing was bought (L8)', () => {
+		expect(message({ kind: 'purse-unreadable', item: { name: 'A book of the week', price: 40 } })).toBe('Purse.md could not be read, so nothing was bought.');
+		expect(purchaseMessage({ kind: 'purse-unreadable', item: { name: 'Un libro', price: 40 } }, es)).toBe('No se pudo leer Purse.md, así que no se compró nada.');
+	});
+
 	it('says an offer was already bought (M10 S2)', () => {
 		expect(message({ kind: 'already-bought', item: { name: 'A book of the week', price: 40 } })).toBe('You already bought A book of the week.');
 		expect(purchaseMessage({ kind: 'already-bought', item: { name: 'Un libro', price: 40 } }, es)).toBe('Ya compraste Un libro.');

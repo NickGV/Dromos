@@ -73,7 +73,7 @@ If Habitica fails, nothing is written and the book stays pending. If the to-do w
 
 The **Shop** plank of the signpost opens the Shop: your Habitica gold and your own Habitica rewards (Habitica's *Rewards* column). Dromos keeps no currency of its own: the gold is Habitica's, and the Shop is the only place Dromos shows it, as a whole number.
 
-- **Buy** asks first. The confirmation names the reward, its price and the gold you will have left; only **Buy** in it spends gold. Cancel, Escape or closing it buys nothing.
+- **Buy** asks first. The confirmation names the reward, its price and the gold you will have left; only **Buy** in it spends gold. **Cancel** holds the focus, so pressing Enter twice buys nothing; Cancel, Escape or closing it buys nothing.
 - Buying spends the gold in Habitica, exactly as clicking the reward there does, and the Shop shows the gold Habitica answers with. Habitica keeps the reward, so you can buy it again.
 - A reward that costs more than your gold cannot be bought: its button stays quiet and says how much gold is missing.
 - Offline or without credentials the Shop says so and nothing can be bought.
@@ -89,7 +89,7 @@ Esdras can offer you things in `<folder>/Shop.md` (`type: dromos-shop`), a table
 | `offer` | What is offered |
 | `price` | Whole gold above 0 |
 | `why` | Why he offers it; may be empty |
-| `until` | The last day it is offered, `YYYY-MM-DD`, or empty |
+| `until` | The last day it is offered, a real date as `YYYY-MM-DD`, or empty |
 
 The Shop shows the offers not bought yet whose last day is today or later. Dromos reads the first table with that header, by the names of its columns, so their order and the Table Editor's spacing do not matter. A row with a bad `id`, `price` or `until`, or with no offer, is skipped and the Shop names its line; with a repeated `id` the first row counts.
 
@@ -101,6 +101,8 @@ Buying an offer, after the same confirmation as a reward:
 4. It deletes that reward from Habitica.
 
 A reward whose alias starts with `dromos-offer-` is never listed among your own, even when deleting it failed.
+
+If `Purse.md` cannot be read, Dromos cannot tell whether the offer was already bought, so it says so and buys nothing. If the purchase went through but its row could not be written, the device that bought it keeps the row and writes it the next time the Shop opens; until then that offer is neither shown nor bought again there.
 
 ### The purse
 

@@ -20,6 +20,8 @@ export type PurchaseOutcome =
 	| { readonly kind: 'failed'; readonly item: PurchasedItem; readonly status: FailedStatus }
 	/** The purse already holds this offer's purchase (M10 S2): nothing was asked of Habitica. */
 	| { readonly kind: 'already-bought'; readonly item: PurchasedItem }
+	/** The purse could not be read, so whether the offer was bought cannot be told (L8): nothing was asked of Habitica. */
+	| { readonly kind: 'purse-unreadable'; readonly item: PurchasedItem }
 	| { readonly kind: 'not-configured' }
 	/** Another purchase was under way: this one asked nothing. */
 	| { readonly kind: 'busy' };

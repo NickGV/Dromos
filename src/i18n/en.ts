@@ -471,6 +471,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'shop.offers.title': "Esdras's offers",
 	'shop.offers.empty': 'Esdras has no offers right now.',
 	'shop.until': 'Until {date}',
+	'shop.purseUnreadable': 'Purse.md could not be read, so nothing was bought.',
 	'shop.alreadyBought': 'You already bought {name}.',
 	'shop.buy': 'Buy',
 	'shop.buy.busy': 'Buying…',

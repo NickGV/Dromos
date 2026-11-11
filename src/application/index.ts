@@ -14,6 +14,7 @@ export * from './LoadLibrary';
 export * from './LoadShop';
 export * from './MarkResourceFinished';
 export * from './PayLevelBonus';
+export * from './pendingOfferRows';
 export * from './RequestBriefing';
 export * from './QuestState';
 export * from './ReadReflection';

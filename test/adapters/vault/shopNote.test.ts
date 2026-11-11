@@ -77,3 +77,21 @@ describe('parseShopNote: the offers Esdras writes (M10 S2)', () => {
 		expect(parseShopNote('---\ntype: dromos-shop\n---\n\nNothing yet.\n')).toEqual({ offers: [], unreadable: [] });
 	});
 });
+
+describe('parseShopNote: a last day that does not exist (L8)', () => {
+	it('skips and reports an until that is not a calendar date, and reads a real leap day', () => {
+		const text = `| id | offer | price | why | until |
+|---|---|---|---|---|
+| a | A | 5 |  | 2026-11-31 |
+| b | B | 5 |  | 2026-13-45 |
+| c | C | 5 |  | 2026-02-29 |
+| d | D | 5 |  | 2028-02-29 |
+| e | E | 5 |  | 2026-00-10 |
+`;
+
+		const parsed = parseShopNote(text);
+
+		expect(parsed.offers.map((offer) => offer.id)).toEqual(['d']);
+		expect(parsed.unreadable.map((row) => row.line)).toEqual([3, 4, 5, 7]);
+	});
+});

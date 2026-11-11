@@ -9,8 +9,9 @@ export interface ShopConfirmProps {
 
 /**
  * The confirmation of a purchase (M10 S1), drawn in a card over the workspace: it names the item,
- * its price and the gold left after it. Its primary choice, Buy, takes the focus as it is drawn;
- * Cancel, Escape and the card's close button buy nothing.
+ * its price and the gold left after it. Cancel takes the focus as it is drawn, so a second Enter on
+ * the Shop's Buy never confirms; Buy is the next Tab (L8). Cancel, Escape and the card's close button
+ * buy nothing.
  */
 export function ShopConfirm({ view, answer }: ShopConfirmProps) {
 	return (
@@ -25,11 +26,11 @@ export function ShopConfirm({ view, answer }: ShopConfirmProps) {
 				))}
 			</dl>
 			<div className="dromos-shop-confirm-actions">
-				<button type="button" className="dromos-btn is-primary" ref={focusOnDraw} onClick={() => answer(true)}>
-					{view.confirm}
-				</button>
-				<button type="button" className="dromos-btn" onClick={() => answer(false)}>
+				<button type="button" className="dromos-btn" ref={focusOnDraw} onClick={() => answer(false)}>
 					{view.cancel}
+				</button>
+				<button type="button" className="dromos-btn is-primary" onClick={() => answer(true)}>
+					{view.confirm}
 				</button>
 			</div>
 		</div>

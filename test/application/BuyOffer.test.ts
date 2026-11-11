@@ -4,6 +4,7 @@ import type { Offer, PurseEntry } from '../../src/domain';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { aReward, FakeHabiticaShop } from '../fakes/FakeHabiticaShop';
 import { FixedClock } from '../fakes/FixedClock';
+import { InMemoryDeviceStore } from '../fakes/InMemoryDeviceStore';
 import { InMemoryPurseRepository } from '../fakes/InMemoryPurseRepository';
 
 const TODAY = '2026-11-11';
@@ -11,11 +12,12 @@ const BOOK: Offer = { id: 'book-week', offer: 'A book of the week', price: 40, w
 const ITEM = { name: 'A book of the week', price: 40 };
 const ROW: PurseEntry = { date: TODAY, kind: 'purchase', what: 'A book of the week', gold: -40, level: null, offer: 'book-week' };
 
-function setup(options: { gold?: number; purse?: PurseEntry[]; credentials?: boolean } = {}) {
+function setup(options: { gold?: number; purse?: PurseEntry[]; credentials?: boolean; store?: InMemoryDeviceStore } = {}) {
 	const habitica = new FakeHabiticaShop(options.gold ?? 100);
 	const purse = new InMemoryPurseRepository(options.purse ?? []);
-	const buy = new BuyOffer({ rewards: habitica, gold: habitica, purse, clock: new FixedClock(new Date(`${TODAY}T15:00:00Z`), TODAY), hasCredentials: () => options.credentials ?? true });
-	return { habitica, purse, buy };
+	const store = options.store ?? new InMemoryDeviceStore();
+	const buy = new BuyOffer({ rewards: habitica, gold: habitica, purse, store, clock: new FixedClock(new Date(`${TODAY}T15:00:00Z`), TODAY), hasCredentials: () => options.credentials ?? true });
+	return { habitica, purse, store, buy };
 }
 
 describe('BuyOffer: buying one of Esdras offers (M10 S2)', () => {
@@ -124,6 +126,25 @@ describe('BuyOffer: buying one of Esdras offers (M10 S2)', () => {
 		purse.failAppendWith = new Error('disk full');
 
 		expect(await buy.execute(BOOK, 100)).toMatchObject({ kind: 'bought', recorded: false });
+	});
+
+	it('remembers on the device an offer bought whose row the purse could not keep, and never buys it again (L8)', async () => {
+		const { habitica, purse, store, buy } = setup();
+		purse.failAppendWith = new Error('disk full');
+		await buy.execute(BOOK, 100);
+
+		expect(store.read('offer-rows-pending')).toEqual([ROW]);
+		const calls = habitica.calls.length;
+		expect(await buy.execute(BOOK, 100)).toEqual({ kind: 'already-bought', item: ITEM });
+		expect(habitica.calls).toHaveLength(calls);
+	});
+
+	it('says the purse could not be read, and buys nothing, when it cannot tell whether the offer was bought (L8)', async () => {
+		const { habitica, purse, buy } = setup();
+		purse.failReadWith = new Error('locked');
+
+		expect(await buy.execute(BOOK, 100)).toEqual({ kind: 'purse-unreadable', item: ITEM });
+		expect(habitica.calls).toEqual([]);
 	});
 
 	it('runs one purchase at a time', async () => {

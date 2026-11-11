@@ -472,6 +472,7 @@ export const es = {
 	'shop.offers.title': 'Ofertas de Esdras',
 	'shop.offers.empty': 'Esdras no tiene ofertas por ahora.',
 	'shop.until': 'Hasta el {date}',
+	'shop.purseUnreadable': 'No se pudo leer Purse.md, así que no se compró nada.',
 	'shop.alreadyBought': 'Ya compraste {name}.',
 	'shop.buy': 'Comprar',
 	'shop.buy.busy': 'Comprando…',

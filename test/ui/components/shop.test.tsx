@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { ShopSnapshot } from '../../../src/application';
 import { createTranslator } from '../../../src/i18n';
 import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
+import { focusOnDraw } from '../../../src/ui/organisms/cardEvents';
 import { ShopConfirm } from '../../../src/ui/organisms/ShopConfirm';
 import { ShopScreen } from '../../../src/ui/organisms/ShopScreen';
 import { purchaseConfirmView, shopView } from '../../../src/ui/presenters/shopView';
@@ -134,18 +135,26 @@ describe('ShopScreen: the last purchases (M10 S3, S4)', () => {
 describe('ShopConfirm (M10 S1)', () => {
 	const view = purchaseConfirmView({ name: 'Coffee out', price: 20 }, 124.62, en);
 
-	it('names the reward, its price and the gold left after it, with Buy first and Cancel', () => {
+	it('names the reward, its price and the gold left after it, with Cancel first and Buy after it', () => {
 		const html = renderToStaticMarkup(<ShopConfirm view={view} answer={noop} />);
 
 		expect(html).toContain('Buy Coffee out?');
 		expect(html).toMatch(/Price<\/dt><dd[^>]*>20 gold<\/dd>/);
 		expect(html).toMatch(/Gold left after<\/dt><dd[^>]*>104 gold<\/dd>/);
-		expect(buttons(html).map(({ text }) => text)).toEqual(['Buy', 'Cancel']);
+		expect(buttons(html).map(({ text }) => text)).toEqual(['Cancel', 'Buy']);
+	});
+
+	it('gives the focus to Cancel, so a second Enter on the Shop never confirms; Buy is one Tab away (L8)', () => {
+		const [cancel, buy] = elementsOf(ShopConfirm({ view, answer: noop })).filter((element) => element.type === 'button');
+		const refOf = (element: unknown) => (element as { ref?: unknown }).ref ?? null;
+
+		expect(refOf(cancel)).toBe(focusOnDraw);
+		expect(refOf(buy)).toBeNull();
 	});
 
 	it('answers yes from Buy and no from Cancel', () => {
 		const answers: boolean[] = [];
-		const [buy, cancel] = elementsOf(ShopConfirm({ view, answer: (yes) => answers.push(yes) })).filter((element) => element.type === 'button');
+		const [cancel, buy] = elementsOf(ShopConfirm({ view, answer: (yes) => answers.push(yes) })).filter((element) => element.type === 'button');
 
 		(buy?.props.onClick as () => void)();
 		(cancel?.props.onClick as () => void)();

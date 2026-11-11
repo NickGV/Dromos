@@ -1,5 +1,6 @@
 import { isOfferReward, lastPurchases, openOffers, type Offer, type PurseEntry, type Reward } from '../domain';
-import type { Clock, GoldAccount, OfferRepository, PurseRepository, RewardCatalog, UnreadableNoteRow } from '../ports';
+import type { Clock, DeviceStore, GoldAccount, OfferRepository, PurseRepository, RewardCatalog, UnreadableNoteRow } from '../ports';
+import { pendingOfferRows, writePendingOfferRows } from './pendingOfferRows';
 import { statusForFailure, type FailedStatus } from './statusForFailure';
 
 /** Why the shop has nothing to sell, or `ready`. Offline or without credentials nothing can be bought (M10 S1). */
@@ -34,6 +35,8 @@ export interface LoadShopDeps {
 	readonly offers: OfferRepository;
 	/** Today's local date: an offer's last day is inclusive. */
 	readonly clock: Clock;
+	/** This device's store: the rows of offers bought that the purse could not keep yet (L8). */
+	readonly store: DeviceStore;
 	/** True when both the Habitica user ID and token are set. */
 	readonly hasCredentials: () => boolean;
 }
@@ -43,18 +46,21 @@ export interface LoadShopDeps {
  * rewards, one after the other so a failure spends no further request. Without credentials it asks
  * Habitica nothing. The rewards of Esdras's offers (alias `dromos-offer-…`) are never listed as
  * the user's own. Esdras's open offers and the last purchases come from the vault, whatever Habitica
- * answers; a note that cannot be read shows none. Never rejects.
+ * answers; a note that cannot be read shows none. The rows of offers bought that the purse could not
+ * keep are written now when it can; until then those offers stay off sale (L8). Never rejects.
  */
 export class LoadShop {
 	constructor(private readonly deps: LoadShopDeps) {}
 
 	async execute(): Promise<ShopSnapshot> {
 		const [habitica, purse, offers] = await Promise.all([this.readHabitica(), this.readPurse(), this.readOffers()]);
+		const { store, clock } = this.deps;
+		const entries = purse.read ? [...purse.entries, ...(await writePendingOfferRows(store, this.deps.purse, purse.entries))] : purse.entries;
 		return {
 			...habitica,
-			purchases: lastPurchases(purse.entries, LAST_PURCHASES),
+			purchases: lastPurchases(entries, LAST_PURCHASES),
 			purseUnreadable: purse.unreadable,
-			offers: openOffers(offers.offers, purse.entries, this.deps.clock.today()),
+			offers: openOffers(offers.offers, [...entries, ...pendingOfferRows(store)], clock.today()),
 			offersUnreadable: offers.unreadable,
 		};
 	}
@@ -71,11 +77,12 @@ export class LoadShop {
 		}
 	}
 
-	private async readPurse(): Promise<{ readonly entries: readonly PurseEntry[]; readonly unreadable: readonly UnreadableNoteRow[] }> {
+	/** The purse's rows; `read` is false when it could not be read, and then nothing is written into it. */
+	private async readPurse(): Promise<{ readonly read: boolean; readonly entries: readonly PurseEntry[]; readonly unreadable: readonly UnreadableNoteRow[] }> {
 		try {
-			return await this.deps.purse.read();
+			return { read: true, ...(await this.deps.purse.read()) };
 		} catch {
-			return { entries: [], unreadable: [] };
+			return { read: false, entries: [], unreadable: [] };
 		}
 	}
 

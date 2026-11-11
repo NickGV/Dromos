@@ -209,7 +209,7 @@ export interface PurchaseConfirmView {
 	readonly label: string;
 	readonly title: string;
 	readonly lines: readonly { readonly term: string; readonly value: string }[];
-	/** The primary choice, which takes the focus. */
+	/** The primary choice; Cancel takes the focus, so a double Enter never buys (L8). */
 	readonly confirm: string;
 	readonly cancel: string;
 }
@@ -244,6 +244,8 @@ export function purchaseMessage(outcome: PurchaseOutcome, t: Translator): string
 		}
 		case 'already-bought':
 			return t('shop.alreadyBought', { name: outcome.item.name });
+		case 'purse-unreadable':
+			return t('shop.purseUnreadable');
 		case 'too-dear':
 			return t('shop.tooDear', { name: outcome.item.name, price: goldText(outcome.item.price, t), gold: goldText(outcome.gold, t) });
 		case 'failed':
