@@ -107,7 +107,7 @@ describe('buyAfterConfirming (M10 S1)', () => {
 });
 
 describe('shopAfter: the shop once a purchase settles (M10 S1-S3)', () => {
-	const COFFEE = { id: 'r-coffee', name: 'Coffee out', notes: null, price: 20, alias: null };
+	const COFFEE = { id: 'r-coffee', name: 'Coffee out', notes: null, price: 20, alias: null, tags: [] };
 	const BOOK_WEEK = { id: 'book-week', offer: 'A book of the week', price: 40, why: null, until: null };
 	const shop: ShopSnapshot = { status: { kind: 'ready' }, gold: 124, rewards: [COFFEE], purchases: [], purseUnreadable: [], offers: [BOOK_WEEK], offersUnreadable: [] };
 	const offerRow = { date: '2026-11-11', kind: 'purchase', what: 'A book of the week', gold: -40, level: null, offer: 'book-week' } as const;

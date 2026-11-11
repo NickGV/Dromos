@@ -52,7 +52,7 @@ export class FakeHabiticaShop implements GoldAccount, RewardCatalog {
 	create(reward: NewReward): Promise<Reward> {
 		return this.run('create', reward.alias, () => {
 			if (this.rewards.some((candidate) => candidate.alias === reward.alias)) throw new Error('Task alias already used on another task.');
-			const created: Reward = { id: `created-${this.rewards.length + 1}`, name: reward.name, notes: reward.notes === '' ? null : reward.notes, price: reward.price, alias: reward.alias };
+			const created: Reward = { id: `created-${this.rewards.length + 1}`, name: reward.name, notes: reward.notes === '' ? null : reward.notes, price: reward.price, alias: reward.alias, tags: [] };
 			this.rewards.push(created);
 			return created;
 		});
@@ -90,5 +90,5 @@ export class FakeHabiticaShop implements GoldAccount, RewardCatalog {
 
 /** A reward as Habitica lists it. */
 export function aReward(id: string, name: string, price: number, overrides: Partial<Reward> = {}): Reward {
-	return { id, name, notes: null, price, alias: null, ...overrides };
+	return { id, name, notes: null, price, alias: null, tags: [], ...overrides };
 }

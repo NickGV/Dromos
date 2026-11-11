@@ -12,6 +12,25 @@ export interface Reward {
 	readonly price: number;
 	/** Its Habitica alias (a short name unique per user), or `null` when it has none. */
 	readonly alias: string | null;
+	/** The ids of the Habitica tags it carries. */
+	readonly tags: readonly string[];
+}
+
+/**
+ * The Habitica tag of the rewards Kairos owns (M10 S1, L13): Kairos buys them itself, and buying
+ * one in Dromos would spend the gold with no minutes in Kairos, so the Shop does not list them.
+ */
+export const KAIROS_TAG = 'kairos';
+
+/** The ids of every tag named `name`, matched without case or the spaces around it. */
+export function tagIdsNamed(tags: readonly { readonly id: string; readonly name: string }[], name: string): Set<string> {
+	const wanted = name.trim().toLowerCase();
+	return new Set(tags.filter((tag) => tag.name.trim().toLowerCase() === wanted).map((tag) => tag.id));
+}
+
+/** Whether a reward carries one of the tags `ids`. */
+export function carriesTag(reward: Pick<Reward, 'tags'>, ids: ReadonlySet<string>): boolean {
+	return reward.tags.some((id) => ids.has(id));
 }
 
 /** Whether `gold` pays for `price`: Habitica refuses a reward that costs more than the gold there is. */

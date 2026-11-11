@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { ShopSnapshot } from '../../src/application';
 import { createTranslator } from '../../src/i18n';
 import { NO_CHOICE, nextTab, stallView, WARE_OBJECTS, wareObject, type StallChoice } from '../../src/ui/presenters/stallView';
-import { aReward } from '../fakes/FakeHabiticaShop';
+import { LoadShop } from '../../src/application/LoadShop';
+import { aReward, FakeHabiticaShop } from '../fakes/FakeHabiticaShop';
+import { FakeTagCatalog } from '../fakes/FakeTagCatalog';
+import { FixedClock } from '../fakes/FixedClock';
+import { InMemoryDeviceStore } from '../fakes/InMemoryDeviceStore';
+import { InMemoryOfferRepository } from '../fakes/InMemoryOfferRepository';
+import { InMemoryPurseRepository } from '../fakes/InMemoryPurseRepository';
 
 const en = createTranslator('en');
 const es = createTranslator('es');
@@ -263,5 +269,26 @@ describe('stallView: the empty states (M10 S6)', () => {
 
 	it('keeps the gold for the coin plaque, named in words', () => {
 		expect(stallView(ready(2386.4), null, NO_CHOICE, en).gold).toEqual({ amount: '2386', label: 'Your gold: 2386 gold' });
+	});
+});
+
+describe("stallView: the rewards Kairos owns are not wares (M10 S1, L13)", () => {
+	const load = (rewards: ReturnType<typeof aReward>[]) => {
+		const habitica = new FakeHabiticaShop(30, rewards);
+		const tags = new FakeTagCatalog([{ id: 't-kairos', name: 'Kairos' }]);
+		return new LoadShop({ gold: habitica, rewards: habitica, tags, purse: new InMemoryPurseRepository(), offers: new InMemoryOfferRepository([BOOK_WEEK, WALK]), store: new InMemoryDeviceStore(), clock: new FixedClock(new Date('2026-11-11T15:00:00Z'), '2026-11-11'), hasCredentials: () => true }).execute();
+	};
+	// The cheapest ware and the dearest are Kairos's: shown, they would take the figs and the chest, and the first ware chosen.
+	const kairos = [aReward('r-k-cheap', '[GT] Instagram +30 min', 1, { tags: ['t-kairos'] }), aReward('r-k-dear', '[GT] Film night', 900, { tags: ['t-kairos'] })];
+	const own = [aReward('r-tea', 'Tea', 6), COFFEE, BOOK];
+
+	it('ranks the tiles and chooses the first ware as if they were not there', async () => {
+		const withKairos = stallView(await load([...kairos, ...own]), null, NO_CHOICE, en);
+		const without = stallView(await load(own), null, NO_CHOICE, en);
+
+		expect(withKairos.rewards?.tiles.map((tile) => tile.key)).toEqual(['reward:r-tea', 'reward:r-coffee', 'reward:r-book']);
+		expect(withKairos.rewards).toEqual(without.rewards);
+		expect(withKairos.offers).toEqual(without.offers);
+		expect(withKairos.rewards?.detail?.key).toBe('reward:r-tea');
 	});
 });

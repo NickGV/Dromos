@@ -196,7 +196,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			},
 			// The Shop (M10 S1, S4): a purchase is confirmed in a card first, and its outcome is a toast.
 			shop: {
-				loadShop: new LoadShop({ gold: goldAccount, rewards: rewardCatalog, purse, offers, store: deviceStore, clock, hasCredentials }),
+				loadShop: new LoadShop({ gold: goldAccount, rewards: rewardCatalog, tags: sendDeps.tags, purse, offers, store: deviceStore, clock, hasCredentials }),
 				buyReward: new BuyReward({ rewards: rewardCatalog, gold: goldAccount, purse, clock, hasCredentials }),
 				buyOffer: new BuyOffer({ rewards: rewardCatalog, gold: goldAccount, purse, store: deviceStore, clock, hasCredentials }),
 				openCard: createOpenCardModal(plugin.app),

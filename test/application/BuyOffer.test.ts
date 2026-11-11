@@ -38,7 +38,7 @@ describe('BuyOffer: buying one of Esdras offers (M10 S2)', () => {
 
 		await buy.execute(BOOK, 100);
 
-		expect(habitica.rewards).toEqual([{ id: 'created-1', name: 'A book of the week', notes: 'Five days of reading in a row', price: 40, alias: 'dromos-offer-book-week' }]);
+		expect(habitica.rewards).toEqual([{ id: 'created-1', name: 'A book of the week', notes: 'Five days of reading in a row', price: 40, alias: 'dromos-offer-book-week', tags: [] }]);
 	});
 
 	it('reuses the reward a failed attempt left, so a retry never creates a second one', async () => {

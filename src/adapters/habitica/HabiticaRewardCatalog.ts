@@ -73,5 +73,5 @@ function rewardOf(task: HabiticaTaskDto & { readonly value?: unknown; readonly n
 	if (!id || typeof value !== 'number' || !Number.isFinite(value) || value < 0) return null;
 	const notes = typeof task.notes === 'string' && task.notes.trim() !== '' ? task.notes : null;
 	const alias = typeof task.alias === 'string' && task.alias !== '' ? task.alias : null;
-	return { id, name: task.text, notes, price: value, alias };
+	return { id, name: task.text, notes, price: value, alias, tags: task.tags ?? [] };
 }

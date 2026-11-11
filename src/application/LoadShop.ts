@@ -1,5 +1,5 @@
-import { isOfferReward, lastPurchases, openOffers, type Offer, type PurseEntry, type Reward } from '../domain';
-import type { Clock, DeviceStore, GoldAccount, OfferRepository, PurseRepository, RewardCatalog, UnreadableNoteRow } from '../ports';
+import { carriesTag, isOfferReward, KAIROS_TAG, lastPurchases, openOffers, tagIdsNamed, type Offer, type PurseEntry, type Reward } from '../domain';
+import type { Clock, DeviceStore, GoldAccount, OfferRepository, PurseRepository, RewardCatalog, TagCatalog, UnreadableNoteRow } from '../ports';
 import { pendingOfferRows, writePendingOfferRows } from './pendingOfferRows';
 import { statusForFailure, type FailedStatus } from './statusForFailure';
 
@@ -11,7 +11,7 @@ export interface ShopSnapshot {
 	readonly status: ShopStatus;
 	/** Habitica's gold, `null` when it could not be read. */
 	readonly gold: number | null;
-	/** The user's own Habitica rewards, never an offer's; `null` when they could not be read. */
+	/** The user's own Habitica rewards, never an offer's nor one Kairos owns; `null` when they could not be read. */
 	readonly rewards: readonly Reward[] | null;
 	/** Esdras's open offers (M10 S2): not bought, not past their last day; read from the vault, so offline too. */
 	readonly offers: readonly Offer[];
@@ -29,6 +29,8 @@ const LAST_PURCHASES = 5;
 export interface LoadShopDeps {
 	readonly gold: GoldAccount;
 	readonly rewards: RewardCatalog;
+	/** Where the `kairos` tag is found, to leave out the rewards Kairos owns (L13). */
+	readonly tags: Pick<TagCatalog, 'listTags'>;
 	/** The purse in the vault, for the last purchases and the offers bought (M10 S3). */
 	readonly purse: PurseRepository;
 	/** Esdras's offers, `Shop.md` (M10 S2). */
@@ -45,7 +47,8 @@ export interface LoadShopDeps {
  * Reads the shop (M10 S1) when its screen opens and on Sync, never on a timer: the gold, then the
  * rewards, one after the other so a failure spends no further request. Without credentials it asks
  * Habitica nothing. The rewards of Esdras's offers (alias `dromos-offer-…`) are never listed as
- * the user's own. Esdras's open offers and the last purchases come from the vault, whatever Habitica
+ * the user's own, nor the ones carrying the tag `kairos` (L13), which Kairos buys itself: when some
+ * reward carries a tag, the tags are read in the same load; when they cannot be, every reward shows. Esdras's open offers and the last purchases come from the vault, whatever Habitica
  * answers; a note that cannot be read shows none. The rows of offers bought that the purse could not
  * keep are written now when it can; until then those offers stay off sale (L8). Never rejects.
  */
@@ -71,13 +74,25 @@ export class LoadShop {
 		try {
 			const current = await gold.readGold();
 			const listed = (await rewards.list()).filter((reward) => !isOfferReward(reward));
-			return { status: { kind: 'ready' }, gold: current, rewards: listed };
+			return { status: { kind: 'ready' }, gold: current, rewards: await this.withoutKairos(listed) };
 		} catch (error) {
 			return { status: statusForFailure(error), gold: null, rewards: null };
 		}
 	}
 
 	/** The purse's rows; `read` is false when it could not be read, and then nothing is written into it. */
+	/** `rewards` without the ones tagged `kairos`; all of them when none carries a tag, or the tags cannot be read. */
+	private async withoutKairos(rewards: readonly Reward[]): Promise<readonly Reward[]> {
+		if (!rewards.some((reward) => reward.tags.length > 0)) return rewards;
+		try {
+			const kairos = tagIdsNamed(await this.deps.tags.listTags(), KAIROS_TAG);
+			return rewards.filter((reward) => !carriesTag(reward, kairos));
+		} catch {
+			// Showing a reward Kairos owns costs at most a confirmed purchase; hiding every reward would empty the Shop.
+			return rewards;
+		}
+	}
+
 	private async readPurse(): Promise<{ readonly read: boolean; readonly entries: readonly PurseEntry[]; readonly unreadable: readonly UnreadableNoteRow[] }> {
 		try {
 			return { read: true, ...(await this.deps.purse.read()) };

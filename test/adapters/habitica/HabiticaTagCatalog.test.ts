@@ -64,3 +64,21 @@ describe('HabiticaTagCatalog.ensureSkillTags', () => {
 		await expect(setup(respond(200, { success: true, data: 'x' })).catalog.ensureSkillTags(['lector'])).rejects.toMatchObject({ kind: 'Unknown' });
 	});
 });
+
+describe('HabiticaTagCatalog.listTags (M10 S1, L13)', () => {
+	it('lists every tag with its id and its name as written, with one GET of /tags', async () => {
+		const { catalog, http } = setup(tags(['t-kairos', ' Kairos '], ['t-lector', 'skill/lector']));
+
+		expect(await catalog.listTags()).toEqual([
+			{ id: 't-kairos', name: ' Kairos ' },
+			{ id: 't-lector', name: 'skill/lector' },
+		]);
+		expect(http.requests.map((request) => `${request.method} ${request.url}`)).toEqual([`GET ${URL}`]);
+	});
+
+	it('fails with the typed error, as the skill tags do', async () => {
+		const { catalog } = setup(respond(429, {}, { 'Retry-After': '5' }));
+
+		await expect(catalog.listTags()).rejects.toMatchObject({ kind: 'RateLimited' });
+	});
+});

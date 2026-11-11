@@ -73,6 +73,7 @@ If Habitica fails, nothing is written and the book stays pending. If the to-do w
 
 The **Shop** plank of the signpost opens the Shop: your Habitica gold and your own Habitica rewards (Habitica's *Rewards* column). Dromos keeps no currency of its own: the gold is Habitica's, and the Shop is the only place Dromos shows it, as a whole number.
 
+- Rewards carrying the Habitica tag `kairos` (any case, spaces around it ignored) are not listed: Kairos buys them itself, and buying one here would spend the gold with no minutes in Kairos. With no tag named `kairos` in Habitica, nothing is hidden. If the tags cannot be read, every reward shows. Dromos never adds or removes the tag.
 - **Buy** asks first. The confirmation names the reward, its price and the gold you will have left; only **Buy** in it spends gold. **Cancel** holds the focus, so pressing Enter twice buys nothing; Cancel, Escape or closing it buys nothing.
 - Buying spends the gold in Habitica, exactly as clicking the reward there does, and the Shop shows the gold Habitica answers with. Habitica keeps the reward, so you can buy it again.
 - A reward that costs more than your gold cannot be bought: its button stays quiet and says how much gold is missing.
@@ -128,7 +129,7 @@ Only when the tab opens, when you select **Sync**, when you open the Shop and wh
 | **Send to Habitica** | One write for the task. With skills, one read of your tags and one write for each that does not exist. The same for a habit beside the Library's desk |
 | **Empezar a leer** | One read of your tags, one write for `skill/lector` if it does not exist, and one write for the to-do. None for a book that already has a `habitica_id` |
 | **Terminar** | None |
-| Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards |
+| Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards. A third, `GET /tags`, to find the `kairos` tag, only when one of your rewards carries a tag |
 | **Buy** on one of your rewards, once confirmed | One write, `POST /tasks/<id>/score/up`, which spends the gold and answers with it. If Habitica refuses (it answers a short purse as it answers bad credentials), one more read of the gold tells which it was |
 | **Buy** on one of Esdras's offers, once confirmed | One read, `GET /tasks/dromos-offer-<id>`; one write to create the reward when it does not exist, `POST /tasks/user`; one write to buy it, `POST /tasks/<id>/score/up`; one write to delete it, `DELETE /tasks/<id>`. Opening the Shop reads `Shop.md` from the vault, with no request |
 | A sync that finds a new level, or a bonus still owed | One read of the gold, `GET /user?userFields=stats`, and one write per level, `PUT /user` with `stats.gp` set to that gold plus the bonus. None when no bonus is owed |

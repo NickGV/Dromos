@@ -55,10 +55,16 @@ describe('HabiticaRewardCatalog.list (M10 S1)', () => {
 		const http = new FakeHttp().on(`${API}/tasks/user?type=rewards`, respond(200, { success: true, data: [reward(COFFEE, 'Coffee out', 20, { notes: 'At the corner café' }), reward(BOOK, 'A new book', 75)] }));
 
 		expect(await shop(http).rewards.list()).toEqual([
-			{ id: COFFEE, name: 'Coffee out', notes: 'At the corner café', price: 20, alias: null },
-			{ id: BOOK, name: 'A new book', notes: null, price: 75, alias: null },
+			{ id: COFFEE, name: 'Coffee out', notes: 'At the corner café', price: 20, alias: null, tags: [] },
+			{ id: BOOK, name: 'A new book', notes: null, price: 75, alias: null, tags: [] },
 		]);
 		expect(http.sent()).toEqual([`GET ${API}/tasks/user?type=rewards`]);
+	});
+
+	it('keeps the ids of the tags a reward carries (L13)', async () => {
+		const http = new FakeHttp().on(`${API}/tasks/user?type=rewards`, respond(200, { success: true, data: [reward(COFFEE, 'Coffee out', 20, { tags: ['t-kairos', 't-food'] })] }));
+
+		expect((await shop(http).rewards.list())[0]?.tags).toEqual(['t-kairos', 't-food']);
 	});
 
 	it('keeps the alias of a reward that has one', async () => {
@@ -146,7 +152,7 @@ describe('HabiticaRewardCatalog: the reward of an offer (M10 S2)', () => {
 		const url = `${API}/tasks/dromos-offer-book-week`;
 		const http = new FakeHttp().on(url, respond(200, { success: true, data: reward(OFFER, 'A book of the week', 40, { alias: 'dromos-offer-book-week', notes: 'Five days' }) }));
 
-		expect(await shop(http).rewards.findByAlias('dromos-offer-book-week')).toEqual({ id: OFFER, name: 'A book of the week', notes: 'Five days', price: 40, alias: 'dromos-offer-book-week' });
+		expect(await shop(http).rewards.findByAlias('dromos-offer-book-week')).toEqual({ id: OFFER, name: 'A book of the week', notes: 'Five days', price: 40, alias: 'dromos-offer-book-week', tags: [] });
 		expect(http.sent()).toEqual([`GET ${url}`]);
 	});
 
@@ -165,7 +171,7 @@ describe('HabiticaRewardCatalog: the reward of an offer (M10 S2)', () => {
 
 		const created = await shop(http).rewards.create({ name: 'A walk', notes: 'Fresh air', price: 15, alias: 'dromos-offer-walk' });
 
-		expect(created).toEqual({ id: OFFER, name: 'A walk', notes: null, price: 15, alias: 'dromos-offer-walk' });
+		expect(created).toEqual({ id: OFFER, name: 'A walk', notes: null, price: 15, alias: 'dromos-offer-walk', tags: [] });
 		expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({ type: 'reward', text: 'A walk', notes: 'Fresh air', value: 15, alias: 'dromos-offer-walk' });
 	});
 

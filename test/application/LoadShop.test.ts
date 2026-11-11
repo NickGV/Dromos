@@ -6,6 +6,7 @@ import { aReward, FakeHabiticaShop } from '../fakes/FakeHabiticaShop';
 import { FixedClock } from '../fakes/FixedClock';
 import { InMemoryDeviceStore } from '../fakes/InMemoryDeviceStore';
 import { InMemoryOfferRepository } from '../fakes/InMemoryOfferRepository';
+import { FakeTagCatalog } from '../fakes/FakeTagCatalog';
 import { InMemoryPurseRepository } from '../fakes/InMemoryPurseRepository';
 
 const clock = new FixedClock(new Date('2026-11-11T15:00:00Z'), '2026-11-11');
@@ -15,13 +16,14 @@ const BOOK = aReward('r-book', 'A new book', 75);
 
 const bought = (date: string, what: string, gold: number): PurseEntry => ({ date, kind: 'purchase', what, gold, level: null, offer: null });
 
-function setup(options: { credentials?: boolean; gold?: number; purse?: PurseEntry[]; offers?: Offer[]; store?: InMemoryDeviceStore } = {}) {
+function setup(options: { credentials?: boolean; gold?: number; purse?: PurseEntry[]; offers?: Offer[]; store?: InMemoryDeviceStore; tags?: FakeTagCatalog } = {}) {
 	const habitica = new FakeHabiticaShop(options.gold ?? 124.62, [COFFEE, BOOK]);
 	const purse = new InMemoryPurseRepository(options.purse ?? []);
 	const offers = new InMemoryOfferRepository(options.offers ?? []);
 	const store = options.store ?? new InMemoryDeviceStore();
-	const load = new LoadShop({ gold: habitica, rewards: habitica, purse, offers, store, clock, hasCredentials: () => options.credentials ?? true });
-	return { habitica, purse, offers, store, load };
+	const tags = options.tags ?? new FakeTagCatalog();
+	const load = new LoadShop({ gold: habitica, rewards: habitica, tags, purse, offers, store, clock, hasCredentials: () => options.credentials ?? true });
+	return { habitica, purse, offers, store, tags, load };
 }
 
 describe('LoadShop: the gold and the Habitica rewards (M10 S1)', () => {
@@ -108,7 +110,7 @@ describe('LoadShop: the last purchases from the purse (M10 S3, S4)', () => {
 	it('passes on the rows of the purse it could not read, and shows no purchases when it cannot read the note', async () => {
 		const unreadable = new InMemoryPurseRepository([], [{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
 		const habitica = new FakeHabiticaShop(10);
-		expect((await new LoadShop({ gold: habitica, rewards: habitica, purse: unreadable, offers: new InMemoryOfferRepository(), store: new InMemoryDeviceStore(), clock, hasCredentials: () => true }).execute()).purseUnreadable).toEqual([{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
+		expect((await new LoadShop({ gold: habitica, rewards: habitica, tags: new FakeTagCatalog(), purse: unreadable, offers: new InMemoryOfferRepository(), store: new InMemoryDeviceStore(), clock, hasCredentials: () => true }).execute()).purseUnreadable).toEqual([{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
 
 		const broken = setup({ purse });
 		broken.purse.failReadWith = new Error('locked');
@@ -150,7 +152,7 @@ describe("LoadShop: Esdras's offers (M10 S2)", () => {
 	it('passes on the rows of Shop.md it could not read, and shows no offers when it cannot read the note', async () => {
 		const habitica = new FakeHabiticaShop(10);
 		const unreadable = new InMemoryOfferRepository([], [{ path: 'Dromos/Shop.md', line: 7, text: '| x |' }]);
-		const shop = await new LoadShop({ gold: habitica, rewards: habitica, purse: new InMemoryPurseRepository(), offers: unreadable, store: new InMemoryDeviceStore(), clock, hasCredentials: () => true }).execute();
+		const shop = await new LoadShop({ gold: habitica, rewards: habitica, tags: new FakeTagCatalog(), purse: new InMemoryPurseRepository(), offers: unreadable, store: new InMemoryDeviceStore(), clock, hasCredentials: () => true }).execute();
 		expect(shop.offersUnreadable).toEqual([{ path: 'Dromos/Shop.md', line: 7, text: '| x |' }]);
 
 		const broken = setup({ offers: OFFERS });
@@ -192,5 +194,56 @@ describe('LoadShop: an offer bought whose purse row is still owed (L8)', () => {
 
 		expect(purse.appended).toEqual([]);
 		expect(store.read('offer-rows-pending')).toBeNull();
+	});
+});
+
+describe("LoadShop: the rewards Kairos owns, tagged kairos (M10 S1, L13)", () => {
+	const KAIROS = { id: 't-kairos', name: 'kairos' };
+	const INSTA = aReward('r-insta', '[GT] Instagram +30 min', 3, { tags: ['t-kairos'] });
+	const TWITCH = aReward('r-twitch', '[GT] Twitch 30 min', 5, { tags: ['t-media'] });
+
+	it('hides a reward carrying the kairos tag and keeps the others, reading the tags in the same load', async () => {
+		const { habitica, tags, load } = setup({ tags: new FakeTagCatalog([KAIROS, { id: 't-media', name: 'media' }]) });
+		habitica.rewards = [COFFEE, INSTA, TWITCH, BOOK];
+
+		const shop = await load.execute();
+
+		expect(shop.rewards?.map((reward) => reward.id)).toEqual(['r-coffee', 'r-twitch', 'r-book']);
+		expect(habitica.calls).toEqual(['readGold', 'list']);
+		expect(tags.lists).toBe(1);
+	});
+
+	it('hides nothing when Habitica has no tag named kairos', async () => {
+		const { habitica, load } = setup({ tags: new FakeTagCatalog([{ id: 't-media', name: 'media' }]) });
+		habitica.rewards = [COFFEE, INSTA, TWITCH];
+
+		expect((await load.execute()).rewards?.map((reward) => reward.id)).toEqual(['r-coffee', 'r-insta', 'r-twitch']);
+	});
+
+	it('matches the tag name without caring for case or the spaces around it, every tag so named', async () => {
+		const { habitica, load } = setup({ tags: new FakeTagCatalog([{ id: 't-kairos', name: '  KaiRos ' }, { id: 't-kairos-2', name: 'KAIROS' }, { id: 't-other', name: 'kairos 2.0' }]) });
+		habitica.rewards = [COFFEE, INSTA, aReward('r-second', 'Second', 4, { tags: ['t-kairos-2'] }), aReward('r-near', 'Near', 4, { tags: ['t-other'] })];
+
+		expect((await load.execute()).rewards?.map((reward) => reward.id)).toEqual(['r-coffee', 'r-near']);
+	});
+
+	it('spends no request on the tags when no reward carries one', async () => {
+		const { tags, load } = setup({ tags: new FakeTagCatalog([KAIROS]) });
+
+		expect((await load.execute()).rewards?.map((reward) => reward.id)).toEqual(['r-coffee', 'r-book']);
+		expect(tags.lists).toBe(0);
+	});
+
+	it('shows every reward, and stays ready, when the tags cannot be read', async () => {
+		const failing = new FakeTagCatalog([KAIROS]);
+		failing.failListWith = new TaskSourceError('RateLimited', 30, 'x');
+		const { habitica, load } = setup({ tags: failing });
+		habitica.rewards = [COFFEE, INSTA];
+
+		const shop = await load.execute();
+
+		expect(shop.status).toEqual({ kind: 'ready' });
+		expect(shop.gold).toBe(124.62);
+		expect(shop.rewards?.map((reward) => reward.id)).toEqual(['r-coffee', 'r-insta']);
 	});
 });
