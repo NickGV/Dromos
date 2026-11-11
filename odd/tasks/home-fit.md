@@ -23,7 +23,7 @@ The user's request: "chat sabes que podemos hacer para quizas lograr que se pued
 |----|-------|------|-------|--------|--------|
 | T1 | S1-S4 | The four changes, one commit per spec where they stand apart | delegated, writer E (context backstop: the parent session is long) | done (L4); the user accepts the 135 px left (L6) | `9dab41a`, `e765cf0`, `d369c89`, `23b6f07` |
 | T2 | S1-S4 | Seam check, live measure in Obsidian, README and CHANGELOG, dev build | inline | done (L5) | docs (this commit) |
-| R1 | S1-S4 | Release 0.15.0 with the user's go-ahead | inline | go-ahead given (L7) | |
+| R1 | S1-S4 | Release 0.15.0 with the user's go-ahead | inline | done: released (L8), Android verified (L9) | tag `0.15.0`, `main` `a704c69` |
 
 ## Log
 
@@ -34,3 +34,5 @@ The user's request: "chat sabes que podemos hacer para quizas lograr que se pued
 - **L5** (2026-11-10): T2. Seam check on the branch: 138 files, 1813 tests; lint 0 errors, 4 old warnings. Dev build installed and measured live at 1546 × 970: 1884 to 1105 px (scene 320, letter 200, quests 472, campaigns 277, desk 87, chronicle 229; left column 701, right 649). About 135 px of scroll remain: the fourth quest's foot and the two **View more** buttons. Closing it needs a denser quest row or three rows (beyond the approved S3): the user's call. README and CHANGELOG `[Unreleased]` written. Risk: item 6 (geometry by screenshots).
 - **L6** (2026-11-10, user): "asi lo veo bien". The home stays as measured in L5 (1105 px, about 135 px of scroll); no denser quest rows, no three rows. Next: R1 (0.15.0, minor: the folding campaign cards are new) when the user gives the go-ahead.
 - **L7** (2026-11-10, user): "si dale" — go-ahead for R1: merge `feat/home-fit` into `main`, release 0.15.0, push `main` and the tag.
+- **L8** (2026-11-10): 0.15.0 published. `feat/home-fit` merged `--no-ff` into `main`; `release/0.15.0` (changelog dated 2026-11-10, `npm version minor`, annotated tag `0.15.0`) merged into `main` (`a704c69`). All 13 new commits by NickGV <nickgomvelez@gmail.com>, no co-author or AI lines, no `main.js`, `data.json` or `node_modules`. Checks on `main`: 138 files, 1813 tests; lint 0 errors (4 old warnings); build ok. `gh auth status`: NickGV active. Pushed `main` and the tag; `release.yml` run 42912416845 succeeded; the release is not a draft or pre-release, with `main.js`, `manifest.json` and `styles.css`. Local vault plugin reinstalled from `main` (0.15.0). Pending: the user's check on Android through BRAT.
+- **L9** (2026-11-11, user): "ya prove en android tambien y funciona perfectamente, que proxige?" — verified on Android through BRAT (0.15.0, which carries 0.14.0). R1 done.
