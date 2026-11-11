@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The Chronicle** (M9): your XP week by week, up to the last 12 weeks, the current week compared with the week before; select a week for its days, its XP by stat and its deeds. Open it with **View history** under the home chronicle. It reads the ledger only, with no extra request to Habitica.
+
 ## [0.15.0] - 2026-11-10
 
 ### Changed

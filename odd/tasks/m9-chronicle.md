@@ -25,9 +25,9 @@ The user chose the module: "hagamoslo porfavor" (L1), to Claude's recommendation
 
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
-| T1 | S1 | The weekly history from the ledger rows, in the game result and snapshot | delegated, writer F (context backstop: the parent session is long) | pending | |
-| T2 | S2, S3 | The Chronicle screen, its charts and the way in from home | delegated, writer F (depends on T1) | pending | |
-| T3 | S1-S3 | Seam check, live check in Obsidian, README, CHANGELOG, vault ticks | inline | pending | |
+| T1 | S1 | The weekly history from the ledger rows, in the game result and snapshot | delegated, writer F (context backstop: the parent session is long) | done (L4); user review pending | `ce57080` |
+| T2 | S2, S3 | The Chronicle screen, its charts and the way in from home | delegated, writer F (depends on T1) | done (L4); user review pending | `3c027e5`, `67e9d92` |
+| T3 | S1-S3 | Seam check, live check in Obsidian, README, CHANGELOG, vault ticks | inline | partial (L5): live check and vault ticks pending | docs (this commit) |
 | R1 | S4 | Release with the user's go-ahead | inline | pending | |
 
 ## Log
@@ -35,3 +35,5 @@ The user chose the module: "hagamoslo porfavor" (L1), to Claude's recommendation
 - **L1** (2026-11-11, user): "hagamoslo porfavor", to Claude's recommendation: "Mi recomendación es arrancar con el historial de XP por semana."
 - **L2** (2026-11-11, user): "1", the Chronicle screen opened from the home chronicle, among three options (a Chronicle screen, a section of the Skills screen, a sixth plank).
 - **L3** (2026-11-11): M9 written into the vault's `02-Phases.md` (objective, tasks, done criteria; M8 and M9 rows added to the milestones table).
+- **L4** (2026-11-11): writer F finished T1 and T2 (its first run stopped with the session; resumed on "continua"). `ce57080`: `weeklyHistory` (domain) into `GameResult.history` / `GameSnapshot.history`. `3c027e5`: the Chronicle screen (week bars as `aria-pressed` buttons named in words, the headline with the comparison in a live region, the days with today marked, XP by stat plus "No skill", the deeds; an empty-ledger sentence; a lighter `--dromos-bar-rest` token for unselected bars). `67e9d92`: **View history** under the home chronicle, the screen's header card with **← Path**, Path burnt in on the signpost. Its checks: 142 files, 1867 tests; lint 0 errors (4 old warnings); build ok. Decisions it flagged: XP by stat counts every skill row of a known skill, even before the skill unlocks, while the plaque's radar counts only XP after an unlock and adds no-skill dailies to Discipline; rows of a skill with no note count in the week but under no stat; a week can go below zero (a revert counts where it is written); unselected bars are below 3:1 contrast on purpose, their values in their names.
+- **L5** (2026-11-11): T3 in part. Seam check: 142 files, 1867 tests; lint 0 errors and the 4 old warnings. Dev build installed into the vault, but Obsidian was not running (`obsidian plugin:reload`: "unable to find Obsidian"), so no live check yet. README (the Chronicle) and CHANGELOG `[Unreleased]` written. Pending: the live check, the user's review and the open question on XP by stat versus the radar.
