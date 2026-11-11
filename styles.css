@@ -183,6 +183,10 @@
 	--dromos-done-fill: #3b3127;
 	--dromos-lock-face: rgba(138, 130, 121, 0.22);
 	--dromos-xp-track: rgba(212, 166, 74, 0.1);
+	/* The weeks of the Chronicle (M9 S2) not selected: a quiet umber beside the selected ochre mark,
+	   ΔE 25 apart; 2.76:1 on the panel, so each week's value is also in words and at its bar's end
+	   on hover and focus. */
+	--dromos-bar-rest: #7a6048;
 	--dromos-hatch: rgba(237, 227, 207, 0.1);
 	--dromos-hatch-on-fill: rgba(36, 28, 18, 0.2);
 	--dromos-ink-warning: #e8a85c;
@@ -300,6 +304,8 @@
 	--dromos-done-fill: #e4daca;
 	--dromos-lock-face: rgba(184, 175, 163, 0.3);
 	--dromos-xp-track: rgba(201, 150, 43, 0.14);
+	/* ΔE 16.7 from the ochre mark #9a6e15; 2.04:1 on the panel, the values in words as by night. */
+	--dromos-bar-rest: #bea082;
 	--dromos-hatch: rgba(139, 94, 60, 0.12);
 	--dromos-hatch-on-fill: rgba(59, 47, 42, 0.12);
 	--dromos-ink-warning: #8f5300;
@@ -2929,7 +2935,9 @@
    small caps, the task in ink and what it gained in ochre ink. An undone deed says "Undone" in
    clay ink, its task struck through and its XP muted. Parts stay whole when a line wraps. */
 .dromos-root .dromos-chronicle-panel { padding: 4px 18px; }
-.dromos-root .dromos-chronicle-panel > .dromos-list-toggle { margin: 4px 0 12px; }
+/* "View more" and "View history" under the lines (home-fit S2, M9 S3), side by side. */
+.dromos-root .dromos-chronicle-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.dromos-root .dromos-chronicle-actions > .dromos-btn { margin: 0; }
 .dromos-root .dromos-deeds { margin: 0; padding: 0; list-style: none; }
 
 .dromos-root .dromos-deed {
@@ -2950,9 +2958,254 @@
 .dromos-root .dromos-deed.is-undone .dromos-deed-part.is-task .dromos-deed-text { text-decoration: line-through; text-decoration-color: var(--dromos-umber); text-decoration-thickness: 1px; }
 .dromos-root .dromos-deed.is-undone .dromos-deed-part.is-gain .dromos-deed-text { color: var(--dromos-ink-muted); }
 
+/* The Chronicle screen (M9 S2): the weeks as columns in a panel under the selected week's name, XP
+   and comparison; then that week by day, by stat and its deeds. One series, so one hue: the selected
+   week and the selected week's charts in the ochre mark, the other weeks a quiet umber. Marks are
+   thin with 4 px rounded data ends, square at the baseline; the rules are solid hairlines. */
+.dromos-root .dromos-history { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.dromos-root .dromos-history-empty { padding: 18px; }
+.dromos-root .dromos-history-columns,
+.dromos-root .dromos-history-column { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.dromos-root .dromos-history-panel { padding: 16px 18px; }
+.dromos-root .dromos-history-panel.is-deeds { padding: 4px 18px; }
+.dromos-root .dromos-history-none { margin: 0; padding: 12px 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; }
+
+.dromos-root .dromos-history-weeks { padding: 16px 18px 12px; }
+.dromos-root .dromos-history-head {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: baseline;
+	gap: 2px 12px;
+}
+.dromos-root .dromos-history-week {
+	margin: 0;
+	font-family: var(--dromos-font-display);
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--dromos-ink);
+}
+.dromos-root .dromos-history-xp {
+	margin: 0;
+	font-family: var(--dromos-font-display);
+	font-size: 22px;
+	font-weight: 600;
+	font-variant-numeric: lining-nums;
+	line-height: 1.2;
+	color: var(--dromos-ochre-ink);
+	white-space: nowrap;
+}
+.dromos-root .dromos-history-compare {
+	grid-column: 1 / -1;
+	margin: 0;
+	color: var(--dromos-ink-muted);
+	font-size: 14px;
+	font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* The plot: 20 px above it for the top's value and a bar's value at its end, 132 px of bars, 24 px
+   of labels under them. The top and the baseline are hairlines across every week. */
+.dromos-root .dromos-weeks { --dromos-plot: 132px; --dromos-axis: 24px; container: dromos-weeks / inline-size; margin-top: 12px; }
+.dromos-root .dromos-weeks-plot {
+	position: relative;
+	display: flex;
+	justify-content: flex-end;
+	gap: 2px;
+	padding-top: 20px;
+}
+.dromos-root .dromos-weeks-top,
+.dromos-root .dromos-weeks-bottom {
+	position: absolute;
+	left: 0;
+	color: var(--dromos-ink-muted);
+	font-size: 11px;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 18px;
+	white-space: nowrap;
+}
+.dromos-root .dromos-weeks-top { top: 0; right: 0; height: 19px; border-bottom: 1px solid var(--dromos-track); }
+.dromos-root .dromos-weeks-bottom { bottom: var(--dromos-axis); }
+.dromos-root .dromos-weeks-baseline {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: calc(var(--dromos-axis) + var(--dromos-plot) * var(--dromos-zero));
+	border-top: 1px solid var(--dromos-rule);
+	pointer-events: none;
+}
+
+/* Each week is a button as tall as the plot: the hit area is the whole column, not the bar. */
+.dromos-root button.dromos-week {
+	position: relative;
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+	max-width: 96px;
+	height: auto;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	transition: background-color 120ms ease-out;
+}
+.dromos-root button.dromos-week:hover { background: var(--dromos-hover); }
+.dromos-root button.dromos-week.is-selected { background: var(--dromos-selected); }
+.dromos-root button.dromos-week:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: -2px; box-shadow: none; }
+.dromos-root .dromos-week-column { position: relative; display: block; height: var(--dromos-plot); }
+.dromos-root .dromos-week-bar {
+	position: absolute;
+	left: 50%;
+	width: min(24px, 72%);
+	min-height: 2px;
+	border-radius: 4px 4px 0 0;
+	background: var(--dromos-bar-rest);
+	transform: translateX(-50%);
+	transition: background-color 120ms ease-out;
+}
+.dromos-root .dromos-week.is-negative .dromos-week-bar { border-radius: 0 0 4px 4px; }
+.dromos-root .dromos-week.is-selected .dromos-week-bar { background: var(--dromos-ochre-mark); }
+.dromos-root .dromos-week-value {
+	position: absolute;
+	left: 50%;
+	z-index: 1;
+	padding: 0 3px;
+	border-radius: 3px;
+	background: var(--dromos-panel);
+	color: var(--dromos-ink);
+	font-size: 12px;
+	font-weight: 600;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 16px;
+	white-space: nowrap;
+	opacity: 0;
+	transform: translate(-50%, -2px);
+	pointer-events: none;
+}
+.dromos-root .dromos-week.is-selected .dromos-week-value,
+.dromos-root .dromos-week:hover .dromos-week-value,
+.dromos-root .dromos-week:focus-visible .dromos-week-value { opacity: 1; }
+.dromos-root .dromos-week-label {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+	height: var(--dromos-axis);
+	padding-bottom: 3px;
+	box-sizing: border-box;
+	color: var(--dromos-ink-muted);
+	font-size: 11.5px;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+.dromos-root .dromos-week.is-current .dromos-week-label { color: var(--dromos-ink); font-weight: 600; }
+.dromos-root .dromos-week.is-selected .dromos-week-label { color: var(--dromos-ink); }
+
+/* Where twelve weeks leave no room for twelve dates, only the first and the current one keep theirs,
+   set from the plot's edges outwards. */
+@container dromos-weeks (max-width: 559px) {
+	.dromos-root .dromos-week:not(.is-edge) .dromos-week-label { visibility: hidden; }
+	.dromos-root .dromos-week.is-edge:first-of-type .dromos-week-label { justify-content: flex-start; }
+	.dromos-root .dromos-week.is-edge:last-of-type .dromos-week-label { justify-content: flex-end; }
+	.dromos-root .dromos-week.is-edge:first-of-type:last-of-type .dromos-week-label { justify-content: center; }
+}
+
+/* The days of the selected week: seven small columns with their XP above and their name under. */
+.dromos-root .dromos-days {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.dromos-root .dromos-day { position: relative; min-width: 0; }
+.dromos-root .dromos-day-figure { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.dromos-root .dromos-day-value {
+	min-height: 16px;
+	color: var(--dromos-ink);
+	font-size: 12px;
+	font-variant-numeric: lining-nums tabular-nums;
+	line-height: 16px;
+}
+.dromos-root .dromos-day-value.is-negative { color: var(--dromos-clay-ink); }
+.dromos-root .dromos-day-track {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 64px;
+	border-bottom: 1px solid var(--dromos-rule);
+}
+.dromos-root .dromos-day.is-ahead .dromos-day-track { border-bottom: 1px dashed var(--dromos-rule-dashed); }
+.dromos-root .dromos-day-bar {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	width: min(20px, 64%);
+	min-height: 2px;
+	border-radius: 4px 4px 0 0;
+	background: var(--dromos-ochre-mark);
+	transform: translateX(-50%);
+}
+.dromos-root .dromos-day-name {
+	margin-top: 4px;
+	color: var(--dromos-ink-muted);
+	font-family: var(--dromos-font-display);
+	font-size: 15px;
+	font-variant: small-caps;
+	letter-spacing: 0.04em;
+	line-height: 1;
+}
+.dromos-root .dromos-day-date { color: var(--dromos-ink-muted); font-size: 12px; font-variant-numeric: lining-nums tabular-nums; line-height: 1.3; }
+.dromos-root .dromos-day.is-today .dromos-day-name,
+.dromos-root .dromos-day.is-today .dromos-day-date { color: var(--dromos-ink); font-weight: 600; }
+.dromos-root .dromos-day.is-today .dromos-day-date {
+	text-decoration: underline;
+	text-decoration-color: var(--dromos-ochre-mark);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 3px;
+}
+
+/* Where the week's XP went: a name, a bar on a faint track and the XP, in aligned columns. */
+.dromos-root .dromos-stat-shares { display: flex; flex-direction: column; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.dromos-root .dromos-stat-share {
+	display: grid;
+	grid-template-columns: 7em minmax(0, 1fr) 4.6em;
+	align-items: center;
+	gap: 12px;
+	font-size: 14px;
+	line-height: 1.3;
+}
+.dromos-root .dromos-stat-share.is-unskilled { margin-top: 3px; padding-top: 11px; border-top: 1px dashed var(--dromos-rule-dashed); }
+.dromos-root .dromos-stat-share-name { min-width: 0; color: var(--dromos-ink); overflow-wrap: anywhere; }
+.dromos-root .dromos-stat-share-track { position: relative; display: block; height: 8px; border-radius: 4px; background: var(--dromos-xp-track); }
+.dromos-root .dromos-stat-share-bar { position: absolute; top: 0; bottom: 0; left: 0; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--dromos-ochre-mark); }
+.dromos-root .dromos-stat-share-value { color: var(--dromos-ink); font-variant-numeric: lining-nums tabular-nums; text-align: right; white-space: nowrap; }
+.dromos-root .dromos-stat-share-value.is-negative { color: var(--dromos-clay-ink); }
+
+/* Wide panes: the two charts in the first column, the deeds of the week in the second. */
+@container dromos-view (min-width: 736px) {
+	.dromos-root .dromos-history-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 28px 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root button.dromos-week,
+	.dromos-root .dromos-week-bar { transition: none; }
+}
+
 /* Narrow panes and phones: smaller display names and tighter panels. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-chronicle-panel { padding-inline: 16px; }
+	.dromos-root .dromos-history-panel,
+	.dromos-root .dromos-history-weeks { padding-inline: 14px; }
+	.dromos-root .dromos-history-panel.is-deeds { padding-inline: 16px; }
+	.dromos-root .dromos-stat-share { gap: 10px; }
 	.dromos-root .dromos-campaign-hero-name { font-size: 36px; }
 	.dromos-root .dromos-campaign-hero-head,
 	.dromos-root .dromos-campaign-hero-body,

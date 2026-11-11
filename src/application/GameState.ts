@@ -1,4 +1,4 @@
-import type { LedgerSource, Skill, SkillRank, SkillStanding, RequirementProgress } from '../domain';
+import type { LedgerSource, Skill, SkillRank, SkillStanding, RequirementProgress, StatId } from '../domain';
 import type { InvalidRules, InvalidSkillNote, UnreadableLedgerEvent } from '../ports';
 import type { GameEvent } from './gameEvents';
 import type { PendingOrFailedStatus, SyncStatus } from './QuestState';
@@ -57,6 +57,27 @@ export interface DeedEntry {
 	readonly skills: readonly SkillRef[];
 }
 
+/**
+ * One week of the chronicle's history (M9 S1), Monday to Sunday on the ledger's local dates, as
+ * the game counts it: each deed once, a revert or a streak bonus taken back negative.
+ */
+export interface WeekEntry {
+	/** The week's Monday as `YYYY-MM-DD`. */
+	readonly start: string;
+	/** Signed: the character's XP over the week. */
+	readonly xp: number;
+	/** The XP of the week before, or `null` when that week is before the ledger's first row. */
+	readonly previousXp: number | null;
+	/** The XP of each of the seven days, Monday first. */
+	readonly days: readonly number[];
+	/** The XP of the week's skill rows by the stat each skill feeds; every skill of a deed gained its XP. */
+	readonly statXp: Readonly<Record<StatId, number>>;
+	/** The XP of the week's deeds with no skill. */
+	readonly unskilledXp: number;
+	/** Every deed of the week, newest first. */
+	readonly deeds: readonly DeedEntry[];
+}
+
 /** What completing one Habitica task writes to the ledger, priced the way the ledger prices it (game-ui S6). */
 export interface QuestPrice {
 	/** The XP of each row; the character counts it once. */
@@ -79,6 +100,8 @@ export interface GameResult {
 	readonly completedQuests: number;
 	/** The last deeds of the ledger, newest first (at most five) (game-ui S18). */
 	readonly deeds: readonly DeedEntry[];
+	/** The last weeks of the ledger, oldest first, ending with the current one (at most twelve) (M9 S1). */
+	readonly history: readonly WeekEntry[];
 }
 
 /** Immutable view of the game; every change produces a new object. */
@@ -108,6 +131,11 @@ export interface GameSnapshot {
 	 * the game first records a result (game-ui S18).
 	 */
 	readonly deeds?: readonly DeedEntry[];
+	/**
+	 * The last weeks of the ledger, oldest first, as the last game result read them; absent until
+	 * the game first records a result (M9 S1).
+	 */
+	readonly history?: readonly WeekEntry[];
 }
 
 const INITIAL: GameSnapshot = { status: { kind: 'idle' }, lastSyncedAt: null, character: null, skills: null, events: [], invalidSkills: [], unreadable: [], invalidRules: null };
@@ -149,6 +177,7 @@ export class GameState {
 			questPrices: result.questPrices,
 			completedQuests: result.completedQuests,
 			deeds: result.deeds,
+			history: result.history,
 		};
 	}
 

@@ -1018,3 +1018,68 @@ describe('SyncGame: the chronicle of deeds (game-ui S18)', () => {
 		expect(state.snapshot().deeds?.map((deed) => deed.task)).toEqual(['Task a', 'One']);
 	});
 });
+
+describe('SyncGame: the history of the weeks (M9 S1)', () => {
+	const ZERO = { fuerza: 0, vitalidad: 0, inteligencia: 0, sabiduria: 0, espiritu: 0, disciplina: 0 };
+	const escriba = skill({ id: 'escriba', name: 'Escriba', stat: 'sabiduria', requirements: [] });
+	const history = [row({ habiticaId: 'h1', task: 'One', date: '2026-10-30' }), row({ habiticaId: 'h2', task: 'Stretch', skill: null, kind: 'daily', date: '2026-11-01' })];
+
+	it('gives each week its XP, its days, its XP by stat and its deeds, with the names of their skills, from the one read of the ledger', async () => {
+		const { sync, ledger, source } = setup({ skills: [owned(), escriba], rows: history, tasks: [todo('a', { title: 'Write today', skills: ['lector', 'escriba'] })] });
+		const reads = vi.spyOn(ledger, 'readAll');
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.history).toEqual([
+			{
+				start: '2026-10-26',
+				xp: 20,
+				previousXp: null,
+				days: [0, 0, 0, 0, 10, 0, 10],
+				statXp: { ...ZERO, inteligencia: 10 },
+				unskilledXp: 10,
+				deeds: [
+					{ date: '2026-11-01', task: 'Stretch', xp: 10, source: 'complete', skills: [] },
+					{ date: '2026-10-30', task: 'One', xp: 10, source: 'complete', skills: [{ id: 'lector', name: 'Lector' }] },
+				],
+			},
+			{
+				start: '2026-11-02',
+				xp: 10,
+				previousXp: 20,
+				days: [0, 10, 0, 0, 0, 0, 0],
+				statXp: { ...ZERO, inteligencia: 10, sabiduria: 10 },
+				unskilledXp: 0,
+				deeds: [{ date: '2026-11-03', task: 'Write today', xp: 10, source: 'complete', skills: [{ id: 'lector', name: 'Lector' }, { id: 'escriba', name: 'Escriba' }] }],
+			},
+		]);
+		expect(reads).toHaveBeenCalledTimes(1);
+		expect(source.calls).toBe(1);
+	});
+
+	it('has none before the first game sync, keeps it when a sync fails, and a rebuild reads it from the ledger alone', async () => {
+		const { sync, source, state } = setup({ skills: [owned()], rows: history.slice(0, 1), tasks: [todo('a')] });
+		expect(state.snapshot().history).toBeUndefined();
+
+		await sync.execute();
+		const after = state.snapshot().history;
+		source.failWith = new TaskSourceError('Offline', null, 'down');
+		const failed = await sync.execute();
+		await sync.rebuild();
+
+		expect(after?.map((week) => [week.start, week.xp])).toEqual([
+			['2026-10-26', 10],
+			['2026-11-02', 10],
+		]);
+		expect(failed.history).toEqual(after);
+		expect(state.snapshot().history).toEqual(after);
+	});
+
+	it('keeps the five deeds of the home chronicle as they were', async () => {
+		const { sync } = setup({ skills: [owned()], rows: history, tasks: [todo('a')] });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.deeds?.map((deed) => deed.task)).toEqual(['Task a', 'Stretch', 'One']);
+	});
+});
