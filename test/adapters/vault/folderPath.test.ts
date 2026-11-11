@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { briefingNotePath, characterNotePath, ledgerFolderPath, ledgerNotePath, normalizeVaultFolder, rulesNotePath, skillNotePath, skillsFolderPath } from '../../../src/adapters/vault/folderPath';
+import { briefingNotePath, characterNotePath, ledgerFolderPath, ledgerNotePath, normalizeVaultFolder, purseNotePath, rulesNotePath, shopNotePath, skillNotePath, skillsFolderPath } from '../../../src/adapters/vault/folderPath';
 
 describe('normalizeVaultFolder', () => {
 	it('keeps a clean folder as is', () => {
@@ -57,5 +57,14 @@ describe('skills and ledger paths', () => {
 	it('falls back to the default folder', () => {
 		expect(skillNotePath('', 'lector')).toBe('Dromos/Skills/lector.md');
 		expect(ledgerNotePath('///', '2026-11')).toBe('Dromos/Ledger/2026-11.md');
+	});
+});
+
+describe('the shop and purse paths (M10 S2, S3)', () => {
+	it('places Shop.md and Purse.md inside the normalized folder, or the default one', () => {
+		expect(purseNotePath(' Notas/Dromos/ ')).toBe('Notas/Dromos/Purse.md');
+		expect(shopNotePath('Dromos')).toBe('Dromos/Shop.md');
+		expect(purseNotePath('')).toBe('Dromos/Purse.md');
+		expect(shopNotePath('///')).toBe('Dromos/Shop.md');
 	});
 });

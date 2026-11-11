@@ -4090,6 +4090,29 @@
 .dromos-root .dromos-btn.dromos-shop-buy-button.is-unavailable:hover { border-style: dashed; background-color: transparent; color: var(--dromos-ink-muted); cursor: not-allowed; }
 .dromos-root .dromos-btn.dromos-shop-buy-button[aria-busy="true"] { cursor: progress; }
 
+/* The last purchases (M10 S3): journal lines of the purse, as the chronicle's deeds, the day in
+   small caps, the reward in ink and the gold it took in ochre ink. */
+.dromos-root .dromos-shop-ledger { padding: 4px 18px; }
+.dromos-root .dromos-shop-purchase-list { margin: 0; padding: 0; list-style: none; }
+.dromos-root .dromos-shop-purchase {
+	display: grid;
+	grid-template-columns: 4.5em minmax(0, 1fr) auto;
+	align-items: baseline;
+	gap: 4px 14px;
+	padding: 10px 0;
+	border-top: 1px dashed var(--dromos-rule-dashed);
+	font-family: var(--dromos-font-display);
+	font-size: 16px;
+	line-height: 1.4;
+}
+.dromos-root .dromos-shop-purchase:first-child { border-top: 0; }
+.dromos-root .dromos-shop-purchase-day { color: var(--dromos-ink-muted); font-variant: small-caps; letter-spacing: 0.06em; white-space: nowrap; }
+.dromos-root .dromos-shop-purchase-what { color: var(--dromos-ink); overflow-wrap: anywhere; }
+.dromos-root .dromos-shop-purchase-gold { color: var(--dromos-ochre-ink); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.dromos-root .dromos-shop-ledger-empty { margin: 0; padding: 12px 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; }
+.dromos-root .dromos-shop-unreadable { margin: 0; padding: 10px 0 12px; border-top: 1px dashed var(--dromos-rule-dashed); color: var(--dromos-ink-warning); font-size: 13px; }
+.dromos-root .dromos-shop-ledger-empty + .dromos-shop-unreadable { border-top: 0; padding-top: 0; }
+
 /* Phones and narrow panes: the name and its notes take the line; the price and the button share
    the one under it, the price at its start, and the reason goes under them. */
 @container dromos-view (max-width: 472px) {

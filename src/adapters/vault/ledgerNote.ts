@@ -1,5 +1,6 @@
 import type { LedgerRow, LedgerSource, XpKind } from '../../domain';
 import { oneOf } from './frontmatterFields';
+import { frontmatterEnd, splitCells, tableCell } from './markdownTable';
 
 /** A row of the table that could not be read: shown in the UI as an unreadable event. */
 export interface UnreadableLedgerLine {
@@ -59,13 +60,8 @@ export function parseLedgerNote(text: string): ParsedLedger {
 
 /** One table line for a row; a pipe in the title is escaped and a title stays on one line. */
 export function formatLedgerRow(row: LedgerRow): string {
-	const task = cell(row.task);
-	return `| ${row.date} | ${cell(row.habiticaId)} | ${task} | ${row.kind} | ${cell(row.skill ?? '')} | ${row.xp} | ${row.source} | ${row.n} |`;
-}
-
-/** One cell on one line, with its pipes escaped. */
-function cell(value: string): string {
-	return value.replace(/\s*\n\s*/g, ' ').replace(/\|/g, '\\|').trim();
+	const task = tableCell(row.task);
+	return `| ${row.date} | ${tableCell(row.habiticaId)} | ${task} | ${row.kind} | ${tableCell(row.skill ?? '')} | ${row.xp} | ${row.source} | ${row.n} |`;
 }
 
 /** The note of one month: frontmatter and an empty table. */
@@ -102,30 +98,8 @@ function ledgerTableEnd(lines: readonly string[], start: number): number {
 	return end;
 }
 
-/** Index of the first line after the frontmatter, or 0 when there is none. */
-function frontmatterEnd(lines: readonly string[]): number {
-	if (lines[0]?.trim() !== '---') return 0;
-	const close = lines.findIndex((line, index) => index > 0 && line.trim() === '---');
-	return close === -1 ? 0 : close + 1;
-}
-
 function cells(line: string): string[] {
-	const inner = line.replace(/^\|/, '').replace(/\|$/, '');
-	return splitOnPipes(inner).map((cell) => cell.trim().replace(/\\\|/g, '|'));
-}
-
-/** Splits on each pipe with no backslash right before it. A regex lookbehind would do it, but iOS below 16.4 cannot parse one. */
-function splitOnPipes(text: string): string[] {
-	const parts: string[] = [];
-	let start = 0;
-	for (let index = 0; index < text.length; index += 1) {
-		if (text[index] === '|' && text[index - 1] !== '\\') {
-			parts.push(text.slice(start, index));
-			start = index + 1;
-		}
-	}
-	parts.push(text.slice(start));
-	return parts;
+	return splitCells(line);
 }
 
 function isHeader(line: string): boolean {

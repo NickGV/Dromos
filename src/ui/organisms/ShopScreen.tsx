@@ -1,5 +1,5 @@
 import { Coin } from '../atoms/Coin';
-import type { ShopItemView, ShopSectionView, ShopView } from '../presenters/shopView';
+import type { PurchasesView, ShopItemView, ShopSectionView, ShopView } from '../presenters/shopView';
 import { ScreenHeader } from './ScreenHeader';
 
 export interface ShopScreenProps {
@@ -15,7 +15,8 @@ export interface ShopScreenProps {
  * a note when the shop cannot sell (offline, without credentials) or is being read, then the
  * user's Habitica rewards, each with its notes, its price and a button that names what it buys and
  * its price. A reward dearer than the gold keeps its button focusable but held, described by how
- * much gold is missing. Every amount is a coin and a number on screen and words for screen readers.
+ * much gold is missing. Under them, the last purchases from the purse, as journal lines (M10 S3),
+ * shown offline too. Every amount is a coin and a number on screen and words for screen readers.
  */
 export function ShopScreen({ view, onBuy, idPrefix = 'dromos-shop' }: ShopScreenProps) {
 	const gold = view.gold ? (
@@ -32,6 +33,7 @@ export function ShopScreen({ view, onBuy, idPrefix = 'dromos-shop' }: ShopScreen
 			<ScreenHeader title={view.title} aside={gold} />
 			{view.note ? <p className={`dromos-panel dromos-shop-note is-${view.note.tone}`}>{view.note.text}</p> : null}
 			{view.rewards ? section(view.rewards, 'rewards', onBuy, idPrefix) : null}
+			{view.purchases ? purchases(view.purchases) : null}
 		</div>
 	);
 }
@@ -80,5 +82,31 @@ function item(row: ShopItemView, onBuy: (key: string) => void, idPrefix: string)
 				) : null}
 			</div>
 		</li>
+	);
+}
+
+function purchases(view: PurchasesView) {
+	return (
+		<section className="dromos-section dromos-shop-purchases">
+			<h3 className="dromos-card-title">{view.title}</h3>
+			<div className="dromos-panel dromos-shop-ledger">
+				{view.empty ? <p className="dromos-shop-ledger-empty">{view.empty}</p> : null}
+				{view.rows.length > 0 ? (
+					<ul className="dromos-shop-purchase-list">
+						{view.rows.map((row) => (
+							<li key={row.key} className="dromos-shop-purchase">
+								<span className="dromos-shop-purchase-day">{row.date}</span>
+								<span className="dromos-shop-purchase-what">{row.what}</span>
+								<span className="dromos-shop-purchase-gold">
+									<span aria-hidden="true">{row.gold}</span>
+									<span className="dromos-visually-hidden">{row.goldLabel}</span>
+								</span>
+							</li>
+						))}
+					</ul>
+				) : null}
+				{view.unreadable ? <p className="dromos-shop-unreadable">{view.unreadable}</p> : null}
+			</div>
+		</section>
 	);
 }

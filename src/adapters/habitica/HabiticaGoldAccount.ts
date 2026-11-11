@@ -5,8 +5,9 @@ import type { HabiticaClient } from './HabiticaClient';
 const USER_STATS_PATH = '/user?userFields=stats';
 
 /**
- * The user's Habitica gold (M10, ADR-019), read with `GET /user?userFields=stats`. Rejects only
- * with `TaskSourceError`, whose messages never carry the credentials.
+ * The user's Habitica gold (M10, ADR-019), read with `GET /user?userFields=stats` and set with
+ * `PUT /user` on `stats.gp`, a path Habitica lets a user update (only `stats.class` is protected).
+ * Rejects only with `TaskSourceError`, whose messages never carry the credentials.
  */
 export class HabiticaGoldAccount implements GoldAccount {
 	constructor(private readonly client: HabiticaClient) {}
@@ -18,6 +19,14 @@ export class HabiticaGoldAccount implements GoldAccount {
 			return gold;
 		} catch (error) {
 			throw typed(error, 'Habitica gold could not be read');
+		}
+	}
+
+	async setGold(gold: number): Promise<number | null> {
+		try {
+			return goldOf(await this.client.put('/user', { 'stats.gp': gold }));
+		} catch (error) {
+			throw typed(error, 'Habitica gold could not be set');
 		}
 	}
 }

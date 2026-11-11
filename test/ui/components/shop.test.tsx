@@ -15,7 +15,7 @@ const es = createTranslator('es');
 
 const COFFEE = aReward('r-coffee', 'Coffee out', 20, { notes: 'At the corner café' });
 const BOOK = aReward('r-book', 'A new book', 175);
-const READY: ShopSnapshot = { status: { kind: 'ready' }, gold: 124.62, rewards: [COFFEE, BOOK] };
+const READY: ShopSnapshot = { status: { kind: 'ready' }, gold: 124.62, rewards: [COFFEE, BOOK], purchases: [], purseUnreadable: [] };
 
 const screen = (shop: ShopSnapshot | null, busy: string | null = null, t = en) => renderToStaticMarkup(<ShopScreen view={shopView(shop, busy, t)} onBuy={noop} />);
 
@@ -66,7 +66,7 @@ describe('ShopScreen (M10 S1, S4)', () => {
 	});
 
 	it('says offline that nothing can be bought, and draws no buy button', () => {
-		const html = screen({ status: { kind: 'offline' }, gold: null, rewards: null });
+		const html = screen({ status: { kind: 'offline' }, gold: null, rewards: null, purchases: [], purseUnreadable: [] });
 
 		expect(html).toContain('Habitica cannot be reached, so nothing can be bought now. Select Sync to try again.');
 		expect(buttons(html)).toEqual([]);
@@ -83,6 +83,22 @@ describe('ShopScreen (M10 S1, S4)', () => {
 		expect(html).toMatch(/<h2[^>]*>Tienda<\/h2>/);
 		expect(html).toContain('Tu oro: 124 monedas de oro');
 		expect(buttons(html)[0]?.tag).toContain('aria-label="Comprar Coffee out por 20 monedas de oro"');
+	});
+});
+
+describe('ShopScreen: the last purchases (M10 S3, S4)', () => {
+	it('lists them as journal lines, the gold they took in words for screen readers', () => {
+		const html = screen({ ...READY, purchases: [{ date: '2026-11-11', kind: 'purchase', what: 'Coffee out', gold: -20, level: null, offer: null }] });
+
+		expect(html).toContain('<h3 class="dromos-card-title">Last purchases</h3>');
+		expect(html).toMatch(/<li class="dromos-shop-purchase"><span class="dromos-shop-purchase-day">11 Nov<\/span><span class="dromos-shop-purchase-what">Coffee out<\/span><span class="dromos-shop-purchase-gold"><span aria-hidden="true">−20<\/span><span class="dromos-visually-hidden">20 gold spent<\/span><\/span><\/li>/);
+	});
+
+	it('says when nothing was bought yet, and which rows of the purse it could not read', () => {
+		const html = screen({ ...READY, purseUnreadable: [{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }] });
+
+		expect(html).toContain('Nothing bought yet.');
+		expect(html).toContain('1 row of Dromos/Purse.md could not be read (line 9).');
 	});
 });
 

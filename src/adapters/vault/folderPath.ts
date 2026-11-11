@@ -41,3 +41,13 @@ export function ledgerFolderPath(folder: string): string {
 export function ledgerNotePath(folder: string, month: string): string {
 	return `${ledgerFolderPath(folder)}/${month}.md`;
 }
+
+/** Vault path of the purse under the given folder setting, for example `Dromos/Purse.md` (M10 S3). */
+export function purseNotePath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Purse.md`;
+}
+
+/** Vault path of Esdras's offers under the given folder setting, for example `Dromos/Shop.md` (M10 S2). */
+export function shopNotePath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Shop.md`;
+}

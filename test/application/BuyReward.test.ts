@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { BuyReward } from '../../src/application/BuyReward';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { aReward, FakeHabiticaShop } from '../fakes/FakeHabiticaShop';
+import { FixedClock } from '../fakes/FixedClock';
+import { InMemoryPurseRepository } from '../fakes/InMemoryPurseRepository';
 
 const COFFEE = aReward('r-coffee', 'Coffee out', 20);
 const BOOK = aReward('r-book', 'A new book', 75);
 
 function setup(options: { credentials?: boolean; gold?: number } = {}) {
 	const habitica = new FakeHabiticaShop(options.gold ?? 124.62, [COFFEE, BOOK]);
-	const buy = new BuyReward({ rewards: habitica, gold: habitica, hasCredentials: () => options.credentials ?? true });
-	return { habitica, buy };
+	const purse = new InMemoryPurseRepository();
+	const clock = new FixedClock(new Date('2026-11-11T15:00:00Z'), '2026-11-11');
+	const buy = new BuyReward({ rewards: habitica, gold: habitica, purse, clock, hasCredentials: () => options.credentials ?? true });
+	return { habitica, purse, buy };
 }
 
 describe('BuyReward: buying one of your Habitica rewards (M10 S1)', () => {
@@ -18,8 +22,35 @@ describe('BuyReward: buying one of your Habitica rewards (M10 S1)', () => {
 
 		const outcome = await buy.execute(COFFEE, 124.62);
 
-		expect(outcome).toEqual({ kind: 'bought', reward: COFFEE, gold: 104.62 });
+		expect(outcome).toEqual({ kind: 'bought', reward: COFFEE, gold: 104.62, recorded: true });
 		expect(habitica.calls).toEqual(['buy r-coffee']);
+	});
+
+	it('writes the purchase into the purse once Habitica confirms it, its price as negative gold (M10 S3)', async () => {
+		const { purse, buy } = setup();
+
+		await buy.execute(COFFEE, 124.62);
+
+		expect(purse.appended).toEqual([[{ date: '2026-11-11', kind: 'purchase', what: 'Coffee out', gold: -20, level: null, offer: null }]]);
+	});
+
+	it('keeps the purchase when the purse cannot be written, and says so (M10 S3)', async () => {
+		const { habitica, purse, buy } = setup();
+		purse.failAppendWith = new Error('disk full');
+
+		expect(await buy.execute(COFFEE, 124.62)).toEqual({ kind: 'bought', reward: COFFEE, gold: 104.62, recorded: false });
+		expect(habitica.calls).toEqual(['buy r-coffee']);
+	});
+
+	it('changes nothing in the vault when the purchase fails or is refused', async () => {
+		const failed = setup();
+		failed.habitica.failNext('buy', new TaskSourceError('Unknown', null, 'x'));
+		await failed.buy.execute(COFFEE, 124);
+		expect(failed.purse.appended).toEqual([]);
+
+		const dear = setup({ gold: 5 });
+		await dear.buy.execute(COFFEE, 5);
+		expect(dear.purse.appended).toEqual([]);
 	});
 
 	it('never asks Habitica for a reward that costs more than the gold shown, and says what there is', async () => {
@@ -34,7 +65,7 @@ describe('BuyReward: buying one of your Habitica rewards (M10 S1)', () => {
 	it('buys a reward that costs exactly the gold there is', async () => {
 		const { habitica, buy } = setup({ gold: 20 });
 
-		expect(await buy.execute(COFFEE, 20)).toEqual({ kind: 'bought', reward: COFFEE, gold: 0 });
+		expect(await buy.execute(COFFEE, 20)).toEqual({ kind: 'bought', reward: COFFEE, gold: 0, recorded: true });
 		expect(habitica.calls).toEqual(['buy r-coffee']);
 	});
 

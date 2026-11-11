@@ -79,6 +79,19 @@ The **Shop** plank of the signpost opens the Shop: your Habitica gold and your o
 - Offline or without credentials the Shop says so and nothing can be bought.
 - A purchase that fails says what happened. When Habitica did not answer at all, Dromos cannot tell whether the gold was taken: check your gold in Habitica before buying again.
 
+### The purse
+
+Every purchase is written into `<folder>/Purse.md` (`type: dromos-purse`) once Habitica confirms it: a table `| date | kind | what | gold | level | offer |`, one `purchase` row with the price as negative gold. Only Dromos writes it; the Shop lists its last five purchases, offline too. A purchase that fails writes nothing. If Habitica bought it but the note could not be written, the toast says so.
+
+### The level bonus
+
+Each new level of the character adds gold in Habitica: `goldPerLevel` times the level reached, 10 a level unless `Rules.md` sets `goldPerLevel` (a whole number above 0), so reaching level 3 adds 30. Two levels at once pay both. A toast tells it, "+30 gold for reaching level 3".
+
+- Only a level-up a sync finds is paid: levels reached before this version are not.
+- Each level is paid once. Right before paying, Dromos reads `Purse.md` again; a level with a `bonus` row there is never paid again. The row is written once Habitica confirms the gold.
+- A payment that fails writes nothing and is tried again on the next sync, also after Obsidian restarts on that device.
+- Dromos reads your gold and writes it back plus the bonus. If you spend gold in Habitica at that very second, one can overwrite the other. If two devices find the same level-up before `Purse.md` syncs between them, the bonus can be paid twice.
+
 ## When Dromos talks to Habitica
 
 Only when the tab opens, when you select **Sync**, when you open the Shop and when you act on a button. Nothing runs on a timer, and there is no telemetry.
@@ -91,6 +104,7 @@ Only when the tab opens, when you select **Sync**, when you open the Shop and wh
 | **Terminar** | None |
 | Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards |
 | **Buy** on one of your rewards, once confirmed | One write, `POST /tasks/<id>/score/up`, which spends the gold and answers with it. If Habitica refuses (it answers a short purse as it answers bad credentials), one more read of the gold tells which it was |
+| A sync that finds a new level, or a bonus still owed | One read of the gold, `GET /user?userFields=stats`, and one write per level, `PUT /user` with `stats.gp` set to that gold plus the bonus. None when no bonus is owed |
 
 Habitica allows 30 requests per minute. A request with no answer after 15 seconds counts as offline.
 

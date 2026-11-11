@@ -113,3 +113,28 @@ describe('HabiticaRewardCatalog.buy (M10 S1)', () => {
 		expect(error.message).not.toContain(TOKEN);
 	});
 });
+
+describe('HabiticaGoldAccount.setGold (M10 S3)', () => {
+	it("sets the gold with one PUT of stats.gp and resolves with the gold Habitica then holds", async () => {
+		const http = new FakeHttp().onMethod('PUT', `${API}/user`, respond(200, { success: true, data: { stats: { gp: 154.62 } } }));
+
+		expect(await shop(http).gold.setGold(154.62)).toBe(154.62);
+		expect(http.sent()).toEqual([`PUT ${API}/user`]);
+		expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({ 'stats.gp': 154.62 });
+	});
+
+	it('resolves null when Habitica set it but sent no readable gold', async () => {
+		const http = new FakeHttp().onMethod('PUT', `${API}/user`, respond(200, { success: true, data: {} }));
+
+		expect(await shop(http).gold.setGold(10)).toBeNull();
+	});
+
+	it('fails with the typed errors, without the token in the message', async () => {
+		const http = new FakeHttp().onMethod('PUT', `${API}/user`, new Error(`socket ${TOKEN}`));
+
+		const error = await errorOf(shop(http).gold.setGold(10));
+
+		expect(error.kind).toBe('Offline');
+		expect(error.message).not.toContain(TOKEN);
+	});
+});

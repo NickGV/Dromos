@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { LoadShop } from '../../src/application/LoadShop';
+import type { PurseEntry } from '../../src/domain';
 import { TaskSourceError } from '../../src/ports/TaskSourceError';
 import { aReward, FakeHabiticaShop } from '../fakes/FakeHabiticaShop';
+import { InMemoryPurseRepository } from '../fakes/InMemoryPurseRepository';
 
 const COFFEE = aReward('r-coffee', 'Coffee out', 20, { notes: 'At the corner café' });
 const BOOK = aReward('r-book', 'A new book', 75);
 
-function setup(options: { credentials?: boolean; gold?: number } = {}) {
+const bought = (date: string, what: string, gold: number): PurseEntry => ({ date, kind: 'purchase', what, gold, level: null, offer: null });
+
+function setup(options: { credentials?: boolean; gold?: number; purse?: PurseEntry[] } = {}) {
 	const habitica = new FakeHabiticaShop(options.gold ?? 124.62, [COFFEE, BOOK]);
-	const load = new LoadShop({ gold: habitica, rewards: habitica, hasCredentials: () => options.credentials ?? true });
-	return { habitica, load };
+	const purse = new InMemoryPurseRepository(options.purse ?? []);
+	const load = new LoadShop({ gold: habitica, rewards: habitica, purse, hasCredentials: () => options.credentials ?? true });
+	return { habitica, purse, load };
 }
 
 describe('LoadShop: the gold and the Habitica rewards (M10 S1)', () => {
@@ -64,5 +69,44 @@ describe('LoadShop: the gold and the Habitica rewards (M10 S1)', () => {
 			expect(shop.gold).toBeNull();
 			expect(shop.rewards).toBeNull();
 		}
+	});
+});
+
+describe('LoadShop: the last purchases from the purse (M10 S3, S4)', () => {
+	const purse = [
+		bought('2026-11-01', 'Tea', -5),
+		{ date: '2026-11-02', kind: 'bonus', what: 'Level 3', gold: 30, level: 3, offer: null } as const,
+		bought('2026-11-03', 'Coffee out', -20),
+		bought('2026-11-04', 'Film', -15),
+		bought('2026-11-05', 'Book', -75),
+		bought('2026-11-06', 'Cake', -10),
+		bought('2026-11-07', 'Walk', -3),
+	];
+
+	it('lists the last five purchases, newest first, with the gold and the rewards', async () => {
+		const shop = await setup({ purse }).load.execute();
+
+		expect(shop.purchases.map((entry) => entry.what)).toEqual(['Walk', 'Cake', 'Book', 'Film', 'Coffee out']);
+		expect(shop.purseUnreadable).toEqual([]);
+	});
+
+	it('lists them offline and without credentials too: the purse is in the vault', async () => {
+		const offline = setup({ purse });
+		offline.habitica.failNext('readGold', new TaskSourceError('Offline', null, 'x'));
+
+		expect((await offline.load.execute()).purchases).toHaveLength(5);
+		expect((await setup({ purse, credentials: false }).load.execute()).purchases).toHaveLength(5);
+	});
+
+	it('passes on the rows of the purse it could not read, and shows no purchases when it cannot read the note', async () => {
+		const unreadable = new InMemoryPurseRepository([], [{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
+		const habitica = new FakeHabiticaShop(10);
+		expect((await new LoadShop({ gold: habitica, rewards: habitica, purse: unreadable, hasCredentials: () => true }).execute()).purseUnreadable).toEqual([{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }]);
+
+		const broken = setup({ purse });
+		broken.purse.failReadWith = new Error('locked');
+		const shop = await broken.load.execute();
+		expect(shop.status).toEqual({ kind: 'ready' });
+		expect(shop.purchases).toEqual([]);
 	});
 });

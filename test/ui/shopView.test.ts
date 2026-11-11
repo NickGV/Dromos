@@ -10,8 +10,8 @@ const es = createTranslator('es');
 const COFFEE = aReward('r-coffee', 'Coffee out', 20, { notes: 'At the corner café' });
 const BOOK = aReward('r-book', 'A new book', 175);
 
-const ready = (gold: number, rewards = [COFFEE, BOOK]): ShopSnapshot => ({ status: { kind: 'ready' }, gold, rewards });
-const failed = (status: ShopSnapshot['status']): ShopSnapshot => ({ status, gold: null, rewards: null });
+const ready = (gold: number, rewards = [COFFEE, BOOK]): ShopSnapshot => ({ status: { kind: 'ready' }, gold, rewards, purchases: [], purseUnreadable: [] });
+const failed = (status: ShopSnapshot['status']): ShopSnapshot => ({ status, gold: null, rewards: null, purchases: [], purseUnreadable: [] });
 
 describe('shopView: the gold (M10 S1, S4)', () => {
 	it('shows the gold as a whole number, named in words for screen readers', () => {
@@ -105,8 +105,12 @@ describe('purchaseMessage (M10 S1)', () => {
 	const message = (outcome: PurchaseOutcome) => purchaseMessage(outcome, en);
 
 	it('says what was bought and the gold Habitica returned', () => {
-		expect(message({ kind: 'bought', reward: COFFEE, gold: 104.62 })).toBe('Bought Coffee out. You have 104 gold left.');
-		expect(message({ kind: 'bought', reward: COFFEE, gold: null })).toBe('Bought Coffee out.');
+		expect(message({ kind: 'bought', reward: COFFEE, gold: 104.62, recorded: true })).toBe('Bought Coffee out. You have 104 gold left.');
+		expect(message({ kind: 'bought', reward: COFFEE, gold: null, recorded: true })).toBe('Bought Coffee out.');
+	});
+
+	it('says when the purse could not keep the purchase (M10 S3)', () => {
+		expect(message({ kind: 'bought', reward: COFFEE, gold: 104.62, recorded: false })).toBe('Bought Coffee out. You have 104 gold left. Purse.md could not be written.');
 	});
 
 	it('says why nothing was bought', () => {
@@ -123,5 +127,44 @@ describe('purchaseMessage (M10 S1)', () => {
 
 	it('says nothing for a click that came while another purchase ran', () => {
 		expect(message({ kind: 'busy' })).toBeNull();
+	});
+});
+
+describe('shopView: the last purchases (M10 S3, S4)', () => {
+	const purchases = [
+		{ date: '2026-11-11', kind: 'purchase', what: 'Coffee out', gold: -20, level: null, offer: null },
+		{ date: '2026-11-09', kind: 'purchase', what: 'A book of the week', gold: -75, level: null, offer: 'book-week' },
+	] as const;
+
+	it('lists each purchase with its day, what it was and the gold it took, in words too', () => {
+		const view = shopView({ ...ready(124), purchases }, null, en);
+
+		expect(view.purchases).toEqual({
+			title: 'Last purchases',
+			rows: [
+				{ key: '0', date: '11 Nov', what: 'Coffee out', gold: '−20', goldLabel: '20 gold spent' },
+				{ key: '1', date: '9 Nov', what: 'A book of the week', gold: '−75', goldLabel: '75 gold spent' },
+			],
+			empty: null,
+			unreadable: null,
+		});
+	});
+
+	it('shows them offline too, and says when there are none', () => {
+		expect(shopView({ ...failed({ kind: 'offline' }), purchases }, null, en).purchases?.rows).toHaveLength(2);
+		expect(shopView(ready(10), null, en).purchases).toMatchObject({ rows: [], empty: 'Nothing bought yet.' });
+		expect(shopView(ready(10), null, es).purchases).toMatchObject({ title: 'Últimas compras', empty: 'Aún no has comprado nada.' });
+	});
+
+	it('says how many rows of Purse.md it could not read', () => {
+		const one = shopView({ ...ready(10), purseUnreadable: [{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }] }, null, en);
+		expect(one.purchases?.unreadable).toBe('1 row of Dromos/Purse.md could not be read (line 9).');
+
+		const two = shopView({ ...ready(10), purseUnreadable: [{ path: 'Dromos/Purse.md', line: 9, text: '| x |' }, { path: 'Dromos/Purse.md', line: 12, text: '| y |' }] }, null, es);
+		expect(two.purchases?.unreadable).toBe('No se pudieron leer 2 filas de Dromos/Purse.md (líneas 9, 12).');
+	});
+
+	it('has nothing to show while the shop is read', () => {
+		expect(shopView(null, null, en).purchases).toBeNull();
 	});
 });

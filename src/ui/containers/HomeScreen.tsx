@@ -25,7 +25,7 @@ import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
 import { historyView } from '../presenters/historyView';
-import { ceremonyView, unlockNotices } from '../presenters/levelUpView';
+import { ceremonyView, gameNotices } from '../presenters/levelUpView';
 import { plaqueSkillsView } from '../presenters/plaqueSkillsView';
 import { questListView, questPanelView, type QuestFilter } from '../presenters/questListView';
 import { toggled } from '../presenters/toggled';
@@ -223,7 +223,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		toggle?.closest('.dromos-briefing')?.querySelector('.dromos-briefing-head')?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
 	};
 	const announce = useCallback((): void => {
-		unlockNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
+		gameNotices(deps.takeGameAnnouncements(), deps.translator()).forEach((message) => deps.notify(message));
 	}, [deps]);
 
 	// A read after a sync that fails keeps what is on screen: that note was readable a moment ago.

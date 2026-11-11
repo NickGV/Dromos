@@ -11,6 +11,7 @@ export * from './GameTaskSource';
 export * from './GoldAccount';
 export * from './LedgerRepository';
 export * from './Projections';
+export * from './PurseRepository';
 export * from './ResourceRepository';
 export * from './RewardCatalog';
 export * from './RulesRepository';

@@ -5,4 +5,10 @@
 export interface GoldAccount {
 	/** The gold there is now. Rejects only with a `TaskSourceError`. */
 	readGold(): Promise<number>;
+
+	/**
+	 * Sets the gold to `gold` and resolves with the gold Habitica then holds, or `null` when its answer
+	 * did not say. Only the level bonus calls it (M10 S3). Rejects only with a `TaskSourceError`.
+	 */
+	setGold(gold: number): Promise<number | null>;
 }
