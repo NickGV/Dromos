@@ -500,4 +500,15 @@ export const es = {
 	'shop.failed.unauthorized': 'Habitica rechazó la compra: revisa las credenciales en los ajustes de Dromos. No se compró nada.',
 	'shop.failed.rateLimited': 'Demasiadas solicitudes a Habitica: espera {wait} y vuelve a intentarlo. No se compró nada.',
 	'shop.failed.error': 'Habitica no pudo completar la compra. No se compró nada.',
+	// El puesto (M10 S6): sus pestañas y sus casillas.
+	'shop.tabs.aria': 'El puesto',
+	'shop.tab.rewards': 'Recompensas',
+	'shop.tab.offers': 'Ofertas',
+	'shop.tab.purchases': 'Compras',
+	'shop.tile.can': '{name}, {price}, se puede comprar',
+	'shop.tile.short.one': '{name}, {price}, te falta 1 moneda de oro',
+	'shop.tile.short.other': '{name}, {price}, te faltan {count} monedas de oro',
+	'shop.tile.closed': '{name}, {price}, no se puede comprar ahora',
+	'shop.tile.missing.one': 'falta 1',
+	'shop.tile.missing.other': 'faltan {count}',
 } as const;

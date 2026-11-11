@@ -499,4 +499,15 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'shop.failed.unauthorized': 'Habitica refused the purchase: check the credentials in the Dromos settings. Nothing was bought.',
 	'shop.failed.rateLimited': 'Too many requests to Habitica: wait {wait} and try again. Nothing was bought.',
 	'shop.failed.error': 'Habitica could not complete the purchase. Nothing was bought.',
+	// The stall (M10 S6): its tabs and its tiles.
+	'shop.tabs.aria': 'The stall',
+	'shop.tab.rewards': 'Rewards',
+	'shop.tab.offers': 'Offers',
+	'shop.tab.purchases': 'Purchases',
+	'shop.tile.can': '{name}, {price}, can be bought',
+	'shop.tile.short.one': '{name}, {price}, you need 1 more gold',
+	'shop.tile.short.other': '{name}, {price}, you need {count} more gold',
+	'shop.tile.closed': '{name}, {price}, cannot be bought now',
+	'shop.tile.missing.one': '1 more',
+	'shop.tile.missing.other': '{count} more',
 };

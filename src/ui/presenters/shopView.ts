@@ -40,6 +40,8 @@ export interface ShopItemView {
 	readonly price: string;
 	/** The price in words, "20 gold". */
 	readonly priceLabel: string;
+	/** The price as Habitica or `Shop.md` gives it, what the gold is weighed against (the stall's locks and drawings, S6). */
+	readonly cost: number;
 	/** An offer's last day, "Until 20 Nov"; `null` for a reward or an offer without one. */
 	readonly until: string | null;
 	/** `null` when the shop cannot sell (offline, without credentials): the offers are still listed. */
@@ -172,7 +174,7 @@ export function unreadableText(lines: readonly { readonly path: string; readonly
 
 function itemView(key: string, item: { readonly name: string; readonly notes: string | null; readonly price: number }, until: string | null, gold: number | null, busy: string | null, t: Translator): ShopItemView {
 	const priceLabel = goldText(item.price, t);
-	return { key, name: item.name, notes: item.notes, price: String(wholeGold(item.price)), priceLabel, until, buy: gold === null ? null : buyView(key, item, priceLabel, gold, busy, t) };
+	return { key, name: item.name, notes: item.notes, price: String(wholeGold(item.price)), priceLabel, cost: item.price, until, buy: gold === null ? null : buyView(key, item, priceLabel, gold, busy, t) };
 }
 
 function buyView(key: string, item: { readonly name: string; readonly price: number }, priceLabel: string, gold: number, busy: string | null, t: Translator): ShopBuyView {
