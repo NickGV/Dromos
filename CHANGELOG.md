@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Titles**: Esdras grants titles for big, rare feats (finishing your first campaign, ten books with their reflection, thirty days of a habit) in `Titles.md`, a table `| id | title | feat | granted | why |` that Dromos reads and never writes. Select the title on your plaque to see every title you earned, newest first, with the feat, the day and Esdras's reason, and choose which one the plaque shows: Dromos writes it into `title` of `Character.md`, and only a title of `Titles.md`. A new title shows once on each device as a line on the plaque with the wax seal, "Esdras granted you a title: …".
+
 ## [0.19.0] - 2026-11-12
 
 ### Added

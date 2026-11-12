@@ -29,6 +29,10 @@ export interface CharacterPanelProps {
 	readonly avatar?: AvatarView;
 	/** Opens the stage card from the card's portrait (stage-card S1); absent, or with no character, the portrait is no button. */
 	readonly onOpenStages?: () => void;
+	/** Opens the titles card from the card's title (titles S5); absent, or with no character, the title is no button. */
+	readonly onOpenTitles?: () => void;
+	/** A title newly granted on this device, for the card's notice (titles S5); `null` without one. */
+	readonly titleNews?: string | null;
 }
 
 /**
@@ -36,9 +40,10 @@ export interface CharacterPanelProps {
  * every screen: the character, or an empty state. When `Character.md` is missing it names the
  * expected path and shows no invented values (D4).
  */
-export function CharacterPanel({ state, ceremony = null, visit = null, skills = null, footer, heading = true, avatar, onOpenStages }: CharacterPanelProps) {
+export function CharacterPanel({ state, ceremony = null, visit = null, skills = null, footer, heading = true, avatar, onOpenStages, onOpenTitles, titleNews = null }: CharacterPanelProps) {
 	const t = useT();
-	if (state.kind === 'found') return <CharacterCard view={state.view} footer={footer} ceremony={ceremony} visit={visit} skills={skills} heading={heading} avatar={avatar} onOpenStages={onOpenStages} />;
+	if (state.kind === 'found')
+		return <CharacterCard view={state.view} footer={footer} ceremony={ceremony} visit={visit} skills={skills} heading={heading} avatar={avatar} onOpenStages={onOpenStages} onOpenTitles={onOpenTitles} titleNews={titleNews} />;
 	return (
 		<section className="dromos-card dromos-plaque dromos-character-empty" aria-label={t('character.aria')}>
 			{state.kind === 'missing' ? (

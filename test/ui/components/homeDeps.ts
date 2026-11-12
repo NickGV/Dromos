@@ -57,6 +57,8 @@ export function homeDeps(
 		syncQuests: { execute: never },
 		syncGame: { execute: never },
 		loadAvatar: { read: never },
+		loadTitles: { execute: never },
+		chooseTitle: { execute: never },
 		openCard: () => ({ show: noop, close: noop }),
 		gameSnapshot: () => game,
 		dismissGameEvents: noop,

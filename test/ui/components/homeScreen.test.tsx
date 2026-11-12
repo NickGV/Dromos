@@ -4,10 +4,13 @@ import type { StageStanding } from '../../../src/application';
 import { countedEvidence, DEFAULT_STAGE_RULES, LATER_STAGE_IDS, stageProgress } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import type { CardModalOptions } from '../../../src/ui/containers/LibraryPanel';
-import { HomeScreen, openStageCard } from '../../../src/ui/containers/HomeScreen';
+import { HomeScreen, openStageCard, openTitlesCard } from '../../../src/ui/containers/HomeScreen';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
 import { StageCard } from '../../../src/ui/organisms/StageCard';
+import { TitlesCard } from '../../../src/ui/organisms/TitlesCard';
 import { stageCardView } from '../../../src/ui/presenters/stageCardView';
+import { titlesCardView } from '../../../src/ui/presenters/titlesCardView';
+import { aTitle } from '../../fakes/InMemoryTitleRepository';
 import { componentsOf } from './elements';
 import { IDLE_GAME, IDLE_QUESTS, homeDeps, noop } from './homeDeps';
 
@@ -149,6 +152,66 @@ describe('HomeScreen: the portrait opens the stage card (stage-card S1)', () => 
 
 		expect(gone.focused).toEqual([]);
 		expect(gone.closed).toEqual(['closed']);
+		expect(none.closed).toEqual(['closed']);
+	});
+});
+
+describe('HomeScreen: the title opens the titles card (titles S5)', () => {
+	const view = titlesCardView({ titles: [aTitle('corredor', '2026-11-01', { title: 'Corredor' })], unreadable: [] }, { name: 'Nicolás', title: 'Corredor' }, '2026-11-12', createTranslator('es'));
+	const choose = (): void => undefined;
+
+	/** Opens the card through a fake modal; answers what it was opened with and the title button's focus calls. */
+	function opened(titleButton: { readonly isConnected: boolean } | null) {
+		const options: CardModalOptions[] = [];
+		const focused: unknown[] = [];
+		const closed: string[] = [];
+		const button = titleButton === null ? null : ({ ...titleButton, focus: (focusOptions: unknown) => focused.push(focusOptions) } as unknown as HTMLElement);
+		openTitlesCard(
+			(request) => {
+				options.push(request);
+				return { show: noop, close: noop };
+			},
+			view,
+			choose,
+			'es',
+			() => button,
+			() => closed.push('closed'),
+		);
+		return { options, focused, closed };
+	}
+
+	it('is no button and no notice before Titles.md is read', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} />);
+
+		expect(html).not.toContain('dromos-title-open');
+		expect(html).not.toContain('dromos-title-news');
+	});
+
+	it('opens the card in the book card’s modal, named "Los títulos de Nicolás", drawn from the view with the choice', () => {
+		const { options } = opened({ isConnected: true });
+
+		expect(options).toHaveLength(1);
+		expect(options[0]).toMatchObject({ label: 'Los títulos de Nicolás', lang: 'es', className: 'dromos-titles-modal' });
+		expect(componentsOf(options[0]?.content, TitlesCard).map((element) => element.props)).toEqual([{ view, onChoose: choose }]);
+	});
+
+	it('when it closes, however it closes, the focus goes back to the title button', () => {
+		const { options, focused, closed } = opened({ isConnected: true });
+
+		options[0]?.onClose();
+
+		expect(closed).toEqual(['closed']);
+		expect(focused).toEqual([{ preventScroll: true }]);
+	});
+
+	it('a title button gone meanwhile takes no focus', () => {
+		const gone = opened({ isConnected: false });
+		const none = opened(null);
+
+		gone.options[0]?.onClose();
+		none.options[0]?.onClose();
+
+		expect(gone.focused).toEqual([]);
 		expect(none.closed).toEqual(['closed']);
 	});
 });

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests } from '../../application';
+import type { BriefingState, CharacterState, ChooseTitle, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, LoadTitles, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests, TitlesReading } from '../../application';
 import type { Language, Translator } from '../../i18n';
 import type { Clock, DeviceStore } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
@@ -21,6 +21,7 @@ import { Scene } from '../organisms/Scene';
 import { ScreenHeader } from '../organisms/ScreenHeader';
 import { SkillsScreen } from '../organisms/SkillsScreen';
 import { StageCard } from '../organisms/StageCard';
+import { TitlesCard } from '../organisms/TitlesCard';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
@@ -36,6 +37,7 @@ import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinc
 import { skillsPageView, skillsScreenView } from '../presenters/skillsView';
 import { stageCardView, type StageCardView } from '../presenters/stageCardView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
+import { titleArrival, titlesCardView, withTitleArrival, type TitlesCardView } from '../presenters/titlesCardView';
 import { walkerView } from '../presenters/walkerView';
 import { openLetter, storedLetterMark } from './briefingLetter';
 import { storedOpenCampaigns, toggleCampaign } from './campaignFold';
@@ -45,6 +47,7 @@ import { LibraryPanel, type CardModal, type LibraryDeps } from './LibraryPanel';
 import { ReadingDeskPanel } from './ReadingDeskPanel';
 import { ShopPanel, type ShopDeps } from './ShopPanel';
 import type { OpenCard } from './shopActions';
+import { markTitlesSeen, newTitleNotice } from './titlesNotice';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -60,8 +63,12 @@ export interface HomeScreenDeps {
 	 * read of the vault alone, never of Habitica. Never rejects.
 	 */
 	readonly loadAvatar: Pick<LoadAvatar, 'read'>;
-	/** Opens the stage card over the workspace (stage-card S1), in the library book card's modal. */
+	/** Opens the stage card over the workspace (stage-card S1), in the library book card's modal; the titles card too (titles S5). */
 	readonly openCard: OpenCard;
+	/** The titles Esdras granted (titles S5), read from `Titles.md` on open and after every sync, never of Habitica. Never rejects. */
+	readonly loadTitles: Pick<LoadTitles, 'execute'>;
+	/** Writes a granted title into `Character.md`, the only value Dromos writes in `title` (ADR-020). Never rejects. */
+	readonly chooseTitle: Pick<ChooseTitle, 'execute'>;
 	/** The level-up ceremony was closed. */
 	readonly dismissGameEvents: () => void;
 	/** The game events not toasted yet; each one comes out once. */
@@ -152,6 +159,13 @@ let viewCount = 0;
  * from the same read as the figure, drawn again while open when a later read changes it, and closed
  * when the view closes. It reads nothing of its own.
  *
+ * The titles (titles S5, ADR-020): `Titles.md` is read on open and after every sync, as the figure is.
+ * With a readable title, the plaque's title opens the titles card, where choosing one writes it into
+ * `Character.md`, reads the character again and closes the card, the focus back on the title; a write
+ * that fails keeps the card open with its line. A title granted after the last one this device saw
+ * shows a notice line once; one that arrives while the view is open is also said by the sync line's
+ * live region. Opening the card marks the titles seen.
+ *
  * Home (home-header S1) holds Esdras's letter and today's quests in its first column, the
  * campaigns, the small reading desk (the books being read, the library's cards) and the chronicle
  * in its second; narrow panes stack them in that order, under the level-up panel when there is one.
@@ -187,6 +201,16 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	// The stage card's road (stage-card S1), from the read that drew the figure; `null` until the vault is read.
 	const [stages, setStages] = useState<StageStanding | null>(null);
 	const stagesCard = useRef<CardModal | null>(null);
+	// The titles (titles S5): `null` until `Titles.md` is read; the notice of a new one; what the live region adds.
+	const [titles, setTitles] = useState<TitlesReading | null>(null);
+	const [titleNews, setTitleNews] = useState<string | null>(null);
+	const [arrival, setArrival] = useState<string | null>(null);
+	const [titleFailed, setTitleFailed] = useState(false);
+	// Bumped when a chosen title is written and read again: the card closes once that render is drawn.
+	const [titleChosen, setTitleChosen] = useState(0);
+	const titlesCard = useRef<CardModal | null>(null);
+	const titlesReadOnce = useRef(false);
+	const choosing = useRef(false);
 	const visitSettled = useRef(false);
 	const { screen } = place;
 	const mounted = useRef(false);
@@ -272,12 +296,28 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		setStages(reading.stages);
 	}, [deps]);
 
+	// Read on open and after every sync, as the figure is: a vault read only. A title granted after the last
+	// one seen here shows its notice; past the open's first read, the live region says it too.
+	const readTitles = useCallback(async (): Promise<void> => {
+		const reading = await deps.loadTitles.execute();
+		if (!mounted.current) return;
+		setTitles(reading);
+		const news = newTitleNotice(deps.deviceStore, reading.titles);
+		const first = !titlesReadOnce.current;
+		titlesReadOnce.current = true;
+		if (news === null) return;
+		setTitleNews(news.title);
+		if (!first) setArrival(titleArrival(news.title, deps.translator()));
+	}, [deps]);
+
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await deps.loadHome.execute();
 		if (!mounted.current) return;
 		setCharacter(home.character);
 		setBriefing(home.briefing);
+		setArrival(null);
 		void readAvatar();
+		void readTitles();
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
@@ -300,16 +340,19 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 			if (mounted.current) seeVisit();
 			// The sync may have earned a skill or a level: the figure may have grown.
 			void readAvatar();
+			// Esdras may have granted a title meanwhile.
+			void readTitles();
 		}
-	}, [deps, announce, showLaterRead, seeVisit, readAvatar]);
+	}, [deps, announce, showLaterRead, seeVisit, readAvatar, readTitles]);
 
 	useEffect(() => {
 		mounted.current = true;
 		void refresh();
 		return () => {
 			mounted.current = false;
-			// Closing the view closes the stage card left open over the workspace.
+			// Closing the view closes the stage card and the titles card left open over the workspace.
 			stagesCard.current?.close();
+			titlesCard.current?.close();
 		};
 	}, [refresh]);
 
@@ -331,7 +374,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const offline = quests.status.kind === 'offline';
 	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t, { expanded: questsExpanded, openMissions, filter: questFilter });
 	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t, { expanded: chronicleExpanded }) : null;
-	const banner = syncBannerView(quests, deps.clock.now(), t);
+	const banner = withTitleArrival(syncBannerView(quests, deps.clock.now(), t), arrival);
 	const language = deps.language();
 	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
 	const showCeremony = home && ceremony !== null && (ceremony.level === null || phase === 'final');
@@ -356,6 +399,62 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 					});
 				}
 			: undefined;
+	const currentTitle = standing?.title ?? '';
+	// Writes the chosen title; once it is written and read again, the card closes (the effect below), the focus
+	// back on the title button, which by then names the new title. A write that fails keeps the card open with its line.
+	const chooseTitle = useCallback(
+		async (title: string): Promise<void> => {
+			if (choosing.current) return;
+			choosing.current = true;
+			try {
+				const outcome = await deps.chooseTitle.execute(title);
+				if (!mounted.current) return;
+				if (outcome !== 'saved') {
+					setTitleFailed(true);
+					return;
+				}
+				const updated = await deps.loadHome.execute();
+				if (!mounted.current) return;
+				showLaterRead(updated);
+				setTitleFailed(false);
+				setTitleChosen((count) => count + 1);
+			} finally {
+				choosing.current = false;
+			}
+		},
+		[deps, showLaterRead],
+	);
+	const onChooseTitle = useCallback((title: string): void => void chooseTitle(title), [chooseTitle]);
+	// Built when the title or the notice is selected, never per render: the titles as the last read left them.
+	const openTitles =
+		titles !== null && titles.titles.length > 0 && owner !== null
+			? (): void => {
+					if (titlesCard.current) return;
+					const view = titlesCardFor(titles, owner, currentTitle, deps.clock.today(), t, false);
+					if (view === null) return;
+					markTitlesSeen(deps.deviceStore, titles.titles);
+					setTitleNews(null);
+					setTitleFailed(false);
+					titlesCard.current = openTitlesCard(deps.openCard, view, onChooseTitle, language, () => frame.current?.querySelector<HTMLElement>('.dromos-title-open') ?? null, () => {
+						titlesCard.current = null;
+					});
+				}
+			: undefined;
+	// While open, the titles card follows a later read, a failed write and the language; with no title or no character left it closes.
+	useEffect(() => {
+		const card = titlesCard.current;
+		if (!card) return;
+		const view = titlesCardFor(titles, owner, currentTitle, deps.clock.today(), deps.translator(), titleFailed);
+		if (view === null) {
+			card.close();
+			return;
+		}
+		card.show(<TitlesCard view={view} onChoose={onChooseTitle} />);
+	}, [titles, owner, currentTitle, titleFailed, language, onChooseTitle, deps]);
+	// A chosen title was written and the plaque drawn with it: the card closes and the focus goes back to the title.
+	useEffect(() => {
+		if (titleChosen > 0) titlesCard.current?.close();
+	}, [titleChosen]);
 	// While open, the card follows a later read (a sync, the rebuild) and the language; with no character left it closes.
 	useEffect(() => {
 		const card = stagesCard.current;
@@ -393,6 +492,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						heading={home}
 						avatar={avatar}
 						onOpenStages={openStages}
+						onOpenTitles={openTitles}
+						titleNews={titleNews}
 						skills={plaqueSkills ? <PlaqueSkills view={plaqueSkills} onOpen={openSkill} renderIcon={deps.renderIcon} /> : null}
 						footer={
 							<div className="dromos-sync-line">
@@ -477,6 +578,30 @@ export function openStageCard(open: OpenCard, view: StageCardView, lang: string,
 			if (button?.isConnected) button.focus({ preventScroll: true });
 		},
 	});
+}
+
+/**
+ * Opens the titles card over the workspace (titles S5), in the library book card's modal at the stage
+ * card's width, named "Los títulos de <name>". However it closes (Escape, its close button, a choice, the
+ * view closing), `onClosed` runs and the focus goes back to the plaque's title button, when it is still drawn.
+ */
+export function openTitlesCard(open: OpenCard, view: TitlesCardView, onChoose: (title: string) => void, lang: string, titleButton: () => HTMLElement | null, onClosed: () => void): CardModal {
+	return open({
+		label: view.ariaLabel,
+		lang,
+		className: 'dromos-titles-modal',
+		content: <TitlesCard view={view} onChoose={onChoose} />,
+		onClose: () => {
+			onClosed();
+			const button = titleButton();
+			if (button?.isConnected) button.focus({ preventScroll: true });
+		},
+	});
+}
+
+/** The titles card's view, or `null` while there is no readable title or no character to show them for. */
+function titlesCardFor(titles: TitlesReading | null, owner: string | null, title: string, today: string, t: Translator, failed: boolean): TitlesCardView | null {
+	return titles !== null && titles.titles.length > 0 && owner !== null ? titlesCardView(titles, { name: owner, title }, today, t, failed) : null;
 }
 
 function panelState(character: CharacterShown, t: Translator): CharacterPanelState {
