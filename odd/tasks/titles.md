@@ -10,13 +10,23 @@ Claude proposed (L1): "Hoy "Corredor" es texto libre en `Character.md`, y la ide
 - **S1 Titles by big feats, granted by Esdras.** Titles are earned by concrete, rare feats ("terminar tu primera campaña, leer 10 libros, una racha de 30 días"), never one per level (ADR-019: "por nivel serían muchos y muy fáciles"). Earned titles are collected. Esdras grants them (L3): "yop prefiero que sea esdras quien lo haga me suena mejor que sea el quien es mi guia el que decida, estaria genial esa parte". Dromos does not decide a feat; it reads what Esdras wrote (assumption: in a note of his in the Dromos folder, like `Shop.md`, ADR-019).
 - **S2 The user chooses the title shown, in Dromos.** "Los irías juntando y elegirías cuál mostrar en la placa." Chosen in Dromos (L4: "1", to "Lo elegís en Dromos ... Tocás tu título en la placa y elegís entre los que ganaste. Para esto Dromos tendría que escribir `title` en `Character.md` ... Eso pide un ADR que lo autorice, solo con títulos ganados."): Dromos writes `title` in `Character.md`, only a title Esdras granted, after an ADR the user accepts.
 - Constraint from the vault contract (04-Game-Design): "`name` y `title` son del usuario y de Esdras; el plugin los respeta." Any change to who writes `title` needs an ADR the user accepts.
-- Decided: who grants (L3, Esdras) and where the choice is made (L4, in Dromos). Proposed to the user as one ADR (L5), pending: the note `Dromos/Titles.md` that only Esdras writes; "Corredor" as the first title; the card to choose; the notice of a new title; Esdras's rules and the feats he judges by.
+- **S3 The contract, ADR-020** (accepted L6: "me parece bien asi"), as written in the vault's `03-Tech-Decisions.md`:
+  - `<folder>/Titles.md`, `type: dromos-titles`, written only by Esdras: a table `| id | title | feat | granted | why |` (`id` unique and lowercase; `title` as read; `feat` one sentence; `granted` `YYYY-MM-DD`; `why` in his voice). Esdras adds rows and never deletes them. Dromos reads it, never writes it, and names and skips a row it cannot read, as with `Shop.md`.
+  - "Corredor" is the first title, its row dated `game_start`.
+  - On the plaque the title is a button that opens a card with the earned titles (title, feat, date, Esdras's why), today's marked. Choosing one writes that text to `title` in `Character.md`: the only value Dromos ever writes there, and only a title of `Titles.md`. The plaque keeps showing whatever `title` holds.
+  - A title dated after the last one seen on this device is announced once: "Esdras te otorgó un título: …".
+  - Nothing reaches Habitica.
+- **S4 Mockups first, then the release** with the user's go-ahead, checked on desktop and Android.
 
 ## Tasks
 
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
-| D1 | S1, S2 | The user's decisions, one question at a time, and the ADR in the vault | inline | in progress | |
+| D1 | S1, S2, S3 | The user's decisions, one question at a time, and the ADR in the vault | inline | done (L6) | vault (not under git) |
+| E1 | S3 | Esdras's part: the `Titles.md` exception in his rules, `dromos-titles` in the dictionary, and the first row "Corredor" | Esdras, at the user's request (a message drafted by Claude) | pending | `logos-dotfiles` |
+| T0 | S2, S3, S4 | Mockups: the title as a button on the plaque, the titles card, the notice of a new title | delegated mockup writer (context backstop); scratch only | in progress | |
+| T1 | S1-S3 | Build the chosen option | after the user's choice | pending | |
+| R1 | S4 | Release with the user's go-ahead | inline | pending | |
 
 ## Log
 
@@ -25,3 +35,4 @@ Claude proposed (L1): "Hoy "Corredor" es texto libre en `Character.md`, y la ide
 - **L3** (2026-11-12, user, on who grants titles: Dromos counting feats, Esdras, or both): "yop prefiero que sea esdras quien lo haga me suena mejor que sea el quien es mi guia el que decida, estaria genial esa parte". S1 rewritten.
 - **L4** (2026-11-12, user, on choosing the title in Dromos or asking Esdras): "1". S2 rewritten.
 - **L5** (2026-11-12): the ADR proposal sent to the user, pending: (1) `Dromos/Titles.md`, `type: dromos-titles`, written only by Esdras: a table `| id | title | feat | granted | why |`; Dromos reads it, never writes it, and names and skips a row it cannot read. (2) "Corredor", today's title, is the first one: Esdras writes its row with the day the game started. (3) Tapping the title on the plaque opens a card with the earned titles (title, feat, date and Esdras's why); choosing one writes it to `title` in `Character.md`, the only value Dromos ever writes there; the plaque keeps showing whatever `title` holds. (4) A title newer than the last one seen on this device shows once: "Esdras te otorgó un título: …". (5) Esdras: an exception in his rules to write `Titles.md`, like `Shop.md`; the feats are his judgment, guided by a short list in 04-Game-Design (first finished campaign, 10 finished books, 30 days of a habit, a skill at rank 5, a new stage), and `dromos-titles` in the dictionary, in `logos-dotfiles`. (6) 04-Game-Design: `title` is the user's, Esdras's and, when a granted title is chosen, Dromos's. Nothing goes to Habitica.
+- **L6** (2026-11-12, user): "me parece bien asi". ADR-020 written in the vault, accepted: `03-Tech-Decisions.md` (ADR-020 and the footer), `04-Game-Design.md` (the `title` comment and rule under Character, a new "Títulos" section with `Titles.md` and the reference feats for Esdras, the footer), `02-Phases.md` (the titles item of "Después de M5" now under way). Copies of the three notes before the edit are in the session scratchpad. T0 launched; E1 is the user's message to Esdras.
