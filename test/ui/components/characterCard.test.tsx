@@ -190,3 +190,38 @@ describe('CharacterCard since the last visit (game-ui S15)', () => {
 		expect(html).toMatch(/<span class="dromos-xp-text">240 \/ 520 XP<\/span><span class="dromos-xp-next">Level 4 in 280 XP<\/span>/);
 	});
 });
+
+describe('CharacterCard portrait (M11 S1)', () => {
+	/** The portrait's drawing, from its svg to its closing tag. */
+	const drawing = (html: string): string => /<svg class="dromos-portrait-art[\s\S]*?<\/svg>/.exec(html)?.[0] ?? '';
+
+	it('shows a wise man of the era in an arched niche, with the level medallion on its corner', () => {
+		expect(card()).toMatch(
+			/<div class="dromos-character-who"><span class="dromos-portrait is-sage"><svg class="dromos-portrait-art is-niche is-sage" viewBox="0 0 100 124" aria-hidden="true" focusable="false">[\s\S]*?<\/svg><span class="dromos-level-medal" role="img" aria-label="Level 3">.*?<\/span><\/span><div class="dromos-character-names">/,
+		);
+	});
+
+	it('is decoration: the drawing names nothing, so the medallion and the name are heard once', () => {
+		const art = drawing(card());
+
+		expect(art).not.toBe('');
+		expect(art).not.toMatch(/<title|<text|aria-label|role=/);
+		expect(art).not.toContain('Nicolás');
+		expect(card().match(/aria-label="Level 3"/g)).toHaveLength(1);
+	});
+
+	it('draws the sage inside his own arch', () => {
+		const art = drawing(card());
+		const clip = /<clipPath id="([^"]+)">/.exec(art)?.[1];
+
+		expect(clip).toBeDefined();
+		expect(art).toContain(`<g clip-path="url(#${clip})">`);
+	});
+
+	it('keeps the portrait while the medallion turns ochre in a level-up', () => {
+		const html = card('medal');
+
+		expect(html).toContain('<span class="dromos-portrait is-sage">');
+		expect(html).toContain('<span class="dromos-level-medal is-lit" role="img" aria-label="Level 3">');
+	});
+});

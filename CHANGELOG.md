@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Portraits** (M11): the character plaque shows a wise man of the era, painted under an arch with a scroll in his hand, the same for everyone; the level medallion sits on its corner. Esdras's letter shows Esdras himself, a scribe with his reed pen under a smaller arch, where the scroll icon was; a new letter still carries its ochre wax seal, now on the portrait's corner. Both follow the light and dark themes.
+
 ## [0.17.0] - 2026-11-11
 
 ### Added

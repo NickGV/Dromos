@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { LevelMedal } from '../atoms/LevelMedal';
+import { SagePortrait } from '../atoms/Portrait';
 import { StatRadar } from '../atoms/StatRadar';
 import { XpBar } from '../atoms/XpBar';
 import { useT } from '../i18n';
@@ -25,8 +26,8 @@ export interface CharacterCardProps {
 }
 
 /**
- * The character read from `Character.md` on its plaque (S2, game-ui S3): the level medallion, the
- * name, the title and level in small caps, the hatched XP bar with the next level, then in one row
+ * The character read from `Character.md` on its plaque (S2, game-ui S3): the portrait of a wise man
+ * of the era with the level medallion on its corner (M11 S1), the name, the title and level in small caps, the hatched XP bar with the next level, then in one row
  * the six stats as a radar (S5, S9) and the skills nearest to unlocking (S3), and the sync line at
  * its foot. During a level-up the bar fills first, then the medallion turns ochre. Since the
  * last visit the bar may wait at the value last seen and then catch up, with a line under it; a
@@ -39,7 +40,10 @@ export function CharacterCard({ view, footer, ceremony = null, visit = null, ski
 	return (
 		<section className="dromos-card dromos-plaque dromos-character" aria-label={t('character.aria')}>
 			<div className="dromos-character-who">
-				<LevelMedal level={view.level} label={view.levelText} lit={ceremony === 'medal' || ceremony === 'final'} />
+				<span className="dromos-portrait is-sage">
+					<SagePortrait />
+					<LevelMedal level={view.level} label={view.levelText} lit={ceremony === 'medal' || ceremony === 'final'} />
+				</span>
 				<div className="dromos-character-names">
 					{heading ? (
 						<h2 className="dromos-character-name" tabIndex={-1} data-screen-heading>
