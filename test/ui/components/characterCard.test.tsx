@@ -195,9 +195,9 @@ describe('CharacterCard portrait (M11 S1)', () => {
 	/** The portrait's drawing, from its svg to its closing tag. */
 	const drawing = (html: string): string => /<svg class="dromos-portrait-art[\s\S]*?<\/svg>/.exec(html)?.[0] ?? '';
 
-	it('shows a wise man of the era in an arched niche, with the level medallion on its corner', () => {
+	it('shows the character in an arched niche, with the level medallion on its corner', () => {
 		expect(card()).toMatch(
-			/<div class="dromos-character-who"><span class="dromos-portrait is-sage"><svg class="dromos-portrait-art is-niche is-sage" viewBox="0 0 100 124" aria-hidden="true" focusable="false">[\s\S]*?<\/svg><span class="dromos-level-medal" role="img" aria-label="Level 3">.*?<\/span><\/span><div class="dromos-character-names">/,
+			/<div class="dromos-character-who"><span class="dromos-portrait is-character"><svg class="dromos-portrait-art is-niche is-character" viewBox="0 0 100 124" aria-hidden="true" focusable="false">[\s\S]*?<\/svg><span class="dromos-level-medal" role="img" aria-label="Level 3">.*?<\/span><\/span><div class="dromos-character-names">/,
 		);
 	});
 
@@ -210,7 +210,7 @@ describe('CharacterCard portrait (M11 S1)', () => {
 		expect(card().match(/aria-label="Level 3"/g)).toHaveLength(1);
 	});
 
-	it('draws the sage inside his own arch', () => {
+	it('draws the character inside his own arch', () => {
 		const art = drawing(card());
 		const clip = /<clipPath id="([^"]+)">/.exec(art)?.[1];
 
@@ -221,7 +221,41 @@ describe('CharacterCard portrait (M11 S1)', () => {
 	it('keeps the portrait while the medallion turns ochre in a level-up', () => {
 		const html = card('medal');
 
-		expect(html).toContain('<span class="dromos-portrait is-sage">');
+		expect(html).toContain('<span class="dromos-portrait is-character">');
 		expect(html).toContain('<span class="dromos-level-medal is-lit" role="img" aria-label="Level 3">');
+	});
+
+	// L6: "podria iniciar con el mismo personaje que esta en el paisaje".
+	it('draws the young runner by default, carrying nothing', () => {
+		const art = drawing(card());
+
+		expect(art).toContain('<g class="dromos-portrait-stage is-runner">');
+		expect(art).not.toContain('dromos-avatar-thing');
+	});
+
+	it('draws the stage and the objects it is given, and keeps the medallion and the name', () => {
+		const html = renderToStaticMarkup(<CharacterCard view={view} footer={null} avatar={{ stage: 'traveller', objects: ['atleta', 'lector'] }} />);
+		const art = drawing(html);
+
+		expect(art).toContain('<g class="dromos-portrait-stage is-traveller">');
+		expect(art).not.toContain('is-runner');
+		expect(art).toContain('<g class="dromos-avatar-thing is-atleta">');
+		expect(art).toContain('<g class="dromos-avatar-thing is-lector">');
+		expect(html).toMatch(/<span class="dromos-level-medal" role="img" aria-label="Level 3">.*<span class="dromos-level-medal-number">3<\/span><\/span>/);
+		expect(html).toMatch(/<h2[^>]*>Nicolás<\/h2>/);
+	});
+
+	it('draws nothing for a skill without an object', () => {
+		const art = drawing(renderToStaticMarkup(<CharacterCard view={view} footer={null} avatar={{ stage: 'sage', objects: ['juggler'] }} />));
+
+		expect(art).toContain('<g class="dromos-portrait-stage is-sage">');
+		expect(art).not.toContain('dromos-avatar-thing');
+	});
+
+	it('is passed through the plaque when the character is found', () => {
+		const html = renderToStaticMarkup(<CharacterPanel state={{ kind: 'found', view }} footer={null} avatar={{ stage: 'elder', objects: ['maestro'] }} />);
+
+		expect(drawing(html)).toContain('<g class="dromos-portrait-stage is-elder">');
+		expect(drawing(html)).toContain('<g class="dromos-avatar-thing is-maestro">');
 	});
 });

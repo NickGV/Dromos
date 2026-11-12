@@ -1420,6 +1420,153 @@
 .dromos-root .dromos-portrait-wax-mark { fill: var(--dromos-on-wax); stroke: none; }
 .dromos-root .dromos-portrait-ribbon { fill: var(--dromos-seal); }
 
+/* The character grows (M11 S1): twelve stages, the same man on the plaque's bust and on the road's
+   walker, and one object per skill, the same on both. Flat fills with the hairline of each view: the
+   portrait's line on the bust, the marker line on the walker. Night values here, day values under
+   .theme-light. */
+.dromos-root {
+	/* The young man's bust: dark hair, greying later; leather, the ochre hem, wood for the staff, a
+	   lantern's glass lit at night, dyed clavi, a lighter patch, a felt hat. */
+	--dromos-portrait-hair: #3a2b21;
+	--dromos-portrait-grey: #9a9284;
+	--dromos-portrait-leather: #5c4130;
+	--dromos-portrait-belt: #d4a64a;
+	--dromos-portrait-wood: #8a6a48;
+	--dromos-portrait-glass: #f0c36a;
+	--dromos-portrait-metal: #6f675e;
+	--dromos-portrait-clavus: #84432f;
+	--dromos-portrait-patch: #a07a5c;
+	--dromos-portrait-felt: #8a7348;
+	/* The walker: the same greys, white, felt, clavi and patch under the moon. */
+	--dromos-scene-grey: #9a9284;
+	--dromos-scene-white: #e2dccd;
+	--dromos-scene-felt: #8a7348;
+	--dromos-scene-clavus: #84432f;
+	--dromos-scene-patch: #a07a5c;
+	/* The skill objects, the same on both views: the Shop's bronze and clay, olive, woad blue, iron. */
+	--dromos-avatar-bronze: #a5813f;
+	--dromos-avatar-olive: #7d9358;
+	--dromos-avatar-blue: #5577a6;
+	--dromos-avatar-iron: #7a7268;
+	--dromos-avatar-clay: #a0623f;
+	--dromos-avatar-wax: #2e231b;
+	--dromos-avatar-leather: #5c4130;
+	--dromos-avatar-wood: #8a6a48;
+	--dromos-avatar-coin: #d4a64a;
+	--dromos-avatar-ink: #1a1410;
+	--dromos-avatar-reed: #d2ab6c;
+	--dromos-avatar-paper: #d9ccb0;
+	--dromos-avatar-gleam: #f3e9d2;
+}
+
+.theme-light .dromos-root {
+	--dromos-portrait-hair: #4a3528;
+	--dromos-portrait-grey: #b0a798;
+	--dromos-portrait-leather: #7a4f30;
+	--dromos-portrait-belt: #c9962b;
+	--dromos-portrait-wood: #b08a5a;
+	--dromos-portrait-glass: #f3e9d2;
+	--dromos-portrait-metal: #8b7a68;
+	--dromos-portrait-clavus: #b5593c;
+	--dromos-portrait-patch: #c98a64;
+	--dromos-portrait-felt: #d8b878;
+	--dromos-scene-grey: #a8a091;
+	--dromos-scene-white: #fdfbf6;
+	--dromos-scene-felt: #d8b878;
+	--dromos-scene-clavus: #b5593c;
+	--dromos-scene-patch: #c98a64;
+	--dromos-avatar-bronze: #b58b3a;
+	--dromos-avatar-olive: #6e8b4e;
+	--dromos-avatar-blue: #3d5c8a;
+	--dromos-avatar-iron: #5f574e;
+	--dromos-avatar-clay: #c47a4e;
+	--dromos-avatar-wax: #4a3528;
+	--dromos-avatar-leather: #7a4f30;
+	--dromos-avatar-wood: #b08a5a;
+	--dromos-avatar-coin: #c9962b;
+	--dromos-avatar-ink: #3b2f2a;
+	--dromos-avatar-reed: #8a6a3a;
+	--dromos-avatar-paper: #fbf6ea;
+	--dromos-avatar-gleam: #fdfbf6;
+}
+
+/* The bust. Its grey hair and brows share their class names with the scribe's grey streaks and
+   brows, so their fills stay under the stage: the scribe keeps his own lines. The grey hair keeps
+   the soft grey edge of those streaks. */
+.dromos-root .dromos-portrait-hair { fill: var(--dromos-portrait-hair); }
+.dromos-root .dromos-portrait-stage .dromos-portrait-grey { fill: var(--dromos-portrait-grey); }
+.dromos-root .dromos-portrait-stage .dromos-portrait-brow { stroke: var(--dromos-portrait-hair); }
+.dromos-root .dromos-portrait-stage .dromos-portrait-brow.is-grey { stroke: var(--dromos-portrait-grey); }
+.dromos-root .dromos-portrait-stubble { fill: var(--dromos-portrait-hair); fill-opacity: 0.3; stroke: none; }
+.dromos-root .dromos-portrait-clavus { fill: var(--dromos-portrait-clavus); stroke: none; }
+.dromos-root .dromos-portrait-hem { fill: none; stroke: var(--dromos-portrait-belt); stroke-width: 1.4; }
+.dromos-root .dromos-portrait-patch { fill: var(--dromos-portrait-patch); }
+.dromos-root .dromos-portrait-brooch { fill: var(--dromos-avatar-bronze); }
+.dromos-root .dromos-portrait-strap,
+.dromos-root .dromos-portrait-cord { fill: var(--dromos-portrait-leather); }
+.dromos-root .dromos-portrait-felt { fill: var(--dromos-portrait-felt); }
+.dromos-root .dromos-portrait-band { fill: none; stroke: var(--dromos-portrait-leather); stroke-width: 1.6; }
+.dromos-root .dromos-portrait-wood { fill: var(--dromos-portrait-wood); }
+.dromos-root .dromos-portrait-hook { fill: none; stroke: var(--dromos-portrait-line); stroke-width: 1.6; }
+.dromos-root .dromos-portrait-ring { fill: none; stroke-width: 1; }
+.dromos-root .dromos-portrait-lantern { fill: var(--dromos-portrait-metal); }
+.dromos-root .dromos-portrait-glass { fill: var(--dromos-portrait-glass); }
+/* The lantern's glow belongs to the night, as the scene's lamp does. */
+.dromos-root .dromos-portrait-glow { fill: var(--dromos-portrait-glass); stroke: none; opacity: 0.28; }
+.theme-light .dromos-root .dromos-portrait-glow { display: none; }
+
+/* The walker. Its cloak's patch shares its class with the landscape's patches of ground, so its
+   fill stays on the walker, at their opacity, as drawn in the mockups. */
+.dromos-root .dromos-scene-grey { fill: var(--dromos-scene-grey); }
+.dromos-root .dromos-scene-white { fill: var(--dromos-scene-white); }
+.dromos-root .dromos-scene-stubble { fill: var(--dromos-scene-hair); fill-opacity: 0.32; stroke: none; }
+.dromos-root .dromos-scene-streak { fill: none; stroke: var(--dromos-scene-grey); stroke-width: 0.8; }
+.dromos-root .dromos-scene-felt { fill: var(--dromos-scene-felt); stroke-width: 0.9; }
+.dromos-root .dromos-scene-clavus { fill: var(--dromos-scene-clavus); stroke: none; }
+.dromos-root .dromos-walker .dromos-scene-patch { fill: var(--dromos-scene-patch); stroke-width: 0.8; opacity: 0.4; }
+.dromos-root .dromos-scene-brooch { fill: var(--dromos-avatar-bronze); stroke-width: 0.8; }
+.dromos-root .dromos-scene-capsa-lid { fill: var(--dromos-scene-satchel); }
+.dromos-root .dromos-scene-staff.is-sturdy { stroke-width: 2; }
+.dromos-root .dromos-scene-strap.is-cord { stroke-width: 1.2; }
+
+/* The skill objects, drawn once. On the walker they are placed at half size, so their lines are
+   doubled there to keep the walker's outline; on the bust the portrait's 1 px line holds at any
+   size. */
+.dromos-root .dromos-avatar-thing { --dromos-avatar-k: 1; stroke-width: calc(1 * var(--dromos-avatar-k)); stroke-linejoin: round; stroke-linecap: round; }
+.dromos-root .dromos-walker .dromos-avatar-thing { --dromos-avatar-k: 2.2; }
+.dromos-root .dromos-avatar-fine { stroke-width: calc(0.7 * var(--dromos-avatar-k)); }
+
+.dromos-root .dromos-avatar-olive { fill: var(--dromos-avatar-olive); stroke-width: calc(0.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-twig { fill: none; stroke: var(--dromos-avatar-wood); stroke-width: calc(1.2 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-bronze { fill: var(--dromos-avatar-bronze); }
+.dromos-root .dromos-avatar-ring { fill: none; }
+.dromos-root .dromos-avatar-boss { fill: var(--dromos-avatar-coin); }
+.dromos-root .dromos-avatar-wood { fill: var(--dromos-avatar-wood); }
+.dromos-root .dromos-avatar-wax { fill: var(--dromos-avatar-wax); stroke: none; }
+.dromos-root .dromos-avatar-scratch { fill: none; stroke: var(--dromos-avatar-reed); stroke-width: calc(0.8 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-stylus { fill: none; stroke: var(--dromos-avatar-iron); stroke-width: calc(1.4 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-cord { fill: none; stroke: var(--dromos-avatar-leather); }
+.dromos-root .dromos-avatar-clay { fill: var(--dromos-avatar-clay); }
+.dromos-root .dromos-avatar-band { fill: none; stroke: var(--dromos-avatar-coin); stroke-width: calc(1.2 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-tick { fill: none; }
+.dromos-root .dromos-avatar-reed { fill: none; stroke: var(--dromos-avatar-reed); stroke-width: calc(1.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-nib { fill: none; stroke: var(--dromos-avatar-ink); stroke-width: calc(1.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-ink { fill: var(--dromos-avatar-ink); stroke: none; }
+.dromos-root .dromos-avatar-eyes { fill: var(--dromos-avatar-gleam); stroke: none; }
+.dromos-root .dromos-avatar-beak { fill: var(--dromos-avatar-coin); stroke: none; }
+.dromos-root .dromos-avatar-rod { fill: none; stroke: var(--dromos-avatar-wood); stroke-width: calc(1.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-paper { fill: var(--dromos-avatar-paper); }
+.dromos-root .dromos-avatar-tie { fill: none; stroke: var(--dromos-avatar-clay); stroke-width: calc(1.2 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-knob { fill: var(--dromos-avatar-coin); }
+.dromos-root .dromos-avatar-glass { fill: none; stroke: var(--dromos-avatar-gleam); stroke-opacity: 0.7; }
+.dromos-root .dromos-avatar-gleam { fill: none; stroke: var(--dromos-avatar-gleam); stroke-width: calc(1 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-iron { fill: var(--dromos-avatar-iron); }
+.dromos-root .dromos-avatar-hole { fill: var(--dromos-avatar-ink); stroke: none; }
+.dromos-root .dromos-avatar-coin { fill: var(--dromos-avatar-coin); }
+.dromos-root .dromos-avatar-leather { fill: var(--dromos-avatar-leather); }
+.dromos-root .dromos-avatar-thread { fill: none; stroke: var(--dromos-avatar-blue); stroke-width: calc(0.9 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-knot { fill: var(--dromos-avatar-blue); stroke-width: calc(0.6 * var(--dromos-avatar-k)); }
+
 .dromos-root .dromos-xp {
 	display: flex;
 	align-items: center;

@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
-import { Sage } from './portrait/Sage';
+import type { AvatarView } from '../presenters/avatar';
+import { Bust } from './avatar/Bust';
 import { Scribe } from './portrait/Scribe';
 
 /** The opening of the niche, a round arch on its two jambs, in the 100 x 124 box. */
@@ -9,11 +10,11 @@ const FRAME = 'M1.5 124V50C1.5 23 23.2 1.5 50 1.5S98.5 23 98.5 50V124Z';
 
 /**
  * A painted panel portrait of the era (M11 S1-S2): a figure under a round arch, its field the sky
- * for the sage and lamplight for the scribe, clipped to the arch, with a molding along it. It is
- * decoration, hidden from screen readers; the clip's id is unique in the window, so two open views
+ * for the character and lamplight for the scribe, clipped to the arch, with a molding along it. It
+ * is decoration, hidden from screen readers; the clip's id is unique in the window, so two open views
  * never share it.
  */
-function Niche({ who, place, children }: { readonly who: 'sage' | 'scribe'; readonly place: string; readonly children: ReactNode }) {
+function Niche({ who, place, children }: { readonly who: 'character' | 'scribe'; readonly place: string; readonly children: ReactNode }) {
 	const clip = `dromos-portrait-${who}-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 	return (
 		<svg className={`dromos-portrait-art is-niche is-${who}`} viewBox="0 0 100 124" aria-hidden="true" focusable="false">
@@ -32,11 +33,14 @@ function Niche({ who, place, children }: { readonly who: 'sage' | 'scribe'; read
 	);
 }
 
-/** The character's portrait on the plaque: the wise man under his arch (M11 S1). */
-export function SagePortrait() {
+/**
+ * The character's portrait on the plaque (M11 S1): the figure under his arch at the stage he has
+ * reached, from the young runner of the road to the sage, with the objects of his highest skills.
+ */
+export function CharacterPortrait({ avatar }: { readonly avatar: AvatarView }) {
 	return (
-		<Niche who="sage" place="translate(-10 10) scale(1.2)">
-			<Sage />
+		<Niche who="character" place="translate(-10 10) scale(1.2)">
+			<Bust avatar={avatar} />
 		</Niche>
 	);
 }

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { LevelMedal } from '../atoms/LevelMedal';
-import { SagePortrait } from '../atoms/Portrait';
+import { CharacterPortrait } from '../atoms/Portrait';
 import { StatRadar } from '../atoms/StatRadar';
 import { XpBar } from '../atoms/XpBar';
 import { useT } from '../i18n';
+import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
 import type { CharacterCardView } from '../presenters/characterCardView';
 import type { CeremonyPhase } from '../presenters/levelUpView';
 import type { CardVisit } from '../presenters/sinceVisitView';
@@ -23,25 +24,28 @@ export interface CharacterCardProps {
 	 * the other screens it stays a heading, and their header card takes the focus.
 	 */
 	readonly heading?: boolean;
+	/** Who the portrait shows (M11 S1): the character's stage and the objects of its skills; the young runner by default. */
+	readonly avatar?: AvatarView;
 }
 
 /**
- * The character read from `Character.md` on its plaque (S2, game-ui S3): the portrait of a wise man
- * of the era with the level medallion on its corner (M11 S1), the name, the title and level in small caps, the hatched XP bar with the next level, then in one row
+ * The character read from `Character.md` on its plaque (S2, game-ui S3): the character's portrait
+ * at the stage reached, with the objects of its skills and the level medallion on its corner (M11
+ * S1), the name, the title and level in small caps, the hatched XP bar with the next level, then in one row
  * the six stats as a radar (S5, S9) and the skills nearest to unlocking (S3), and the sync line at
  * its foot. During a level-up the bar fills first, then the medallion turns ochre. Since the
  * last visit the bar may wait at the value last seen and then catch up, with a line under it; a
  * level-up ceremony owns the bar while it fills.
  */
-export function CharacterCard({ view, footer, ceremony = null, visit = null, skills = null, heading = true }: CharacterCardProps) {
+export function CharacterCard({ view, footer, ceremony = null, visit = null, skills = null, heading = true, avatar = FIRST_AVATAR }: CharacterCardProps) {
 	const t = useT();
 	const ceremonyOwnsBar = ceremony === 'fill' || ceremony === 'medal';
 	const fill = ceremony === 'fill' ? 100 : ceremonyOwnsBar ? undefined : (visit?.heldPercent ?? undefined);
 	return (
 		<section className="dromos-card dromos-plaque dromos-character" aria-label={t('character.aria')}>
 			<div className="dromos-character-who">
-				<span className="dromos-portrait is-sage">
-					<SagePortrait />
+				<span className="dromos-portrait is-character">
+					<CharacterPortrait avatar={avatar} />
 					<LevelMedal level={view.level} label={view.levelText} lit={ceremony === 'medal' || ceremony === 'final'} />
 				</span>
 				<div className="dromos-character-names">
