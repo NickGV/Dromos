@@ -145,8 +145,9 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			syncGame,
 			gameSnapshot: () => gameState.snapshot(),
-			// The figure on the plaque and the road (M11 S1): the same notes the game reads, no request.
+			// The figure on the plaque and the road (M11 S1) and the stage card it opens (stage-card S1): the same notes the game reads, no request.
 			loadAvatar: new LoadAvatar({ characters: repository, skills, ledger, campaigns: campaignRepository, books, rules, clock }),
+			openCard: createOpenCardModal(plugin.app),
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,

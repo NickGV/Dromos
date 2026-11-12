@@ -2,6 +2,16 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The stages card**: select your character's portrait on the plaque to see your stage, what the next stage still asks (each requirement ticked or with what is missing, such as "level 2 of 3 · 248 XP to go") and the whole road of twelve stages.
+
+### Fixed
+
+- The close button of the cards (a book, a resource, the stages) is 44 px again, easy to tap on a phone: current Obsidian gave it a new class.
+
 ## [0.18.0] - 2026-11-12
 
 ### Added

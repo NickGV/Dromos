@@ -75,6 +75,24 @@ export interface StageEvidence {
 	readonly books: number;
 }
 
+/** One part of what a stage asks, in the order of the requirement table. */
+export type StageRequirementId = 'level' | 'days' | 'skills' | 'skillsAtRank' | 'campaigns' | 'books';
+
+/** One part a stage asks, against what the vault holds (stage-card S1). */
+export interface StageRequirementProgress {
+	readonly id: StageRequirementId;
+	/** What the vault holds now: the level, the days, the earned skills, those at the rank or above, the finished campaigns or books. */
+	readonly value: number;
+	/** The least the stage asks; "every skill" and "half of them" are counted from the skills the vault holds. */
+	readonly target: number;
+	/** How the stage words a count of skills: a number, every skill or half of them; `count` for every other part. */
+	readonly share: 'count' | typeof EVERY_SKILL | typeof HALF_THE_SKILLS;
+	/** The rank, rank N being the N-th, for `skillsAtRank`; `null` for every other part. */
+	readonly rank: number | null;
+	/** What `stageFor` checks: a vault that lists no skill never meets "every skill" nor half of them. */
+	readonly met: boolean;
+}
+
 /**
  * The stage the character has reached (M11 S1). Stages are sequential: the character is at the last
  * stage of the unbroken run, from the second on, whose requirements all hold, so a stage counts only
@@ -84,24 +102,34 @@ export interface StageEvidence {
  */
 export function stageFor(evidence: Partial<StageEvidence> | null, rules: StageRules = DEFAULT_STAGE_RULES): StageId {
 	if (evidence === null) return FIRST_STAGE;
-	const known = counted(evidence);
+	const known = countedEvidence(evidence);
 	let reached: StageId = FIRST_STAGE;
 	for (const stage of LATER_STAGE_IDS) {
-		if (!meets(known, rules[stage])) break;
+		if (!progressOf(known, rules[stage]).every(({ met }) => met)) break;
 		reached = stage;
 	}
 	return reached;
 }
 
-/** The evidence with every missing or unusable number read as 0, so no rule ever compares `NaN`. */
-function counted(evidence: Partial<StageEvidence>): StageEvidence {
+/**
+ * What a stage asks, one entry per part it asks, in the table's order, each with what the vault
+ * holds, the target and whether it is met (stage-card S1). A part of 0, or a count of 0 at a rank,
+ * asks nothing and is left out. It is the very check `stageFor` makes, so the stage card and the
+ * figure never disagree; missing or unusable evidence counts as 0 here too.
+ */
+export function stageProgress(evidence: Partial<StageEvidence> | null, requirements: StageRequirements): StageRequirementProgress[] {
+	return progressOf(countedEvidence(evidence), requirements);
+}
+
+/** The evidence with every missing or unusable number read as 0, so no rule ever compares `NaN`: what the rules count. */
+export function countedEvidence(evidence: Partial<StageEvidence> | null): StageEvidence {
 	return {
-		level: amount(evidence.level),
-		days: amount(evidence.days),
-		earned: evidence.earned ?? [],
-		totalSkills: amount(evidence.totalSkills),
-		campaigns: amount(evidence.campaigns),
-		books: amount(evidence.books),
+		level: amount(evidence?.level),
+		days: amount(evidence?.days),
+		earned: evidence?.earned ?? [],
+		totalSkills: amount(evidence?.totalSkills),
+		campaigns: amount(evidence?.campaigns),
+		books: amount(evidence?.books),
 	};
 }
 
@@ -109,26 +137,27 @@ function amount(value: number | undefined): number {
 	return value !== undefined && Number.isFinite(value) && value > 0 ? value : 0;
 }
 
-function meets(evidence: StageEvidence, requirements: StageRequirements): boolean {
-	return (
-		evidence.level >= requirements.level &&
-		evidence.days >= requirements.days &&
-		meetsCount(evidence.earned.length, requirements.skills, evidence.totalSkills) &&
-		meetsRank(evidence, requirements.skillsAtRank) &&
-		evidence.campaigns >= requirements.campaigns &&
-		evidence.books >= requirements.books
-	);
-}
-
-function meetsRank(evidence: StageEvidence, required: SkillsAtRank | null): boolean {
-	if (required === null) return true;
-	const atRank = evidence.earned.filter(({ rankIndex }) => rankIndex !== null && rankIndex >= required.rank - 1).length;
-	return meetsCount(atRank, required.count, evidence.totalSkills);
+function progressOf(evidence: StageEvidence, requirements: StageRequirements): StageRequirementProgress[] {
+	const parts: StageRequirementProgress[] = [];
+	const plain = (id: StageRequirementId, value: number, target: number): void => {
+		if (target > 0) parts.push({ id, value, target, share: 'count', rank: null, met: value >= target });
+	};
+	plain('level', evidence.level, requirements.level);
+	plain('days', evidence.days, requirements.days);
+	if (requirements.skills !== 0) parts.push(skillCount('skills', evidence.earned.length, requirements.skills, null, evidence.totalSkills));
+	const atRank = requirements.skillsAtRank;
+	if (atRank !== null && atRank.count !== 0) {
+		const value = evidence.earned.filter(({ rankIndex }) => rankIndex !== null && rankIndex >= atRank.rank - 1).length;
+		parts.push(skillCount('skillsAtRank', value, atRank.count, atRank.rank, evidence.totalSkills));
+	}
+	plain('campaigns', evidence.campaigns, requirements.campaigns);
+	plain('books', evidence.books, requirements.books);
+	return parts;
 }
 
 /** `all` and `half` count the skills the vault holds; a vault that lists none never meets them. */
-function meetsCount(count: number, required: number | typeof EVERY_SKILL | typeof HALF_THE_SKILLS, totalSkills: number): boolean {
-	if (typeof required === 'number') return count >= required;
-	if (totalSkills === 0) return false;
-	return count >= (required === EVERY_SKILL ? totalSkills : Math.ceil(totalSkills / 2));
+function skillCount(id: StageRequirementId, value: number, required: number | typeof EVERY_SKILL | typeof HALF_THE_SKILLS, rank: number | null, totalSkills: number): StageRequirementProgress {
+	if (typeof required === 'number') return { id, value, target: required, share: 'count', rank, met: value >= required };
+	const target = required === EVERY_SKILL ? totalSkills : Math.ceil(totalSkills / 2);
+	return { id, value, target, share: required, rank, met: totalSkills > 0 && value >= target };
 }

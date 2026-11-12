@@ -45,6 +45,19 @@ export function CharacterPortrait({ avatar }: { readonly avatar: AvatarView }) {
 	);
 }
 
+/**
+ * The plaque's portrait as a button (stage-card S1): it holds the niche alone, so the level medallion
+ * beside it keeps its own name, and it opens the stage card, a dialog. Obsidian shows its name as
+ * the tooltip, so the name stays short.
+ */
+export function PortraitButton({ label, onOpen, children }: { readonly label: string; readonly onOpen: () => void; readonly children: ReactNode }) {
+	return (
+		<button type="button" className="dromos-portrait-open" aria-label={label} aria-haspopup="dialog" onClick={onOpen}>
+			{children}
+		</button>
+	);
+}
+
 /** Esdras's portrait in his letter: the scribe under a smaller arch (M11 S2). */
 export function ScribePortrait() {
 	return (

@@ -3860,7 +3860,8 @@
 	background-color: var(--dromos-panel);
 	color: var(--dromos-ink);
 }
-.dromos-root.dromos-book-modal .modal-close-button { min-width: 44px; min-height: 44px; }
+/* The card's close button, 44 px for a finger: `.modal-header-button` in current Obsidian, `.modal-close-button` before. */
+.dromos-root.dromos-book-modal :is(.modal-header-button, .modal-close-button) { min-width: 44px; min-height: 44px; }
 .dromos-root.dromos-book-modal .modal-content { margin: 0; padding: 0; }
 
 .dromos-root .dromos-book-card { display: flex; flex-direction: column; gap: 16px; }
@@ -4755,3 +4756,151 @@
 .dromos-root .dromos-shop-confirm-value { margin: 0; color: var(--dromos-ochre-ink); font-family: var(--dromos-font-display); font-size: 18px; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; text-align: right; white-space: nowrap; }
 .dromos-root .dromos-shop-confirm-actions { display: flex; flex-wrap: wrap; gap: 10px 12px; }
 .dromos-root .dromos-shop-confirm-actions .dromos-btn { flex: 1 1 8em; justify-content: center; }
+
+/* The stage card (stage-card S1). The plaque's portrait becomes a button: it holds the niche alone, so
+   the level medallion stays its sibling with its own name, and lets a tap on its corner through to the
+   button. The button drops Obsidian's look; its arch-shaped corners make the focus ring follow the arch. */
+.dromos-root button.dromos-portrait-open {
+	display: block;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 31px 31px 3px 3px;
+	background: none;
+	box-shadow: none;
+	color: inherit;
+	cursor: pointer;
+}
+.dromos-root .dromos-portrait .dromos-level-medal { pointer-events: none; }
+.dromos-root .dromos-portrait-open .dromos-portrait-frame,
+.dromos-root .dromos-portrait-open .dromos-portrait-molding { transition: stroke 0.15s ease, stroke-opacity 0.15s ease; }
+.dromos-root button.dromos-portrait-open:hover { background: none; box-shadow: none; }
+.dromos-root .dromos-portrait-open:hover .dromos-portrait-frame { stroke: var(--dromos-ochre-mark); stroke-width: 3; }
+.dromos-root .dromos-portrait-open:hover .dromos-portrait-molding { stroke: var(--dromos-ochre-mark); stroke-opacity: 1; }
+.dromos-root button.dromos-portrait-open:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: 3px; box-shadow: none; }
+
+/* The card: the book card's modal at 640 px, its own `.dromos-root`, so the view's 472 px container
+   query lays it out on a phone. */
+.dromos-root.dromos-book-modal.dromos-stage-modal { --dialog-width: 640px; }
+.dromos-root .dromos-stage-card { display: flex; flex-direction: column; }
+.dromos-root .dromos-stage-sheet {
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+	margin-top: 26px;
+	padding: 20px 24px 22px;
+	border-block: 1px solid var(--dromos-umber);
+	background-color: var(--dromos-paper);
+}
+.dromos-root .dromos-stage-head { display: flex; align-items: center; gap: 22px; }
+.dromos-root .dromos-stage-head .dromos-portrait { width: 96px; height: 119px; }
+.dromos-root .dromos-stage-names { min-width: 0; }
+.dromos-root .dromos-stage-kicker {
+	margin: 0;
+	color: var(--dromos-ink-muted);
+	font-size: 14px;
+	font-variant: small-caps;
+	letter-spacing: 0.12em;
+	line-height: 1.3;
+}
+.dromos-root .dromos-stage-title {
+	margin: 2px 0 4px;
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 36px;
+	font-weight: 600;
+	line-height: 1.05;
+}
+/* The title takes the focus as the card opens: a ring only for the keyboard. */
+.dromos-root .dromos-stage-title:focus { outline: none; }
+.dromos-root .dromos-stage-title:focus-visible { border-radius: 2px; outline: 2px solid var(--dromos-focus); outline-offset: 3px; }
+.dromos-root .dromos-stage-since { margin: 0; color: var(--dromos-ink-muted); font-size: 14px; }
+.dromos-root .dromos-stage-block { padding-top: 16px; border-top: 1px solid var(--dromos-rule); }
+.dromos-root .dromos-stage-section {
+	margin: 0 0 10px;
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 18px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.08em;
+	line-height: 1.2;
+}
+.dromos-root .dromos-stage-section-name { font-variant: normal; letter-spacing: 0; }
+.dromos-root .dromos-stage-complete {
+	margin: 0 0 10px;
+	color: var(--dromos-ochre-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 21px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+.dromos-root .dromos-stage-note { margin: 0 0 10px; color: var(--dromos-ink-muted); font-size: 14px; }
+
+/* What the next stage asks: each row the quest's circle, ticked and filled as a done quest once met;
+   while missing, a bar and what is left. */
+.dromos-root .dromos-stage-reqs { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.dromos-root .dromos-stage-req {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr) auto;
+	column-gap: 10px;
+	row-gap: 3px;
+	align-items: center;
+}
+.dromos-root .dromos-stage-req .dromos-quest-mark { grid-row: 1 / span 2; align-self: start; width: 26px; height: 26px; margin-top: -2px; }
+.dromos-root .dromos-stage-req-label { color: var(--dromos-ink); font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.dromos-root .dromos-stage-req-count { color: var(--dromos-ink); font-size: 14px; font-variant-numeric: lining-nums tabular-nums; text-align: right; white-space: nowrap; }
+.dromos-root .dromos-stage-req-foot { grid-column: 2 / span 2; display: flex; flex-direction: column; gap: 4px; }
+.dromos-root .dromos-stage-req-hint { margin: 0; color: var(--dromos-ink-muted); font-size: 13px; }
+.dromos-root .dromos-stage-req.is-met .dromos-stage-req-label { font-weight: 500; }
+.dromos-root .dromos-stage-req.is-met .dromos-stage-req-count { color: var(--dromos-ink-muted); }
+.dromos-root .dromos-stage-req.is-met .dromos-quest-circle { fill: var(--dromos-done-fill); }
+
+/* The road as twelve small niches: passed ones whole with a tick, the current one ringed in ochre,
+   the next one dashed, the ones ahead faded. */
+.dromos-root .dromos-stage-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px 6px; margin: 0; padding: 0; list-style: none; }
+.dromos-root .dromos-stage-cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+.dromos-root .dromos-stage-cell .dromos-portrait { width: 48px; height: 60px; }
+.dromos-root .dromos-stage-cell .dromos-portrait-frame { stroke-width: 2.4; }
+.dromos-root .dromos-stage-cell.is-ahead .dromos-portrait-art { opacity: 0.5; filter: saturate(0.3); }
+.dromos-root .dromos-stage-cell.is-current .dromos-portrait-frame { stroke: var(--dromos-ochre-mark); stroke-width: 5; }
+.dromos-root .dromos-stage-cell.is-next .dromos-portrait-frame { stroke: var(--dromos-ochre-mark); stroke-dasharray: 7 5; stroke-width: 3; }
+.dromos-root .dromos-stage-num { color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 13px; font-weight: 600; line-height: 1; }
+.dromos-root .dromos-stage-name { color: var(--dromos-ink); font-size: 13px; line-height: 1.15; }
+.dromos-root .dromos-stage-cell.is-ahead .dromos-stage-name { color: var(--dromos-ink-muted); }
+.dromos-root .dromos-stage-cell.is-current .dromos-stage-name { font-weight: 700; }
+.dromos-root .dromos-stage-where { color: var(--dromos-ochre-ink); font-size: 11px; font-variant: small-caps; letter-spacing: 0.1em; line-height: 1.1; }
+.dromos-root .dromos-stage-badge {
+	position: absolute;
+	top: 42px;
+	left: calc(50% + 14px);
+	display: grid;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 50%;
+	background: var(--dromos-panel);
+	color: var(--dromos-olive);
+}
+.dromos-root .dromos-stage-badge svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Everything the rules read today, in one quiet line. */
+.dromos-root .dromos-stage-evidence { margin: 14px 0 0; padding-top: 10px; border-top: 1px dashed var(--dromos-rule-dashed); color: var(--dromos-ink-muted); font-size: 13px; }
+.dromos-root .dromos-stage-evidence-label { display: block; color: var(--dromos-ink); font-size: 12px; font-variant: small-caps; letter-spacing: 0.1em; }
+
+@container dromos-view (max-width: 472px) {
+	.dromos-root .dromos-stage-sheet { gap: 18px; margin-top: 30px; padding: 16px 14px 18px; }
+	.dromos-root .dromos-stage-head { gap: 16px; }
+	.dromos-root .dromos-stage-head .dromos-portrait { width: 72px; height: 89px; }
+	.dromos-root .dromos-stage-title { font-size: 30px; }
+	.dromos-root .dromos-stage-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Reduced motion: the portrait's frame changes at once; the ticks are drawn at once (above). */
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-portrait-open .dromos-portrait-frame,
+	.dromos-root .dromos-portrait-open .dromos-portrait-molding { transition: none; }
+}
