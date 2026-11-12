@@ -209,7 +209,6 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	// Bumped when a chosen title is written and read again: the card closes once that render is drawn.
 	const [titleChosen, setTitleChosen] = useState(0);
 	const titlesCard = useRef<CardModal | null>(null);
-	const titlesReadOnce = useRef(false);
 	const choosing = useRef(false);
 	const visitSettled = useRef(false);
 	const { screen } = place;
@@ -297,17 +296,15 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	}, [deps]);
 
 	// Read on open and after every sync, as the figure is: a vault read only. A title granted after the last
-	// one seen here shows its notice; past the open's first read, the live region says it too.
+	// one seen here shows its notice, and the live region, mounted from the first render, says it too.
 	const readTitles = useCallback(async (): Promise<void> => {
 		const reading = await deps.loadTitles.execute();
 		if (!mounted.current) return;
 		setTitles(reading);
 		const news = newTitleNotice(deps.deviceStore, reading.titles);
-		const first = !titlesReadOnce.current;
-		titlesReadOnce.current = true;
 		if (news === null) return;
 		setTitleNews(news.title);
-		if (!first) setArrival(titleArrival(news.title, deps.translator()));
+		setArrival(titleArrival(news.title, deps.translator()));
 	}, [deps]);
 
 	const refresh = useCallback(async (): Promise<void> => {
