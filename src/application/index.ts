@@ -2,6 +2,7 @@
 export * from './BuyOffer';
 export * from './BuyReward';
 export * from './CampaignState';
+export * from './ChooseTitle';
 export * from './gameEvents';
 export * from './GameState';
 export * from './LinkHabitToArea';
@@ -13,6 +14,7 @@ export * from './LoadAvatar';
 export * from './LoadHome';
 export * from './LoadLibrary';
 export * from './LoadShop';
+export * from './LoadTitles';
 export * from './MarkResourceFinished';
 export * from './PayLevelBonus';
 export * from './pendingOfferRows';

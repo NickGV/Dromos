@@ -51,3 +51,8 @@ export function purseNotePath(folder: string): string {
 export function shopNotePath(folder: string): string {
 	return `${normalizeVaultFolder(folder)}/Shop.md`;
 }
+
+/** Vault path of the titles Esdras grants under the given folder setting, for example `Dromos/Titles.md` (ADR-020). */
+export function titlesNotePath(folder: string): string {
+	return `${normalizeVaultFolder(folder)}/Titles.md`;
+}

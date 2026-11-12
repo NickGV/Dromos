@@ -13,3 +13,4 @@ export * from './rules/LevelCurve';
 export * from './rules/Ranks';
 export * from './rules/XpRules';
 export * from './skill';
+export * from './title';

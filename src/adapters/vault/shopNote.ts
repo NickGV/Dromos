@@ -41,8 +41,8 @@ function offerFrom(cells: Readonly<Record<string, string>>): Offer | null {
 	return { id, offer, price: Number(price), why: why === '' ? null : why, until: until === '' ? null : until };
 }
 
-/** A `YYYY-MM-DD` that names a day of the calendar: `2026-11-31` and `2026-02-29` do not (L8). */
-function isCalendarDate(date: string): boolean {
+/** A `YYYY-MM-DD` that names a day of the calendar: `2026-11-31` and `2026-02-29` do not (L8). Also reads the titles' `granted`. */
+export function isCalendarDate(date: string): boolean {
 	if (!DATE.test(date)) return false;
 	const [year, month, day] = date.split('-').map(Number) as [number, number, number];
 	const parsed = new Date(Date.UTC(year, month - 1, day));

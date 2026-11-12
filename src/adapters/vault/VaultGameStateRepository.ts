@@ -1,7 +1,8 @@
 import { normalizePath, type App } from 'obsidian';
-import type { CharacterLoadResult, CharacterProjection, CharacterSaveResult, GameStateRepository, RulesRepository } from '../../ports';
+import type { CharacterLoadResult, CharacterProjection, CharacterSaveResult, GameStateRepository, RulesRepository, TitleSaveResult } from '../../ports';
 import { waitForCache } from './cacheWait';
 import { characterFromFrontmatter } from './characterMapper';
+import { writeCharacterTitle } from './characterTitle';
 import { characterNotePath, normalizeVaultFolder } from './folderPath';
 import { applyCharacterProjection, characterProjectionChanged, newCharacterNote } from './projections';
 import { frontmatterOf, onCacheChanged } from './vaultFrontmatter';
@@ -11,7 +12,8 @@ const CACHE_WAIT_MS = 3000;
 
 /**
  * Game state read from the vault (S1). `Character.md` is read with `metadataCache`; `saveCharacter`
- * sets the derived fields through `processFrontMatter`, and a rebuild can create the note again.
+ * sets the derived fields through `processFrontMatter`, `saveTitle` the chosen title (ADR-020), and a
+ * rebuild can create the note again.
  */
 export class VaultGameStateRepository implements GameStateRepository {
 	/** `vaultFolder` is read on every load, so a settings change applies without rewiring. */
@@ -43,6 +45,11 @@ export class VaultGameStateRepository implements GameStateRepository {
 			CACHE_WAIT_MS,
 		);
 		return 'saved';
+	}
+
+	/** The chosen title (titles S2, ADR-020): `title` alone, through `processFrontMatter`; the projection's rewrite above keeps it. */
+	saveTitle(title: string): Promise<TitleSaveResult> {
+		return writeCharacterTitle(this.app, normalizePath(characterNotePath(this.vaultFolder())), title);
 	}
 
 	async createCharacter(projection: CharacterProjection, created: string): Promise<void> {

@@ -4904,3 +4904,134 @@
 	.dromos-root .dromos-portrait-open .dromos-portrait-frame,
 	.dromos-root .dromos-portrait-open .dromos-portrait-molding { transition: none; }
 }
+
+/* The titles (titles S5, ADR-020). Only the title of the plaque's title line is a button; the level
+   stays text beside it. At rest a dashed umber hairline under the small caps says it can be touched;
+   on hover the text and the line turn ochre, the line solid. The vertical padding makes the hit area
+   27 px tall without moving the line. The portrait beside it answers hover with its arch frame, so the
+   two never look alike. Obsidian's own button rules beat two classes, hence `button.` in each. */
+.dromos-root button.dromos-title-open {
+	display: inline;
+	height: auto;
+	min-height: 0;
+	margin: 0;
+	padding: 5px 0;
+	border: 0;
+	border-radius: 2px;
+	background: none;
+	box-shadow: none;
+	color: inherit;
+	font: inherit;
+	font-variant: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	text-align: inherit;
+	white-space: normal;
+	text-decoration-line: underline;
+	text-decoration-style: dashed;
+	text-decoration-color: var(--dromos-umber);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.28em;
+	cursor: pointer;
+	transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.dromos-root button.dromos-title-open:hover {
+	background: none;
+	box-shadow: none;
+	color: var(--dromos-ochre-ink);
+	text-decoration-style: solid;
+	text-decoration-color: var(--dromos-ochre-mark);
+}
+.dromos-root button.dromos-title-open:focus-visible { outline: 2px solid var(--dromos-focus); outline-offset: 1px; box-shadow: none; }
+/* The title line clips its dot at the start of a line (overflow-x: clip); 4 px of padding, taken back
+   by the margin, move that edge out so the focus ring (1 + 2 px) shows whole and the dot stays hidden. */
+.dromos-root .dromos-character-title { margin-inline-start: -4px; padding-inline-start: 4px; }
+
+/* The notice of a new title, once per device: a full-width line between the name and the radar, the
+   wax seal of a new letter beside it, and a quiet button that opens the card. */
+.dromos-root .dromos-title-news {
+	display: grid;
+	grid-template-columns: 22px minmax(0, 1fr) auto;
+	grid-template-areas: 'seal kicker kicker' 'seal name open';
+	align-items: center;
+	column-gap: 10px;
+	margin: 2px 0 0;
+	padding: 6px 8px 7px 9px;
+	border: 1px solid var(--dromos-rule);
+	border-radius: 6px;
+	background: var(--dromos-ochre-tint);
+	color: var(--dromos-ink);
+	line-height: 1.2;
+}
+.dromos-root .dromos-title-news-seal { grid-area: seal; width: 22px; height: 24px; }
+.dromos-root .dromos-title-news-seal .dromos-portrait-seal { position: static; width: 22px; height: 24px; }
+.dromos-root .dromos-title-news-kicker { grid-area: kicker; margin: 0; color: var(--dromos-ink-muted); font-size: 13px; }
+.dromos-root .dromos-title-news-name { grid-area: name; margin: 0; font-family: var(--dromos-font-display); font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
+.dromos-root button.dromos-title-news-open {
+	height: auto;
+	min-height: 32px;
+	grid-area: open;
+	margin: 0;
+	padding: 4px 10px;
+	border: 1px solid var(--dromos-umber);
+	border-radius: 6px;
+	background: var(--dromos-paper);
+	box-shadow: none;
+	color: var(--dromos-ink);
+	font-size: 13px;
+	font-weight: 500;
+}
+.dromos-root button.dromos-title-news-open:hover { background: var(--dromos-panel); }
+.is-mobile .dromos-root button.dromos-title-news-open { min-height: 44px; }
+
+/* The titles card: the book card's modal at the stage card's 640 px, on the stage card's sheet. */
+.dromos-root.dromos-book-modal.dromos-titles-modal { --dialog-width: 640px; }
+.dromos-root .dromos-titles-card { display: flex; flex-direction: column; }
+.dromos-root .dromos-titles-head .dromos-stage-title { margin-bottom: 2px; }
+.dromos-root .dromos-titles-when { color: var(--dromos-ink-muted); font-size: 13px; font-variant: small-caps; letter-spacing: 0.08em; white-space: nowrap; }
+.dromos-root .dromos-titles-feat { margin: 0; color: var(--dromos-ink); font-size: 15px; line-height: 1.4; }
+.dromos-root .dromos-titles-why { margin: 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 17px; font-style: italic; line-height: 1.35; }
+.dromos-root .dromos-titles-sign { font-style: normal; font-size: 14px; white-space: nowrap; }
+.dromos-root .dromos-titles-mark {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--dromos-ochre-ink);
+	font-size: 13px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.1em;
+	white-space: nowrap;
+}
+.dromos-root .dromos-titles-mark svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.dromos-root .dromos-titles-note { margin: 0; padding-top: 12px; border-top: 1px dashed var(--dromos-rule-dashed); color: var(--dromos-ink-muted); font-size: 14px; }
+.dromos-root .dromos-titles-problem { margin: 0; color: var(--text-warning); font-size: 13px; }
+.dromos-root .dromos-titles-problem.is-error { margin-top: 8px; color: var(--text-error); }
+
+/* One row per earned title: today's with the ochre bar, the others with their button on the right. */
+.dromos-root .dromos-titles-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.dromos-root .dromos-titles-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	column-gap: 18px;
+	row-gap: 4px;
+	padding: 13px 12px 14px 15px;
+	border-top: 1px solid var(--dromos-rule);
+}
+.dromos-root .dromos-titles-row:first-child { border-top: 0; }
+.dromos-root .dromos-titles-row.is-current { border-radius: 3px; background: var(--dromos-selected); box-shadow: inset 3px 0 0 var(--dromos-ochre-mark); }
+.dromos-root .dromos-titles-row.is-current + .dromos-titles-row { border-top-color: transparent; }
+.dromos-root .dromos-titles-row-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.dromos-root .dromos-titles-name { margin: 0; color: var(--dromos-ink); font-family: var(--dromos-font-display); font-size: 21px; font-weight: 600; line-height: 1.15; }
+.dromos-root .dromos-titles-row .dromos-titles-why { margin-top: 2px; }
+.dromos-root .dromos-titles-action { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
+
+@container dromos-view (max-width: 472px) {
+	.dromos-root .dromos-titles-row { grid-template-columns: minmax(0, 1fr); padding: 12px 10px 13px 13px; }
+	.dromos-root .dromos-titles-action { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 6px; }
+	.dromos-root .dromos-titles-name { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root button.dromos-title-open { transition: none; }
+}

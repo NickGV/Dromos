@@ -5,7 +5,7 @@ import { createTranslator } from '../../../src/i18n';
 import { PortraitButton } from '../../../src/ui/atoms/Portrait';
 import { XpBar } from '../../../src/ui/atoms/XpBar';
 import { I18nProvider } from '../../../src/ui/i18n';
-import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
+import { CharacterCard, TitleLine, titleNews } from '../../../src/ui/organisms/CharacterCard';
 import { CharacterPanel } from '../../../src/ui/organisms/CharacterPanel';
 import { characterCardView } from '../../../src/ui/presenters/characterCardView';
 import { clickOf, elementsOf } from './elements';
@@ -308,5 +308,98 @@ describe('CharacterCard: the portrait opens the stages (stage-card S1)', () => {
 
 		expect(opened).toEqual(['stages']);
 		expect(elementsOf(button).map((element) => element.type)).toEqual(['button', 'svg']);
+	});
+});
+
+describe('CharacterCard: the title opens the titles (titles S5)', () => {
+	const es = createTranslator('es');
+	const open = (): void => undefined;
+	const plaque = (props: Partial<Parameters<typeof CharacterCard>[0]> = {}, language = es, character: Character = CHARACTER): string =>
+		renderToStaticMarkup(
+			<I18nProvider t={language}>
+				<CharacterCard view={characterCardView(character, language)} footer={null} {...props} />
+			</I18nProvider>,
+		);
+
+	it('wraps only the title in a button named by it, which opens a dialog; the level stays text beside it', () => {
+		expect(plaque({ onOpenTitles: open })).toContain(
+			'<p class="dromos-character-title"><span class="dromos-character-title-part"><button type="button" class="dromos-title-open" aria-label="Corredor. Ver los títulos" aria-haspopup="dialog">Corredor</button></span><span class="dromos-character-title-part"><span class="dromos-character-title-dot"> · </span>nivel 3</span></p>',
+		);
+		expect(plaque({ onOpenTitles: open }, t)).toContain('aria-label="Corredor. See the titles"');
+	});
+
+	it('without a handler the title stays plain text, drawn as before', () => {
+		const html = plaque();
+
+		expect(html).toContain('<p class="dromos-character-title"><span class="dromos-character-title-part">Corredor</span><span class="dromos-character-title-part"><span class="dromos-character-title-dot"> · </span>nivel 3</span></p>');
+		expect(html).not.toContain('dromos-title-open');
+		expect(html).not.toContain('<button');
+	});
+
+	it('is no button when Character.md holds no title: the line shows the level alone', () => {
+		const html = plaque({ onOpenTitles: open }, es, { ...CHARACTER, title: '' });
+
+		expect(html).toContain('<p class="dromos-character-title"><span class="dromos-character-title-part">Nivel 3</span></p>');
+		expect(html).not.toContain('<button');
+	});
+
+	it('the button opens the titles, and holds only the title', () => {
+		const opened: string[] = [];
+		const line = TitleLine({ parts: ['Corredor', 'nivel 3'], titleLabel: 'Corredor. Ver los títulos', onOpenTitles: () => opened.push('titles') });
+		const button = elementsOf(line).find((element) => element.type === 'button');
+
+		(button?.props.onClick as () => void)();
+
+		expect(opened).toEqual(['titles']);
+		expect(button?.props.children).toBe('Corredor');
+	});
+
+	it('is passed through the plaque when the character is found, and no empty state has one', () => {
+		const found = renderToStaticMarkup(<CharacterPanel state={{ kind: 'found', view }} footer={null} onOpenTitles={open} />);
+		const missing = renderToStaticMarkup(<CharacterPanel state={{ kind: 'missing', path: 'Dromos/Character.md' }} footer={null} onOpenTitles={open} titleNews="Perseverante" />);
+
+		expect(found).toContain('<button type="button" class="dromos-title-open" aria-label="Corredor. See the titles" aria-haspopup="dialog">Corredor</button>');
+		expect(missing).not.toContain('<button');
+		expect(missing).not.toContain('dromos-title-news');
+	});
+});
+
+describe('CharacterCard: the notice of a new title (titles S5)', () => {
+	const es = createTranslator('es');
+	const open = (): void => undefined;
+	const plaque = (props: Partial<Parameters<typeof CharacterCard>[0]> = {}): string =>
+		renderToStaticMarkup(
+			<I18nProvider t={es}>
+				<CharacterCard view={characterCardView(CHARACTER, es)} footer={null} {...props} />
+			</I18nProvider>,
+		);
+
+	it('draws a line on the plaque, under the name and above the stats, with the wax seal, the title and "Ver los títulos"', () => {
+		const html = plaque({ onOpenTitles: open, titleNews: 'Perseverante' });
+
+		expect(html).toMatch(
+			/<\/div><\/div><div class="dromos-title-news"><span class="dromos-title-news-seal" aria-hidden="true"><svg class="dromos-portrait-seal"[^>]*>.*?<\/svg><\/span><p class="dromos-title-news-kicker" id="([^"]+)-kicker">Esdras te otorgó un título:<\/p><p class="dromos-title-news-name" id="\1-name">Perseverante<\/p><button type="button" class="dromos-title-news-open" aria-haspopup="dialog" aria-describedby="\1-kicker \1-name">Ver los títulos<\/button><\/div><div class="dromos-character-row">/,
+		);
+	});
+
+	it('keeps the plaque’s markup as it was: the portrait’s clip id, which React derives from the plaque’s count of children, does not move', () => {
+		const clipId = (html: string): string | undefined => /<clipPath id="([^"]+)">/.exec(html)?.[1];
+
+		// The id this plaque drew before the titles; the notice shares the row's slot, so it stays with or without them.
+		for (const props of [{}, { onOpenTitles: open }, { onOpenTitles: open, titleNews: 'Perseverante' }]) expect(clipId(plaque(props))).toBe('dromos-portrait-character-Rl');
+	});
+
+	it('draws no notice without a new title, or without a handler to open the titles', () => {
+		expect(plaque({ onOpenTitles: open })).not.toContain('dromos-title-news');
+		expect(plaque({ titleNews: 'Perseverante' })).not.toContain('dromos-title-news');
+	});
+
+	it('its button opens the titles', () => {
+		const opened: string[] = [];
+		const news = titleNews({ id: 'news', kicker: 'Esdras te otorgó un título:', title: 'Perseverante', openText: 'Ver los títulos', onOpen: () => opened.push('titles') });
+
+		clickOf(news)();
+
+		expect(opened).toEqual(['titles']);
 	});
 });
