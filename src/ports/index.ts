@@ -23,3 +23,4 @@ export * from './TaskCreator';
 export * from './TaskSource';
 export * from './TaskStatusSource';
 export * from './TaskSourceError';
+export * from './TitleRepository';

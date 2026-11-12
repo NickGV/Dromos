@@ -13,6 +13,7 @@ export * from './LoadAvatar';
 export * from './LoadHome';
 export * from './LoadLibrary';
 export * from './LoadShop';
+export * from './LoadTitles';
 export * from './MarkResourceFinished';
 export * from './PayLevelBonus';
 export * from './pendingOfferRows';
