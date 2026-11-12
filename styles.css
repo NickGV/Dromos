@@ -3860,7 +3860,8 @@
 	background-color: var(--dromos-panel);
 	color: var(--dromos-ink);
 }
-.dromos-root.dromos-book-modal .modal-close-button { min-width: 44px; min-height: 44px; }
+/* The card's close button, 44 px for a finger: `.modal-header-button` in current Obsidian, `.modal-close-button` before. */
+.dromos-root.dromos-book-modal :is(.modal-header-button, .modal-close-button) { min-width: 44px; min-height: 44px; }
 .dromos-root.dromos-book-modal .modal-content { margin: 0; padding: 0; }
 
 .dromos-root .dromos-book-card { display: flex; flex-direction: column; gap: 16px; }
