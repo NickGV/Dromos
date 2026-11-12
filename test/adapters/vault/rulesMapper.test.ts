@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { rulesFromFrontmatter } from '../../../src/adapters/vault/rulesMapper';
+import { DEFAULT_STAGE_RULES } from '../../../src/domain/character/stageRules';
 import { DEFAULT_RULES, type GameRules } from '../../../src/domain/rules/GameRules';
 
 // Shape of Dromos/Rules.md as 04-Game-Design describes it, with every value changed.
@@ -26,6 +27,7 @@ const FULL_RULES: GameRules = {
 	skillCurve: { base: 20, exponent: 1.1 },
 	rankLevels: [1, 2, 3, 4, 5],
 	goldPerLevel: 25,
+	stages: DEFAULT_STAGE_RULES,
 };
 
 describe('rulesFromFrontmatter: the gold of a level (M10 S3)', () => {
@@ -185,5 +187,131 @@ describe('rulesFromFrontmatter: a wrong value never reaches the game (S16)', () 
 		expect(rules.xp.todo).toEqual({ ...DEFAULT_RULES.xp.todo, hard: 40 });
 		expect(rules.skillCurve).toEqual({ base: DEFAULT_RULES.skillCurve.base, exponent: 2 });
 		expect(invalidFields).toEqual(['xp.todo.easy', 'skill_curve.base', 'rank_levels']);
+	});
+});
+
+describe('rulesFromFrontmatter: what each stage asks (M11 S1)', () => {
+	it('a note without stages plays by the table of S1, and that is no mistake', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ gold_per_level: 25 });
+
+		expect(rules.stages).toEqual(DEFAULT_STAGE_RULES);
+		expect(invalidFields).toEqual([]);
+	});
+
+	it('reads what a stage asks, and every part not written keeps its default', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({
+			stages: {
+				wayfarer: { level: 4, days: 60 },
+				traveller: { skills: 5, skills_at_rank: { rank: 3, count: 2 }, campaigns: 2, books: 8 },
+			},
+		});
+
+		expect(rules.stages).toEqual({
+			...DEFAULT_STAGE_RULES,
+			wayfarer: { ...DEFAULT_STAGE_RULES.wayfarer, level: 4, days: 60 },
+			traveller: { level: 11, days: 0, skills: 5, skillsAtRank: { rank: 3, count: 2 }, campaigns: 2, books: 8 },
+		});
+		expect(invalidFields).toEqual([]);
+	});
+
+	it('reads "all" skills and "half" of them at a rank, and numbers written as digits in a text', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { elder: { skills: 'all', skills_at_rank: { count: 'half' } }, sage: { level: '40', skills: '14' } } });
+
+		expect(rules.stages.elder).toEqual({ ...DEFAULT_STAGE_RULES.elder, skills: 'all', skillsAtRank: { rank: 4, count: 'half' } });
+		expect(rules.stages.sage).toEqual({ ...DEFAULT_STAGE_RULES.sage, level: 40, skills: 14 });
+		expect(invalidFields).toEqual([]);
+	});
+
+	it('a part of skills at a rank keeps the other part of the default', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { scholar: { skills_at_rank: { rank: 2 } }, traveller: { skills_at_rank: { count: 3 } } } });
+
+		expect(rules.stages.scholar.skillsAtRank).toEqual({ rank: 2, count: 2 });
+		expect(rules.stages.traveller.skillsAtRank).toEqual({ rank: 2, count: 3 });
+		expect(invalidFields).toEqual([]);
+	});
+
+	it('0 asks nothing: a requirement can be taken away', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { wayfarer: { days: 0 }, sage: { books: '0', skills_at_rank: { count: 0 } } } });
+
+		expect(rules.stages.wayfarer).toEqual({ ...DEFAULT_STAGE_RULES.wayfarer, days: 0 });
+		expect(rules.stages.sage).toEqual({ ...DEFAULT_STAGE_RULES.sage, books: 0, skillsAtRank: null });
+		expect(invalidFields).toEqual([]);
+	});
+
+	it('a stage that asked no skill at a rank can ask one when the note gives both parts', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { pilgrim: { skills_at_rank: { rank: 2, count: 1 } } } });
+
+		expect(rules.stages.pilgrim.skillsAtRank).toEqual({ rank: 2, count: 1 });
+		expect(invalidFields).toEqual([]);
+	});
+
+	it.each([
+		['level', 'mucho'],
+		['level', -1],
+		['level', 2.5],
+		['level', 'all'],
+		['days', Number.NaN],
+		['days', [30]],
+		['skills', 'half'],
+		['skills', 'todas'],
+		['campaigns', 'all'],
+		['books', Number.POSITIVE_INFINITY],
+		['books', 1e21],
+	])('a %s of %s keeps the default of that part only, and is named', (field, value) => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { scholar: { campaigns: 4, [field]: value } } });
+
+		expect(rules.stages).toEqual({ ...DEFAULT_STAGE_RULES, scholar: { ...DEFAULT_STAGE_RULES.scholar, campaigns: field === 'campaigns' ? 0 : 4 } });
+		expect(invalidFields).toEqual([`stages.scholar.${field}`]);
+	});
+
+	it.each([
+		['rank', 0],
+		['rank', 6],
+		['rank', 'half'],
+		['count', 'all'],
+		['count', -2],
+	])('a skills_at_rank %s of %s keeps the default of that part only, and is named', (field, value) => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { elder: { skills_at_rank: { [field]: value } } } });
+
+		expect(rules.stages).toEqual(DEFAULT_STAGE_RULES);
+		expect(invalidFields).toEqual([`stages.elder.skills_at_rank.${field}`]);
+	});
+
+	it('a stage that asked no skill at a rank, given only one part, asks none and names it', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ stages: { pilgrim: { skills_at_rank: { count: 1 } } } });
+
+		expect(rules.stages).toEqual(DEFAULT_STAGE_RULES);
+		expect(invalidFields).toEqual(['stages.pilgrim.skills_at_rank']);
+	});
+
+	it.each([
+		['stages', { stages: 5 }],
+		['stages', { stages: ['wayfarer'] }],
+		['stages.wayfarer', { stages: { wayfarer: 3 } }],
+		['stages.scholar.skills_at_rank', { stages: { scholar: { skills_at_rank: 2 } } }],
+	])('a section that is not a section keeps its defaults and is named: %s', (name, frontmatter) => {
+		const { rules, invalidFields } = rulesFromFrontmatter(frontmatter);
+
+		expect(rules).toEqual(DEFAULT_RULES);
+		expect(invalidFields).toEqual([name]);
+	});
+
+	it.each([
+		['stages.runner', { stages: { runner: { level: 1 } } }],
+		['stages.sabio', { stages: { sabio: { level: 40 } } }],
+		['stages.wayfarer.xp', { stages: { wayfarer: { xp: 100 } } }],
+		['stages.elder.skills_at_rank.ranks', { stages: { elder: { skills_at_rank: { ranks: 3 } } } }],
+	])('a stage or a part it does not know is named, and nothing changes: %s', (name, frontmatter) => {
+		const { rules, invalidFields } = rulesFromFrontmatter(frontmatter);
+
+		expect(rules).toEqual(DEFAULT_RULES);
+		expect(invalidFields).toEqual([name]);
+	});
+
+	it('a note with stages still reads every other field as before', () => {
+		const { rules, invalidFields } = rulesFromFrontmatter({ ...FULL_NOTE, stages: { wayfarer: { level: 4 } } });
+
+		expect(rules).toEqual({ ...FULL_RULES, stages: { ...DEFAULT_STAGE_RULES, wayfarer: { ...DEFAULT_STAGE_RULES.wayfarer, level: 4 } } });
+		expect(invalidFields).toEqual([]);
 	});
 });

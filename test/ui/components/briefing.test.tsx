@@ -63,9 +63,26 @@ describe('BriefingPanel as a scroll (game-ui S5)', () => {
 		}
 	});
 
-	it('draws a scroll icon in a circle, as a drawing', () => {
-		expect(render()).toMatch(/<span class="dromos-briefing-seal" aria-hidden="true"><svg[^>]*viewBox="0 0 24 24"/);
-		expect(render()).not.toContain('📜');
+	it('draws Esdras as a scribe in an arched niche, never the wise man of the plaque (M11 S2)', () => {
+		const html = render();
+
+		expect(html).toMatch(/<span class="dromos-briefing-seal" aria-hidden="true"><svg class="dromos-portrait-art is-niche is-scribe" viewBox="0 0 100 124" aria-hidden="true" focusable="false">/);
+		expect(html).not.toContain('is-sage');
+		expect(html).not.toContain('📜');
+	});
+
+	it('gives every portrait its own arch, so two letters in one window never share a clip', () => {
+		const html = renderToStaticMarkup(
+			<>
+				{panel(today, {})}
+				{panel(today, {})}
+			</>,
+		);
+		const clips = [...html.matchAll(/<clipPath id="([^"]+)">/g)].map((match) => match[1]);
+
+		expect(clips).toHaveLength(2);
+		expect(new Set(clips).size).toBe(2);
+		for (const clip of clips) expect(html).toContain(`<g clip-path="url(#${clip})">`);
 	});
 
 	it('signs today\'s letter "— Esdras" at its foot next to the copy-command button, a secondary button', () => {
@@ -186,9 +203,11 @@ describe('BriefingPanel folds and unrolls the letter (game-ui S13)', () => {
 	it('marks a new letter with a wax seal and "New letter", and a read one with neither', () => {
 		const unread = briefingView({ kind: 'found', briefing: todayBriefing }, TODAY, [caregiver], en, null);
 
-		expect(render(unread)).toMatch(/<span class="dromos-briefing-seal is-wax" aria-hidden="true">/);
+		expect(render(unread)).toMatch(/<span class="dromos-briefing-seal is-wax" aria-hidden="true"><svg class="dromos-portrait-art is-niche is-scribe"[\s\S]*?<\/svg><svg class="dromos-portrait-seal" viewBox="0 0 24 26" aria-hidden="true" focusable="false">/);
 		expect(render(unread)).toContain('<span class="dromos-briefing-new">New letter</span>');
 		expect(render(today)).not.toContain('is-wax');
+		expect(render(today)).not.toContain('dromos-portrait-seal');
+		expect(render(today)).toContain('<svg class="dromos-portrait-art is-niche is-scribe"');
 		expect(render(today)).not.toContain('New letter');
 	});
 

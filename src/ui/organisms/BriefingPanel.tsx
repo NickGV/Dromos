@@ -1,5 +1,6 @@
 import type { IconRender } from '../atoms/Icon';
 import { MarkdownBlock, type MarkdownRender } from '../atoms/MarkdownBlock';
+import { ScribePortrait, WaxSeal } from '../atoms/Portrait';
 import { SkillIcon } from '../atoms/SkillIcon';
 import type { TextSegment } from '../presenters/briefingText';
 import type { BriefingNearView, BriefingView } from '../presenters/briefingView';
@@ -20,12 +21,9 @@ export interface BriefingPanelProps {
 	readonly onFold: () => void;
 }
 
-/** The design's scroll icon. */
-const SCROLL = 'M8 4h9a2 2 0 012 2v10M8 4a2 2 0 00-2 2v12a2 2 0 002 2h9a2 2 0 002-2v-2H9.5M10 8.5h6M10 12h6';
-
 /**
  * The panel of Esdras as a scroll (game-ui S5), folded to its summary (S13): rolled at its top and
- * its bottom, a scroll icon in a circle that a new letter turns into an ochre wax seal, the top
+ * its bottom, Esdras's portrait as a scribe that a new letter marks with an ochre wax seal (M11 S2), the top
  * line, the mission, and the row that unrolls the letter (home-fit S4). The letter (the mission's
  * why, the closest skill, the text of the day in a large serif, the foot) stays mounted and hidden
  * while folded, so the note renders once. With no letter, the notice says why.
@@ -47,9 +45,8 @@ export function BriefingPanel({ view, renderMarkdown, onRequest, renderIcon, ope
 			<div className="dromos-scroll-edge" aria-hidden="true" />
 			<div className="dromos-briefing-sheet">
 				<span className={view.newLabel ? 'dromos-briefing-seal is-wax' : 'dromos-briefing-seal'} aria-hidden="true">
-					<svg viewBox="0 0 24 24" width="26" height="26" focusable="false">
-						<path d={SCROLL} />
-					</svg>
+					<ScribePortrait />
+					{view.newLabel ? <WaxSeal /> : null}
 				</span>
 				<div className="dromos-briefing-head">
 					{view.topLine ? <p className="dromos-briefing-top">{view.topLine}</p> : null}

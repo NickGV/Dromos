@@ -56,6 +56,7 @@ export function homeDeps(
 		loadHome: { execute: never },
 		syncQuests: { execute: never },
 		syncGame: { execute: never },
+		loadAvatar: { execute: never },
 		gameSnapshot: () => game,
 		dismissGameEvents: noop,
 		takeGameAnnouncements: () => [],

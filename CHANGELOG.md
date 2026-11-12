@@ -2,6 +2,14 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Stages of life** (M11): your character grows over the years, from a young runner who knows nothing yet to a sage, through twelve stages. Each asks for a level, days on the road, earned skills and their ranks, finished campaigns and finished books, in order; the last one is more than ten years away at a steady pace. You can change what each stage asks in `Rules.md` (`stages`).
+- **Your character's portrait** on the plaque, painted under an arch, with the level medallion on its corner: the same man as the walker on the path, at the same stage, and both carry an object for each of your three highest skills (an olive wreath for atleta, a scroll for lector, an inkhorn for escriba…).
+- **Esdras's portrait** in his letter, a scribe with his reed pen, where the scroll icon was; a new letter still carries its ochre wax seal, now on the portrait's corner.
+
 ## [0.17.0] - 2026-11-11
 
 ### Added

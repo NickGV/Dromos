@@ -2,6 +2,8 @@ export * from './area';
 export * from './briefing/Briefing';
 export * from './campaign';
 export * from './character/Character';
+export * from './character/Stage';
+export * from './character/stageRules';
 export * from './ledger';
 export * from './library';
 export * from './quest';

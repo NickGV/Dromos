@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { AvatarView } from '../presenters/avatar';
 import type { CharacterCardView } from '../presenters/characterCardView';
 import type { CeremonyPhase } from '../presenters/levelUpView';
 import type { CardVisit } from '../presenters/sinceVisitView';
@@ -24,6 +25,8 @@ export interface CharacterPanelProps {
 	readonly footer: ReactNode;
 	/** Whether its heading is the screen's heading, the one a changed screen focuses: on home only. */
 	readonly heading?: boolean;
+	/** Who the card's portrait shows (M11 S1); absent, the young runner. */
+	readonly avatar?: AvatarView;
 }
 
 /**
@@ -31,9 +34,9 @@ export interface CharacterPanelProps {
  * every screen: the character, or an empty state. When `Character.md` is missing it names the
  * expected path and shows no invented values (D4).
  */
-export function CharacterPanel({ state, ceremony = null, visit = null, skills = null, footer, heading = true }: CharacterPanelProps) {
+export function CharacterPanel({ state, ceremony = null, visit = null, skills = null, footer, heading = true, avatar }: CharacterPanelProps) {
 	const t = useT();
-	if (state.kind === 'found') return <CharacterCard view={state.view} footer={footer} ceremony={ceremony} visit={visit} skills={skills} heading={heading} />;
+	if (state.kind === 'found') return <CharacterCard view={state.view} footer={footer} ceremony={ceremony} visit={visit} skills={skills} heading={heading} avatar={avatar} />;
 	return (
 		<section className="dromos-card dromos-plaque dromos-character-empty" aria-label={t('character.aria')}>
 			{state.kind === 'missing' ? (

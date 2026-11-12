@@ -164,7 +164,7 @@
 	--dromos-seal: #e0805f;
 	--dromos-on-seal: #1b1713;
 	--dromos-seal-ring: rgba(27, 23, 19, 0.55);
-	/* A new letter's wax seal: the ochre mark, with its scroll in dark ink (game-ui S13). */
+	/* A new letter's wax seal: the ochre mark, with its pressed star in dark ink (game-ui S13, M11 S2). */
 	--dromos-on-wax: #241c12;
 	/* Inline code in the briefing: a chip of the paper under the ink (S14). */
 	--dromos-code-chip: rgba(237, 227, 207, 0.08);
@@ -1237,7 +1237,7 @@
 .dromos-root .dromos-character-who {
 	display: flex;
 	align-items: center;
-	gap: 14px;
+	gap: 18px;
 	min-width: 0;
 }
 
@@ -1308,6 +1308,264 @@
 }
 
 .dromos-root .dromos-level-medal.is-lit .dromos-level-medal-number { color: var(--dromos-on-ochre); }
+
+/* The portraits (M11): the character's wise man under an arch on the plaque (S1), Esdras the scribe
+   under a smaller one in his letter (S2). Flat fills on the theme's tokens with a hairline, like the
+   Shop's merchant; still, so nothing moves. Night values here, day values under .theme-light. */
+.dromos-root {
+	/* The sage stands under the scene's sky: white hair and beard, the walker's sienna himation. */
+	--dromos-portrait-line: #15110d;
+	--dromos-portrait-sky: #2e3a5c;
+	--dromos-portrait-skin: #c6a37b;
+	--dromos-portrait-white: #ebe4d6;
+	--dromos-portrait-lock: rgba(21, 17, 13, 0.42);
+	--dromos-portrait-tunic: #cbb993;
+	--dromos-portrait-himation: #8a5a40;
+	--dromos-portrait-eye: #1a1410;
+	--dromos-portrait-cheek: rgba(224, 128, 95, 0.3);
+	--dromos-portrait-paper: #d9ccb0;
+	/* Esdras sits in lamplight indoors: a linen shawl with indigo stripes, an indigo robe, a dark beard. */
+	--dromos-scribe-lamp: #5a4630;
+	--dromos-scribe-shawl: #d8cbae;
+	--dromos-scribe-stripe: #3d5576;
+	--dromos-scribe-robe: #34496a;
+	--dromos-scribe-beard: #3a2b21;
+	--dromos-scribe-grey: #a69c8d;
+	--dromos-scribe-reed: #d2ab6c;
+}
+
+.theme-light .dromos-root {
+	--dromos-portrait-line: #5a3e2b;
+	--dromos-portrait-sky: #cfe3e8;
+	--dromos-portrait-skin: #edd1ab;
+	--dromos-portrait-white: #fdfbf6;
+	--dromos-portrait-lock: rgba(90, 62, 43, 0.4);
+	--dromos-portrait-tunic: #f4ecdb;
+	--dromos-portrait-himation: #a65d3b;
+	--dromos-portrait-eye: #3b2f2a;
+	--dromos-portrait-cheek: rgba(193, 89, 60, 0.22);
+	--dromos-portrait-paper: #fbf6ea;
+	--dromos-scribe-lamp: #ecd8ae;
+	--dromos-scribe-shawl: #fbf6ea;
+	--dromos-scribe-stripe: #3d5675;
+	--dromos-scribe-robe: #3d5675;
+	--dromos-scribe-beard: #4a3528;
+	--dromos-scribe-grey: #b8af9f;
+	--dromos-scribe-reed: #8a6a3a;
+}
+
+/* On the plaque the sage's 62 x 77 arch takes the medallion's place, and the medallion, 32 px, sits
+   on its lower corner, so the plaque keeps its height. */
+.dromos-root .dromos-portrait { position: relative; display: block; flex: 0 0 auto; width: 62px; height: 77px; }
+.dromos-root .dromos-portrait .dromos-level-medal { position: absolute; right: -12px; bottom: -6px; width: 32px; height: 32px; }
+.dromos-root .dromos-portrait .dromos-level-medal-number { font-size: 16px; }
+
+.dromos-root .dromos-portrait-art {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+	fill: none;
+	stroke: var(--dromos-portrait-line);
+	stroke-width: 1;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+}
+
+/* The figures keep a 1 px line at any size; the frame and the molding scale with the arch. */
+.dromos-root .dromos-portrait-art g :is(path, circle, ellipse, rect) { vector-effect: non-scaling-stroke; }
+.dromos-root .dromos-portrait-frame { fill: var(--dromos-panel); stroke: var(--dromos-umber); stroke-width: 2; }
+.dromos-root .dromos-portrait-field { fill: var(--dromos-portrait-sky); stroke: none; }
+.dromos-root .dromos-portrait-art.is-scribe .dromos-portrait-field { fill: var(--dromos-scribe-lamp); }
+.dromos-root .dromos-portrait-molding { fill: none; stroke: var(--dromos-umber); stroke-width: 1.4; stroke-opacity: 0.7; }
+
+.dromos-root .dromos-portrait-skin { fill: var(--dromos-portrait-skin); }
+.dromos-root .dromos-portrait-white { fill: var(--dromos-portrait-white); }
+.dromos-root .dromos-portrait-lock { fill: none; stroke: var(--dromos-portrait-lock); stroke-width: 0.8; }
+.dromos-root .dromos-portrait-tunic { fill: var(--dromos-portrait-tunic); }
+.dromos-root .dromos-portrait-himation { fill: var(--dromos-portrait-himation); }
+.dromos-root .dromos-portrait-fold { fill: none; stroke-width: 0.8; stroke-opacity: 0.7; }
+.dromos-root .dromos-portrait-crease { fill: none; stroke-width: 0.7; stroke-opacity: 0.45; }
+.dromos-root .dromos-portrait-cheek { fill: var(--dromos-portrait-cheek); stroke: none; }
+.dromos-root .dromos-portrait-eye { fill: var(--dromos-portrait-eye); stroke: none; }
+.dromos-root .dromos-portrait-lid { fill: none; stroke-width: 0.8; }
+.dromos-root .dromos-portrait-smile { fill: none; stroke-width: 0.9; stroke-opacity: 0.7; }
+.dromos-root .dromos-portrait-scroll { fill: var(--dromos-portrait-paper); }
+
+.dromos-root .dromos-portrait-robe { fill: var(--dromos-scribe-robe); }
+.dromos-root .dromos-portrait-shawl { fill: var(--dromos-scribe-shawl); }
+.dromos-root .dromos-portrait-stripe { fill: none; stroke: var(--dromos-scribe-stripe); stroke-width: 1.6; }
+.dromos-root .dromos-portrait-beard { fill: var(--dromos-scribe-beard); }
+.dromos-root .dromos-portrait-grey { fill: none; stroke: var(--dromos-scribe-grey); stroke-width: 1; }
+.dromos-root .dromos-portrait-brow { fill: none; stroke: var(--dromos-scribe-beard); stroke-width: 1.4; }
+.dromos-root .dromos-portrait-reed { fill: none; stroke: var(--dromos-scribe-reed); stroke-width: 1.6; }
+.dromos-root .dromos-portrait-nib { fill: none; stroke: var(--dromos-portrait-eye); stroke-width: 1.6; }
+
+/* A new letter: the ochre wax, its pale ring and a pressed star, ribbons in the clay of the stalled
+   seal, on the lower corner of Esdras's portrait. */
+.dromos-root .dromos-portrait-seal {
+	position: absolute;
+	right: -8px;
+	bottom: -8px;
+	width: 20px;
+	height: 22px;
+	overflow: visible;
+	stroke: var(--dromos-portrait-line);
+	stroke-width: 0.9;
+	stroke-linejoin: round;
+}
+
+.dromos-root .dromos-portrait-wax { fill: var(--dromos-ochre-mark); }
+.dromos-root .dromos-portrait-wax-ring { fill: none; stroke: var(--dromos-seal-ring); stroke-width: 0.9; }
+.dromos-root .dromos-portrait-wax-mark { fill: var(--dromos-on-wax); stroke: none; }
+.dromos-root .dromos-portrait-ribbon { fill: var(--dromos-seal); }
+
+/* The character grows (M11 S1): twelve stages, the same man on the plaque's bust and on the road's
+   walker, and one object per skill, the same on both. Flat fills with the hairline of each view: the
+   portrait's line on the bust, the marker line on the walker. Night values here, day values under
+   .theme-light. */
+.dromos-root {
+	/* The young man's bust: dark hair, greying later; leather, the ochre hem, wood for the staff, a
+	   lantern's glass lit at night, dyed clavi, a lighter patch, a felt hat. */
+	--dromos-portrait-hair: #3a2b21;
+	--dromos-portrait-grey: #9a9284;
+	--dromos-portrait-leather: #5c4130;
+	--dromos-portrait-belt: #d4a64a;
+	--dromos-portrait-wood: #8a6a48;
+	--dromos-portrait-glass: #f0c36a;
+	--dromos-portrait-metal: #6f675e;
+	--dromos-portrait-clavus: #84432f;
+	--dromos-portrait-patch: #a07a5c;
+	--dromos-portrait-felt: #8a7348;
+	/* The walker: the same greys, white, felt, clavi and patch under the moon. */
+	--dromos-scene-grey: #9a9284;
+	--dromos-scene-white: #e2dccd;
+	--dromos-scene-felt: #8a7348;
+	--dromos-scene-clavus: #84432f;
+	--dromos-scene-patch: #a07a5c;
+	/* The skill objects, the same on both views: the Shop's bronze and clay, olive, woad blue, iron. */
+	--dromos-avatar-bronze: #a5813f;
+	--dromos-avatar-olive: #7d9358;
+	--dromos-avatar-blue: #5577a6;
+	--dromos-avatar-iron: #7a7268;
+	--dromos-avatar-clay: #a0623f;
+	--dromos-avatar-wax: #2e231b;
+	--dromos-avatar-leather: #5c4130;
+	--dromos-avatar-wood: #8a6a48;
+	--dromos-avatar-coin: #d4a64a;
+	--dromos-avatar-ink: #1a1410;
+	--dromos-avatar-reed: #d2ab6c;
+	--dromos-avatar-paper: #d9ccb0;
+	--dromos-avatar-gleam: #f3e9d2;
+}
+
+.theme-light .dromos-root {
+	--dromos-portrait-hair: #4a3528;
+	--dromos-portrait-grey: #b0a798;
+	--dromos-portrait-leather: #7a4f30;
+	--dromos-portrait-belt: #c9962b;
+	--dromos-portrait-wood: #b08a5a;
+	--dromos-portrait-glass: #f3e9d2;
+	--dromos-portrait-metal: #8b7a68;
+	--dromos-portrait-clavus: #b5593c;
+	--dromos-portrait-patch: #c98a64;
+	--dromos-portrait-felt: #d8b878;
+	--dromos-scene-grey: #a8a091;
+	--dromos-scene-white: #fdfbf6;
+	--dromos-scene-felt: #d8b878;
+	--dromos-scene-clavus: #b5593c;
+	--dromos-scene-patch: #c98a64;
+	--dromos-avatar-bronze: #b58b3a;
+	--dromos-avatar-olive: #6e8b4e;
+	--dromos-avatar-blue: #3d5c8a;
+	--dromos-avatar-iron: #5f574e;
+	--dromos-avatar-clay: #c47a4e;
+	--dromos-avatar-wax: #4a3528;
+	--dromos-avatar-leather: #7a4f30;
+	--dromos-avatar-wood: #b08a5a;
+	--dromos-avatar-coin: #c9962b;
+	--dromos-avatar-ink: #3b2f2a;
+	--dromos-avatar-reed: #8a6a3a;
+	--dromos-avatar-paper: #fbf6ea;
+	--dromos-avatar-gleam: #fdfbf6;
+}
+
+/* The bust. Its grey hair and brows share their class names with the scribe's grey streaks and
+   brows, so their fills stay under the stage: the scribe keeps his own lines. The grey hair keeps
+   the soft grey edge of those streaks. */
+.dromos-root .dromos-portrait-hair { fill: var(--dromos-portrait-hair); }
+.dromos-root .dromos-portrait-stage .dromos-portrait-grey { fill: var(--dromos-portrait-grey); }
+.dromos-root .dromos-portrait-stage .dromos-portrait-brow { stroke: var(--dromos-portrait-hair); }
+.dromos-root .dromos-portrait-stage .dromos-portrait-brow.is-grey { stroke: var(--dromos-portrait-grey); }
+.dromos-root .dromos-portrait-stubble { fill: var(--dromos-portrait-hair); fill-opacity: 0.3; stroke: none; }
+.dromos-root .dromos-portrait-clavus { fill: var(--dromos-portrait-clavus); stroke: none; }
+.dromos-root .dromos-portrait-hem { fill: none; stroke: var(--dromos-portrait-belt); stroke-width: 1.4; }
+.dromos-root .dromos-portrait-patch { fill: var(--dromos-portrait-patch); }
+.dromos-root .dromos-portrait-brooch { fill: var(--dromos-avatar-bronze); }
+.dromos-root .dromos-portrait-strap,
+.dromos-root .dromos-portrait-cord { fill: var(--dromos-portrait-leather); }
+.dromos-root .dromos-portrait-felt { fill: var(--dromos-portrait-felt); }
+.dromos-root .dromos-portrait-band { fill: none; stroke: var(--dromos-portrait-leather); stroke-width: 1.6; }
+.dromos-root .dromos-portrait-wood { fill: var(--dromos-portrait-wood); }
+.dromos-root .dromos-portrait-hook { fill: none; stroke: var(--dromos-portrait-line); stroke-width: 1.6; }
+.dromos-root .dromos-portrait-ring { fill: none; stroke-width: 1; }
+.dromos-root .dromos-portrait-lantern { fill: var(--dromos-portrait-metal); }
+.dromos-root .dromos-portrait-glass { fill: var(--dromos-portrait-glass); }
+/* The lantern's glow belongs to the night, as the scene's lamp does. */
+.dromos-root .dromos-portrait-glow { fill: var(--dromos-portrait-glass); stroke: none; opacity: 0.28; }
+.theme-light .dromos-root .dromos-portrait-glow { display: none; }
+
+/* The walker. Its cloak's patch shares its class with the landscape's patches of ground, so its
+   fill stays on the walker, at their opacity, as drawn in the mockups. */
+.dromos-root .dromos-scene-grey { fill: var(--dromos-scene-grey); }
+.dromos-root .dromos-scene-white { fill: var(--dromos-scene-white); }
+.dromos-root .dromos-scene-stubble { fill: var(--dromos-scene-hair); fill-opacity: 0.32; stroke: none; }
+.dromos-root .dromos-scene-streak { fill: none; stroke: var(--dromos-scene-grey); stroke-width: 0.8; }
+.dromos-root .dromos-scene-felt { fill: var(--dromos-scene-felt); stroke-width: 0.9; }
+.dromos-root .dromos-scene-clavus { fill: var(--dromos-scene-clavus); stroke: none; }
+.dromos-root .dromos-walker .dromos-scene-patch { fill: var(--dromos-scene-patch); stroke-width: 0.8; opacity: 0.4; }
+.dromos-root .dromos-scene-brooch { fill: var(--dromos-avatar-bronze); stroke-width: 0.8; }
+.dromos-root .dromos-scene-capsa-lid { fill: var(--dromos-scene-satchel); }
+.dromos-root .dromos-scene-staff.is-sturdy { stroke-width: 2; }
+.dromos-root .dromos-scene-strap.is-cord { stroke-width: 1.2; }
+
+/* The skill objects, drawn once. On the walker they are placed at half size, so their lines are
+   doubled there to keep the walker's outline; on the bust the portrait's 1 px line holds at any
+   size. */
+.dromos-root .dromos-avatar-thing { --dromos-avatar-k: 1; stroke-width: calc(1 * var(--dromos-avatar-k)); stroke-linejoin: round; stroke-linecap: round; }
+.dromos-root .dromos-walker .dromos-avatar-thing { --dromos-avatar-k: 2.2; }
+.dromos-root .dromos-avatar-fine { stroke-width: calc(0.7 * var(--dromos-avatar-k)); }
+
+.dromos-root .dromos-avatar-olive { fill: var(--dromos-avatar-olive); stroke-width: calc(0.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-twig { fill: none; stroke: var(--dromos-avatar-wood); stroke-width: calc(1.2 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-bronze { fill: var(--dromos-avatar-bronze); }
+.dromos-root .dromos-avatar-ring { fill: none; }
+.dromos-root .dromos-avatar-boss { fill: var(--dromos-avatar-coin); }
+.dromos-root .dromos-avatar-wood { fill: var(--dromos-avatar-wood); }
+.dromos-root .dromos-avatar-wax { fill: var(--dromos-avatar-wax); stroke: none; }
+.dromos-root .dromos-avatar-scratch { fill: none; stroke: var(--dromos-avatar-reed); stroke-width: calc(0.8 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-stylus { fill: none; stroke: var(--dromos-avatar-iron); stroke-width: calc(1.4 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-cord { fill: none; stroke: var(--dromos-avatar-leather); }
+.dromos-root .dromos-avatar-clay { fill: var(--dromos-avatar-clay); }
+.dromos-root .dromos-avatar-band { fill: none; stroke: var(--dromos-avatar-coin); stroke-width: calc(1.2 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-tick { fill: none; }
+.dromos-root .dromos-avatar-reed { fill: none; stroke: var(--dromos-avatar-reed); stroke-width: calc(1.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-nib { fill: none; stroke: var(--dromos-avatar-ink); stroke-width: calc(1.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-ink { fill: var(--dromos-avatar-ink); stroke: none; }
+.dromos-root .dromos-avatar-eyes { fill: var(--dromos-avatar-gleam); stroke: none; }
+.dromos-root .dromos-avatar-beak { fill: var(--dromos-avatar-coin); stroke: none; }
+.dromos-root .dromos-avatar-rod { fill: none; stroke: var(--dromos-avatar-wood); stroke-width: calc(1.6 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-paper { fill: var(--dromos-avatar-paper); }
+.dromos-root .dromos-avatar-tie { fill: none; stroke: var(--dromos-avatar-clay); stroke-width: calc(1.2 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-knob { fill: var(--dromos-avatar-coin); }
+.dromos-root .dromos-avatar-glass { fill: none; stroke: var(--dromos-avatar-gleam); stroke-opacity: 0.7; }
+.dromos-root .dromos-avatar-gleam { fill: none; stroke: var(--dromos-avatar-gleam); stroke-width: calc(1 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-iron { fill: var(--dromos-avatar-iron); }
+.dromos-root .dromos-avatar-hole { fill: var(--dromos-avatar-ink); stroke: none; }
+.dromos-root .dromos-avatar-coin { fill: var(--dromos-avatar-coin); }
+.dromos-root .dromos-avatar-leather { fill: var(--dromos-avatar-leather); }
+.dromos-root .dromos-avatar-thread { fill: none; stroke: var(--dromos-avatar-blue); stroke-width: calc(0.9 * var(--dromos-avatar-k)); }
+.dromos-root .dromos-avatar-knot { fill: var(--dromos-avatar-blue); stroke-width: calc(0.6 * var(--dromos-avatar-k)); }
 
 .dromos-root .dromos-xp {
 	display: flex;
@@ -1875,7 +2133,8 @@
 
 .dromos-root .dromos-briefing-sheet + .dromos-scroll-edge { border-top: 1px solid var(--dromos-umber); border-bottom: 0; }
 
-/* The seal stands beside the head and the text; on phones it sits inline with the top line (S14). */
+/* Esdras's portrait stands beside the head and the text (M11 S2); on phones it sits inline with the
+   top line (S14). */
 .dromos-root .dromos-briefing-sheet {
 	display: grid;
 	grid-template-columns: 46px minmax(0, 1fr);
@@ -1885,28 +2144,13 @@
 }
 
 .dromos-root .dromos-briefing-seal {
-	display: grid;
+	position: relative;
+	display: block;
 	grid-row: 1 / span 2;
-	place-items: center;
 	align-self: start;
 	width: 46px;
-	height: 46px;
-	border: 1px solid var(--dromos-umber);
-	border-radius: 50%;
-	background: var(--dromos-paper);
-	color: var(--dromos-ink);
-	transition: background-color 200ms ease-out, border-color 200ms ease-out, color 200ms ease-out, box-shadow 200ms ease-out;
+	height: 57px;
 }
-
-/* A letter not opened on this device: an ochre wax seal, ringed like the stalled seal. */
-.dromos-root .dromos-briefing-seal.is-wax {
-	border-color: var(--dromos-ochre-mark);
-	background: var(--dromos-ochre-mark);
-	box-shadow: inset 0 0 0 3px var(--dromos-ochre-mark), inset 0 0 0 4px var(--dromos-seal-ring);
-	color: var(--dromos-on-wax);
-}
-
-.dromos-root .dromos-briefing-seal svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 
 .dromos-root .dromos-briefing-head {
 	display: flex;
@@ -2086,7 +2330,7 @@
 
 .dromos-root .dromos-briefing-body a { text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
 
-/* Phones and narrow panes: the seal, a little smaller, sits inline with the top line (S14), and
+/* Phones and narrow panes: Esdras's portrait, a little smaller, sits inline with the top line (S14), and
    the text takes the whole width under them. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-briefing-sheet {
@@ -2096,15 +2340,14 @@
 		padding: 14px 16px;
 	}
 
-	.dromos-root .dromos-briefing-seal { grid-row: 1; width: 40px; height: 40px; }
-	.dromos-root .dromos-briefing-seal svg { width: 22px; height: 22px; }
+	.dromos-root .dromos-briefing-seal { grid-row: 1; width: 40px; height: 50px; }
+	.dromos-root .dromos-briefing-seal .dromos-portrait-seal { right: -7px; bottom: -7px; width: 18px; height: 20px; }
 	.dromos-root .dromos-briefing-head { align-self: center; margin-bottom: 0; }
 	.dromos-root .dromos-briefing-text { grid-column: 1 / -1; margin-top: 10px; }
 }
 
 /* Reduced motion: the letter shows or hides at once; its labels still change. */
 @media (prefers-reduced-motion: reduce) {
-	.dromos-root .dromos-briefing-seal,
 	.dromos-root .dromos-briefing-letter,
 	.dromos-root .dromos-briefing.is-open .dromos-briefing-letter,
 	.dromos-root .dromos-briefing-letter-inner,

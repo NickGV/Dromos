@@ -540,6 +540,7 @@ describe('SyncGame: Rules.md (S16)', () => {
 		skillCurve: { base: 20, exponent: 1 },
 		rankLevels: [1, 2, 3, 4, 5],
 		goldPerLevel: 10,
+		stages: DEFAULT_RULES.stages,
 	};
 	const withRules = { rules: RULES, invalid: null };
 
