@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LoadAvatar, type LoadAvatarDeps } from '../../src/application/LoadAvatar';
-import type { Book, Campaign, Character, LedgerRow, Skill } from '../../src/domain';
+import { LATER_STAGE_IDS, stageProgress, type Book, type Campaign, type Character, type LedgerRow, type Skill } from '../../src/domain';
 import { DEFAULT_RULES } from '../../src/domain/rules/GameRules';
 import type { CharacterLoadResult, RulesLoadResult } from '../../src/ports';
 import { campaign } from '../domain/campaign/campaignFixtures';
@@ -205,5 +205,71 @@ describe('LoadAvatar: missing evidence (M11 S1)', () => {
 		};
 
 		await expect(new LoadAvatar(blind).execute()).resolves.toEqual({ stage: 'runner', skills: [] });
+	});
+});
+
+describe('LoadAvatar.read: the figure and the stage card from one read (stage-card S1)', () => {
+	const vaults: readonly Vault[] = [
+		DISCIPLE,
+		{},
+		{ ...DISCIPLE, campaigns: [] },
+		{ ...DISCIPLE, character: { kind: 'missing', path: 'Dromos/Character.md' } },
+		{ ...DISCIPLE, rules: { rules: { ...DEFAULT_RULES, stages: { ...DEFAULT_RULES.stages, disciple: { ...DEFAULT_RULES.stages.disciple, books: 6 } } }, invalid: null } },
+	];
+
+	it('gives the figure execute() gives, so the stage chosen is unchanged', async () => {
+		for (const vault of vaults) {
+			const reading = await new LoadAvatar(deps(vault)).read();
+
+			expect(reading.avatar).toEqual(await new LoadAvatar(deps(vault)).execute());
+			expect(reading.stages?.stage ?? reading.avatar.stage).toBe(reading.avatar.stage);
+		}
+	});
+
+	it('gives the card the evidence as the rules count it, with the total XP and game_start of Character.md', async () => {
+		const { stages } = await new LoadAvatar(deps({ ...DISCIPLE, character: character({ level: 9, totalXp: 4321, gameStart: '2026-10-01' }) })).read();
+
+		expect(stages).toMatchObject({ stage: 'disciple', evidence: { level: 9, days: 42, totalSkills: 4, campaigns: 1, books: 5 }, totalXp: 4321, gameStart: '2026-10-01' });
+		expect(stages?.evidence.earned.map(({ rankIndex }) => rankIndex)).toEqual([0, 0, 0]);
+	});
+
+	it('lists every stage after the first, in order, with what it asks against that evidence, by the stages of Rules.md', async () => {
+		const rules = { rules: { ...DEFAULT_RULES, stages: { ...DEFAULT_RULES.stages, disciple: { ...DEFAULT_RULES.stages.disciple, books: 6 } } }, invalid: null };
+		const { stages } = await new LoadAvatar(deps({ ...DISCIPLE, rules })).read();
+
+		expect(stages?.stage).toBe('apprentice');
+		expect(stages?.steps.map(({ stage }) => stage)).toEqual(LATER_STAGE_IDS);
+		expect(stages?.steps.find(({ stage }) => stage === 'disciple')?.requirements).toEqual(stageProgress(stages?.evidence ?? null, rules.rules.stages.disciple));
+		expect(stages?.steps.find(({ stage }) => stage === 'disciple')?.requirements.at(-1)).toEqual({ id: 'books', value: 5, target: 6, share: 'count', rank: null, met: false });
+	});
+
+	it('counts the XP still needed for the level each stage asks, by the character curve of Rules.md', async () => {
+		const runner = character({ level: 2, totalXp: 135, xpIntoLevel: 35, xpToNext: 283 });
+		const xpLeft = async (rules?: RulesLoadResult) => (await new LoadAvatar(deps({ character: runner, rules })).read()).stages?.steps.slice(0, 2).map((step) => step.xpLeft);
+
+		// The wayfarer's level 3 is the plaque's own "Level 3 in 248 XP"; the pilgrim's level 5 adds levels 3 and 4 of the curve.
+		expect(await xpLeft()).toEqual([248, 248 + 520 + 800]);
+		expect(await xpLeft({ rules: { ...DEFAULT_RULES, characterCurve: { base: 10, exponent: 1 } }, invalid: null })).toEqual([248, 248 + 30 + 40]);
+	});
+
+	it('needs no XP for a level already reached', async () => {
+		const { stages } = await new LoadAvatar(deps(DISCIPLE)).read();
+
+		expect(stages?.steps.slice(0, 4).map(({ xpLeft }) => xpLeft)).toEqual([0, 0, 0, 0]);
+	});
+
+	it('answers at once for a level far beyond reach', async () => {
+		const stages = { ...DEFAULT_RULES.stages, wayfarer: { ...DEFAULT_RULES.stages.wayfarer, level: 1_000_000_000 } };
+		const { stages: card } = await new LoadAvatar(deps({ rules: { rules: { ...DEFAULT_RULES, characterCurve: { base: 1, exponent: 0.001 }, stages }, invalid: null } })).read();
+
+		expect(card?.steps[0]?.xpLeft).toBeGreaterThan(0);
+		expect(Number.isFinite(card?.steps[0]?.xpLeft)).toBe(true);
+	});
+
+	it('has no card without a character: the figure still carries its skills', async () => {
+		const reading = await new LoadAvatar(deps({ ...DISCIPLE, character: { kind: 'missing', path: 'Dromos/Character.md' } })).read();
+
+		expect(reading.stages).toBeNull();
+		expect(reading.avatar.skills.map(({ id }) => id)).toEqual(['lector', 'cronista', 'atleta']);
 	});
 });

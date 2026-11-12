@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STAGE_IDS, type StageId } from '../../../src/domain/character/Stage';
-import { DEFAULT_STAGE_RULES, LATER_STAGE_IDS, stageFor, type LaterStageId, type StageEvidence, type StageRules } from '../../../src/domain/character/stageRules';
+import { countedEvidence, DEFAULT_STAGE_RULES, LATER_STAGE_IDS, stageFor, stageProgress, type LaterStageId, type StageEvidence, type StageRules } from '../../../src/domain/character/stageRules';
 
 /** The skills of the vault today (S1: "every skill (14 today)"). */
 const TOTAL_SKILLS = 14;
@@ -195,5 +195,73 @@ describe('stageFor: other rules (Rules.md, M11 S1)', () => {
 
 		expect(stageFor({ ...LEAST.traveller, earned: earned(4, [2, 2]) }, rules)).toBe('disciple');
 		expect(stageFor({ ...LEAST.traveller, earned: earned(4, [2, 3]) }, rules)).toBe('traveller');
+	});
+});
+
+describe('stageProgress: what a stage asks, against the evidence (stage-card S1)', () => {
+	it('lists the parts the stage asks, in the table order, each with what the vault holds, the target and whether it is met', () => {
+		expect(stageProgress(evidence({ level: 2, days: 11, books: 2 }), DEFAULT_STAGE_RULES.wayfarer)).toEqual([
+			{ id: 'level', value: 2, target: 3, share: 'count', rank: null, met: false },
+			{ id: 'days', value: 11, target: 30, share: 'count', rank: null, met: false },
+		]);
+		expect(stageProgress(evidence({ level: 12, earned: earned(5, [2, 1]), campaigns: 2, books: 7 }), DEFAULT_STAGE_RULES.student)).toEqual([
+			{ id: 'level', value: 12, target: 13, share: 'count', rank: null, met: false },
+			{ id: 'skills', value: 5, target: 5, share: 'count', rank: null, met: true },
+			{ id: 'campaigns', value: 2, target: 3, share: 'count', rank: null, met: false },
+		]);
+	});
+
+	it('counts the skills at a rank or above, and "every skill" and "half of them" from the skills the vault holds', () => {
+		expect(stageProgress({ ...LEAST.sage, earned: earned(14, [5, 2], [4, 6]), books: 52 }, DEFAULT_STAGE_RULES.sage)).toEqual([
+			{ id: 'level', value: 30, target: 30, share: 'count', rank: null, met: true },
+			{ id: 'skills', value: 14, target: 14, share: 'all', rank: null, met: true },
+			{ id: 'skillsAtRank', value: 8, target: 7, share: 'half', rank: 4, met: true },
+			{ id: 'books', value: 52, target: 50, share: 'count', rank: null, met: true },
+		]);
+		expect(stageProgress({ ...LEAST.traveller, earned: earned(4) }, DEFAULT_STAGE_RULES.traveller).find(({ id }) => id === 'skillsAtRank')).toEqual({
+			id: 'skillsAtRank',
+			value: 0,
+			target: 1,
+			share: 'count',
+			rank: 2,
+			met: false,
+		});
+	});
+
+	it('a vault that lists no skill never meets "every skill" nor half of them', () => {
+		const sage = stageProgress({ ...LEAST.sage, totalSkills: 0 }, DEFAULT_STAGE_RULES.sage);
+
+		expect(sage.filter(({ met }) => !met).map(({ id, value, target }) => ({ id, value, target }))).toEqual([
+			{ id: 'skills', value: 14, target: 0 },
+			{ id: 'skillsAtRank', value: 7, target: 0 },
+		]);
+	});
+
+	it('leaves out a part of 0 and a count of 0 at a rank: they ask nothing', () => {
+		const requirements = { ...DEFAULT_STAGE_RULES.traveller, level: 0, skills: 0, skillsAtRank: { rank: 2, count: 0 } };
+
+		expect(stageProgress(evidence(), requirements)).toEqual([]);
+	});
+
+	it('reads missing or unusable evidence as 0, as stageFor does', () => {
+		expect(stageProgress(null, DEFAULT_STAGE_RULES.wayfarer).map(({ value }) => value)).toEqual([0, 0]);
+		expect(stageProgress({ level: Number.NaN, days: -4 }, DEFAULT_STAGE_RULES.wayfarer).map(({ value }) => value)).toEqual([0, 0]);
+	});
+
+	it('agrees with stageFor: a stage is reached exactly when its list and every earlier one are met', () => {
+		const cases = [...LATER_STAGE_IDS.map((stage) => LEAST[stage]), ...ONE_SHORT.map(([stage, , short]) => ({ ...LEAST[stage], ...short })), evidence()];
+		for (const known of cases) {
+			const firstUnmet = LATER_STAGE_IDS.find((stage) => !stageProgress(known, DEFAULT_STAGE_RULES[stage]).every(({ met }) => met));
+			const reached = firstUnmet === undefined ? 'sage' : previous(firstUnmet);
+
+			expect(stageFor(known)).toBe(reached);
+		}
+	});
+});
+
+describe('countedEvidence: the evidence as the rules count it (stage-card S1)', () => {
+	it('keeps the usable numbers and reads every missing or unusable one as 0', () => {
+		expect(countedEvidence({ level: 4, days: -2, campaigns: Number.NaN, earned: earned(2) })).toEqual({ level: 4, days: 0, earned: earned(2), totalSkills: 0, campaigns: 0, books: 0 });
+		expect(countedEvidence(null)).toEqual({ level: 0, days: 0, earned: [], totalSkills: 0, campaigns: 0, books: 0 });
 	});
 });
