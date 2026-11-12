@@ -6,7 +6,9 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- **Portraits** (M11): the character plaque shows a wise man of the era, painted under an arch with a scroll in his hand, the same for everyone; the level medallion sits on its corner. Esdras's letter shows Esdras himself, a scribe with his reed pen under a smaller arch, where the scroll icon was; a new letter still carries its ochre wax seal, now on the portrait's corner. Both follow the light and dark themes.
+- **Stages of life** (M11): your character grows over the years, from a young runner who knows nothing yet to a sage, through twelve stages. Each asks for a level, days on the road, earned skills and their ranks, finished campaigns and finished books, in order; the last one is more than ten years away at a steady pace. You can change what each stage asks in `Rules.md` (`stages`).
+- **Your character's portrait** on the plaque, painted under an arch, with the level medallion on its corner: the same man as the walker on the path, at the same stage, and both carry an object for each of your three highest skills (an olive wreath for atleta, a scroll for lector, an inkhorn for escriba…).
+- **Esdras's portrait** in his letter, a scribe with his reed pen, where the scroll icon was; a new letter still carries its ochre wax seal, now on the portrait's corner.
 
 ## [0.17.0] - 2026-11-11
 

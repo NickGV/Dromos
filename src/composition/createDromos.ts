@@ -44,8 +44,6 @@ export interface Dromos {
 	readonly rebuildGame: () => Promise<void>;
 	/** The live settings: reflects every change saved from the settings tab. */
 	readonly settings: () => Settings;
-	/** The figure's stage and earned skills (M11 S1), read from the vault alone, never from Habitica. */
-	readonly loadAvatar: LoadAvatar;
 }
 
 /**
@@ -147,6 +145,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			syncGame,
 			gameSnapshot: () => gameState.snapshot(),
+			// The figure on the plaque and the road (M11 S1): the same notes the game reads, no request.
+			loadAvatar: new LoadAvatar({ characters: repository, skills, ledger, campaigns: campaignRepository, books, rules, clock }),
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,
@@ -208,8 +208,6 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			},
 		},
 		settings: () => settings,
-		// The figure on the plaque and the road (M11 S1): the same notes the game reads, no request.
-		loadAvatar: new LoadAvatar({ characters: repository, skills, ledger, campaigns: campaignRepository, books, rules, clock }),
 		rebuildGame: async () => {
 			const outcome = await syncGame.rebuild();
 			showNotice(rebuildMessage(outcome, createTranslator(settings.language)));

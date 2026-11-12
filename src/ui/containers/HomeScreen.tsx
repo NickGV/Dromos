@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
+import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
 import type { Language, Translator } from '../../i18n';
 import type { Clock, DeviceStore } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
@@ -26,6 +26,8 @@ import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
 import { historyView } from '../presenters/historyView';
 import { ceremonyView, gameNotices } from '../presenters/levelUpView';
+import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
+import { avatarView } from '../presenters/avatarView';
 import { plaqueSkillsView } from '../presenters/plaqueSkillsView';
 import { questListView, questPanelView, type QuestFilter } from '../presenters/questListView';
 import { toggled } from '../presenters/toggled';
@@ -50,6 +52,8 @@ export interface HomeScreenDeps {
 	readonly syncGame: Pick<SyncGame, 'execute'>;
 	/** The session's game state right now; reads `syncing` as soon as `syncGame.execute()` returns. */
 	readonly gameSnapshot: () => GameSnapshot;
+	/** The figure's stage and earned skills (M11 S1), read from the vault alone, never from Habitica. Never rejects. */
+	readonly loadAvatar: Pick<LoadAvatar, 'execute'>;
 	/** The level-up ceremony was closed. */
 	readonly dismissGameEvents: () => void;
 	/** The game events not toasted yet; each one comes out once. */
@@ -166,6 +170,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [chronicleId] = useState(() => `dromos-chronicle-${(viewCount += 1)}`);
 	const [lastSeen] = useState(() => storedLastSeen(deps.deviceStore));
 	const [visit, setVisit] = useState<Visit>({ kind: 'waiting' });
+	// The figure on the plaque and the road (M11 S1): the young runner until the vault is read.
+	const [avatar, setAvatar] = useState<AvatarView>(FIRST_AVATAR);
 	const visitSettled = useRef(false);
 	const { screen } = place;
 	const mounted = useRef(false);
@@ -243,11 +249,18 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		setVisit({ kind: 'settled', delta: settleVisit(deps.deviceStore, lastSeen, snapshot, deps.clock) });
 	}, [deps, lastSeen]);
 
+	// Read on open and after every sync, never per render: it reads the ledger and scans the vault's notes.
+	const readAvatar = useCallback(async (): Promise<void> => {
+		const standing = await deps.loadAvatar.execute();
+		if (mounted.current) setAvatar(avatarView(standing));
+	}, [deps]);
+
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await deps.loadHome.execute();
 		if (!mounted.current) return;
 		setCharacter(home.character);
 		setBriefing(home.briefing);
+		void readAvatar();
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
@@ -268,8 +281,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		} finally {
 			// After the character is read again, so the bar and the walker set off once, to the new values.
 			if (mounted.current) seeVisit();
+			// The sync may have earned a skill or a level: the figure may have grown.
+			void readAvatar();
 		}
-	}, [deps, announce, showLaterRead, seeVisit]);
+	}, [deps, announce, showLaterRead, seeVisit, readAvatar]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -288,8 +303,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 				void deps.loadHome.execute().then((updated) => {
 					if (mounted.current) showLaterRead(updated);
 				});
+				void readAvatar();
 			}),
-		[deps, announce, showLaterRead],
+		[deps, announce, showLaterRead, readAvatar],
 	);
 
 	const home = screen === 'home';
@@ -326,12 +342,14 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
 						period={dayPeriod(deps.clock.now())}
 						campfire={questPanel.dayComplete}
+						avatar={avatar}
 					/>
 					<CharacterPanel
 						state={panelState(character, t)}
 						ceremony={characterCeremony?.phase ?? null}
 						visit={cardVisit}
 						heading={home}
+						avatar={avatar}
 						skills={plaqueSkills ? <PlaqueSkills view={plaqueSkills} onOpen={openSkill} renderIcon={deps.renderIcon} /> : null}
 						footer={
 							<div className="dromos-sync-line">

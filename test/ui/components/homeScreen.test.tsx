@@ -71,3 +71,13 @@ describe('CharacterCard', () => {
 		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"[^>]*>Nicolás<\/h2>/);
 	});
 });
+
+describe('HomeScreen draws the figure before the vault is read (M11 S1)', () => {
+	it('puts the young runner on the road, carrying nothing, until the stage is known', () => {
+		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} />);
+
+		expect(html).toContain('<g class="dromos-walker is-runner"');
+		expect(html).not.toMatch(/dromos-walker is-(?!runner)/);
+		expect(html).not.toContain('dromos-avatar-thing');
+	});
+});
