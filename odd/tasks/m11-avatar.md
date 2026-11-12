@@ -18,7 +18,7 @@ Claude recommended the module after M10: "Lo próximo que te recomiendo es **M11
 
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
-| T0 | S1-S3 | Mockups: three options for the wise man on the plaque, with Esdras in his letter | delegated, mockup writer (context backstop: the parent session is long); scratch only, no repository write | in progress | |
+| T0 | S1-S3 | Mockups: three options for the wise man on the plaque, with Esdras in his letter | delegated, mockup writer (context backstop: the parent session is long); scratch only, no repository write | done (L3); the user's choice pending | scratch `avatar/` |
 | T1 | S1, S2 | Build the chosen option | after the user's choice | pending | |
 | R1 | S4 | Release with the user's go-ahead | inline | pending | |
 
@@ -26,3 +26,4 @@ Claude recommended the module after M10: "Lo próximo que te recomiendo es **M11
 
 - **L1** (2026-11-12, user): "chat listo, el shop quedo bien, que proxige?", to which Claude recommended M11, the avatar of the character and of Esdras (Q011: "El avatar se decide cuando el briefing ya se lea a diario", and the letter is read daily on home).
 - **L2** (2026-11-12, user): "yo prefiero que sea ya armado por el momento, lugo veo si lo cambio, hazlo como un hombre sabio".
+- **L3** (2026-11-12): T0 done by the mockup writer, scratch only (repository unchanged): `scratchpad/avatar/A.png`, `B.png`, `C.png`, `options.html`, drawings in `art.js` and `portraits.css`, rendered on the real `CharacterCard` and `BriefingPanel` with Obsidian's `app.css`, light and dark, 840 px and 390 px panes, portraits at 3×. **A · Medallion**: the sage in profile on a beaded coin (74 px), the level medallion as a badge on its rim; Esdras on a twin coin; plaque +0 px. **B · Niche**: the sage facing you under an arch holding a scroll (62 × 77 px), the medallion on the lower corner; Esdras in a smaller niche with a striped shawl and his reed pen; plaque +0 px. **C · Full figure**: the sage standing with his staff along the plaque's left edge (56 × 187 px), the medallion shrunk to 46 px, the skill rings two by two; Esdras writing at his desk; plaque +23 px. In all three Esdras has a covered head, a dark beard and indigo and linen; the new letter keeps a wax seal on the portrait. To fix in the build: `.dromos-root .dromos-briefing-seal svg` forces any SVG in the seal to 22 px on phones and inks it. No motion designed. The writer's pick: B. Shown to the user.
