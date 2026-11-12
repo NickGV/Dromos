@@ -296,15 +296,16 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	}, [deps]);
 
 	// Read on open and after every sync, as the figure is: a vault read only. A title granted after the last
-	// one seen here shows its notice, and the live region, mounted from the first render, says it too.
-	const readTitles = useCallback(async (): Promise<void> => {
+	// one seen here shows its notice at once; the sentence the live region says is handed back, so the
+	// caller adds it when the sync line has settled and the title is said once (verifier B1).
+	const readTitles = useCallback(async (): Promise<string | null> => {
 		const reading = await deps.loadTitles.execute();
-		if (!mounted.current) return;
+		if (!mounted.current) return null;
 		setTitles(reading);
 		const news = newTitleNotice(deps.deviceStore, reading.titles);
-		if (news === null) return;
+		if (news === null) return null;
 		setTitleNews(news.title);
-		setArrival(titleArrival(news.title, deps.translator()));
+		return titleArrival(news.title, deps.translator());
 	}, [deps]);
 
 	const refresh = useCallback(async (): Promise<void> => {
@@ -314,7 +315,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		setBriefing(home.briefing);
 		setArrival(null);
 		void readAvatar();
-		void readTitles();
+		const titlesRead = readTitles();
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
 		const pending = deps.syncQuests.execute();
@@ -322,7 +323,12 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		setQuests(deps.questSnapshot());
 		setGame(deps.gameSnapshot());
 		const synced = await pending;
-		if (mounted.current) setQuests(synced);
+		// A title found on open joins the settled sync line in the same render, never the "syncing" one.
+		const opening = await titlesRead;
+		if (mounted.current) {
+			setQuests(synced);
+			if (opening !== null) setArrival(opening);
+		}
 		await gamePending;
 		// The state as it is now: a rebuild or a closed banner may have changed it since the sync ended.
 		if (mounted.current) {
@@ -337,8 +343,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 			if (mounted.current) seeVisit();
 			// The sync may have earned a skill or a level: the figure may have grown.
 			void readAvatar();
-			// Esdras may have granted a title meanwhile.
-			void readTitles();
+			// Esdras may have granted a title meanwhile; the sync line has settled, so it is said at once.
+			void readTitles().then((later) => {
+				if (mounted.current && later !== null) setArrival(later);
+			});
 		}
 	}, [deps, announce, showLaterRead, seeVisit, readAvatar, readTitles]);
 
