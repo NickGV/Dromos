@@ -13,6 +13,7 @@ Claude proposed (L1): "Hoy la etapa solo se ve en el dibujo. No hay ningún luga
   - Requirements come from the same rules as the drawing (`stageRules.ts`, `Rules.md` `stages`), so the card and the figure never disagree; a requirement the stage does not ask is not listed.
   - Stage names in English and Spanish, like the rest of the UI (assumption: Runner, Wayfarer, Pilgrim, Apprentice, Disciple, Traveller, Student, Scholar, Mentor, Counsellor, Elder, Sage; Corredor, Caminante, Peregrino, Aprendiz, Discípulo, Viajero, Estudioso, Erudito, Mentor, Consejero, Anciano, Sabio).
   - Read from the vault alone, no Habitica request; light and dark themes, phone width, keyboard and screen reader.
+  - Chosen form (L4, option A of L3): a modal card like the Library's book card, opened from the portrait (a button named "<stage>, etapa N de 12. Ver las etapas", `aria-haspopup="dialog"`, the medallion outside it with "Nivel N"): the big bust with "Etapa N de 12", the stage name and "En el camino desde el <fecha> · N días"; "Para ser <next>" with each requirement ticked or missing ("nivel 2 de 3 · Te faltan 248 XP", "11 de 30 días · Faltan 19 días: el 1 de diciembre"); "Las doce etapas" as twelve small busts (passed ticked, current ringed in ochre, next dashed, the rest faded); "Lo que cuenta hoy" (level, days, skills, campaigns, books). At the last stage: "El camino está completo". Esc or Cerrar closes it and the focus returns to the portrait. The card is called "Etapas" ("Camino" is the signpost's plank).
 - **S2 Mockups first.** "Arrancaría con maquetas, como siempre." A few options at real sizes, both themes, desktop and phone, shown to the user; the chosen one is built.
 - **S3 Release.** Publish and check on desktop and Android, with the user's go-ahead.
 
@@ -21,7 +22,7 @@ Claude proposed (L1): "Hoy la etapa solo se ve en el dibujo. No hay ningún luga
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
 | T0 | S1, S2 | Mockups of the card, with the user's real state and a mid-road example | delegated mockup writer (context backstop: the parent session is long); scratch only | done (L3); the user's choice pending | `../dromos-worktrees/stage-card-mockups/` |
-| T1 | S1 | Build the chosen option | after the user's choice | pending | |
+| T1 | S1 | Build option A | delegated writer (context backstop: the parent session is long; one unit, no parallel split since every part depends on the presenter) | in progress | |
 | R1 | S3 | Release with the user's go-ahead | inline | pending | |
 
 ## Log
@@ -29,3 +30,4 @@ Claude proposed (L1): "Hoy la etapa solo se ve en el dibujo. No hay ningún luga
 - **L1** (2026-11-12, user): "que continua?", to which Claude recommended showing the stage and what the next one still asks, with a card opened from the portrait, then titles by big feats.
 - **L2** (2026-11-12, user): "uu si me parece genial". T0 launched.
 - **L3** (2026-11-12): T0 done by the mockup writer, scratch only (repository and vault unchanged). Nine boards, real components with Obsidian's `app.css`: today (Corredor, level 2, 11 of 30 days, next Caminante), mid-road (Viajero, next Estudioso) and the end (Sabio, "El camino está completo"), light and dark, 840 and 390 px. **A · La ficha**: a modal like the book card (640 px), the big bust, "Para ser Caminante" with each requirement ticked or missing ("nivel 2 de 3 · Te faltan 248 XP", "11 de 30 días · Faltan 19 días: el 1 de diciembre"), the twelve busts in niches (passed ticked, current ringed in ochre, next dashed), "Lo que cuenta hoy". **B · La placa se despliega**: in place of the radar row, twelve dots and the next stage's requirements; the plaque grows up to 165 px past the scene at 840 px. **C · El camino dibujado**: a new screen "Etapas", the road climbing in three switchbacks to the Sage's temple with each stage's walker on its milestone, and a side panel. Portrait as a button named "Corredor, etapa 1 de 12. Ver las etapas" (Obsidian shows it as the tooltip); the medallion stays outside the button with "Nivel 2". The name "Camino" is taken by the signpost, so "Etapas". Writer's pick: A. Shown to the user.
+- **L4** (2026-11-12, user): "vamos con A". S1 gains the chosen form; T1 launched.
