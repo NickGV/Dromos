@@ -2,10 +2,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { Character } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
+import { PortraitButton } from '../../../src/ui/atoms/Portrait';
 import { XpBar } from '../../../src/ui/atoms/XpBar';
+import { I18nProvider } from '../../../src/ui/i18n';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
 import { CharacterPanel } from '../../../src/ui/organisms/CharacterPanel';
 import { characterCardView } from '../../../src/ui/presenters/characterCardView';
+import { clickOf, elementsOf } from './elements';
 
 const t = createTranslator('en');
 const CHARACTER: Character = {
@@ -257,5 +260,53 @@ describe('CharacterCard portrait (M11 S1)', () => {
 
 		expect(drawing(html)).toContain('<g class="dromos-portrait-stage is-elder">');
 		expect(drawing(html)).toContain('<g class="dromos-avatar-thing is-maestro">');
+	});
+});
+
+describe('CharacterCard: the portrait opens the stages (stage-card S1)', () => {
+	const es = createTranslator('es');
+	const open = (): void => undefined;
+	const plaque = (props: Partial<Parameters<typeof CharacterCard>[0]> = {}, language = t): string =>
+		renderToStaticMarkup(
+			<I18nProvider t={language}>
+				<CharacterCard view={characterCardView(CHARACTER, language)} footer={null} {...props} />
+			</I18nProvider>,
+		);
+
+	it('wraps only the niche in a button named by the stage, which opens a dialog; the medallion stays outside it, still named', () => {
+		expect(plaque({ onOpenStages: open }, es)).toMatch(
+			/<span class="dromos-portrait is-character"><button type="button" class="dromos-portrait-open" aria-label="Corredor, etapa 1 de 12. Ver las etapas" aria-haspopup="dialog"><svg class="dromos-portrait-art is-niche is-character"[^>]*>[\s\S]*?<\/svg><\/button><span class="dromos-level-medal" role="img" aria-label="Nivel 3">.*?<\/span><\/span><div class="dromos-character-names">/,
+		);
+	});
+
+	it('names the stage the portrait shows, in the interface language', () => {
+		expect(plaque({ onOpenStages: open, avatar: { stage: 'traveller', objects: [] } }, es)).toContain('aria-label="Viajero, etapa 6 de 12. Ver las etapas"');
+		expect(plaque({ onOpenStages: open, avatar: { stage: 'sage', objects: [] } })).toContain('aria-label="Sage, stage 12 of 12. See the stages"');
+	});
+
+	it('without a handler the portrait stays a plain decoration, drawn as before', () => {
+		const html = plaque();
+
+		expect(html).not.toContain('<button');
+		expect(html).not.toContain('aria-haspopup');
+		expect(html).toMatch(/<span class="dromos-portrait is-character"><svg class="dromos-portrait-art is-niche is-character"[^>]*>[\s\S]*?<\/svg><span class="dromos-level-medal" role="img" aria-label="Level 3">/);
+	});
+
+	it('is passed through the plaque when the character is found, and no empty state has one', () => {
+		const found = renderToStaticMarkup(<CharacterPanel state={{ kind: 'found', view }} footer={null} onOpenStages={open} />);
+		const missing = renderToStaticMarkup(<CharacterPanel state={{ kind: 'missing', path: 'Dromos/Character.md' }} footer={null} onOpenStages={open} />);
+
+		expect(found).toContain('<button type="button" class="dromos-portrait-open" aria-label="Runner, stage 1 of 12. See the stages" aria-haspopup="dialog">');
+		expect(missing).not.toContain('<button');
+	});
+
+	it('the button opens the stages, and holds only what it is given', () => {
+		const opened: string[] = [];
+		const button = PortraitButton({ label: 'Corredor, etapa 1 de 12. Ver las etapas', onOpen: () => opened.push('stages'), children: <svg /> });
+
+		clickOf(button)();
+
+		expect(opened).toEqual(['stages']);
+		expect(elementsOf(button).map((element) => element.type)).toEqual(['button', 'svg']);
 	});
 });

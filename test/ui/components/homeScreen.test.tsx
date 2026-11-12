@@ -1,8 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
+import type { StageStanding } from '../../../src/application';
+import { countedEvidence, DEFAULT_STAGE_RULES, LATER_STAGE_IDS, stageProgress } from '../../../src/domain';
+import { createTranslator } from '../../../src/i18n';
+import type { CardModalOptions } from '../../../src/ui/containers/LibraryPanel';
+import { HomeScreen, openStageCard } from '../../../src/ui/containers/HomeScreen';
 import { CharacterCard } from '../../../src/ui/organisms/CharacterCard';
-import { IDLE_GAME, IDLE_QUESTS, homeDeps } from './homeDeps';
+import { StageCard } from '../../../src/ui/organisms/StageCard';
+import { stageCardView } from '../../../src/ui/presenters/stageCardView';
+import { componentsOf } from './elements';
+import { IDLE_GAME, IDLE_QUESTS, homeDeps, noop } from './homeDeps';
 
 /** The character's plaque, which follows the scene before `<main>`, up to its closing `</section>`. */
 function firstSection(html: string): string {
@@ -79,5 +86,69 @@ describe('HomeScreen draws the figure before the vault is read (M11 S1)', () => 
 		expect(html).toContain('<g class="dromos-walker is-runner"');
 		expect(html).not.toMatch(/dromos-walker is-(?!runner)/);
 		expect(html).not.toContain('dromos-avatar-thing');
+	});
+});
+
+describe('HomeScreen: the portrait opens the stage card (stage-card S1)', () => {
+	const evidence = countedEvidence({ level: 2, days: 11, totalSkills: 14, books: 2 });
+	const standing: StageStanding = {
+		stage: 'runner',
+		evidence,
+		steps: LATER_STAGE_IDS.map((stage) => ({ stage, requirements: stageProgress(evidence, DEFAULT_STAGE_RULES[stage]), xpLeft: 248 })),
+		totalXp: 135,
+		gameStart: '2026-11-01',
+	};
+	const view = stageCardView(standing, { stage: 'runner', objects: [] }, 'Nicolás', '2026-11-12', createTranslator('es'));
+
+	/** Opens the card through a fake modal; answers what it was opened with and the portrait's focus calls. */
+	function opened(portrait: { readonly isConnected: boolean } | null) {
+		const options: CardModalOptions[] = [];
+		const focused: unknown[] = [];
+		const closed: string[] = [];
+		const button = portrait === null ? null : ({ ...portrait, focus: (focusOptions: unknown) => focused.push(focusOptions) } as unknown as HTMLElement);
+		const handle = openStageCard(
+			(request) => {
+				options.push(request);
+				return { show: noop, close: noop };
+			},
+			view,
+			'es',
+			() => button,
+			() => closed.push('closed'),
+		);
+		return { options, focused, closed, handle };
+	}
+
+	it('is no button before the vault is read: there is no road to show yet', () => {
+		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} />)).not.toContain('dromos-portrait-open');
+	});
+
+	it('opens the card in the book card’s modal, named after the character, in the interface language, drawn from the view', () => {
+		const { options } = opened({ isConnected: true });
+
+		expect(options).toHaveLength(1);
+		expect(options[0]).toMatchObject({ label: 'Las etapas de Nicolás', lang: 'es', className: 'dromos-stage-modal' });
+		expect(componentsOf(options[0]?.content, StageCard).map((element) => element.props.view)).toEqual([view]);
+	});
+
+	it('when it closes, however it closes, the focus goes back to the portrait', () => {
+		const { options, focused, closed } = opened({ isConnected: true });
+
+		options[0]?.onClose();
+
+		expect(closed).toEqual(['closed']);
+		expect(focused).toEqual([{ preventScroll: true }]);
+	});
+
+	it('a portrait gone meanwhile takes no focus', () => {
+		const gone = opened({ isConnected: false });
+		const none = opened(null);
+
+		gone.options[0]?.onClose();
+		none.options[0]?.onClose();
+
+		expect(gone.focused).toEqual([]);
+		expect(gone.closed).toEqual(['closed']);
+		expect(none.closed).toEqual(['closed']);
 	});
 });

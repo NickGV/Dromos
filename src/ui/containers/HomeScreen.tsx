@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, QuestSnapshot, RequestBriefing, SyncGame, SyncQuests } from '../../application';
+import type { BriefingState, CharacterState, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests } from '../../application';
 import type { Language, Translator } from '../../i18n';
 import type { Clock, DeviceStore } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
@@ -20,6 +20,7 @@ import { QuestList } from '../organisms/QuestList';
 import { Scene } from '../organisms/Scene';
 import { ScreenHeader } from '../organisms/ScreenHeader';
 import { SkillsScreen } from '../organisms/SkillsScreen';
+import { StageCard } from '../organisms/StageCard';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
@@ -33,15 +34,17 @@ import { questListView, questPanelView, type QuestFilter } from '../presenters/q
 import { toggled } from '../presenters/toggled';
 import { heldProgress, visitCardView, type VisitDelta } from '../presenters/sinceVisitView';
 import { skillsPageView, skillsScreenView } from '../presenters/skillsView';
+import { stageCardView, type StageCardView } from '../presenters/stageCardView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
 import { walkerView } from '../presenters/walkerView';
 import { openLetter, storedLetterMark } from './briefingLetter';
 import { storedOpenCampaigns, toggleCampaign } from './campaignFold';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
 import { noteSeen, settleVisit, storedLastSeen } from './lastVisit';
-import { LibraryPanel, type LibraryDeps } from './LibraryPanel';
+import { LibraryPanel, type CardModal, type LibraryDeps } from './LibraryPanel';
 import { ReadingDeskPanel } from './ReadingDeskPanel';
 import { ShopPanel, type ShopDeps } from './ShopPanel';
+import type { OpenCard } from './shopActions';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -52,8 +55,13 @@ export interface HomeScreenDeps {
 	readonly syncGame: Pick<SyncGame, 'execute'>;
 	/** The session's game state right now; reads `syncing` as soon as `syncGame.execute()` returns. */
 	readonly gameSnapshot: () => GameSnapshot;
-	/** The figure's stage and earned skills (M11 S1), read from the vault alone, never from Habitica. Never rejects. */
-	readonly loadAvatar: Pick<LoadAvatar, 'execute'>;
+	/**
+	 * The figure's stage and earned skills (M11 S1) and the stage card's road (stage-card S1), from one
+	 * read of the vault alone, never of Habitica. Never rejects.
+	 */
+	readonly loadAvatar: Pick<LoadAvatar, 'read'>;
+	/** Opens the stage card over the workspace (stage-card S1), in the library book card's modal. */
+	readonly openCard: OpenCard;
 	/** The level-up ceremony was closed. */
 	readonly dismissGameEvents: () => void;
 	/** The game events not toasted yet; each one comes out once. */
@@ -140,6 +148,10 @@ let viewCount = 0;
  * every daily is done. On home, the chronicle lists the last deeds of the ledger (S18); its "View
  * history" opens the Chronicle screen (M9 S3) on the current week, which "← Path" leaves for home.
  *
+ * The plaque's portrait opens the stage card (stage-card S1) once the vault is read: a modal drawn
+ * from the same read as the figure, drawn again while open when a later read changes it, and closed
+ * when the view closes. It reads nothing of its own.
+ *
  * Home (home-header S1) holds Esdras's letter and today's quests in its first column, the
  * campaigns, the small reading desk (the books being read, the library's cards) and the chronicle
  * in its second; narrow panes stack them in that order, under the level-up panel when there is one.
@@ -172,6 +184,9 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [visit, setVisit] = useState<Visit>({ kind: 'waiting' });
 	// The figure on the plaque and the road (M11 S1): the young runner until the vault is read.
 	const [avatar, setAvatar] = useState<AvatarView>(FIRST_AVATAR);
+	// The stage card's road (stage-card S1), from the read that drew the figure; `null` until the vault is read.
+	const [stages, setStages] = useState<StageStanding | null>(null);
+	const stagesCard = useRef<CardModal | null>(null);
 	const visitSettled = useRef(false);
 	const { screen } = place;
 	const mounted = useRef(false);
@@ -251,8 +266,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 
 	// Read on open and after every sync, never per render: it reads the ledger and scans the vault's notes.
 	const readAvatar = useCallback(async (): Promise<void> => {
-		const standing = await deps.loadAvatar.execute();
-		if (mounted.current) setAvatar(avatarView(standing));
+		const reading = await deps.loadAvatar.read();
+		if (!mounted.current) return;
+		setAvatar(avatarView(reading.avatar));
+		setStages(reading.stages);
 	}, [deps]);
 
 	const refresh = useCallback(async (): Promise<void> => {
@@ -291,6 +308,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		void refresh();
 		return () => {
 			mounted.current = false;
+			// Closing the view closes the stage card left open over the workspace.
+			stagesCard.current?.close();
 		};
 	}, [refresh]);
 
@@ -324,6 +343,29 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const cardVisit = visitCardView({ delta: visit.kind === 'settled' ? visit.delta : null, held, ceremony: characterCeremony?.phase ?? null, motion }, t);
 	const walker = walkerView(standing, characterCeremony === null ? (held?.fraction ?? null) : null, characterCeremony);
 	const plaqueSkills = plaqueSkillsView(skills, t);
+	const panel = panelState(character, t);
+	const owner = panel.kind === 'found' ? panel.view.name : null;
+	// Built when the portrait is selected, never per render: the road as the figure's read left it.
+	const openStages =
+		stages !== null && owner !== null
+			? (): void => {
+					if (stagesCard.current) return;
+					const view = stageCardView(stages, avatar, owner, deps.clock.today(), t);
+					stagesCard.current = openStageCard(deps.openCard, view, language, () => frame.current?.querySelector<HTMLElement>('.dromos-portrait-open') ?? null, () => {
+						stagesCard.current = null;
+					});
+				}
+			: undefined;
+	// While open, the card follows a later read (a sync, the rebuild) and the language; with no character left it closes.
+	useEffect(() => {
+		const card = stagesCard.current;
+		if (!card) return;
+		if (stages === null || owner === null) {
+			card.close();
+			return;
+		}
+		card.show(<StageCard view={stageCardView(stages, avatar, owner, deps.clock.today(), deps.translator())} />);
+	}, [stages, avatar, owner, language, deps]);
 	return (
 		<I18nProvider t={t}>
 			{/* `lang` on the frame covers the signpost; the one on <main> stays for the content. */}
@@ -345,11 +387,12 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						avatar={avatar}
 					/>
 					<CharacterPanel
-						state={panelState(character, t)}
+						state={panel}
 						ceremony={characterCeremony?.phase ?? null}
 						visit={cardVisit}
 						heading={home}
 						avatar={avatar}
+						onOpenStages={openStages}
 						skills={plaqueSkills ? <PlaqueSkills view={plaqueSkills} onOpen={openSkill} renderIcon={deps.renderIcon} /> : null}
 						footer={
 							<div className="dromos-sync-line">
@@ -415,6 +458,25 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 			</div>
 		</I18nProvider>
 	);
+}
+
+/**
+ * Opens the stage card over the workspace (stage-card S1), in the library book card's modal at its own
+ * width, named after the character. However it closes (Escape, its close button, the view closing),
+ * `onClosed` runs and the focus goes back to the portrait that opened it, when that is still drawn.
+ */
+export function openStageCard(open: OpenCard, view: StageCardView, lang: string, portrait: () => HTMLElement | null, onClosed: () => void): CardModal {
+	return open({
+		label: view.ariaLabel,
+		lang,
+		className: 'dromos-stage-modal',
+		content: <StageCard view={view} />,
+		onClose: () => {
+			onClosed();
+			const button = portrait();
+			if (button?.isConnected) button.focus({ preventScroll: true });
+		},
+	});
 }
 
 function panelState(character: CharacterShown, t: Translator): CharacterPanelState {
