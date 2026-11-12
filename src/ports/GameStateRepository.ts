@@ -13,6 +13,9 @@ export type CharacterLoadResult =
 /** Outcome of writing the projection into the character note. */
 export type CharacterSaveResult = 'saved' | 'unchanged' | 'missing';
 
+/** Outcome of writing the chosen title into the character note; a save that fails rejects. */
+export type TitleSaveResult = 'saved' | 'missing';
+
 /** Game state stored in the vault: the character note. The ledger and the skills have their own repositories. */
 export interface GameStateRepository {
 	/** Reads `<vaultFolder>/Character.md`; resolves `missing` instead of throwing when the note is absent. */
@@ -23,6 +26,12 @@ export interface GameStateRepository {
 	 * note and never touches `name`, `title` or anything the user wrote.
 	 */
 	saveCharacter(projection: CharacterProjection): Promise<CharacterSaveResult>;
+
+	/**
+	 * Writes `title` into `Character.md`, and nothing else (titles S2, ADR-020). The caller has checked it
+	 * is a title Esdras granted. It never creates the note: a missing one is `missing`.
+	 */
+	saveTitle(title: string): Promise<TitleSaveResult>;
 
 	/**
 	 * Creates `Character.md` with `type`, `created`, an empty `name` and `title`, and the derived

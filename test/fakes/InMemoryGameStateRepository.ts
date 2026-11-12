@@ -1,10 +1,14 @@
-import type { CharacterLoadResult, CharacterProjection, CharacterSaveResult, GameStateRepository } from '../../src/ports';
+import type { CharacterLoadResult, CharacterProjection, CharacterSaveResult, GameStateRepository, TitleSaveResult } from '../../src/ports';
 
 /** Game state held in memory. `loads` counts reads. */
 export class InMemoryGameStateRepository implements GameStateRepository {
 	loads = 0;
 	/** Every projection saved, in order. */
 	readonly saved: CharacterProjection[] = [];
+	/** Every title written, in order. */
+	readonly titles: string[] = [];
+	/** `saveTitle` rejects with it, as a save that fails does. */
+	failTitleWith: Error | null = null;
 	/** Every note created, in order. */
 	readonly created: { projection: CharacterProjection; created: string }[] = [];
 
@@ -28,6 +32,14 @@ export class InMemoryGameStateRepository implements GameStateRepository {
 			kind: 'found',
 			character: { ...character, level: projection.level, totalXp: projection.totalXp, xpToNext: projection.xpToNext, stats: projection.stats, gameStart: projection.gameStart },
 		};
+		return Promise.resolve('saved');
+	}
+
+	saveTitle(title: string): Promise<TitleSaveResult> {
+		if (this.failTitleWith) return Promise.reject(this.failTitleWith);
+		if (this.result.kind === 'missing') return Promise.resolve('missing');
+		this.titles.push(title);
+		this.result = { kind: 'found', character: { ...this.result.character, title } };
 		return Promise.resolve('saved');
 	}
 
