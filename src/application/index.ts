@@ -9,6 +9,7 @@ export * from './LinkHabitToCampaign';
 export * from './LinkTaskToCampaign';
 export * from './FinishReading';
 export * from './mergeTaskStatuses';
+export * from './LoadAvatar';
 export * from './LoadHome';
 export * from './LoadLibrary';
 export * from './LoadShop';

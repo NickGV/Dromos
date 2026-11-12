@@ -23,3 +23,18 @@ export function skillStanding(unlocked: boolean, xp: number, rules: Pick<GameRul
 export function rankOf(skill: Skill, rankIndex: number | null): SkillRank | null {
 	return rankIndex === null ? null : (skill.ranks[rankIndex] ?? null);
 }
+
+/** An earned skill measured against the others: its level, and its XP since it was earned. */
+export interface MeasuredSkill {
+	readonly id: string;
+	readonly level: number;
+	readonly xp: number;
+}
+
+/**
+ * Highest first (M11 S1): the higher level, then the more XP, then the id, so the order never
+ * depends on how the vault lists the skills.
+ */
+export function byHighestSkill(left: MeasuredSkill, right: MeasuredSkill): number {
+	return right.level - left.level || right.xp - left.xp || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
+}

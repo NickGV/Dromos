@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { characterFromFrontmatter } from '../../../src/adapters/vault/characterMapper';
+import { DEFAULT_STAGE_RULES } from '../../../src/domain/character/stageRules';
 import { foldLedger } from '../../../src/domain/ledger/foldLedger';
 import { nextRows, type TaskObservation } from '../../../src/domain/ledger/nextRows';
 import { rowsToAppend } from '../../../src/domain/ledger/planRows';
@@ -21,6 +22,7 @@ const RULES: GameRules = {
 	skillCurve: { base: 20, exponent: 1 },
 	rankLevels: [1, 2, 3, 4, 5],
 	goldPerLevel: 10,
+	stages: DEFAULT_STAGE_RULES,
 };
 
 function observation(overrides: Partial<TaskObservation> = {}): TaskObservation {
@@ -29,7 +31,7 @@ function observation(overrides: Partial<TaskObservation> = {}): TaskObservation 
 
 describe('DEFAULT_RULES: what rules the game with no Rules.md (S16)', () => {
 	it('are the values of 04-Game-Design', () => {
-		expect(DEFAULT_RULES).toEqual({ xp: XP_TABLE, characterCurve: CHARACTER_CURVE, skillCurve: SKILL_CURVE, rankLevels: RANK_LEVELS, goldPerLevel: 10 });
+		expect(DEFAULT_RULES).toEqual({ xp: XP_TABLE, characterCurve: CHARACTER_CURVE, skillCurve: SKILL_CURVE, rankLevels: RANK_LEVELS, goldPerLevel: 10, stages: DEFAULT_STAGE_RULES });
 	});
 });
 

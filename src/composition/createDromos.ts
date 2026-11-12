@@ -28,7 +28,7 @@ import {
 	VaultRulesRepository,
 	VaultSkillRepository,
 } from '../adapters/vault';
-import { BuyOffer, BuyReward, CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadHome, LoadLibrary, LoadShop, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { BuyOffer, BuyReward, CampaignState, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadShop, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
@@ -44,6 +44,8 @@ export interface Dromos {
 	readonly rebuildGame: () => Promise<void>;
 	/** The live settings: reflects every change saved from the settings tab. */
 	readonly settings: () => Settings;
+	/** The figure's stage and earned skills (M11 S1), read from the vault alone, never from Habitica. */
+	readonly loadAvatar: LoadAvatar;
 }
 
 /**
@@ -123,9 +125,11 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	// Per-device marks (the letter last opened, the levels whose bonus this device still owes) in Obsidian's local storage, never in the vault or data.json.
 	const deviceStore = new LocalDeviceStore(plugin.app);
 	const gameState = new GameState();
+	const skills = new VaultSkillRepository(plugin.app, vaultFolder);
+	const ledger = new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today());
 	const syncGame = new SyncGame({
-		skills: new VaultSkillRepository(plugin.app, vaultFolder),
-		ledger: new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today()),
+		skills,
+		ledger,
 		characters: repository,
 		campaigns: campaignRepository,
 		rules,
@@ -204,6 +208,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			},
 		},
 		settings: () => settings,
+		// The figure on the plaque and the road (M11 S1): the same notes the game reads, no request.
+		loadAvatar: new LoadAvatar({ characters: repository, skills, ledger, campaigns: campaignRepository, books, rules, clock }),
 		rebuildGame: async () => {
 			const outcome = await syncGame.rebuild();
 			showNotice(rebuildMessage(outcome, createTranslator(settings.language)));
