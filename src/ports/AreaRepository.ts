@@ -1,5 +1,5 @@
 import type { Area } from '../domain';
-import type { LinkResult } from './CampaignRepository';
+import type { LinkResult, RelinkResult } from './CampaignRepository';
 
 /** Area hubs stored in the vault: `archeion` notes that are not archived (ADR-017). */
 export interface AreaRepository {
@@ -12,4 +12,10 @@ export interface AreaRepository {
 	 * nothing else in the note.
 	 */
 	linkHabitHabiticaId(areaPath: string, habitTitle: string, habiticaId: string): Promise<LinkResult>;
+
+	/**
+	 * "Enviar de nuevo" on an area habit (ADR-021): writes `newId` into the first habit with
+	 * `habitTitle` whose id is still exactly `oldId`, and nothing else; `changed` when it no longer is.
+	 */
+	relinkHabitHabiticaId(areaPath: string, habitTitle: string, oldId: string, newId: string): Promise<RelinkResult>;
 }

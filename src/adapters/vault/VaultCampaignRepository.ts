@@ -1,10 +1,10 @@
 import type { App, TFile } from 'obsidian';
 import type { Area, Campaign } from '../../domain';
-import type { AreaRepository, CampaignRepository, LinkResult } from '../../ports';
+import type { AreaRepository, CampaignRepository, LinkResult, RelinkResult } from '../../ports';
 import { SystemClock } from '../obsidian/SystemClock';
 import { buildAreas } from './areaMapper';
 import { onCacheChanged, waitForCache, type Timers } from './cacheWait';
-import { linkHabiticaIdInFrontmatter, linkHabitHabiticaIdInFrontmatter } from './campaignLink';
+import { linkHabiticaIdInFrontmatter, linkHabitHabiticaIdInFrontmatter, relinkHabiticaIdInFrontmatter, relinkHabitHabiticaIdInFrontmatter } from './campaignLink';
 import { buildActiveCampaigns, buildCompletedCampaigns, linkPath, type VaultNote } from './campaignMapper';
 
 /** Note types the lists need: the campaigns, the sessions of a research, and the areas (ADR-017). */
@@ -14,7 +14,8 @@ const CACHE_WAIT_MS = 3000;
 
 /**
  * Campaigns, and the areas whose habits Dromos tracks (ADR-017), read from the vault with
- * `metadataCache` (S2). The only writes it makes are a `habitica_id`, through `processFrontMatter`.
+ * `metadataCache` (S2). The only writes it makes are a `habitica_id`, through `processFrontMatter`:
+ * into an entry that has none, or over the one Habitica confirmed deleted (ADR-021).
  * Notes without a cache entry yet (right after Obsidian starts) are skipped; the next sync sees them.
  */
 export class VaultCampaignRepository implements CampaignRepository, AreaRepository {
@@ -45,22 +46,38 @@ export class VaultCampaignRepository implements CampaignRepository, AreaReposito
 		return this.link(campaignPath, 'habits', habiticaId, (frontmatter) => linkHabitHabiticaIdInFrontmatter(frontmatter, habitTitle, habiticaId));
 	}
 
-	private async link(
+	/** "Enviar de nuevo" on a task (ADR-021): the compare-and-swap of `relinkHabiticaIdInFrontmatter`. */
+	relinkHabiticaId(campaignPath: string, taskTitle: string, oldId: string, newId: string): Promise<RelinkResult> {
+		return this.link(campaignPath, 'tasks', newId, (frontmatter) => relinkHabiticaIdInFrontmatter(frontmatter, taskTitle, oldId, newId), 'relinked', 'changed');
+	}
+
+	/** "Enviar de nuevo" on a habit of a project or of an area (ADR-017, ADR-021). */
+	relinkHabitHabiticaId(campaignPath: string, habitTitle: string, oldId: string, newId: string): Promise<RelinkResult> {
+		return this.link(campaignPath, 'habits', newId, (frontmatter) => relinkHabitHabiticaIdInFrontmatter(frontmatter, habitTitle, oldId, newId), 'relinked', 'changed');
+	}
+
+	/**
+	 * Runs `apply` inside `processFrontMatter`, which decides and makes the write and answers what it
+	 * did: `written` when it wrote `habiticaId`; `gone` when the note is not there.
+	 */
+	private async link<Result extends LinkResult | RelinkResult>(
 		campaignPath: string,
 		key: 'tasks' | 'habits',
 		habiticaId: string,
-		apply: (frontmatter: Record<string, unknown>) => LinkResult,
-	): Promise<LinkResult> {
+		apply: (frontmatter: Record<string, unknown>) => Result,
+		written: Result = 'linked' as Result,
+		gone: Result = 'not-found' as Result,
+	): Promise<Result> {
 		const file = this.app.vault.getFileByPath(campaignPath);
-		if (!file) return 'not-found';
+		if (!file) return gone;
 
-		let result = 'not-found' as LinkResult;
+		let result = gone;
 		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			result = apply(frontmatter);
 		});
 		// Obsidian re-reads the frontmatter after saving; wait for it so the next read, which
 		// decides whether the button shows again, already sees the id.
-		if (result === 'linked') {
+		if (result === written) {
 			await waitForCache(onCacheChanged(this.app), file.path, () => this.cacheHasId(file, key, habiticaId), CACHE_WAIT_MS, this.timers);
 		}
 		return result;
