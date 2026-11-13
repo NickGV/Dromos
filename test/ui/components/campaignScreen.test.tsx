@@ -36,7 +36,7 @@ const detail = view.campaign as CampaignDetailView;
 const render = (props: Partial<Parameters<typeof CampaignScreen>[0]> = {}): string =>
 	renderToStaticMarkup(<CampaignScreen view={view} sending={null} message={null} onSelect={noop} onOpenNote={noop} onSend={noop} onSendHabit={noop} {...props} />);
 
-const row = (overrides: Partial<CampaignTaskView> = {}): CampaignTaskView => ({ title: 'Report', completed: false, chip: { label: 'Pending', tone: 'pending' }, canSend: false, ...overrides });
+const row = (overrides: Partial<CampaignTaskView> = {}): CampaignTaskView => ({ title: 'Report', completed: false, chip: { label: 'Pending', tone: 'pending' }, canSend: false, canResend: false, ...overrides });
 
 describe('CampaignTabs (game-ui S8)', () => {
 	it('is a group of buttons named "Choose a campaign", the selected one pressed', () => {
@@ -138,7 +138,7 @@ describe('CampaignScreen (game-ui S8)', () => {
 		const html = render();
 
 		expect(html).toMatch(/^<div class="dromos-campaign-screen dromos-campaigns">/);
-		const order = ['dromos-campaign-tabs', 'dromos-campaign-hero', '>The route</h3>', '>Tasks by phase</h3>', '>Habits</h3>'].map((marker) => html.indexOf(marker));
+		const order = ['dromos-campaign-tabs', 'dromos-campaign-hero', '>The route</h3>', '>Tasks by phase</h3>', '>Dailies</h3>'].map((marker) => html.indexOf(marker));
 		expect(order.every((position) => position > 0)).toBe(true);
 		expect([...order].sort((left, right) => left - right)).toEqual(order);
 	});
@@ -255,7 +255,7 @@ describe('HomeScreen on the campaigns screen (game-ui S8)', () => {
 			[4, 'Phase design'],
 			[4, 'Phase mvp'],
 			[4, 'Without a phase'],
-			[3, 'Habits'],
+			[3, 'Dailies'],
 		]);
 	});
 
@@ -334,5 +334,49 @@ describe('open a mission among the campaign tasks (missions S5)', () => {
 
 		expect(open).toContain('<button type="button" class="clickable-icon dromos-subtasks-toggle" aria-expanded="true" aria-label="Hide the subtasks of Report">');
 		expect([...open.matchAll(/<li class="(dromos-subtask[^"]*)">/g)].map((match) => match[1])).toEqual(['dromos-subtask is-completed', 'dromos-subtask', 'dromos-subtask']);
+	});
+});
+
+describe('CampaignScreen: what Habitica confirmed deleted (ADR-021, S3)', () => {
+	const deleted = screenOf({
+		...snapshot,
+		issues: [
+			{ campaignPath: 'P/Kairos/README.md', taskTitle: 'Timer', kind: 'habitica-task-deleted' },
+			{ campaignPath: 'P/Kairos/README.md', taskTitle: 'Walk', kind: 'habitica-task-deleted' },
+		],
+	});
+
+	it('chips the deleted task and daily and offers "Send again" on each, with the deleted warnings', () => {
+		const html = renderToStaticMarkup(
+			<CampaignScreen view={deleted} sending={null} message={null} onSelect={noop} onOpenNote={noop} onSend={noop} onSendHabit={noop} />,
+		);
+
+		expect(html.match(/Deleted in Habitica/g)).toHaveLength(2);
+		expect(html.match(/Send again/g)).toHaveLength(2);
+		expect(html).toContain('&quot;Timer&quot; was deleted in Habitica.');
+	});
+
+	it('sends again what was deleted and sends for the first time what was never sent, each by its title', () => {
+		const calls: string[] = [];
+		const tree = CampaignScreen({
+			view: deleted,
+			sending: null,
+			message: null,
+			onSelect: noop,
+			onOpenNote: noop,
+			onSend: (title) => calls.push(`task:${title}`),
+			onSendHabit: (title) => calls.push(`habit:${title}`),
+			onResend: (title) => calls.push(`resend-task:${title}`),
+			onResendHabit: (title) => calls.push(`resend-habit:${title}`),
+		});
+
+		for (const element of componentsOf(tree, CampaignTaskRow)) (element.props.onSend as () => void)();
+		for (const element of componentsOf(tree, HabitRow)) (element.props.onSend as () => void)();
+
+		expect(calls).toEqual(['task:Flows', 'resend-task:Timer', 'task:Report', 'task:Loose', 'habit:Code 30 minutes', 'resend-habit:Walk']);
+	});
+
+	it('shows "Sending…" on the row being sent again', () => {
+		expect(renderToStaticMarkup(<CampaignScreen view={deleted} sending={{ kind: 'habit', title: 'Walk' }} message={null} onSelect={noop} onOpenNote={noop} onSend={noop} onSendHabit={noop} />)).toContain('Sending…');
 	});
 });

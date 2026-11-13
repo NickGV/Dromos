@@ -2025,7 +2025,8 @@
 .dromos-root .dromos-task-chip.is-done { border-color: var(--dromos-stone-mark); color: var(--dromos-ink-muted); }
 .dromos-root .dromos-task-chip.is-next { border-color: var(--dromos-ochre-mark); background: var(--dromos-ochre-tint); }
 .dromos-root .dromos-chip.is-warning,
-.dromos-root .dromos-task-chip.is-missing { border-color: var(--dromos-ink-warning); color: var(--dromos-ink-warning); }
+.dromos-root .dromos-task-chip.is-missing,
+.dromos-root .dromos-task-chip.is-deleted { border-color: var(--dromos-ink-warning); color: var(--dromos-ink-warning); }
 .dromos-root .dromos-task-chip.is-mission { font-weight: 600; }
 
 /* "View more (N)" under a folded list, set apart from its last row (missions S3). */
@@ -2418,6 +2419,15 @@
 
 .dromos-root .dromos-habit-title { flex: 1 1 8em; min-width: 0; overflow-wrap: anywhere; }
 .dromos-root .dromos-habit-text { color: var(--text-muted); font-size: var(--font-ui-small); }
+
+/* A daily's days and checklist count (ADR-021): one muted line under the title, its parts apart. */
+.dromos-root .dromos-habit-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px 12px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
 .dromos-root .dromos-habit.is-built .dromos-progress-fill { background: var(--dromos-olive); }
 
 /* Campaign cards on the home screen (game-ui S7), folded to one row (home-fit S1): one panel each,

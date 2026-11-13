@@ -1,7 +1,7 @@
 import type { CampaignSnapshot, LibraryState } from '../../application';
 import { bookState, compareBooks, daysSince, groupByShelf, isReadingHabit, type Book, type BookState, type Shelf } from '../../domain';
 import { plural, type MessageKey, type Translator } from '../../i18n';
-import { habitRow, type HabitRowView } from './campaignView';
+import { goneByTitle, habitRow, type HabitRowView } from './campaignView';
 
 /** Every state the library shows: an archived book is not shown anywhere (M7 S5). */
 export type ShownBookState = Exclude<BookState, 'archived'>;
@@ -54,7 +54,7 @@ export interface DeskScrollView {
 
 /** The habits beside the desk (ADR-017): the areas' reading habits, rowed as a campaign's. */
 export interface LibraryHabitsView {
-	/** "Hábitos". */
+	/** "Diarias" (ADR-021). */
 	readonly title: string;
 	readonly rows: readonly LibraryHabitRowView[];
 }
@@ -191,14 +191,15 @@ function deskScrolls(shown: readonly ShownBook[], today: string, t: Translator):
 /**
  * The habits beside the desk (ADR-017): every habit of an area whose skills, its own or else its
  * area's, include `lector`, in the order of the areas (by title) and of their notes, with its
- * streak as the campaigns' sync left it. A habit whose daily is gone reads as missing; none can be
+ * streak as the campaigns' sync left it, its days and its checklist count (ADR-021). A daily Habitica
+ * confirmed deleted can be sent again; one whose id is no Habitica id reads as missing; none can be
  * sent while Habitica is not configured. `null` when there is none, so the room draws no block.
  */
 export function libraryHabitsView(snapshot: CampaignSnapshot, t: Translator): LibraryHabitsView | null {
 	const canSend = snapshot.status.kind !== 'not-configured';
 	const rows = (snapshot.areas ?? []).flatMap((area) => {
-		const missing = new Set(snapshot.issues.filter((issue) => issue.campaignPath === area.path).map((issue) => issue.taskTitle));
-		return area.habits.filter((habit) => isReadingHabit(habit, area)).map((habit) => ({ areaPath: area.path, row: habitRow(habit, missing.has(habit.title), { canSend, t }) }));
+		const gone = goneByTitle(snapshot.issues, area.path);
+		return area.habits.filter((habit) => isReadingHabit(habit, area)).map((habit) => ({ areaPath: area.path, row: habitRow(habit, gone.get(habit.title) ?? null, { canSend, t }) }));
 	});
 	return rows.length === 0 ? null : { title: t('library.habits'), rows };
 }

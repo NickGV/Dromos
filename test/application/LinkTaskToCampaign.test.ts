@@ -9,11 +9,12 @@ import { InMemoryCampaignRepository } from '../fakes/InMemoryCampaignRepository'
 const PATH = '02 - Projects/Kairos/README.md';
 const noteLink = (path: string): string => `link:${path}`;
 
-function setup(tasks = [task('Write tests', null), task('Ship', null)], overrides = {}) {
+function setup(tasks = [task('Write tests', null), task('Ship', null)], overrides = {}, deletedIds: readonly string[] = []) {
 	const repository = new InMemoryCampaignRepository([campaign({ path: PATH, title: 'Kairos', tasks, ...overrides })]);
 	const creator = new FakeTaskCreator();
 	const tags = new FakeTagCatalog();
-	const link = new LinkTaskToCampaign({ repository, creator, noteLink, tags });
+	const deleted = (habiticaId: string): boolean => deletedIds.includes(habiticaId);
+	const link = new LinkTaskToCampaign({ repository, creator, noteLink, tags, deleted });
 	return { repository, creator, tags, link };
 }
 
@@ -139,5 +140,59 @@ describe('LinkTaskToCampaign: skill tags (S14)', () => {
 
 		expect(await link.execute(PATH, 'Write tests')).toEqual({ kind: 'habitica-failed', error: 'Offline' });
 		expect(creator.created).toHaveLength(0);
+	});
+});
+
+describe('LinkTaskToCampaign.resend: "Enviar de nuevo" on a task (ADR-021)', () => {
+	const OLD = '3f2a1c8e-0000-4000-8000-0000000000aa';
+	const NEW = '3f2a1c8e-0000-4000-8000-000000000001';
+
+	it('creates the to-do again as a first send does, tagged with its skills, and replaces its id', async () => {
+		const { repository, creator, link } = setup([task('Write tests', null, { habiticaId: OLD, skills: ['desarrollador'] }), task('Ship', null)], {}, [OLD]);
+
+		expect(await link.resend(PATH, 'Write tests')).toEqual({ kind: 'linked', habiticaId: NEW });
+		expect(creator.created).toEqual([{ title: 'Write tests', notes: `Dromos · Kairos\nlink:${PATH}`, tags: ['tag-desarrollador'] }]);
+		expect(await habiticaIds(repository)).toEqual([NEW, null]);
+	});
+
+	it('refuses, and creates nothing, for a task Habitica did not confirm deleted, or one the note changed', async () => {
+		const notDeleted = setup([task('Write tests', null, { habiticaId: OLD })]);
+		expect(await notDeleted.link.resend(PATH, 'Write tests')).toEqual({ kind: 'changed', habiticaId: null });
+
+		const edited = setup([task('Write tests', null, { habiticaId: 'by-hand' })], {}, [OLD]);
+		expect(await edited.link.resend(PATH, 'Write tests')).toEqual({ kind: 'changed', habiticaId: null });
+
+		expect([...notDeleted.creator.created, ...edited.creator.created]).toEqual([]);
+		expect(await habiticaIds(notDeleted.repository)).toEqual([OLD]);
+		expect(await habiticaIds(edited.repository)).toEqual(['by-hand']);
+	});
+
+	it('changes nothing in the note when Habitica fails to create it again', async () => {
+		const { repository, creator, link } = setup([task('Write tests', null, { habiticaId: OLD })], {}, [OLD]);
+		creator.failWith = new TaskSourceError('Offline', null, 'down');
+
+		expect(await link.resend(PATH, 'Write tests')).toEqual({ kind: 'habitica-failed', error: 'Offline' });
+		expect(await habiticaIds(repository)).toEqual([OLD]);
+	});
+
+	it('says the note changed, with the new id, when it changed while the to-do was being created', async () => {
+		const { repository, link } = setup([task('Write tests', null, { habiticaId: OLD })], {}, [OLD]);
+		repository.relinkHabiticaId = () => Promise.resolve('changed');
+
+		expect(await link.resend(PATH, 'Write tests')).toEqual({ kind: 'changed', habiticaId: NEW });
+	});
+
+	it('refuses research and answers not-found for an unknown task', async () => {
+		const { link } = setup([task('Write tests', null, { habiticaId: OLD })], {}, [OLD]);
+
+		expect(await link.resend(PATH, 'Nope')).toEqual({ kind: 'not-found' });
+		expect((await setup([task('Write tests', null, { habiticaId: OLD })], { kind: 'research' }, [OLD]).link.resend(PATH, 'Write tests')).kind).toBe('not-a-project');
+	});
+
+	it('a first send still never creates again a task that has an id, deleted or not', async () => {
+		const { creator, link } = setup([task('Write tests', null, { habiticaId: OLD })], {}, [OLD]);
+
+		expect(await link.execute(PATH, 'Write tests')).toEqual({ kind: 'already-linked' });
+		expect(creator.created).toEqual([]);
 	});
 });

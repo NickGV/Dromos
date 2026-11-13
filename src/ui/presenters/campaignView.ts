@@ -1,15 +1,18 @@
 import type { CampaignSnapshot, CampaignIssue } from '../../application';
-import type { Translator } from '../../i18n';
-import { campaignProgress, daysSince, habitProgress, isMission, isStale, lastActivity, nextAction, phaseProgress, type Campaign, type CampaignHabit, type Checklist, type Progress } from '../../domain';
+import { plural, type Translator } from '../../i18n';
+import { campaignProgress, daysSince, habitProgress, isMission, isStale, lastActivity, nextAction, phaseProgress, WEEKDAYS, type Campaign, type CampaignHabit, type Checklist, type Progress, type Weekday } from '../../domain';
+import { weekdayShort } from './dates';
 
-/** How one task is shown in a campaign card. */
-export type TaskRowState = 'completed' | 'pending' | 'unsent' | 'missing';
+/** How one task is shown in a campaign card: `deleted` when Habitica confirmed it no longer has it (ADR-021). */
+export type TaskRowState = 'completed' | 'pending' | 'unsent' | 'missing' | 'deleted';
 
 export interface TaskRowView {
 	readonly title: string;
 	readonly state: TaskRowState;
 	/** Only a project task that was never sent to Habitica can be sent. */
 	readonly canSend: boolean;
+	/** Only a task Habitica confirmed deleted can be sent again, and only while Habitica is set up (ADR-021). */
+	readonly canResend: boolean;
 	/**
 	 * The id of the task's phase as stored, matching `PhaseSegmentView.id`; `null` when it has none.
 	 * `campaignCardView` always sets it; it is optional only so rows built by hand stay valid.
@@ -19,16 +22,22 @@ export interface TaskRowView {
 	readonly mission?: Checklist;
 }
 
-/** How one habit is shown in a campaign card (S8). */
-export type HabitRowState = 'unsent' | 'missing' | 'tracking' | 'built';
+/** How one daily is shown in a campaign card (S8, ADR-021). A routine, with no target, is never `built`. */
+export type HabitRowState = 'unsent' | 'missing' | 'deleted' | 'tracking' | 'built';
 
 export interface HabitRowView {
 	readonly title: string;
 	readonly state: HabitRowState;
 	/** Only a habit that was never sent to Habitica can be sent. */
 	readonly canSend: boolean;
-	/** Streak over target days; whole percent. */
-	readonly progress: { readonly done: number; readonly total: number; readonly percent: number };
+	/** Only a daily Habitica confirmed deleted can be sent again, and only while Habitica is set up (ADR-021). */
+	readonly canResend: boolean;
+	/** "lun · mié · vie", or "Todos los días" for a daily due every day (ADR-021). */
+	readonly schedule: string;
+	/** "5 ítems" for a daily with a checklist; `null` without one (ADR-021). */
+	readonly items: string | null;
+	/** Streak over target days, whole percent; `null` for a routine, which has no target and so no bar. */
+	readonly progress: { readonly done: number; readonly total: number; readonly percent: number } | null;
 	readonly text: string;
 }
 
@@ -91,7 +100,7 @@ export interface CampaignListView {
 }
 
 export function campaignCardView(campaign: Campaign, context: CampaignViewContext): CampaignCardView {
-	const missing = new Set(context.issues.filter((issue) => issue.campaignPath === campaign.path).map((issue) => issue.taskTitle));
+	const gone = goneByTitle(context.issues, campaign.path);
 	const { t } = context;
 	const { chip, progress } = headline(campaign, t);
 	const next = nextAction(campaign);
@@ -107,18 +116,21 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 		progress: { ratio: progress.ratio, percent: Math.round(progress.ratio * 100) },
 		segments: segmentsOf(campaign),
 		tasks: campaign.tasks.map((task) => {
+			const issue = gone.get(task.title);
 			const state: TaskRowState = task.completed
 				? 'completed'
-				: missing.has(task.title)
-					? 'missing'
-					: campaign.kind === 'project' && task.habiticaId === null
-						? 'unsent'
-						: 'pending';
-			const row = { title: task.title, state, canSend: state === 'unsent' && context.canSend, phase: task.phase };
+				: issue === 'habitica-task-deleted'
+					? 'deleted'
+					: issue !== undefined
+						? 'missing'
+						: campaign.kind === 'project' && task.habiticaId === null
+							? 'unsent'
+							: 'pending';
+			const row = { title: task.title, state, canSend: state === 'unsent' && context.canSend, canResend: state === 'deleted' && context.canSend, phase: task.phase };
 			return isMission(task.checklist) ? { ...row, mission: task.checklist } : row;
 		}),
-		habits: campaign.habits.map((habit) => habitRow(habit, missing.has(habit.title), context)),
-		warnings: [...missing].map((title) => t('campaign.warning.missing', { title })),
+		habits: campaign.habits.map((habit) => habitRow(habit, gone.get(habit.title) ?? null, context)),
+		warnings: [...gone].map(([title, kind]) => t(kind === 'habitica-task-deleted' ? 'campaign.warning.deleted' : 'campaign.warning.missing', { title })),
 		deadline: campaign.deadline,
 		daysLeft: daysLeft(campaign.deadline, context.today),
 	};
@@ -131,16 +143,52 @@ function daysLeft(deadline: string | null, today: string): number | null {
 	return Number.isFinite(days) ? days : null;
 }
 
-/** One habit as `HabitRow` draws it, in a campaign card or beside the Library's desk (ADR-017). */
-export function habitRow(habit: CampaignHabit, missing: boolean, { canSend, t }: Pick<CampaignViewContext, 'canSend' | 't'>): HabitRowView {
-	const progress = habitProgress(missing ? 0 : (habit.streak ?? 0), habit.days);
+/**
+ * The problem of each task or habit of the note at `path` that Habitica no longer has, by title,
+ * in the order of the issues: deleted (it can be sent again) or missing.
+ */
+export function goneByTitle(issues: readonly CampaignIssue[], path: string): Map<string, CampaignIssue['kind']> {
+	const gone = new Map<string, CampaignIssue['kind']>();
+	for (const issue of issues) if (issue.campaignPath === path && !gone.has(issue.taskTitle)) gone.set(issue.taskTitle, issue.kind);
+	return gone;
+}
+
+/**
+ * One habit as `HabitRow` draws it, in a campaign card or beside the Library's desk (ADR-017,
+ * ADR-021): `gone` is its problem when Habitica no longer has its daily, else `null`.
+ */
+export function habitRow(habit: CampaignHabit, gone: CampaignIssue['kind'] | null, { canSend, t }: Pick<CampaignViewContext, 'canSend' | 't'>): HabitRowView {
+	const row = { title: habit.title, canSend: false, canResend: false, schedule: scheduleText(habit.repeat, t), items: habit.checklist.length > 0 ? plural(t, 'habit.items', habit.checklist.length) : null };
+	// A daily Habitica no longer has has no streak to show.
+	const goal = goalOf(habit.days, gone === null ? habit.streak : null, t);
+	if (gone === 'habitica-task-deleted') return { ...row, state: 'deleted', canResend: canSend, ...goal.view };
+	if (gone !== null) return { ...row, state: 'missing', ...goal.view };
+	if (habit.habiticaId === null) return { ...row, state: 'unsent', canSend, ...goal.view };
+	return { ...row, state: goal.built ? 'built' : 'tracking', ...goal.view };
+}
+
+/**
+ * The bar and the line of a daily: with a target, its streak over it ("Racha: 12 de 21 días"), or
+ * the target alone while the streak is unknown; without one, a routine: the streak alone, with no
+ * bar and never built.
+ */
+function goalOf(days: number | null, streak: number | null, t: Translator): { view: Pick<HabitRowView, 'progress' | 'text'>; built: boolean } {
+	if (days === null) {
+		const text = streak === null ? t('habit.routine') : plural(t, 'habit.streak', Number.isFinite(streak) && streak > 0 ? Math.floor(streak) : 0);
+		return { view: { progress: null, text }, built: false };
+	}
+	const progress = habitProgress(streak ?? 0, days);
 	const view = { done: progress.done, total: progress.total, percent: Math.round(progress.ratio * 100) };
-	const target = t('habit.target', { days: habit.days });
-	if (missing) return { title: habit.title, state: 'missing', canSend: false, progress: view, text: target };
-	if (habit.habiticaId === null) return { title: habit.title, state: 'unsent', canSend, progress: view, text: target };
-	if (habit.streak === null) return { title: habit.title, state: 'tracking', canSend: false, progress: view, text: target };
-	if (progress.done >= progress.total) return { title: habit.title, state: 'built', canSend: false, progress: view, text: t('habit.built', { days: habit.days }) };
-	return { title: habit.title, state: 'tracking', canSend: false, progress: view, text: t('habit.progress', { done: progress.done, total: progress.total }) };
+	if (streak === null) return { view: { progress: view, text: t('habit.target', { days }) }, built: false };
+	if (progress.done >= progress.total) return { view: { progress: view, text: t('habit.built', { days }) }, built: true };
+	return { view: { progress: view, text: t('habit.progress', { done: progress.done, total: progress.total }) }, built: false };
+}
+
+/** "lun · mié · vie" in week order, or "Todos los días" when a daily is due on all seven. */
+function scheduleText(repeat: readonly Weekday[], t: Translator): string {
+	const days = WEEKDAYS.filter((day) => repeat.includes(day));
+	if (days.length === 0 || days.length === WEEKDAYS.length) return t('habit.everyDay');
+	return days.map((day) => weekdayShort(WEEKDAYS.indexOf(day), t)).join(' · ');
 }
 
 export function campaignListView(snapshot: CampaignSnapshot, context: Omit<CampaignViewContext, 'issues' | 'canSend' | 'habiticaKnown'>): CampaignListView {

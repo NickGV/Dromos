@@ -45,6 +45,8 @@ export interface LibraryHabitsDeps {
 	readonly sync: Pick<SyncCampaigns, 'execute' | 'reload'>;
 	/** "Enviar a Habitica" for a habit; it reports its own outcome (a notice). */
 	readonly send: HabitSend;
+	/** "Enviar de nuevo" for a daily Habitica confirmed deleted (ADR-021); it reports its own outcome too. */
+	readonly resend: HabitSend;
 }
 
 /** What the library needs from the application layer; built in `src/composition`. */
@@ -136,12 +138,12 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 		});
 	}, [deps, syncKey]);
 
-	const sendHabit = (areaPath: string, title: string): void => {
+	const sendHabit = (areaPath: string, title: string, again = false): void => {
 		if (sendingRef.current) return;
 		sendingRef.current = true;
 		setSendingHabit({ areaPath, title });
 		// "Enviando…" stays until the vault is read again, so the button never flashes back.
-		void runHabitSend(deps.habits.send, areaPath, title, deps.habits.sync).then((next) => {
+		void runHabitSend(again ? deps.habits.resend : deps.habits.send, areaPath, title, deps.habits.sync).then((next) => {
 			sendingRef.current = false;
 			if (!mounted.current) return;
 			setHabits(next);
@@ -200,7 +202,8 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 						idPrefix={idPrefix}
 						habits={libraryHabitsView(habits, t)}
 						sendingHabit={sendingHabit}
-						onSendHabit={sendHabit}
+						onSendHabit={(areaPath, title) => sendHabit(areaPath, title)}
+						onResendHabit={(areaPath, title) => sendHabit(areaPath, title, true)}
 						archive={archiveDoorView(library.resources, t)}
 						onOpenArchive={openArchive}
 					/>

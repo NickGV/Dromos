@@ -2,6 +2,19 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Campaign dailies** (ADR-021): the habits of a campaign, and of an area beside the Library's desk, are now a section called **Dailies**. Each can say which weekdays it repeats on (`repeat: [mon, wed, fri]`; every day without it) and list its checklist items (`checklist`); **Send to Habitica** creates the daily on those days and with that checklist. Each row shows its days ("Mon · Wed · Fri" or "Every day") and how many items it has.
+- **Deleted in Habitica**: a task or daily you delete by hand in Habitica now says so, with a **Send again** button that creates it again and replaces its `habitica_id` in the note. Dromos replaces the id only while the note still holds the one Habitica no longer has, and a to-do the ledger shows completed is never taken for deleted.
+
+### Changed
+
+- `days` of a habit is now optional, with no default: without it the daily is a routine, which shows its streak with no target and is never "built". Every note written before this release has `days`, so it reads as before.
+- Every daily Dromos creates is sent with its schedule spelled out (weekly, every week, on its days), every day included.
+- A sync now reads the linked dailies from Habitica's one list of dailies instead of looking each one up by id, so the 10 lookups of a sync are left for to-dos.
+
 ## [0.20.0] - 2026-11-12
 
 ### Added

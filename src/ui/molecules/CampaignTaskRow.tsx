@@ -8,6 +8,7 @@ export interface CampaignTaskRowProps {
 	readonly row: CampaignTaskView;
 	/** True while this task is being sent to Habitica. */
 	readonly sending: boolean;
+	/** "Send to Habitica", or "Send again" on a task Habitica confirmed deleted: the parent knows which from the row. */
 	readonly onSend: () => void;
 	/** Opens or folds a mission's subtasks (missions S5). */
 	readonly onToggleSubtasks?: () => void;
@@ -15,8 +16,9 @@ export interface CampaignTaskRowProps {
 
 /**
  * One task of a campaign (game-ui S8): the hand-drawn circle, checked and struck through once
- * done, its title, its state chip and, when it can go to Habitica, the send button. The circle
- * is a status, not a button: Dromos does not complete tasks.
+ * done, its title, its state chip and, when it can go to Habitica, the send button, which reads
+ * "Send again" on a task Habitica confirmed deleted (ADR-021). The circle is a status, not a
+ * button: Dromos does not complete tasks.
  */
 export function CampaignTaskRow({ row, sending, onSend, onToggleSubtasks }: CampaignTaskRowProps) {
 	const t = useT();
@@ -32,7 +34,9 @@ export function CampaignTaskRow({ row, sending, onSend, onToggleSubtasks }: Camp
 				{row.subtasks ? <SubtaskList view={row.subtasks} /> : null}
 			</span>
 			{row.subtasks ? <SubtasksToggle view={row.subtasks} onToggle={onToggleSubtasks} /> : null}
-			{row.canSend ? <SendButton sending={sending} onSend={onSend} label={t('task.send')} sendingLabel={t('task.sending')} /> : null}
+			{row.canSend || row.canResend ? (
+				<SendButton sending={sending} onSend={onSend} label={t(row.canResend ? 'task.resend' : 'task.send')} sendingLabel={t('task.sending')} />
+			) : null}
 		</li>
 	);
 }

@@ -8,6 +8,9 @@ import { FakeTaskStatusSource } from '../fakes/FakeTaskStatusSource';
 import { FixedClock } from '../fakes/FixedClock';
 import { InMemoryAreaRepository } from '../fakes/InMemoryAreaRepository';
 import { InMemoryCampaignRepository } from '../fakes/InMemoryCampaignRepository';
+import { InMemoryLedgerRepository } from '../fakes/InMemoryLedgerRepository';
+import { row as ledgerRow } from '../domain/ledger/ledgerFixtures';
+import type { LedgerRow } from '../../src/domain';
 
 const NOW = new Date('2026-10-31T15:00:00.000Z');
 const H1 = '3f2a1c8e-0000-4000-8000-000000000001';
@@ -16,20 +19,22 @@ const H2 = '3f2a1c8e-0000-4000-8000-000000000002';
 const kairos = (): Campaign =>
 	campaign({ path: 'P/Kairos/README.md', phases: [phase('mvp', 'active')], tasks: [task('a', 'mvp', { habiticaId: H1 }), task('b', 'mvp', { habiticaId: H2 }), task('c', 'mvp')] });
 
-function setup(options: { campaigns?: Campaign[]; areas?: Area[]; credentials?: boolean } = {}) {
+function setup(options: { campaigns?: Campaign[]; areas?: Area[]; credentials?: boolean; ledger?: LedgerRow[] } = {}) {
 	const state = new CampaignState();
 	const source = new FakeTaskStatusSource();
 	const repository = new InMemoryCampaignRepository(options.campaigns ?? [kairos()]);
 	const areas = new InMemoryAreaRepository(options.areas ?? []);
+	const ledger = new InMemoryLedgerRepository(options.ledger ?? []);
 	const sync = new SyncCampaigns({
 		repository,
 		areas,
 		source,
+		ledger,
 		clock: new FixedClock(NOW, '2026-10-31'),
 		state,
 		hasCredentials: () => options.credentials ?? true,
 	});
-	return { state, source, repository, areas, sync };
+	return { state, source, repository, areas, ledger, sync };
 }
 
 const completedFlags = (campaigns: readonly Campaign[] | null): boolean[] => campaigns?.[0]?.tasks.map((item) => item.completed) ?? [];
@@ -310,5 +315,127 @@ describe('SyncCampaigns: the habits of the reading areas (ADR-017, S4)', () => {
 		expect((await sync.execute()).status).toEqual({ kind: 'error' });
 		expect((await sync.reload()).status).toEqual({ kind: 'error' });
 		expect(source.calls).toBe(0);
+	});
+});
+
+describe('SyncCampaigns: what Habitica deleted (ADR-021, S3)', () => {
+	const D1 = '3f2a1c8e-0000-4000-8000-000000000011';
+	const salto = (): Campaign => campaign({ path: 'P/Salto/README.md', tasks: [task('Informe', null, { habiticaId: H1 })], habits: [habit('Caminar', { habiticaId: D1, streak: 4 })] });
+
+	it('asks for the to-dos of the tasks and the dailies of the habits apart', async () => {
+		const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+		const H3 = '3f2a1c8e-0000-4000-8000-000000000003';
+		const { sync, source } = setup({ campaigns: [salto()], areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: H3 })] })] });
+		source.resolves({});
+
+		await sync.execute();
+
+		expect(source.requests).toEqual([{ todos: [H1], dailies: [D1, H3] }]);
+	});
+
+	it('flags a daily Habitica deleted, clears its streak and knows its id is deleted', async () => {
+		const { sync, source } = setup({ campaigns: [salto()] });
+		source.resolves({ [H1]: { kind: 'open' }, [D1]: { kind: 'deleted' } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.issues).toEqual([{ campaignPath: 'P/Salto/README.md', taskTitle: 'Caminar', kind: 'habitica-task-deleted' }]);
+		expect(snapshot.campaigns?.[0]?.habits[0]?.streak).toBeNull();
+		expect(sync.isDeleted(D1)).toBe(true);
+		expect(sync.isDeleted(H1)).toBe(false);
+	});
+
+	it('flags a to-do Habitica deleted when the ledger shows no completion, and knows its id is deleted', async () => {
+		const { sync, source } = setup({ campaigns: [salto()], ledger: [ledgerRow({ habiticaId: 'another-task' })] });
+		source.resolves({ [H1]: { kind: 'deleted' }, [D1]: { kind: 'daily', streak: 4 } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.issues).toEqual([{ campaignPath: 'P/Salto/README.md', taskTitle: 'Informe', kind: 'habitica-task-deleted' }]);
+		expect(snapshot.campaigns?.[0]?.tasks[0]).toMatchObject({ completed: false });
+		expect(sync.isDeleted(H1)).toBe(true);
+	});
+
+	it('takes a to-do Habitica no longer has for completed, never deleted, when the ledger shows its completion', async () => {
+		const { sync, source } = setup({
+			campaigns: [salto()],
+			ledger: [ledgerRow({ habiticaId: H1, date: '2026-10-20', skill: 'atleta' }), ledgerRow({ habiticaId: H1, date: '2026-10-20', skill: 'cuidador' })],
+		});
+		source.resolves({ [H1]: { kind: 'deleted' }, [D1]: { kind: 'daily', streak: 4 } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.campaigns?.[0]?.tasks[0]).toMatchObject({ completed: true, completedOn: '2026-10-20' });
+		expect(snapshot.issues).toEqual([]);
+		expect(sync.isDeleted(H1)).toBe(false);
+	});
+
+	it('takes it for deleted when its last completion in the ledger was reverted', async () => {
+		const { sync, source } = setup({
+			campaigns: [salto()],
+			ledger: [ledgerRow({ habiticaId: H1, date: '2026-10-20' }), ledgerRow({ habiticaId: H1, date: '2026-10-20', source: 'revert', xp: -10 })],
+		});
+		source.resolves({ [H1]: { kind: 'deleted' }, [D1]: { kind: 'daily', streak: 4 } });
+
+		expect((await sync.execute()).issues).toEqual([{ campaignPath: 'P/Salto/README.md', taskTitle: 'Informe', kind: 'habitica-task-deleted' }]);
+	});
+
+	it('never asks the ledger about a daily: absent from the list of dailies is deleted', async () => {
+		const { sync, source, ledger } = setup({ campaigns: [salto()], ledger: [ledgerRow({ habiticaId: D1, kind: 'daily' })] });
+		ledger.failReadWith = new Error('the ledger is not read for a daily');
+		source.resolves({ [H1]: { kind: 'open' }, [D1]: { kind: 'deleted' } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.issues.map((issue) => issue.kind)).toEqual(['habitica-task-deleted']);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+	});
+
+	it('keeps the last known state of a to-do Habitica no longer has while the ledger cannot be read', async () => {
+		const { sync, source, ledger } = setup({ campaigns: [salto()] });
+		source.resolves({ [H1]: { kind: 'open' }, [D1]: { kind: 'daily', streak: 4 } }).resolves({ [H1]: { kind: 'deleted' }, [D1]: { kind: 'daily', streak: 5 } });
+		await sync.execute();
+		ledger.failReadWith = new Error('vault busy');
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.issues).toEqual([]);
+		expect(snapshot.campaigns?.[0]?.tasks[0]).toMatchObject({ completed: false });
+		expect(snapshot.campaigns?.[0]?.habits[0]?.streak).toBe(5);
+		expect(sync.isDeleted(H1)).toBe(false);
+	});
+
+	it('keeps the last known state of an id Habitica did not answer: never taken for deleted', async () => {
+		const { sync, source } = setup({ campaigns: [salto()] });
+		source.resolves({ [H1]: { kind: 'open' }, [D1]: { kind: 'daily', streak: 4 } }).resolves({});
+		await sync.execute();
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.issues).toEqual([]);
+		expect(snapshot.campaigns?.[0]?.habits[0]?.streak).toBe(4);
+		expect([sync.isDeleted(H1), sync.isDeleted(D1)]).toEqual([false, false]);
+	});
+
+	it('keeps a delete already confirmed when a later sync fails', async () => {
+		const { sync, source } = setup({ campaigns: [salto()] });
+		source.resolves({ [H1]: { kind: 'open' }, [D1]: { kind: 'deleted' } }).rejects(new TaskSourceError('Offline', null, 'down'));
+		await sync.execute();
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.status).toEqual({ kind: 'offline' });
+		expect(snapshot.issues.map((issue) => issue.kind)).toEqual(['habitica-task-deleted']);
+		expect(sync.isDeleted(D1)).toBe(true);
+	});
+
+	it('does not take an id that is not a Habitica id for deleted', async () => {
+		const { sync, source } = setup({ campaigns: [salto()] });
+		source.resolves({ [H1]: { kind: 'missing' }, [D1]: { kind: 'missing' } });
+
+		const snapshot = await sync.execute();
+
+		expect(snapshot.issues.map((issue) => issue.kind)).toEqual(['habitica-task-missing', 'habitica-task-missing']);
+		expect([sync.isDeleted(H1), sync.isDeleted(D1)]).toEqual([false, false]);
 	});
 });

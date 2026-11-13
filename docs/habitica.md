@@ -48,12 +48,40 @@ A skill unlocks when all its requirements are met, and an unlock is permanent.
 
 A project task or habit with no `habitica_id` shows a **Send to Habitica** button. It creates the to-do or daily and writes its id back into the note, so the button disappears and repeating the click creates nothing. A habit beside the Library's desk, declared in an area note (`type: archeion`, ADR-017), works the same way: the same daily, tags and requests as a campaign habit, and only its `habitica_id` is written into the area note.
 
+A habit becomes a daily that repeats on its `repeat` days and starts with its `checklist` (ADR-021). The `POST /tasks/user` body of a daily always carries its schedule, every day included, so no daily depends on Habitica's defaults:
+
+```json
+{
+  "text": "Fuerza para la espalda",
+  "type": "daily",
+  "notes": "Dromos · Rutinas\n[Open in Obsidian](obsidian://…)",
+  "tags": ["<id of skill/atleta>"],
+  "checklist": [{ "text": "Plancha", "completed": false }, { "text": "Puente", "completed": false }],
+  "frequency": "weekly",
+  "everyX": 1,
+  "repeat": { "m": true, "t": false, "w": true, "th": false, "f": true, "s": false, "su": false }
+}
+```
+
+A daily for every day sends all seven days `true`. `tags` and `checklist` are left out when there are none. The checklist is sent only now: editing it in the note later changes nothing in Habitica. The streak target (`days`) never reaches Habitica; it only decides how Dromos shows the streak.
+
 Two messages name an id, and both mean the task already exists in Habitica:
 
 | Message | What to do |
 |---|---|
 | The id could not be saved in the note | Write it yourself as `habitica_id`. Sending again would create a second task |
 | A duplicate was created | Delete the task with that id in Habitica. This happens when the note was linked at the same moment from elsewhere |
+
+### Deleted in Habitica and Send again
+
+A task or daily you delete by hand in Habitica shows **Deleted in Habitica** in place of its state, and a **Send again** button (ADR-021):
+
+- **A daily** is deleted when its id is not in Habitica's list of your dailies, which the sync reads once for all of them.
+- **A task** is still looked up by id; Habitica answering that it does not know it means deleted, unless the ledger (`Dromos/Ledger/`) shows that task completed and not undone since. Habitica forgets old completed to-dos, so for those the ledger decides: the task shows as done on the day of its completion, never as deleted.
+- **No answer is not a delete.** A task beyond the 10 lookups of a sync, a failed request, or a ledger that cannot be read keeps what it showed before.
+- **Send again** creates the task again (a daily with its days and its checklist, a task as a first send does) and replaces its `habitica_id` in the note. It replaces the id only while the note still holds exactly the one Habitica no longer has, and changes nothing else in the note. If the note changed meanwhile, it says so and writes nothing; if it changed while the new task was being created, it gives that task's id so you can delete it. If Habitica fails, nothing changes in the note.
+
+A task marked **Not found in Habitica** has a `habitica_id` that is not a Habitica id at all. Correct or remove the id in the note.
 
 The notes of a created to-do or daily hold the title of its campaign (or of its area) and a Markdown link, **Open in Obsidian** (in the language of the settings), to an `obsidian://` address made of your vault's name and the note's path. Habitica, on the web and on Android, makes only web and mail addresses clickable on their own, so a bare `obsidian://` address, as in the tasks sent before 0.12.1, stays plain text; the Markdown link opens the note. They go only to your own account.
 
@@ -125,8 +153,8 @@ Only when the tab opens, when you select **Sync**, when you open the Shop and wh
 
 | Action | Requests |
 |---|---|
-| Opening the tab or selecting **Sync** | About eight reads, plus up to 10 for linked tasks missing from the lists. The habits beside the Library's desk are looked up in the same sync and share that cap of 10; opening the Library sends nothing |
-| **Send to Habitica** | One write for the task. With skills, one read of your tags and one write for each that does not exist. The same for a habit beside the Library's desk |
+| Opening the tab or selecting **Sync** | About eight reads, plus up to 10 for linked to-dos missing from the lists. The linked dailies, of campaigns and of the habits beside the Library's desk, cost one read in all, the list of dailies, and no lookup; opening the Library sends nothing |
+| **Send to Habitica**, **Send again** | One write for the task. With skills, one read of your tags and one write for each that does not exist. The same for a habit beside the Library's desk |
 | **Empezar a leer** | One read of your tags, one write for `skill/lector` if it does not exist, and one write for the to-do. None for a book that already has a `habitica_id` |
 | **Terminar** | None |
 | Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards. A third, `GET /tags`, to find the `kairos` tag, only when one of your rewards carries a tag |
@@ -150,7 +178,7 @@ The sync status sits at the foot of the character card, next to **Sync**. While 
 
 After a failed sync, the last list from this session stays on screen.
 
-A task marked **Not found in Habitica** has a `habitica_id` Habitica does not know, usually because the task was deleted there. Correct or remove the id in the note.
+A task Habitica no longer has shows **Deleted in Habitica** and can be sent again; see [Deleted in Habitica and Send again](#deleted-in-habitica-and-send-again).
 
 ## Known limits
 

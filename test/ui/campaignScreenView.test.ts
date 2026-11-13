@@ -184,13 +184,33 @@ describe('campaignScreenView: the tasks by phase (game-ui S8)', () => {
 });
 
 describe('campaignScreenView: the copy in both languages', () => {
-	it('titles the sections and the habits', () => {
+	it('titles the sections, the habits one "Dailies" (ADR-021)', () => {
 		const english = screen(snapshot()).campaign;
 		const spanish = screen(snapshot(), null, es).campaign;
 
-		expect([english?.pathTitle, english?.tasksTitle, english?.habitsTitle, english?.openNoteLabel]).toEqual(['The route', 'Tasks by phase', 'Habits', 'Open note']);
-		expect([spanish?.pathTitle, spanish?.tasksTitle, spanish?.habitsTitle, spanish?.openNoteLabel]).toEqual(['La ruta', 'Tareas por fase', 'Hábitos', 'Abrir nota']);
+		expect([english?.pathTitle, english?.tasksTitle, english?.habitsTitle, english?.openNoteLabel]).toEqual(['The route', 'Tasks by phase', 'Dailies', 'Open note']);
+		expect([spanish?.pathTitle, spanish?.tasksTitle, spanish?.habitsTitle, spanish?.openNoteLabel]).toEqual(['La ruta', 'Tareas por fase', 'Diarias', 'Abrir nota']);
 		expect(spanish?.progress.countText).toBe('2 de 7 tareas');
 		expect(spanish?.deadlineText).toBe('Entrega 28 nov · faltan 25 días');
+	});
+});
+
+describe('campaignScreenView: a task deleted in Habitica (ADR-021, S3)', () => {
+	const issues = [{ campaignPath: 'P/Kairos/README.md', taskTitle: 'Beta', kind: 'habitica-task-deleted' as const }];
+	const beta = (value: CampaignSnapshot, t = en) => (screen(value, null, t).campaign?.groups ?? []).flatMap((group) => group.tasks).find((row) => row.title === 'Beta');
+
+	it('chips it "Deleted in Habitica" and offers "Send again" instead of "Send"', () => {
+		expect(beta(snapshot({ issues }))).toMatchObject({ chip: { label: 'Deleted in Habitica', tone: 'deleted' }, canSend: false, canResend: true });
+		expect(beta(snapshot({ issues }), es)?.chip.label).toBe('Borrada en Habitica');
+	});
+
+	it('chips it deleted with no button while Habitica is not set up', () => {
+		expect(beta(snapshot({ issues, status: { kind: 'not-configured' } }))).toMatchObject({ chip: { label: 'Deleted in Habitica' }, canResend: false });
+	});
+
+	it('offers "Send again" on no task Habitica did not confirm deleted', () => {
+		const rows = (screen(snapshot({ issues: [{ campaignPath: 'P/Kairos/README.md', taskTitle: 'Beta', kind: 'habitica-task-missing' }] })).campaign?.groups ?? []).flatMap((group) => group.tasks);
+
+		expect(rows.some((row) => row.canResend)).toBe(false);
 	});
 });

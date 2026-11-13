@@ -140,8 +140,8 @@ describe('campaignCardView: habits (S8)', () => {
 	it('rows each habit with its streak over its target days', () => {
 		const rows = campaignCardView(salto, { ...ctx, issues }).habits;
 
-		expect(rows[0]).toEqual({ title: 'Estiramiento', state: 'tracking', canSend: false, progress: { done: 12, total: 21, percent: 57 }, text: 'Racha: 12 de 21 días' });
-		expect(rows[5]).toEqual({ title: 'Empezando', state: 'tracking', canSend: false, progress: { done: 0, total: 21, percent: 0 }, text: 'Racha: 0 de 21 días' });
+		expect(rows[0]).toEqual({ title: 'Estiramiento', state: 'tracking', canSend: false, canResend: false, schedule: 'Todos los días', items: null, progress: { done: 12, total: 21, percent: 57 }, text: 'Racha: 12 de 21 días' });
+		expect(rows[5]).toEqual({ title: 'Empezando', state: 'tracking', canSend: false, canResend: false, schedule: 'Todos los días', items: null, progress: { done: 0, total: 21, percent: 0 }, text: 'Racha: 0 de 21 días' });
 	});
 
 	it('says a habit is built once the streak reaches its target', () => {
@@ -149,6 +149,9 @@ describe('campaignCardView: habits (S8)', () => {
 			title: 'Dormir',
 			state: 'built',
 			canSend: false,
+			canResend: false,
+			schedule: 'Todos los días',
+			items: null,
 			progress: { done: 30, total: 30, percent: 100 },
 			text: 'Hábito formado: 30 días',
 		});
@@ -159,6 +162,9 @@ describe('campaignCardView: habits (S8)', () => {
 			title: 'Sin enviar',
 			state: 'unsent',
 			canSend: true,
+			canResend: false,
+			schedule: 'Todos los días',
+			items: null,
 			progress: { done: 0, total: 14, percent: 0 },
 			text: 'Meta: 14 días',
 		});
@@ -182,6 +188,53 @@ describe('campaignCardView: habits (S8)', () => {
 	it('has no habits for a campaign without them, and says so in English too', () => {
 		expect(campaignCardView(kairos, ctx).habits).toEqual([]);
 		expect(campaignCardView(salto, { ...ctx, t: createTranslator('en') }).habits[0]?.text).toBe('Streak: 12 of 21 days');
+	});
+});
+
+describe('campaignCardView: dailies with their days, their checklist and an optional target (ADR-021)', () => {
+	const rutinas = campaign({
+		path: 'P/Rutinas/README.md',
+		title: 'Rutinas',
+		habits: [
+			habit('Fuerza para la espalda', { repeat: ['mon', 'wed', 'fri'], checklist: ['Plancha', 'Puente', 'Remo', 'Gato', 'Perro'] }),
+			habit('Caminar', { repeat: ['mon', 'tue', 'wed', 'thu', 'fri'], checklist: ['Zapatillas'] }),
+			habit('Rutina de noche', { days: null, habiticaId: 'd1', streak: 5 }),
+			habit('Rutina de mañana', { days: null, habiticaId: 'd2', streak: 1 }),
+			habit('Leer antes de dormir', { days: null }),
+			habit('Sin racha aún', { days: null, habiticaId: 'd3' }),
+		],
+	});
+
+	it('shows the days of each daily as short local weekday names, or every day', () => {
+		expect(campaignCardView(rutinas, ctx).habits.map((row) => row.schedule)).toEqual(['lun · mié · vie', 'lun · mar · mié · jue · vie', 'Todos los días', 'Todos los días', 'Todos los días', 'Todos los días']);
+		expect(campaignCardView(rutinas, { ...ctx, t: createTranslator('en') }).habits.map((row) => row.schedule).slice(0, 3)).toEqual(['Mon · Wed · Fri', 'Mon · Tue · Wed · Thu · Fri', 'Every day']);
+	});
+
+	it('counts the checklist items of a daily that has some, and says nothing for one without', () => {
+		expect(campaignCardView(rutinas, ctx).habits.map((row) => row.items).slice(0, 3)).toEqual(['5 ítems', '1 ítem', null]);
+		expect(campaignCardView(rutinas, { ...ctx, t: createTranslator('en') }).habits.map((row) => row.items).slice(0, 2)).toEqual(['5 items', '1 item']);
+	});
+
+	it('shows the streak of a routine with no "of N" and no bar, and never calls it built', () => {
+		const rows = campaignCardView(rutinas, ctx).habits;
+
+		expect(rows[2]).toMatchObject({ state: 'tracking', progress: null, text: 'Racha: 5 días' });
+		expect(rows[3]).toMatchObject({ state: 'tracking', progress: null, text: 'Racha: 1 día' });
+		expect(campaignCardView(rutinas, { ...ctx, t: createTranslator('en') }).habits[2]?.text).toBe('Streak: 5 days');
+	});
+
+	it('says a routine has no target while it is unsent or its streak is not known yet', () => {
+		const rows = campaignCardView(rutinas, ctx).habits;
+
+		expect(rows[4]).toMatchObject({ state: 'unsent', canSend: true, progress: null, text: 'Sin meta de racha' });
+		expect(rows[5]).toMatchObject({ state: 'tracking', progress: null, text: 'Sin meta de racha' });
+		expect(campaignCardView(rutinas, { ...ctx, t: createTranslator('en') }).habits[4]?.text).toBe('No streak target');
+	});
+
+	it('never calls a routine built, however long its streak', () => {
+		const long = campaign({ habits: [habit('Rutina de noche', { days: null, habiticaId: 'd1', streak: 400 })] });
+
+		expect(campaignCardView(long, ctx).habits[0]).toMatchObject({ state: 'tracking', text: 'Racha: 400 días' });
 	});
 });
 
@@ -243,8 +296,8 @@ describe('campaignCardView: the deadline and the phase of each task (game-ui S8)
 			progress: { ratio: 0.5, percent: 50 },
 			segments: [{ id: 'a', name: 'Phase a', state: 'open', percent: 50 }],
 			tasks: [
-				{ title: 'Uno', state: 'completed', canSend: false, phase: 'a' },
-				{ title: 'Dos', state: 'unsent', canSend: true, phase: 'a' },
+				{ title: 'Uno', state: 'completed', canSend: false, canResend: false, phase: 'a' },
+				{ title: 'Dos', state: 'unsent', canSend: true, canResend: false, phase: 'a' },
 			],
 			habits: [],
 			warnings: [],
@@ -337,5 +390,57 @@ describe('campaignCardView: missions (missions S2)', () => {
 		);
 
 		expect(card.tasks.map((row) => row.mission)).toEqual([{ done: 2, total: 5 }, undefined, undefined]);
+	});
+});
+
+describe('campaignCardView: what Habitica confirmed deleted (ADR-021, S3)', () => {
+	const salto = campaign({
+		path: 'P/Salto/README.md',
+		title: 'Salto',
+		tasks: [task('Informe', null, { habiticaId: 'h1' }), task('Perdida', null, { habiticaId: 'not-an-id' })],
+		habits: [habit('Caminar', { habiticaId: 'd1', streak: 3 }), habit('Mal id', { habiticaId: 'x' })],
+	});
+	const issues = [
+		{ campaignPath: 'P/Salto/README.md', taskTitle: 'Informe', kind: 'habitica-task-deleted' as const },
+		{ campaignPath: 'P/Salto/README.md', taskTitle: 'Caminar', kind: 'habitica-task-deleted' as const },
+		{ campaignPath: 'P/Salto/README.md', taskTitle: 'Perdida', kind: 'habitica-task-missing' as const },
+		{ campaignPath: 'P/Salto/README.md', taskTitle: 'Mal id', kind: 'habitica-task-missing' as const },
+	];
+
+	it('marks a deleted task as deleted and offers to send it again', () => {
+		const rows = campaignCardView(salto, { ...ctx, issues }).tasks;
+
+		expect(rows[0]).toMatchObject({ title: 'Informe', state: 'deleted', canSend: false, canResend: true });
+		expect(rows[1]).toMatchObject({ title: 'Perdida', state: 'missing', canSend: false, canResend: false });
+	});
+
+	it('marks a deleted daily as deleted, with no streak, and offers to send it again', () => {
+		const rows = campaignCardView(salto, { ...ctx, issues }).habits;
+
+		expect(rows[0]).toMatchObject({ title: 'Caminar', state: 'deleted', canSend: false, canResend: true, progress: { done: 0, total: 21, percent: 0 }, text: 'Meta: 21 días' });
+		expect(rows[1]).toMatchObject({ title: 'Mal id', state: 'missing', canSend: false, canResend: false });
+	});
+
+	it('offers to send again only while Habitica is set up', () => {
+		const card = campaignCardView(salto, { ...ctx, issues, canSend: false });
+
+		expect([card.tasks[0]?.canResend, card.habits[0]?.canResend]).toEqual([false, false]);
+		expect([card.tasks[0]?.state, card.habits[0]?.state]).toEqual(['deleted', 'deleted']);
+	});
+
+	it('never offers to send again what Habitica did not confirm deleted', () => {
+		const card = campaignCardView(salto, ctx);
+
+		expect([...card.tasks, ...card.habits].some((row) => row.canResend)).toBe(false);
+	});
+
+	it('warns that it was deleted, and keeps the old words for what was not found', () => {
+		expect(campaignCardView(salto, { ...ctx, issues }).warnings).toEqual([
+			'"Informe" se borró en Habitica.',
+			'"Caminar" se borró en Habitica.',
+			'"Perdida" no se encontró en Habitica.',
+			'"Mal id" no se encontró en Habitica.',
+		]);
+		expect(campaignCardView(salto, { ...ctx, issues, t: createTranslator('en') }).warnings[0]).toBe('"Informe" was deleted in Habitica.');
 	});
 });

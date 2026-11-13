@@ -35,14 +35,24 @@ export interface CampaignTask {
 	readonly checklist?: Checklist;
 }
 
+/** The days of the week a daily repeats on, in week order, as the notes write them (ADR-021). */
+export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+
+export type Weekday = (typeof WEEKDAYS)[number];
+
 /**
- * A habit a campaign asks to build (S8): a daily Habitica tracks, with a target number of days.
- * Strict: its progress is Habitica's streak, which one missed day sends back to zero.
+ * A daily a campaign, or an area (ADR-017), asks for (S8, ADR-021): a Habitica daily that repeats on
+ * its days and starts with its checklist. With a target number of days it is a habit being built;
+ * without one, a routine. Strict: its progress is Habitica's streak, which one missed day sends back to zero.
  */
 export interface CampaignHabit {
 	readonly title: string;
-	/** Days of streak that build the habit. */
-	readonly days: number;
+	/** Days of streak that build the habit; `null` for a routine, which has no target (ADR-021). */
+	readonly days: number | null;
+	/** The weekdays its daily repeats on, in week order, never empty: all seven when the note names none. */
+	readonly repeat: readonly Weekday[];
+	/** The texts of its daily's checklist, sent only when the daily is created; empty when it has none. */
+	readonly checklist: readonly string[];
 	/** Skill ids of the habit; empty means the campaign's. */
 	readonly skills: readonly string[];
 	/** Habitica daily id; `null` while the habit has not been sent to Habitica. */

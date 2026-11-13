@@ -235,9 +235,9 @@ describe('libraryHabitsView: the habits beside the desk (ADR-017, S2)', () => {
 	it('rows the reading habits only, each with its streak over its days, as a campaign habit is rowed', () => {
 		const view = libraryHabitsView(snapshot(), es);
 
-		expect(view?.title).toBe('Hábitos');
+		expect(view?.title).toBe('Diarias');
 		expect(view?.rows.map((entry) => entry.areaPath)).toEqual([BIBLIOTHEKE, BIBLIOTHEKE, BIBLIOTHEKE, BIBLIOTHEKE]);
-		expect(view?.rows.map(({ row }) => [row.title, row.state, row.canSend, row.progress.percent, row.text])).toEqual([
+		expect(view?.rows.map(({ row }) => [row.title, row.state, row.canSend, row.progress?.percent, row.text])).toEqual([
 			['Leer 10 minutos', 'tracking', false, 29, 'Racha: 6 de 21 días'],
 			['Releer notas', 'unsent', true, 0, 'Meta: 14 días'],
 			['Perdido', 'missing', false, 0, 'Meta: 21 días'],
@@ -245,8 +245,8 @@ describe('libraryHabitsView: the habits beside the desk (ADR-017, S2)', () => {
 		]);
 	});
 
-	it('speaks English: the heading is "Habits"', () => {
-		expect(libraryHabitsView(snapshot(), en)?.title).toBe('Habits');
+	it('speaks English: the heading is "Dailies" (ADR-021)', () => {
+		expect(libraryHabitsView(snapshot(), en)?.title).toBe('Dailies');
 		expect(libraryHabitsView(snapshot(), en)?.rows[0]?.row.text).toBe('Streak: 6 of 21 days');
 	});
 
@@ -284,5 +284,41 @@ describe('libraryHabitsView: the habits beside the desk (ADR-017, S2)', () => {
 
 	it('never rows the habits of a campaign', () => {
 		expect(libraryHabitsView(snapshot({ areas: [], campaigns: [campaign({ skills: ['lector'], habits: [habit('Leer')] })] }), es)).toBeNull();
+	});
+});
+
+describe('libraryHabitsView: the dailies of the reading areas (ADR-021)', () => {
+	const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+	const snapshot = (overrides: Partial<CampaignSnapshot> = {}): CampaignSnapshot => ({
+		campaigns: [],
+		areas: [
+			area({
+				path: BIBLIOTHEKE,
+				habits: [
+					habit('Leer 10 minutos', { habiticaId: 'd1', days: null, streak: 6, repeat: ['mon', 'wed', 'fri'], checklist: ['Elegir libro', 'Leer', 'Anotar'] }),
+					habit('Releer notas', { habiticaId: 'd2', streak: 2 }),
+				],
+			}),
+		],
+		issues: [{ campaignPath: BIBLIOTHEKE, taskTitle: 'Releer notas', kind: 'habitica-task-deleted' }],
+		lastSyncedAt: new Date('2026-11-09T12:00:00Z'),
+		status: { kind: 'synced' },
+		...overrides,
+	});
+
+	it('rows the days and the items of each daily, as the campaign screen does', () => {
+		const rows = libraryHabitsView(snapshot(), es)?.rows.map(({ row }) => [row.schedule, row.items, row.text]);
+
+		expect(rows).toEqual([
+			['lun · mié · vie', '3 ítems', 'Racha: 6 días'],
+			['Todos los días', null, 'Meta: 21 días'],
+		]);
+		expect(libraryHabitsView(snapshot(), en)?.rows[0]?.row).toMatchObject({ schedule: 'Mon · Wed · Fri', items: '3 items', text: 'Streak: 6 days' });
+	});
+
+	it('offers "Enviar de nuevo" on a daily Habitica confirmed deleted, and only while Habitica is set up', () => {
+		expect(libraryHabitsView(snapshot(), es)?.rows[1]?.row).toMatchObject({ state: 'deleted', canSend: false, canResend: true });
+		expect(libraryHabitsView(snapshot({ status: { kind: 'not-configured' } }), es)?.rows[1]?.row).toMatchObject({ state: 'deleted', canResend: false });
+		expect(libraryHabitsView(snapshot(), es)?.rows[0]?.row.canResend).toBe(false);
 	});
 });

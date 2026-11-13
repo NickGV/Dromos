@@ -28,8 +28,8 @@ export function homeDeps(
 	const game = options.game ?? IDLE_GAME;
 	const campaigns: CampaignsDeps = {
 		syncCampaigns: { execute: never, reload: never },
-		linkTask: { execute: never },
-		linkHabit: { execute: never },
+		linkTask: { execute: never, resend: never },
+		linkHabit: { execute: never, resend: never },
 		campaignSnapshot: () => options.campaigns ?? IDLE_CAMPAIGNS,
 		staleAfterDays: () => 14,
 		openNote: noop,
@@ -42,7 +42,7 @@ export function homeDeps(
 		renderMarkdown: renderNothing,
 		openCard: () => ({ show: noop, close: noop }),
 		openNote: noop,
-		habits: { snapshot: () => options.campaigns ?? IDLE_CAMPAIGNS, sync: { execute: never, reload: never }, send: never },
+		habits: { snapshot: () => options.campaigns ?? IDLE_CAMPAIGNS, sync: { execute: never, reload: never }, send: never, resend: never },
 		clock,
 	};
 	const shop: ShopDeps = {

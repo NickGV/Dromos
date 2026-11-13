@@ -6,7 +6,7 @@ import { limitRows, type ListToggleView } from './listLimit';
 import { subtasksView, type SubtasksView } from './missionView';
 
 /** What a task's chip says about it; the tone colors the chip. */
-export type TaskChipTone = 'done' | 'next' | 'pending' | 'unsent' | 'missing';
+export type TaskChipTone = 'done' | 'next' | 'pending' | 'unsent' | 'missing' | 'deleted';
 
 /** One task row of the campaigns screen (game-ui S8). The circle is a status only: Dromos completes nothing. */
 export interface CampaignTaskView {
@@ -15,6 +15,8 @@ export interface CampaignTaskView {
 	readonly chip: { readonly label: string; readonly tone: TaskChipTone };
 	/** Only a project task never sent to Habitica can be sent, and only while Habitica is set up. */
 	readonly canSend: boolean;
+	/** "Enviar de nuevo": only a task Habitica confirmed deleted, and only while Habitica is set up (ADR-021). */
+	readonly canResend: boolean;
 	/** "Mission · 2/5", present only for a task whose subtasks make it a mission (missions S2). */
 	readonly mission?: string;
 	/** A mission's toggle and, once open, its subtasks (missions S5); absent on a plain task. */
@@ -167,15 +169,16 @@ function group(key: string, name: string, tasks: CampaignTaskView[]): TaskGroupV
 	return { key, name, countText: `${tasks.filter((row) => row.completed).length}/${tasks.length}`, tasks };
 }
 
-// A problem says more than the order of the road: a task Habitica lost, or one that cannot be
+// A problem says more than the order of the road: a task Habitica deleted or lost, or one that cannot be
 // sent while Habitica is not set up, is chipped as such even when it is the next one. A task that
 // can be sent shows the button, never "Not linked" beside it (calm-ui S4).
 function taskView(row: TaskRowView, isNext: boolean, open: boolean, t: Translator): CampaignTaskView {
 	const chip = (label: MessageKey, tone: TaskChipTone) => ({ label: t(label), tone });
 	const subtasks = subtasksView(row.mission, open, row.title, t);
 	const mission = row.mission ? { mission: t('quests.mission', { done: row.mission.done, total: row.mission.total }), ...(subtasks ? { subtasks } : {}) } : {};
-	const view = (value: CampaignTaskView['chip']): CampaignTaskView => ({ title: row.title, completed: row.state === 'completed', chip: value, canSend: row.canSend, ...mission });
+	const view = (value: CampaignTaskView['chip']): CampaignTaskView => ({ title: row.title, completed: row.state === 'completed', chip: value, canSend: row.canSend, canResend: row.canResend, ...mission });
 	if (row.state === 'completed') return view(chip('task.state.done', 'done'));
+	if (row.state === 'deleted') return view(chip('task.deleted', 'deleted'));
 	if (row.state === 'missing') return view(chip('task.missing', 'missing'));
 	if (row.state === 'unsent' && !row.canSend) return view(chip('task.unsent', 'unsent'));
 	return view(isNext ? chip('task.state.next', 'next') : chip('task.state.pending', 'pending'));

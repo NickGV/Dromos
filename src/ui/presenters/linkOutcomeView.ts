@@ -2,7 +2,7 @@ import type { LinkOutcome } from '../../application';
 import type { Translator } from '../../i18n';
 import type { BannerTone } from './syncBanner';
 
-/** The message shown after pressing "Enviar a Habitica". */
+/** The message shown after pressing "Enviar a Habitica" or "Enviar de nuevo". */
 export interface LinkOutcomeView {
 	readonly tone: BannerTone;
 	readonly message: string;
@@ -24,6 +24,8 @@ export function linkOutcomeView(outcome: LinkOutcome, t: Translator): LinkOutcom
 			return { tone: 'warning', message: t('link.duplicate', { id: outcome.habiticaId }) };
 		case 'write-failed':
 			return { tone: 'error', message: t('link.writeFailed', { id: outcome.habiticaId }) };
+		case 'changed':
+			return { tone: 'warning', message: outcome.habiticaId === null ? t('link.changed') : t('link.changedSent', { id: outcome.habiticaId }) };
 	}
 }
 

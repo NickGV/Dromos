@@ -35,7 +35,12 @@ describe('VaultCampaignRepository: areas (ADR-017)', () => {
 		}).listAreas();
 
 		expect(areas).toEqual([
-			{ path: BIBLIOTHEKE, title: 'Archeion - Bibliotheke', skills: ['lector'], habits: [{ title: 'Leer 10 minutos', days: 21, skills: ['lector'], habiticaId: null, streak: null }] },
+			{
+				path: BIBLIOTHEKE,
+				title: 'Archeion - Bibliotheke',
+				skills: ['lector'],
+				habits: [{ title: 'Leer 10 minutos', days: 21, repeat: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'], checklist: [], skills: ['lector'], habiticaId: null, streak: null }],
+			},
 		]);
 	});
 

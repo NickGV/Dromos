@@ -32,6 +32,18 @@ export function lastComplete(taskRows: readonly LedgerRow[]): LastComplete {
 }
 
 /**
+ * The local day (`YYYY-MM-DD`) of the last completion of the task `habiticaId` when it still
+ * stands, else `null`: never completed, or its last completion reverted. What tells a to-do
+ * Habitica forgot after completing it from one deleted by hand (ADR-021).
+ */
+export function standingCompletionDate(rows: readonly LedgerRow[], habiticaId: string): string | null {
+	const own = rows.filter((row) => row.habiticaId === habiticaId);
+	const last = lastComplete(own);
+	if (!last.active) return null;
+	return own.filter((row) => row.source === 'complete' && row.n === last.n).reduce<string | null>((latest, row) => (latest === null || row.date > latest ? row.date : latest), null);
+}
+
+/**
  * Completions that still stand across every task (game-ui S15): one per `complete` transition,
  * less one per `revert`. A quest with several skills writes a row per skill that share the
  * transition, and an exact repeat is the same transition, so each counts once. Dailies count
