@@ -96,6 +96,10 @@ tasks:
   - { title: "Build the screen", phase: m1, habitica_id: null, skill: desarrollador }
 habits:
   - { title: "Code every morning", days: 21, skill: desarrollador, habitica_id: null }
+  - { title: "Fuerza para la espalda", repeat: [mon, wed, fri], habitica_id: null }
+  - title: "Rutina de mañana"
+    checklist: [Agua, Estirar, Tender la cama]
+    habitica_id: null
 ---
 ```
 
@@ -108,7 +112,12 @@ habits:
 | `stale_after_days` | Overrides the setting for this campaign | The setting |
 | `phases[].status` | Same values as `status` | `planning` |
 | `tasks[].habitica_id` | Written by **Send to Habitica**; a task is done when its to-do is completed | None |
-| `habits[].days` | Streak days that build the habit | 21 |
+| `habits[].days` | Streak days that build the habit: with a positive whole number, a habit you are building, shown over its target and "built" once reached; without one (or with anything else), a routine, shown with its streak alone (ADR-021) | None: a routine |
+| `habits[].repeat` | The weekdays its daily repeats on: a list of `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun` (a single one may be written as text), in any case; an unknown or empty entry is dropped | Every day: also when the list is empty or none of its entries is a weekday |
+| `habits[].checklist` | The items of its daily's checklist, as texts; blank items are dropped. Sent only when the daily is created: editing it later changes nothing in Habitica | None |
+| `habits[].habitica_id` | Written by **Send to Habitica**, and replaced by **Send again** only while it is still the id Habitica no longer has | None |
+
+On screen the habits are **Dailies**: each shows its days ("Mon · Wed · Fri" or "Every day") and its checklist count ("5 items"). The same fields, rules and screen apply to the `habits` of an area note (`type: archeion`, ADR-017). The key stays `habits`: notes written before ADR-021 read as before, since they all write `days`.
 
 An entry with no `id` (phase) or no `title` (task, habit) is left out. `deadline`, `area` and a task's `resources` are read, but nothing shows them yet.
 

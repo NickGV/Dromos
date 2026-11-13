@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { completedQuestCount, standingCompletionCount } from '../../../src/domain/ledger/questCounts';
+import { completedQuestCount, standingCompletionCount, standingCompletionDate } from '../../../src/domain/ledger/questCounts';
 import { row } from './ledgerFixtures';
 
 describe('completedQuestCount: quests that count toward an unlock', () => {
@@ -72,5 +72,21 @@ describe('standingCompletionCount: completions that still stand, across every ta
 
 	it('is zero for an empty ledger', () => {
 		expect(standingCompletionCount([])).toBe(0);
+	});
+});
+
+describe('standingCompletionDate: a to-do completed, as the ledger remembers it (ADR-021)', () => {
+	it('gives the day of the last completion of the task while it stands', () => {
+		const rows = [row({ habiticaId: 'a', date: '2026-10-01' }), row({ habiticaId: 'a', date: '2026-10-01', source: 'revert', xp: -10 }), row({ habiticaId: 'a', date: '2026-10-05', n: 2 }), row({ habiticaId: 'b' })];
+
+		expect(standingCompletionDate(rows, 'a')).toBe('2026-10-05');
+	});
+
+	it('is null for a task never completed, or whose last completion was reverted', () => {
+		const reverted = [row({ habiticaId: 'a', date: '2026-10-01' }), row({ habiticaId: 'a', date: '2026-10-01', source: 'revert', xp: -10 })];
+
+		expect(standingCompletionDate(reverted, 'a')).toBeNull();
+		expect(standingCompletionDate([row({ habiticaId: 'b' })], 'a')).toBeNull();
+		expect(standingCompletionDate([], 'a')).toBeNull();
 	});
 });

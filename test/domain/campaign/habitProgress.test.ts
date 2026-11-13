@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_HABIT_DAYS, habitProgress } from '../../../src/domain/campaign/habitProgress';
+import { habitProgress } from '../../../src/domain/campaign/habitProgress';
 
+// ADR-021: a habit has no default target any more; one without `days` is a routine, which has no progress.
 describe('habitProgress: a habit is built by a strict streak (S8)', () => {
-	it('uses 21 days by default', () => {
-		expect(DEFAULT_HABIT_DAYS).toBe(21);
-	});
-
 	it('shows the streak over the target days', () => {
 		expect(habitProgress(12, 21)).toEqual({ done: 12, total: 21, ratio: 12 / 21 });
 	});

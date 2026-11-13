@@ -46,3 +46,22 @@ describe('linkOutcomeView', () => {
 		expect(view.message).toContain('no se pudo guardar');
 	});
 });
+
+describe('linkOutcomeView: "Enviar de nuevo" refused because the note changed (ADR-021)', () => {
+	it('says the note changed and nothing was sent', () => {
+		expect(linkOutcomeView({ kind: 'changed', habiticaId: null }, t)).toEqual({
+			tone: 'warning',
+			message: 'La nota cambió mientras tanto, así que no se envió nada. Sincroniza e inténtalo de nuevo.',
+		});
+		expect(linkOutcomeView({ kind: 'changed', habiticaId: null }, createTranslator('en')).message).toBe('The note changed meanwhile, so nothing was sent. Sync and try again.');
+	});
+
+	it('gives the id of the new copy when the note changed while it was being sent', () => {
+		const view = linkOutcomeView({ kind: 'changed', habiticaId: ID }, t);
+
+		expect(view).toEqual({ tone: 'warning', message: `La nota cambió durante el envío, así que su id no se reemplazó. Borra la copia nueva en Habitica. Id: ${ID}` });
+		expect(linkOutcomeView({ kind: 'changed', habiticaId: ID }, createTranslator('en')).message).toBe(
+			`The note changed while sending, so its id was not replaced. Delete the new copy in Habitica. Id: ${ID}`,
+		);
+	});
+});

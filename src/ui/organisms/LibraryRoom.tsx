@@ -28,6 +28,8 @@ export interface LibraryRoomProps {
 	readonly sendingHabit?: SendingHabit | null;
 	/** "Enviar a Habitica" for the habit `title` of the area at `areaPath`. */
 	readonly onSendHabit?: (areaPath: string, title: string) => void;
+	/** "Enviar de nuevo" for the daily `title` of the area at `areaPath`, once Habitica confirmed it deleted (ADR-021). */
+	readonly onResendHabit?: (areaPath: string, title: string) => void;
 	/** The doorway "El archivo" in the wall, after the alcoves (M8 S2); absent or `null`, no doorway. */
 	readonly archive?: ArchiveDoorView | null;
 	/** Opens the archive in place of the room. */
@@ -37,13 +39,14 @@ export interface LibraryRoomProps {
 /**
  * The reading room, level 1 of the library (M7 S5): the summary, then the wall with one alcove per
  * shelf, the reading desk with the books being read, and the reading habits right after the desk
- * (ADR-017), each with its streak and, while unsent, "Enviar a Habitica". The wall comes first, as
+ * (ADR-017), each with its days, its streak and, while unsent, "Enviar a Habitica", or "Enviar de
+ * nuevo" once Habitica confirmed it deleted (ADR-021). The wall comes first, as
  * the back of the room on wide panes; on phones the stylesheet puts the desk and the habits first,
  * so what is being read shows without scrolling. Each scene is built in layers (S6). An empty
  * library keeps a bare niche and a bare desk, which says so. When given, the doorway to the archive
  * (M8 S2) opens in the wall after the alcoves, in an empty library too.
  */
-export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-library', habits = null, sendingHabit = null, onSendHabit, archive = null, onOpenArchive }: LibraryRoomProps) {
+export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-library', habits = null, sendingHabit = null, onSendHabit, onResendHabit, archive = null, onOpenArchive }: LibraryRoomProps) {
 	const deskLine = view.empty ?? view.desk.empty;
 	return (
 		<div className="dromos-library-room">
@@ -101,7 +104,7 @@ export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-
 								key={`${areaPath}:${index}:${row.title}`}
 								row={row}
 								sending={sendingHabit !== null && sendingHabit.areaPath === areaPath && sendingHabit.title === row.title}
-								onSend={() => onSendHabit?.(areaPath, row.title)}
+								onSend={() => (row.canResend ? onResendHabit?.(areaPath, row.title) : onSendHabit?.(areaPath, row.title))}
 							/>
 						))}
 					</ul>

@@ -14,8 +14,10 @@ import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcome
 /** What the campaigns panel needs from the application layer; built in `src/composition`. */
 export interface CampaignsDeps {
 	readonly syncCampaigns: Pick<SyncCampaigns, 'execute' | 'reload'>;
-	readonly linkTask: Pick<LinkTaskToCampaign, 'execute'>;
-	readonly linkHabit: Pick<LinkHabitToCampaign, 'execute'>;
+	/** `execute` sends a task for the first time; `resend` sends again one Habitica confirmed deleted (ADR-021). */
+	readonly linkTask: Pick<LinkTaskToCampaign, 'execute' | 'resend'>;
+	/** The same for a daily. */
+	readonly linkHabit: Pick<LinkHabitToCampaign, 'execute' | 'resend'>;
 	/** The session's campaigns right now; reads `syncing` as soon as `syncCampaigns.execute()` returns. */
 	readonly campaignSnapshot: () => CampaignSnapshot;
 	/** The `staleAfterDays` setting, read on every render so a change applies at once. */
@@ -66,7 +68,8 @@ let campaignsCount = 0;
 
 /**
  * Container of the campaigns (S5, S6): syncs when it mounts and whenever `syncKey` changes
- * (the home's "Sincronizar"), and sends a task to Habitica on request. It never polls (S4).
+ * (the home's "Sincronizar"), and sends a task to Habitica on request, or again once Habitica
+ * confirmed it deleted (ADR-021). It never polls (S4).
  */
 export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: CampaignsPanelProps) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
@@ -101,10 +104,11 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: 
 	}, [sync, syncKey]);
 
 	const send = useCallback(
-		async (path: string, kind: Sending['kind'], title: string): Promise<void> => {
+		async (path: string, kind: Sending['kind'], title: string, again = false): Promise<void> => {
 			setSending({ kind, title });
 			setMessage(null);
-			const outcome = await (kind === 'habit' ? deps.linkHabit.execute(path, title) : deps.linkTask.execute(path, title));
+			const link = kind === 'habit' ? deps.linkHabit : deps.linkTask;
+			const outcome = await (again ? link.resend(path, title) : link.execute(path, title));
 			if (!mounted.current) return;
 			setMessage({ ...linkOutcomeView(outcome, t), path });
 			// Keep "Enviando…" until the list is refreshed, so the button never flashes back. Only
@@ -139,6 +143,12 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: 
 				}}
 				onSendHabit={(habitTitle) => {
 					if (shown !== null) void send(shown, 'habit', habitTitle);
+				}}
+				onResend={(taskTitle) => {
+					if (shown !== null) void send(shown, 'task', taskTitle, true);
+				}}
+				onResendHabit={(habitTitle) => {
+					if (shown !== null) void send(shown, 'habit', habitTitle, true);
 				}}
 				onToggleGroup={(groupKey) => {
 					if (shown !== null) setExpandedGroups((current) => toggled(current, groupToggleKey(shown, groupKey)));

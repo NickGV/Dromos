@@ -4,6 +4,7 @@ import { buildActiveCampaigns, buildCompletedCampaigns, type VaultNote } from '.
 
 const ID = '3f2a1c8e-0000-4000-8000-000000000001';
 const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+const EVERY_DAY = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 function note(path: string, frontmatter: unknown): VaultNote {
 	return { path, frontmatter, createdOn: '2026-11-06' };
@@ -45,8 +46,8 @@ describe('areaFromNote (ADR-017)', () => {
 			title: 'Archeion - Bibliotheke',
 			skills: ['lector', 'escritor'],
 			habits: [
-				{ title: 'Leer 10 minutos', days: 21, skills: ['lector'], habiticaId: ID, streak: null },
-				{ title: 'Releer notas', days: 21, skills: [], habiticaId: null, streak: null },
+				{ title: 'Leer 10 minutos', days: 21, repeat: EVERY_DAY, checklist: [], skills: ['lector'], habiticaId: ID, streak: null },
+				{ title: 'Releer notas', days: null, repeat: EVERY_DAY, checklist: [], skills: [], habiticaId: null, streak: null },
 			],
 		});
 	});
@@ -59,10 +60,18 @@ describe('areaFromNote (ADR-017)', () => {
 		expect(areaFromNote(archeion({ title: undefined }, '03 - Areas/Kairos/Archeion - Kairos.md')).title).toBe('Archeion - Kairos');
 	});
 
+	it('reads the days and the checklist of an area daily with the schema of a campaign daily (ADR-021)', () => {
+		expect(areaFromNote(archeion({ habits: [{ title: 'Leer 10 minutos', repeat: ['sat', 'sun'], checklist: ['Elegir libro'] }] })).habits[0]).toMatchObject({
+			days: null,
+			repeat: ['sat', 'sun'],
+			checklist: ['Elegir libro'],
+		});
+	});
+
 	it('falls back to no skills and no habits for missing or wrongly typed fields, never a throw', () => {
 		expect(areaFromNote(archeion({ skill: undefined, habits: 'text' }))).toMatchObject({ skills: [], habits: [] });
 		expect(areaFromNote(archeion({ skill: 7, habits: [{ days: 3 }, null, { title: 'Ok', days: 'x' }] })).habits).toEqual([
-			{ title: 'Ok', days: 21, skills: [], habiticaId: null, streak: null },
+			{ title: 'Ok', days: null, repeat: EVERY_DAY, checklist: [], skills: [], habiticaId: null, streak: null },
 		]);
 	});
 });

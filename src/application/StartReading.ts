@@ -120,10 +120,11 @@ function fromLinkOutcome(outcome: LinkOutcome): StartReadingOutcome {
 		case 'write-failed':
 		case 'duplicate':
 			return outcome;
-		// Campaign checks `sendAndLink` never makes; listed so a new kind fails to compile here.
+		// Campaign checks `sendAndLink` never makes, and the resend's `changed`; listed so a new kind fails to compile here.
 		case 'already-linked':
 		case 'not-found':
 		case 'not-a-project':
+		case 'changed':
 			return { kind: 'not-found' };
 	}
 }

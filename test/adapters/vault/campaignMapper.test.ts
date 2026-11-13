@@ -381,6 +381,8 @@ describe('completed campaigns (they count toward the campaigns requirement of a 
 	});
 });
 
+const EVERY_DAY = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
 describe('campaign habits (S8)', () => {
 	const withHabits = (habits: unknown, extra: Record<string, unknown> = {}) =>
 		campaignFromNote(note('02 - Projects/Salto/README.md', { type: 'index', status: 'active', skill: 'atleta', habits, ...extra }));
@@ -391,19 +393,25 @@ describe('campaign habits (S8)', () => {
 		]);
 
 		expect(campaign.habits).toEqual([
-			{ title: 'Estiramiento diario', days: 30, skills: ['atleta', 'cuidador'], habiticaId: '3f2a1c8e-0000-4000-8000-000000000009', streak: null },
+			{ title: 'Estiramiento diario', days: 30, repeat: EVERY_DAY, checklist: [], skills: ['atleta', 'cuidador'], habiticaId: '3f2a1c8e-0000-4000-8000-000000000009', streak: null },
 		]);
 	});
 
-	it('uses 21 days when the habit gives none or a bad number, reads digits in a text as a number, and has no skill of its own', () => {
+	it('has no streak target when the habit gives none or a bad number (ADR-021), reads digits in a text as a number, and has no skill of its own', () => {
 		const campaign = withHabits([{ title: 'A' }, { title: 'B', days: 0 }, { title: 'C', days: '10' }, { title: 'D', days: 2.5 }, { title: 'E', days: 'ten' }]);
 
 		expect(campaign.habits.map((habit) => [habit.title, habit.days, habit.skills, habit.habiticaId])).toEqual([
-			['A', 21, [], null],
-			['B', 21, [], null],
+			['A', null, [], null],
+			['B', null, [], null],
 			['C', 10, [], null],
-			['D', 21, [], null],
-			['E', 21, [], null],
+			['D', null, [], null],
+			['E', null, [], null],
+		]);
+	});
+
+	it('reads a note of today, `days: 21` and none of the new fields, as before: 21 days, every day, no checklist', () => {
+		expect(withHabits([{ title: 'Leer 10 minutos', days: 21, skill: 'lector', habitica_id: null }]).habits).toEqual([
+			{ title: 'Leer 10 minutos', days: 21, repeat: EVERY_DAY, checklist: [], skills: ['lector'], habiticaId: null, streak: null },
 		]);
 	});
 
@@ -423,5 +431,35 @@ describe('campaign habits (S8)', () => {
 		const research = campaignFromNote(note('03 - Areas/Bible/Estudio/Apocrifos/Estudio.md', { type: 'research', status: 'active', habits: [{ title: 'Read' }] }));
 
 		expect(research.habits).toEqual([]);
+	});
+});
+
+describe('campaign dailies: repeat days and checklist (ADR-021)', () => {
+	const habitOf = (fields: Record<string, unknown>) =>
+		campaignFromNote(note('02 - Projects/Salto/README.md', { type: 'index', status: 'active', habits: [{ title: 'Caminar', ...fields }] })).habits[0];
+
+	it('reads `repeat` as weekdays, case-insensitive, deduplicated and in week order', () => {
+		expect(habitOf({ repeat: ['fri', 'Mon', ' WED ', 'mon'] })?.repeat).toEqual(['mon', 'wed', 'fri']);
+		expect(habitOf({ repeat: ['mon', 'tue', 'wed', 'thu', 'fri'] })?.repeat).toEqual(['mon', 'tue', 'wed', 'thu', 'fri']);
+	});
+
+	it('drops an unknown or empty entry of `repeat` and keeps the rest', () => {
+		expect(habitOf({ repeat: ['mon', 'monday', '', null, 3, 'sun'] })?.repeat).toEqual(['mon', 'sun']);
+	});
+
+	it('repeats every day when `repeat` is missing, empty or wholly invalid', () => {
+		for (const repeat of [undefined, null, [], ['', 'lunes', 7], {}, 7]) expect(habitOf({ repeat })?.repeat).toEqual(EVERY_DAY);
+	});
+
+	it('reads a single weekday written as text as a list of one', () => {
+		expect(habitOf({ repeat: 'Sun' })?.repeat).toEqual(['sun']);
+	});
+
+	it('reads `checklist` as its non-empty texts, trimmed, in order', () => {
+		expect(habitOf({ checklist: [' Agua ', 'Estirar', '', '   ', null, 4, { text: 'x' }, 'Cama'] })?.checklist).toEqual(['Agua', 'Estirar', 'Cama']);
+	});
+
+	it('has no checklist when `checklist` is missing or not a list', () => {
+		for (const checklist of [undefined, null, 'Agua', 3, {}]) expect(habitOf({ checklist })?.checklist).toEqual([]);
 	});
 });

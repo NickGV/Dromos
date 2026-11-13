@@ -24,6 +24,10 @@ export interface CampaignScreenProps {
 	readonly onOpenNote: (path: string) => void;
 	readonly onSend: (taskTitle: string) => void;
 	readonly onSendHabit: (habitTitle: string) => void;
+	/** "Send again" for a task Habitica confirmed deleted (ADR-021). */
+	readonly onResend?: (taskTitle: string) => void;
+	/** "Send again" for a daily Habitica confirmed deleted (ADR-021). */
+	readonly onResendHabit?: (habitTitle: string) => void;
 	/** Expands or folds the phase panel with this key (missions S3). */
 	readonly onToggleGroup?: (groupKey: string) => void;
 	/** Opens or folds the subtasks of the mission with this title (missions S5). */
@@ -32,9 +36,9 @@ export interface CampaignScreenProps {
 
 /**
  * The campaigns screen under its header card (game-ui S8): a tab per campaign, the header panel
- * of the one shown, its path, its tasks by phase and its habits, with its notices and problems.
+ * of the one shown, its path, its tasks by phase and its dailies (ADR-021), with its notices and problems.
  */
-export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onToggleGroup, onToggleMission }: CampaignScreenProps) {
+export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onResend, onResendHabit, onToggleGroup, onToggleMission }: CampaignScreenProps) {
 	const { campaign } = view;
 	return (
 		<div className="dromos-campaign-screen dromos-campaigns">
@@ -78,7 +82,7 @@ export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, o
 														key={`${index}:${row.title}`}
 														row={row}
 														sending={sending?.kind === 'task' && sending.title === row.title}
-														onSend={() => onSend(row.title)}
+														onSend={() => (row.canResend ? onResend?.(row.title) : onSend(row.title))}
 														onToggleSubtasks={() => onToggleMission?.(row.title)}
 													/>
 											))}
@@ -94,7 +98,12 @@ export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, o
 							<h3 className="dromos-card-title">{campaign.habitsTitle}</h3>
 							<ul className="dromos-panel dromos-habit-list">
 								{campaign.habits.map((row, index) => (
-									<HabitRow key={`${index}:${row.title}`} row={row} sending={sending?.kind === 'habit' && sending.title === row.title} onSend={() => onSendHabit(row.title)} />
+									<HabitRow
+										key={`${index}:${row.title}`}
+										row={row}
+										sending={sending?.kind === 'habit' && sending.title === row.title}
+										onSend={() => (row.canResend ? onResendHabit?.(row.title) : onSendHabit(row.title))}
+									/>
 								))}
 							</ul>
 						</section>

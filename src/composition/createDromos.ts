@@ -78,12 +78,26 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const campaignState = new CampaignState();
 	const campaignRepository = new VaultCampaignRepository(plugin.app);
 	const vaultFolder = (): string => settings.vaultFolder;
+	const ledger = new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today());
+	// One campaigns sync for the session: it also brings the streaks of the areas' reading habits (ADR-017),
+	// and reads the ledger only to tell a completed to-do Habitica forgot from a deleted one (ADR-021).
+	const syncCampaigns = new SyncCampaigns({
+		repository: campaignRepository,
+		areas: campaignRepository,
+		source: new HabiticaTaskStatusSource(habitica),
+		ledger,
+		clock,
+		state: campaignState,
+		hasCredentials,
+	});
 	const sendDeps = {
 		repository: campaignRepository,
 		creator: new HabiticaTaskCreator(habitica),
 		tags: new HabiticaTagCatalog(habitica),
 		// Sent to the user's own Habitica account inside the task's notes, as a Markdown link Habitica makes clickable.
 		noteLink: (path: string) => obsidianNoteLink(createTranslator(settings.language)('link.openInObsidian'), plugin.app.vault.getName(), path),
+		// "Enviar de nuevo" replaces only an id the last sync found deleted in Habitica (ADR-021).
+		deleted: (habiticaId: string) => syncCampaigns.isDeleted(habiticaId),
 	};
 	const books = new VaultBookRepository(plugin.app);
 	// The archive's resources (ADR-018): read with the books; Dromos writes only `finished`.
@@ -98,15 +112,6 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const finishReading = new FinishReading({ repository: books, clock });
 	// "Marcar como leído" on a resource of the archive (M8 S6): writes only `finished`, no request, no XP.
 	const markResourceFinished = new MarkResourceFinished({ repository: resources, clock });
-	// One campaigns sync for the session: it also brings the streaks of the areas' reading habits (ADR-017).
-	const syncCampaigns = new SyncCampaigns({
-		repository: campaignRepository,
-		areas: campaignRepository,
-		source: new HabiticaTaskStatusSource(habitica),
-		clock,
-		state: campaignState,
-		hasCredentials,
-	});
 	const linkAreaHabit = new LinkHabitToArea(sendDeps);
 	// One renderer for the briefing and the book card: both draw note text as Obsidian does.
 	const renderMarkdown = createMarkdownRender(plugin.app);
@@ -128,7 +133,6 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	const deviceStore = new LocalDeviceStore(plugin.app);
 	const gameState = new GameState();
 	const skills = new VaultSkillRepository(plugin.app, vaultFolder);
-	const ledger = new VaultLedgerRepository(plugin.app, vaultFolder, () => clock.today());
 	const syncGame = new SyncGame({
 		skills,
 		ledger,
@@ -186,7 +190,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				openNote,
 				clock,
 			},
-			// "Empezar a leer", "Terminar" (M7 S3, S4), a resource's "Marcar como leído" (M8 S6) and a habit's "Enviar a Habitica" (ADR-017) toast their outcome; the screen reads again after.
+			// "Empezar a leer", "Terminar" (M7 S3, S4), a resource's "Marcar como leído" (M8 S6) and a habit's "Enviar a Habitica" (ADR-017) or "Enviar de nuevo" (ADR-021) toast their outcome; the screen reads again after.
 			library: {
 				loadLibrary: new LoadLibrary({ books, resources }),
 				readReflection: new ReadReflection({ books }),
@@ -201,6 +205,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 					snapshot: () => campaignState.snapshot(),
 					sync: syncCampaigns,
 					send: async (areaPath, title) => showNotice(linkOutcomeView(await linkAreaHabit.execute(areaPath, title), createTranslator(settings.language)).message),
+					resend: async (areaPath, title) => showNotice(linkOutcomeView(await linkAreaHabit.resend(areaPath, title), createTranslator(settings.language)).message),
 				},
 				openCard: createOpenCardModal(plugin.app),
 				openNote,

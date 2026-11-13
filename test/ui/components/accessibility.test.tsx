@@ -48,13 +48,13 @@ describe('busy buttons keep keyboard focus', () => {
 	});
 
 	it('Send to Habitica on a task is aria-disabled, not disabled, while it sends', () => {
-		const tag = buttonTag(renderToStaticMarkup(<CampaignTaskRow row={{ title: 'Login screen', completed: false, chip: { label: 'Pending', tone: 'pending' }, canSend: true }} sending onSend={noop} />));
+		const tag = buttonTag(renderToStaticMarkup(<CampaignTaskRow row={{ title: 'Login screen', completed: false, chip: { label: 'Pending', tone: 'pending' }, canSend: true, canResend: false }} sending onSend={noop} />));
 		expect(tag).toContain('aria-disabled="true"');
 		expect(tag).not.toMatch(/\sdisabled=/);
 	});
 
 	it('Send to Habitica on a habit is aria-disabled, not disabled, while it sends', () => {
-		const row = { title: 'Code 30 minutes', state: 'unsent' as const, canSend: true, progress: { done: 0, total: 21, percent: 0 }, text: 'Target: 21 days' };
+		const row = { title: 'Code 30 minutes', state: 'unsent' as const, canSend: true, canResend: false, schedule: 'Every day', items: null, progress: { done: 0, total: 21, percent: 0 }, text: 'Target: 21 days' };
 		const tag = buttonTag(renderToStaticMarkup(<HabitRow row={row} sending onSend={noop} />));
 		expect(tag).toContain('aria-disabled="true"');
 		expect(tag).not.toMatch(/\sdisabled=/);

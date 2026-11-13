@@ -1,11 +1,15 @@
-import type { TaskStatus, TaskStatusSource } from '../../src/ports';
+import type { LinkedTasks, TaskStatus, TaskStatusSource } from '../../src/ports';
 
 type Step = () => Promise<ReadonlyMap<string, TaskStatus>>;
 
-/** Status source scripted per call. `calls` counts requests; `askedFor` keeps the ids of each one. */
+/**
+ * Status source scripted per call. `calls` counts requests; `askedFor` keeps every id of each one,
+ * to-dos first; `requests` keeps each one as asked, to-dos and dailies apart.
+ */
 export class FakeTaskStatusSource implements TaskStatusSource {
 	calls = 0;
 	readonly askedFor: (readonly string[])[] = [];
+	readonly requests: LinkedTasks[] = [];
 	private readonly steps: Step[] = [];
 
 	/** The next call resolves with these answers. */
@@ -33,9 +37,10 @@ export class FakeTaskStatusSource implements TaskStatusSource {
 		return () => release?.();
 	}
 
-	fetchStatuses(ids: readonly string[]): Promise<ReadonlyMap<string, TaskStatus>> {
+	fetchStatuses(linked: LinkedTasks): Promise<ReadonlyMap<string, TaskStatus>> {
 		this.calls += 1;
-		this.askedFor.push(ids);
+		this.askedFor.push([...linked.todos, ...linked.dailies]);
+		this.requests.push(linked);
 		const step = this.steps.shift();
 		return step ? step() : Promise.reject(new Error(`FakeTaskStatusSource: no response scripted for call ${this.calls}`));
 	}

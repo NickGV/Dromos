@@ -1,3 +1,5 @@
+import type { Weekday } from '../domain';
+
 /** A to-do to create in Habitica. */
 export interface NewTodo {
 	readonly title: string;
@@ -8,8 +10,14 @@ export interface NewTodo {
 	readonly checklist?: readonly string[];
 }
 
-/** A daily to create in Habitica: the habit a campaign asks to build. */
-export type NewDaily = NewTodo;
+/**
+ * A daily to create in Habitica: the one a campaign or an area asks for (ADR-021). It repeats on
+ * `repeat`, and its checklist, if any, is sent only now: editing the note later changes nothing there.
+ */
+export interface NewDaily extends NewTodo {
+	/** The weekdays it is due on, every week; all seven for every day. */
+	readonly repeat: readonly Weekday[];
+}
 
 /** Where tasks are created (Habitica in M2). */
 export interface TaskCreator {

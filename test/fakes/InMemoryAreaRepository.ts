@@ -1,5 +1,5 @@
 import type { Area } from '../../src/domain';
-import type { AreaRepository, LinkResult } from '../../src/ports';
+import type { AreaRepository, LinkResult, RelinkResult } from '../../src/ports';
 
 /** Area repository backed by a list, for use-case tests. */
 export class InMemoryAreaRepository implements AreaRepository {
@@ -18,5 +18,15 @@ export class InMemoryAreaRepository implements AreaRepository {
 		const habits = area.habits.map((habit, position) => (position === index ? { ...habit, habiticaId } : habit));
 		this.areas = this.areas.map((candidate) => (candidate === area ? { ...area, habits } : candidate));
 		return Promise.resolve('linked');
+	}
+
+	/** Same compare-and-swap as the vault: the first habit with that title whose id is still `oldId` gets `newId`. */
+	relinkHabitHabiticaId(areaPath: string, habitTitle: string, oldId: string, newId: string): Promise<RelinkResult> {
+		const area = this.areas.find((candidate) => candidate.path === areaPath);
+		const index = area ? area.habits.findIndex((habit) => habit.title === habitTitle && habit.habiticaId === oldId) : -1;
+		if (!area || index === -1) return Promise.resolve('changed');
+		const habits = area.habits.map((habit, position) => (position === index ? { ...habit, habiticaId: newId } : habit));
+		this.areas = this.areas.map((candidate) => (candidate === area ? { ...area, habits } : candidate));
+		return Promise.resolve('relinked');
 	}
 }

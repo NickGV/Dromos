@@ -319,9 +319,9 @@ describe('LibraryRoom: the habits beside the desk (ADR-017, S2)', () => {
 	it('draws the habits right after the desk, under their own heading, each with its streak', () => {
 		const html = roomWithHabits();
 
-		expect(headings(html)).toEqual(['Los estantes', 'Leyendo ahora', 'Hábitos']);
+		expect(headings(html)).toEqual(['Los estantes', 'Leyendo ahora', 'Diarias']);
 		expect(html.indexOf('dromos-library-habits')).toBeGreaterThan(html.indexOf('dromos-library-desk'));
-		expect(html).toMatch(/<section class="dromos-section dromos-library-habits" aria-labelledby="dromos-library-habits"><h3 class="dromos-card-title" id="dromos-library-habits">Hábitos<\/h3>/);
+		expect(html).toMatch(/<section class="dromos-section dromos-library-habits" aria-labelledby="dromos-library-habits"><h3 class="dromos-card-title" id="dromos-library-habits">Diarias<\/h3>/);
 		expect(html).toContain('Racha: 6 de 21 días');
 		expect(html).toContain('Meta: 14 días');
 		expect(html.match(/<li class="dromos-habit is-/g)).toHaveLength(2);
@@ -331,7 +331,7 @@ describe('LibraryRoom: the habits beside the desk (ADR-017, S2)', () => {
 		expect(buttonTexts(roomWithHabits())).toContain('Enviar a Habitica');
 		expect(buttonTexts(roomWithHabits()).filter((text) => text === 'Enviar a Habitica')).toHaveLength(1);
 		expect(roomWithHabits(es, { areaPath: BIBLIOTHEKE, title: 'Releer notas' })).toContain('Enviando…');
-		expect(roomWithHabits(en)).toContain('>Habits</h3>');
+		expect(roomWithHabits(en)).toContain('>Dailies</h3>');
 	});
 
 	it('sends the habit with the path of its area', () => {
@@ -357,5 +357,44 @@ describe('LibraryRoom: the habits beside the desk (ADR-017, S2)', () => {
 		expect(html).not.toContain('dromos-library-habits');
 		expect(headings(html)).toEqual(['Los estantes', 'Leyendo ahora']);
 		expect(room()).not.toContain('dromos-library-habits');
+	});
+});
+
+describe('LibraryRoom: a reading daily deleted in Habitica (ADR-021)', () => {
+	const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+	const deleted: CampaignSnapshot = {
+		campaigns: [],
+		areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: 'd1', repeat: ['mon', 'wed', 'fri'], checklist: ['Elegir libro'] }), habit('Releer notas')] })],
+		issues: [{ campaignPath: BIBLIOTHEKE, taskTitle: 'Leer 10 minutos', kind: 'habitica-task-deleted' }],
+		lastSyncedAt: new Date('2026-11-09T12:00:00Z'),
+		status: { kind: 'synced' },
+	};
+
+	it('shows its days, its items, "Borrada en Habitica" and "Enviar de nuevo"', () => {
+		const html = renderToStaticMarkup(
+			<I18nProvider t={es}>
+				<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, es)} habits={libraryHabitsView(deleted, es)} onOpenShelf={noop} onOpenCard={noop} />
+			</I18nProvider>,
+		);
+
+		expect(html).toContain('<span class="dromos-habit-meta"><span>lun · mié · vie</span><span>1 ítem</span></span>');
+		expect(html).toContain('Borrada en Habitica');
+		expect(html).toContain('Enviar de nuevo');
+	});
+
+	it('sends the deleted daily again, and the unsent one for the first time, each with the path of its area', () => {
+		const calls: string[] = [];
+		const tree = LibraryRoom({
+			view: libraryRoomView(LIBRARY, TODAY, es),
+			habits: libraryHabitsView(deleted, es),
+			onSendHabit: (areaPath, title) => calls.push(`send:${areaPath}|${title}`),
+			onResendHabit: (areaPath, title) => calls.push(`resend:${areaPath}|${title}`),
+			onOpenShelf: noop,
+			onOpenCard: noop,
+		});
+
+		for (const row of componentsOf(tree, HabitRow)) (row.props.onSend as () => void)();
+
+		expect(calls).toEqual([`resend:${BIBLIOTHEKE}|Leer 10 minutos`, `send:${BIBLIOTHEKE}|Releer notas`]);
 	});
 });

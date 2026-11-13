@@ -1,5 +1,5 @@
 import type { Area } from '../../../src/domain/area/Area';
-import type { Campaign, CampaignHabit, CampaignTask, Phase } from '../../../src/domain/campaign/Campaign';
+import { WEEKDAYS, type Campaign, type CampaignHabit, type CampaignTask, type Phase } from '../../../src/domain/campaign/Campaign';
 
 export function phase(id: string, status: Phase['status'] = 'planning'): Phase {
 	return { id, name: `Phase ${id}`, status };
@@ -19,7 +19,7 @@ export function task(title: string, phaseId: string | null, overrides: Partial<C
 }
 
 export function habit(title: string, overrides: Partial<CampaignHabit> = {}): CampaignHabit {
-	return { title, days: 21, skills: [], habiticaId: null, streak: null, ...overrides };
+	return { title, days: 21, repeat: WEEKDAYS, checklist: [], skills: [], habiticaId: null, streak: null, ...overrides };
 }
 
 export function campaign(overrides: Partial<Campaign> = {}): Campaign {

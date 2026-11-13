@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HabiticaClient } from '../../../src/adapters/habitica/HabiticaClient';
 import { HabiticaTaskCreator } from '../../../src/adapters/habitica/HabiticaTaskCreator';
 import { TaskSourceError } from '../../../src/ports/TaskSourceError';
-import { FakeHttp, respond, type FakeOutcome } from './FakeHttp';
+import { FakeHttp, habiticaFixture, respond, type FakeOutcome } from './FakeHttp';
 
 const URL = 'https://habitica.com/api/v3/tasks/user';
 const TOKEN = 'secret-token-0000-4000-8000-123456789abc';
@@ -83,22 +83,82 @@ describe('HabiticaTaskCreator.createTodo', () => {
 	});
 });
 
+const EVERY_DAY = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+/** Habitica's schedule of a daily due every day: weekly, every week, all seven days on (ADR-021). */
+const DAILY_EVERY_DAY = { frequency: 'weekly', everyX: 1, repeat: { m: true, t: true, w: true, th: true, f: true, s: true, su: true } };
+
 describe('HabiticaTaskCreator.createDaily', () => {
-	it('posts one daily with its title, notes and tags and resolves with the new id', async () => {
-		const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
+    it('posts one daily with its title, notes, tags and schedule and resolves with the new id', async () => {
+        const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
 
-		const id = await creator.createDaily({ title: 'Stretch', notes: 'Dromos · Salto', tags: ['t-atleta'] });
+        const id = await creator.createDaily({ title: 'Stretch', notes: 'Dromos · Salto', tags: ['t-atleta'], repeat: EVERY_DAY });
 
-		expect(id).toBe(ID);
-		expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({ text: 'Stretch', type: 'daily', notes: 'Dromos · Salto', tags: ['t-atleta'] });
-	});
+        expect(id).toBe(ID);
+        expect(JSON.parse(http.requests[0]?.body ?? '{}')).toEqual({ text: 'Stretch', type: 'daily', notes: 'Dromos · Salto', tags: ['t-atleta'], ...DAILY_EVERY_DAY });
+    });
 
-	it('sends no tags key without tags and rejects with the typed errors', async () => {
-		const plain = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
-		await plain.creator.createDaily({ title: 'Stretch', notes: '' });
-		expect(JSON.parse(plain.http.requests[0]?.body ?? '{}')).toEqual({ text: 'Stretch', type: 'daily', notes: '' });
+    it('sends no tags key without tags and rejects with the typed errors', async () => {
+        const plain = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
+        await plain.creator.createDaily({ title: 'Stretch', notes: '', repeat: EVERY_DAY });
+        expect(JSON.parse(plain.http.requests[0]?.body ?? '{}')).toEqual({ text: 'Stretch', type: 'daily', notes: '', ...DAILY_EVERY_DAY });
 
-		await expect(creatorWith(respond(401, {})).creator.createDaily({ title: 'Stretch', notes: '' })).rejects.toMatchObject({ kind: 'Unauthorized' });
-		await expect(creatorWith(respond(201, { success: true, data: [{ id: ID }] })).creator.createDaily({ title: 'Stretch', notes: '' })).rejects.toMatchObject({ kind: 'Unknown' });
-	});
+        await expect(creatorWith(respond(401, {})).creator.createDaily({ title: 'Stretch', notes: '', repeat: EVERY_DAY })).rejects.toMatchObject({ kind: 'Unauthorized' });
+        await expect(creatorWith(respond(201, { success: true, data: [{ id: ID }] })).creator.createDaily({ title: 'Stretch', notes: '', repeat: EVERY_DAY })).rejects.toMatchObject({
+            kind: 'Unknown',
+        });
+    });
+
+    it('repeats on the chosen weekdays only: weekly, every week, those days true and the rest false (ADR-021)', async () => {
+        const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Fuerza', type: 'daily' } }));
+
+        await creator.createDaily({ title: 'Fuerza', notes: '', repeat: ['mon', 'wed', 'fri'] });
+
+        expect(JSON.parse(http.requests[0]?.body ?? '{}')).toMatchObject({
+            frequency: 'weekly',
+            everyX: 1,
+            repeat: { m: true, t: false, w: true, th: false, f: true, s: false, su: false },
+        });
+    });
+
+    it('always sends the schedule: every day is all seven days true, never an omitted repeat', async () => {
+        const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
+
+        await creator.createDaily({ title: 'Stretch', notes: '', repeat: EVERY_DAY });
+
+        expect(JSON.parse(http.requests[0]?.body ?? '{}')).toMatchObject(DAILY_EVERY_DAY);
+    });
+
+    it('never creates a daily due on no day: an empty list of weekdays is every day', async () => {
+        const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
+
+        await creator.createDaily({ title: 'Stretch', notes: '', repeat: [] });
+
+        expect(JSON.parse(http.requests[0]?.body ?? '{}')).toMatchObject(DAILY_EVERY_DAY);
+    });
+
+    it('sends the checklist as unchecked items, in order, and no checklist key when it is empty', async () => {
+        const listed = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Rutina de mañana', type: 'daily' } }));
+        await listed.creator.createDaily({ title: 'Rutina de mañana', notes: '', repeat: EVERY_DAY, checklist: ['Agua', 'Estirar'] });
+        expect(JSON.parse(listed.http.requests[0]?.body ?? '{}')).toMatchObject({
+            checklist: [
+                { text: 'Agua', completed: false },
+                { text: 'Estirar', completed: false },
+            ],
+        });
+
+        const plain = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Stretch', type: 'daily' } }));
+        await plain.creator.createDaily({ title: 'Stretch', notes: '', repeat: EVERY_DAY, checklist: [] });
+        expect(JSON.parse(plain.http.requests[0]?.body ?? '{}')).not.toHaveProperty('checklist');
+    });
+
+    it('uses the field names of a recorded Habitica daily for the schedule', async () => {
+        // "Weekly review" in the fixture repeats on Sundays only.
+        const recorded = ((await habiticaFixture('dailys')) as { data: Record<string, unknown>[] }).data[2] ?? {};
+        const { http, creator } = creatorWith(respond(201, { success: true, data: { _id: ID, id: ID, text: 'Weekly review', type: 'daily' } }));
+
+        await creator.createDaily({ title: 'Weekly review', notes: '', repeat: ['sun'] });
+
+        const body = JSON.parse(http.requests[0]?.body ?? '{}') as Record<string, unknown>;
+        expect({ frequency: body.frequency, everyX: body.everyX, repeat: body.repeat }).toEqual({ frequency: recorded.frequency, everyX: recorded.everyX, repeat: recorded.repeat });
+    });
 });

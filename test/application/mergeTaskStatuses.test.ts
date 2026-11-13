@@ -134,3 +134,27 @@ describe('mergeAreaStatuses: the habits of an area (ADR-017)', () => {
 		expect(merged.issues).toEqual([{ campaignPath: PATH, taskTitle: 'Leer', kind: 'habitica-task-missing' }]);
 	});
 });
+
+describe('mergeTaskStatuses: what Habitica deleted (ADR-021)', () => {
+	it('flags a deleted task as deleted and keeps it pending', () => {
+		const kairos = campaign({ path: 'P/Kairos/README.md', tasks: [task('gone', null, { habiticaId: 'h1' })] });
+
+		const merged = mergeTaskStatuses([kairos], statuses({ h1: { kind: 'deleted' } }));
+
+		expect(merged.campaigns[0]?.tasks[0]).toMatchObject({ completed: false, completedOn: null });
+		expect(merged.issues).toEqual([{ campaignPath: 'P/Kairos/README.md', taskTitle: 'gone', kind: 'habitica-task-deleted' }]);
+	});
+
+	it('flags a deleted daily as deleted and clears its streak, in a campaign and in an area', () => {
+		const salto = campaign({ path: 'P/Salto/README.md', habits: [habit('Caminar', { habiticaId: 'd1', streak: 4 })] });
+		const bibliotheke = area({ path: 'A/Bibliotheke.md', habits: [habit('Leer', { habiticaId: 'd2', streak: 6 })] });
+
+		const fromCampaigns = mergeTaskStatuses([salto], statuses({ d1: { kind: 'deleted' } }));
+		const fromAreas = mergeAreaStatuses([bibliotheke], statuses({ d2: { kind: 'deleted' } }));
+
+		expect(fromCampaigns.campaigns[0]?.habits[0]?.streak).toBeNull();
+		expect(fromCampaigns.issues).toEqual([{ campaignPath: 'P/Salto/README.md', taskTitle: 'Caminar', kind: 'habitica-task-deleted' }]);
+		expect(fromAreas.areas[0]?.habits[0]?.streak).toBeNull();
+		expect(fromAreas.issues).toEqual([{ campaignPath: 'A/Bibliotheke.md', taskTitle: 'Leer', kind: 'habitica-task-deleted' }]);
+	});
+});

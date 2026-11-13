@@ -103,7 +103,7 @@ describe('recorded Habitica fixtures (issue #8)', () => {
 		const done = completedAt('2026-11-01T00:36:14.831Z');
 		if (open === undefined) throw new Error('the recording has no open to-do');
 
-		const statuses = await new HabiticaTaskStatusSource(client).fetchStatuses([open.id, done.id]);
+		const statuses = await new HabiticaTaskStatusSource(client).fetchStatuses({ todos: [open.id, done.id], dailies: [] });
 
 		// The first recorded to-do has 6 subtasks, none done; they travel with its status (missions S2).
 		expect(statuses.get(open.id)).toMatchObject({ kind: 'open', checklist: { done: 0, total: 6 } });

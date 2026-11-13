@@ -1,13 +1,14 @@
 import {
 	comparePriority,
 	type Campaign,
-	DEFAULT_HABIT_DAYS,
 	type CampaignHabit,
 	type CampaignKind,
 	type CampaignTask,
 	type LifecycleStatus,
 	type Phase,
 	type Priority,
+	type Weekday,
+	WEEKDAYS,
 } from '../../domain';
 import { asRecord, dateOrNull, fileName, nonEmpty, oneOf, positiveInteger } from './frontmatterFields';
 import { habiticaIdFrom } from './habiticaId';
@@ -118,8 +119,10 @@ export function buildCompletedCampaigns(notes: readonly VaultNote[]): Campaign[]
 }
 
 /**
- * The `habits[]` of a project `index` or of an area `archeion` (ADR-017), with one schema: an entry
- * without a title is skipped, `days` defaults to 21, and the streak is unknown until Habitica answers.
+ * The `habits[]` of a project `index` or of an area `archeion` (ADR-017), with one schema (ADR-021):
+ * an entry without a title is skipped; `days` is a positive integer or no target at all (`null`);
+ * `repeat` gives its weekdays, every day without it; `checklist` its item texts. The streak is
+ * unknown until Habitica answers.
  */
 export function habitsFrom(value: unknown): CampaignHabit[] {
 	if (!Array.isArray(value)) return [];
@@ -130,13 +133,33 @@ export function habitsFrom(value: unknown): CampaignHabit[] {
 		return [
 			{
 				title: title.trim(),
-				days: positiveInteger(fields.days) ?? DEFAULT_HABIT_DAYS,
+				days: positiveInteger(fields.days),
+				repeat: weekdaysFrom(fields.repeat),
+				checklist: checklistFrom(fields.checklist),
 				skills: skillsFrom(fields.skill),
 				habiticaId: habiticaIdFrom(fields.habitica_id),
 				streak: null,
 			},
 		];
 	});
+}
+
+/**
+ * `repeat` as weekdays in week order: a list of `mon`..`sun` (a single one may be written as text),
+ * case-insensitive, each once. An unknown or empty entry is dropped; a missing, empty or wholly
+ * invalid list means every day, so a daily is never created to repeat on no day.
+ */
+function weekdaysFrom(value: unknown): Weekday[] {
+	const items: unknown[] = Array.isArray(value) ? value : [value];
+	const named = new Set(items.flatMap((item) => (typeof item === 'string' ? [item.trim().toLowerCase()] : [])));
+	const days = WEEKDAYS.filter((day) => named.has(day));
+	return days.length > 0 ? days : [...WEEKDAYS];
+}
+
+/** `checklist` as the texts of its items, trimmed and in order; anything that is not a non-empty text is dropped. */
+function checklistFrom(value: unknown): string[] {
+	if (!Array.isArray(value)) return [];
+	return value.flatMap((item: unknown) => (typeof item === 'string' && item.trim() !== '' ? [item.trim()] : []));
 }
 
 function phasesFrom(value: unknown): Phase[] {
