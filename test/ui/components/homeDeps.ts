@@ -59,6 +59,7 @@ export function homeDeps(
 		loadAvatar: { read: never },
 		loadTitles: { execute: never },
 		chooseTitle: { execute: never },
+		loadWeekReport: { execute: never },
 		openCard: () => ({ show: noop, close: noop }),
 		gameSnapshot: () => game,
 		dismissGameEvents: noop,

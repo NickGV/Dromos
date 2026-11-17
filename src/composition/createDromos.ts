@@ -18,6 +18,7 @@ import {
 	purseNotePath,
 	shopNotePath,
 	titlesNotePath,
+	VaultAppNoteRepository,
 	VaultBookRepository,
 	VaultBriefingRepository,
 	VaultCampaignRepository,
@@ -30,7 +31,7 @@ import {
 	VaultSkillRepository,
 	VaultTitleRepository,
 } from '../adapters/vault';
-import { BuyOffer, BuyReward, CampaignState, ChooseTitle, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadShop, LoadTitles, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { BuyOffer, BuyReward, CampaignState, ChooseTitle, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadShop, LoadTitles, LoadWeekReport, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
@@ -159,6 +160,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			// The titles (titles S5): read from the vault, no request; choosing one writes only `title` in Character.md.
 			loadTitles: new LoadTitles({ titles }),
 			chooseTitle: new ChooseTitle({ titles, characters: repository }),
+			// The card "Your week" (app-reports S1-S3): the notes Kairos and Cheshbon write, read by type, never written; no request.
+			loadWeekReport: new LoadWeekReport({ notes: new VaultAppNoteRepository(plugin.app), clock }),
 			dismissGameEvents: () => gameState.dismissEvents(),
 			takeGameAnnouncements: () => gameState.takeAnnouncements(),
 			notify: showNotice,

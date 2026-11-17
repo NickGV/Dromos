@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import type { BriefingState, CharacterState, ChooseTitle, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, LoadTitles, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests, TitlesReading } from '../../application';
+import type { BriefingState, CharacterState, ChooseTitle, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, LoadTitles, LoadWeekReport, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests, TitlesReading } from '../../application';
+import type { WeekReport } from '../../domain';
 import type { Language, Translator } from '../../i18n';
 import type { Clock, DeviceStore } from '../../ports';
 import type { IconRender } from '../atoms/Icon';
@@ -22,6 +23,7 @@ import { ScreenHeader } from '../organisms/ScreenHeader';
 import { SkillsScreen } from '../organisms/SkillsScreen';
 import { StageCard } from '../organisms/StageCard';
 import { TitlesCard } from '../organisms/TitlesCard';
+import { WeekReportCard } from '../organisms/WeekReportCard';
 import { briefingRequestMessage, briefingView } from '../presenters/briefingView';
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
@@ -39,6 +41,7 @@ import { stageCardView, type StageCardView } from '../presenters/stageCardView';
 import { agoText, minutesSince, syncBannerView } from '../presenters/syncBanner';
 import { titleArrival, titlesCardView, withTitleArrival, type TitlesCardView } from '../presenters/titlesCardView';
 import { walkerView } from '../presenters/walkerView';
+import { weekReportView } from '../presenters/weekReportView';
 import { openLetter, storedLetterMark } from './briefingLetter';
 import { storedOpenCampaigns, toggleCampaign } from './campaignFold';
 import { CampaignsPanel, type CampaignsDeps } from './CampaignsPanel';
@@ -48,6 +51,7 @@ import { ReadingDeskPanel } from './ReadingDeskPanel';
 import { ShopPanel, type ShopDeps } from './ShopPanel';
 import type { OpenCard } from './shopActions';
 import { markTitlesSeen, newTitleNotice } from './titlesNotice';
+import { storedWeekOpen, toggleWeek } from './weekFold';
 import { useCeremonyPhase } from './useCeremonyPhase';
 
 /** What the home screen needs from the application layer; built in `src/composition`. */
@@ -69,6 +73,11 @@ export interface HomeScreenDeps {
 	readonly loadTitles: Pick<LoadTitles, 'execute'>;
 	/** Writes a granted title into `Character.md`, the only value Dromos writes in `title` (ADR-020). Never rejects. */
 	readonly chooseTitle: Pick<ChooseTitle, 'execute'>;
+	/**
+	 * The card "Your week" (app-reports S1-S3): the notes Kairos and Cheshbon wrote, read from the vault on open
+	 * and after every sync, as the titles are, never of Habitica and never written. Never rejects.
+	 */
+	readonly loadWeekReport: Pick<LoadWeekReport, 'execute'>;
 	/** The level-up ceremony was closed. */
 	readonly dismissGameEvents: () => void;
 	/** The game events not toasted yet; each one comes out once. */
@@ -125,6 +134,8 @@ const CLOCK_TICK_MS = 30_000;
 
 /** Numbers the open views, so each one's letter has its own ids in the window (aria-controls). */
 let viewCount = 0;
+/** Numbers the week cards of the open views, so each one's body has its own id (aria-controls). */
+let reportCount = 0;
 
 /**
  * The only UI component that calls `application/` (S8). On mount and on
@@ -167,8 +178,13 @@ let viewCount = 0;
  * live region. Opening the card marks the titles seen.
  *
  * Home (home-header S1) holds Esdras's letter and today's quests in its first column, the
- * campaigns, the small reading desk (the books being read, the library's cards) and the chronicle
- * in its second; narrow panes stack them in that order, under the level-up panel when there is one.
+ * campaigns, the small reading desk (the books being read, the library's cards), the week card and
+ * the chronicle in its second; narrow panes stack them in that order, under the level-up panel when
+ * there is one.
+ *
+ * The week card (app-reports S7): the notes Kairos and Cheshbon left for the last complete week, read
+ * on open and after every sync, as the titles are. It is folded until opened and this device keeps
+ * the fold, as the campaign cards (home-fit S1); while neither app has written, it is not drawn.
  */
 export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: HomeScreenDeps; readonly initialScreen?: DromosScreen }) {
 	const [character, setCharacter] = useState<CharacterShown>({ kind: 'loading' });
@@ -209,6 +225,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	// Bumped when a chosen title is written and read again: the card closes once that render is drawn.
 	const [titleChosen, setTitleChosen] = useState(0);
 	const titlesCard = useRef<CardModal | null>(null);
+	// The week card (app-reports S7): `null` until the vault is read; folded until opened, the fold kept on this device.
+	const [week, setWeek] = useState<WeekReport | null>(null);
+	const [weekOpen, setWeekOpen] = useState(() => storedWeekOpen(deps.deviceStore));
+	const [weekId] = useState(() => `dromos-report-${(reportCount += 1)}`);
 	const choosing = useRef(false);
 	const visitSettled = useRef(false);
 	const { screen } = place;
@@ -230,6 +250,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const goHome = useCallback((): void => go('home'), [go]);
 	const selectCampaign = useCallback((path: string): void => setPlace((current) => ({ ...current, campaign: path })), []);
 	const toggleCampaignCard = (path: string): void => setOpenCampaigns(toggleCampaign(deps.deviceStore, openCampaigns, path));
+	const toggleWeekCard = (): void => setWeekOpen(toggleWeek(deps.deviceStore, weekOpen));
 	// Closing the panel takes its button away: the focus goes back to the character's name, on the plaque.
 	const dismissEvents = useCallback((): void => {
 		deps.dismissGameEvents();
@@ -308,6 +329,12 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		return titleArrival(news.title, deps.translator());
 	}, [deps]);
 
+	// Read on open and after every sync, as the titles are: the notes of Kairos and Cheshbon, a vault read only.
+	const readWeek = useCallback(async (): Promise<void> => {
+		const report = await deps.loadWeekReport.execute();
+		if (mounted.current) setWeek(report);
+	}, [deps]);
+
 	const refresh = useCallback(async (): Promise<void> => {
 		const home = await deps.loadHome.execute();
 		if (!mounted.current) return;
@@ -315,6 +342,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		setBriefing(home.briefing);
 		setArrival(null);
 		void readAvatar();
+		void readWeek();
 		const titlesRead = readTitles();
 		// Starting the sync first means this render already shows `syncing` next to the session's last quests.
 		setSyncKey((key) => key + 1);
@@ -347,8 +375,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 			void readTitles().then((later) => {
 				if (mounted.current && later !== null) setArrival(later);
 			});
+			// Kairos or Cheshbon may have written meanwhile.
+			void readWeek();
 		}
-	}, [deps, announce, showLaterRead, seeVisit, readAvatar, readTitles]);
+	}, [deps, announce, showLaterRead, seeVisit, readAvatar, readTitles, readWeek]);
 
 	useEffect(() => {
 		mounted.current = true;
@@ -379,6 +409,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const offline = quests.status.kind === 'offline';
 	const questPanel = questPanelView(questListView(quests.quests, deps.clock.today(), t, game.questPrices), t, { expanded: questsExpanded, openMissions, filter: questFilter });
 	const chronicle = home ? chronicleView(game.deeds, deps.clock.today(), t, { expanded: chronicleExpanded }) : null;
+	const weekCard = home ? weekReportView(week, deps.clock.today(), t) : null;
 	const banner = withTitleArrival(syncBannerView(quests, deps.clock.now(), t), arrival);
 	const language = deps.language();
 	// A character level opens the panel once the ribbon unfurls; skill events alone open it at once.
@@ -543,6 +574,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
 						{home ? <ReadingDeskPanel deps={deps.library} language={language} /> : null}
+						{weekCard ? <WeekReportCard view={weekCard} open={weekOpen} bodyId={weekId} onToggle={toggleWeekCard} renderIcon={deps.renderIcon} /> : null}
 						{chronicle ? <Chronicle view={chronicle} listId={chronicleId} onToggleMore={() => setChronicleExpanded((current) => !current)} onOpenHistory={openHistory} /> : null}
 					</div>
 					{screen === 'skills' ? (

@@ -3781,6 +3781,95 @@
 }
 .dromos-root .dromos-desk-scrolls + .dromos-library-desk-empty { margin-top: 14px; }
 
+/* Your week (app-reports S7, option C): folded like a campaign card, with the week in words and seven
+   tiny bars; open, the phone (Kairos) and the money (Cheshbon). Phone minutes are not XP, so their bars
+   are umber, never the ochre of XP; a day over a free limit is clay, the calm mark of a stalled campaign. */
+.dromos-root .dromos-report-card .dromos-campaign-card-name { font-size: 16px; font-weight: 500; font-style: italic; }
+.dromos-root .dromos-report-fold { padding: 7px 14px 9px; }
+.dromos-root .dromos-report-fold-row { display: flex; align-items: center; gap: 12px; }
+.dromos-root .dromos-report-fold-line { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--dromos-ink); font-size: 13px; line-height: 1.4; font-variant-numeric: lining-nums; }
+.dromos-root .dromos-report-fold-part { white-space: nowrap; }
+.dromos-root .dromos-report-mini { display: flex; flex: none; align-items: flex-end; gap: 3px; height: 20px; padding-bottom: 1px; border-bottom: 1px solid var(--dromos-rule); }
+.dromos-root .dromos-report-mini-bar { display: block; width: 5px; border-radius: 2px 2px 0 0; background: var(--dromos-umber); }
+.dromos-root .dromos-report-mini-bar.is-over { background: var(--dromos-clay); }
+.dromos-root .dromos-report-mini-bar.is-missing { height: 100%; background: repeating-linear-gradient(135deg, var(--dromos-tint) 0 2px, transparent 2px 4px); }
+.dromos-root .dromos-report-body { container: dromos-report / inline-size; padding: 4px 14px 14px; }
+.dromos-root .dromos-report-body[hidden] { display: none; }
+
+/* A late app: one quiet line on the tint, plain words, no icon of alarm. */
+.dromos-root .dromos-report-late { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 0; padding: 0; list-style: none; }
+.dromos-root .dromos-report-body > .dromos-report-late { margin-top: 8px; }
+.dromos-root .dromos-report-late > li {
+	padding: 4px 10px;
+	border-left: 2px solid var(--dromos-umber);
+	border-radius: 0 4px 4px 0;
+	background: var(--dromos-tint);
+	color: var(--dromos-ink);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.dromos-root .dromos-report-halves { display: grid; gap: 12px; margin-top: 10px; }
+.dromos-root .dromos-report-half { min-width: 0; }
+.dromos-root .dromos-report-half.is-money { padding-top: 12px; border-top: 1px dashed var(--dromos-rule-dashed); }
+
+/* Wide enough, the phone and the money side by side, a dashed rule between them. */
+@container dromos-report (min-width: 460px) {
+	.dromos-root .dromos-report-halves { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; }
+	.dromos-root .dromos-report-half.is-money { padding: 0 0 0 22px; border-top: 0; border-left: 1px dashed var(--dromos-rule-dashed); }
+}
+
+.dromos-root .dromos-report-half-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 4px;
+	color: var(--dromos-ink);
+	font-family: var(--dromos-font-display);
+	font-size: 17px;
+	font-weight: 600;
+	font-variant: small-caps;
+	letter-spacing: 0.06em;
+	line-height: 1.2;
+}
+.dromos-root .dromos-report-mark { display: inline-flex; flex: none; color: var(--dromos-umber); }
+.dromos-root .dromos-report-mark .svg-icon { width: 16px; height: 16px; }
+.dromos-root .dromos-report-source {
+	margin-left: auto;
+	color: var(--dromos-ink-muted);
+	font-family: var(--font-interface, inherit);
+	font-size: 12px;
+	font-weight: 400;
+	font-variant: normal;
+	letter-spacing: 0;
+}
+.dromos-root .dromos-report-none { margin: 2px 0 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; font-style: italic; line-height: 1.35; }
+
+/* The phone: the week's minutes in a sentence, the days as small umber bars. */
+.dromos-root .dromos-report-total { margin: 0; color: var(--dromos-ink-muted); font-family: var(--dromos-font-display); font-size: 16px; line-height: 1.3; }
+.dromos-root .dromos-report-figure { color: var(--dromos-ink); font-size: 22px; font-weight: 600; font-variant-numeric: lining-nums; white-space: nowrap; }
+.dromos-root .dromos-report-aside { margin: 0 0 8px; color: var(--dromos-ink-muted); font-size: 13px; font-variant-numeric: lining-nums tabular-nums; }
+.dromos-root .dromos-report-days .dromos-day-track { height: 44px; }
+.dromos-root .dromos-report-days .dromos-day-bar { width: min(16px, 56%); background: var(--dromos-umber); }
+.dromos-root .dromos-report-days .dromos-day.is-over .dromos-day-bar { background: var(--dromos-clay); }
+.dromos-root .dromos-report-days .dromos-day.is-over .dromos-day-value { color: var(--dromos-clay-ink); }
+.dromos-root .dromos-report-days .dromos-day-name { font-size: 14px; }
+.dromos-root .dromos-report-days .dromos-day.is-missing .dromos-day-track { border-radius: 3px 3px 0 0; background: repeating-linear-gradient(135deg, var(--dromos-tint) 0 3px, transparent 3px 7px); }
+.dromos-root .dromos-report-days .dromos-day.is-missing .dromos-day-name,
+.dromos-root .dromos-report-days .dromos-day.is-missing .dromos-day-date { font-style: italic; }
+.dromos-root .dromos-report-over { display: flex; align-items: baseline; gap: 6px; margin: 8px 0 0; color: var(--dromos-ink-muted); font-size: 13px; line-height: 1.4; }
+.dromos-root .dromos-report-over.is-some { color: var(--dromos-ink); }
+.dromos-root .dromos-report-over-key { flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--dromos-clay); transform: translateY(-1px); }
+
+/* The money: a small ledger, the net closed by the bookkeeper's double rule. */
+.dromos-root .dromos-report-ledger { display: flex; flex-direction: column; gap: 1px; margin: 2px 0 0; }
+.dromos-root .dromos-report-ledger-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-family: var(--dromos-font-display); font-size: 16px; line-height: 1.45; }
+.dromos-root .dromos-report-ledger-row dt { color: var(--dromos-ink-muted); }
+.dromos-root .dromos-report-ledger-row dd { margin: 0; color: var(--dromos-ink); font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+.dromos-root .dromos-report-ledger-row.is-net { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--dromos-rule); }
+.dromos-root .dromos-report-ledger-row.is-net dt { color: var(--dromos-ink); font-weight: 600; }
+.dromos-root .dromos-report-ledger-row.is-net dd { padding-bottom: 1px; border-bottom: 3px double var(--dromos-umber); font-size: 18px; font-weight: 600; }
+
 /* A shelf, up close: an arched niche of parchment, its books on wooden planks. Scrolls stand side by
    side and wrap, so a short row leaves no empty side. */
 .dromos-root .dromos-library-scene.is-shelf {

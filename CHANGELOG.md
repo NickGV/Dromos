@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Your week** on home, between the reading desk and the chronicle: the last complete week, Monday to Sunday, from the notes Kairos (`type: kairos-day`) and Cheshbon (`type: cheshbon-spending-note`) leave in the vault (ADR-022). Folded to one row with the week in words and seven tiny bars, it opens in place on the phone (minutes in watched apps, the daily average, a bar per day, the days over a free limit) and the money (spent, income and net of the weekly note); the fold is remembered on this device. A line says when an app stopped writing. Dromos only reads those notes, by `type` and frontmatter alone, and the card is not drawn while neither app has written.
+
 ## [0.21.0] - 2026-11-13
 
 ### Added

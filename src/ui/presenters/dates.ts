@@ -54,6 +54,13 @@ export function longDate(date: string, today: string, t: Translator): string {
 	return today.startsWith(`${match[1]}-`) ? t('date.long', params) : t('date.long.year', params);
 }
 
+/** The full name of the month of a `YYYY-MM-DD` day, "noviembre"; empty for anything else. */
+export function monthLong(date: string, t: Translator): string {
+	const match = /^\d{4}-(\d{2})-\d{2}$/.exec(date);
+	const month = match ? LONG_MONTHS[Number(match[1]) - 1] : undefined;
+	return month === undefined ? '' : t(month);
+}
+
 const WEEKDAYS = ['date.weekday.mon', 'date.weekday.tue', 'date.weekday.wed', 'date.weekday.thu', 'date.weekday.fri', 'date.weekday.sat', 'date.weekday.sun'] as const satisfies readonly MessageKey[];
 
 const LONG_WEEKDAYS = [
