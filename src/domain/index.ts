@@ -7,6 +7,7 @@ export * from './character/stageRules';
 export * from './ledger';
 export * from './library';
 export * from './quest';
+export * from './report';
 export * from './rules/GameRules';
 export * from './shop';
 export * from './rules/LevelCurve';

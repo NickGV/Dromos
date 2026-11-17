@@ -26,3 +26,5 @@ export * from './VaultTitleRepository';
 export * from './projections';
 export * from './resourceMapper';
 export * from './VaultResourceRepository';
+export * from './appNoteMapper';
+export * from './VaultAppNoteRepository';
