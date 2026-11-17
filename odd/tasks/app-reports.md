@@ -35,7 +35,7 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
 | E1 | S5 | Esdras: the ADR, the dictionary row, the skill exemptions for `Cheshbon/` | Esdras, with the user's OK in his session | done (L5), `final` line corrected (L7) | vault, `logos-dotfiles` `a164571` (`docs/app-notes`) and `a1f130c` (`docs/app-notes-kairos-fix`), not pushed |
 | T0 | S1-S3 | Mockups of the week card: two or three placements, the real state today and a full week, light and dark, 840 and 390 px | delegated mockup writer (context backstop: the parent session is long); scratch only | done (L8); the user's choice pending | `../dromos-worktrees/app-reports-mockups/` |
 | K1 | S5 | Kairos: `type: kairos-day`; what `screen_minutes` measures | Kairos, with the user's OK in its session | `screen_minutes` answered (L4); `type` pending | Kairos repo |
-| U1 | S1, S2 | The user: Cheshbon's folder at `Logos/Cheshbon/`; why Kairos stopped after 2026-11-13 (Ajustes > Obsidian, `adb shell dumpsys package com.nickgv.kairos`) | the user | pending | phone |
+| U1 | S1, S2 | The user: Cheshbon's folder at `Logos/Cheshbon/`; why Kairos stopped after 2026-11-13 (Ajustes > Obsidian, `adb shell dumpsys package com.nickgv.kairos`) | the user | Cheshbon done (L11); Kairos pending | phone |
 | T1 | S1-S3, S7 | Build option C | delegated writer (context backstop: the parent session is long); the phone part shows data once K1 lands | done (L10); the user's look pending (needs K1 or U1 for real data) | `37aeaf8`, `d8f8b46` |
 | T2 | S4 | Titles and streaks | after about two weeks of good data; decisions first | pending | |
 | R1 | S6 | Release with the user's go-ahead | inline | pending | |
@@ -71,3 +71,4 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
     - `under_limit` is read for S4 but not shown.
   - With today's vault the card does not show: Kairos's notes have no `type` (K1) and Cheshbon has none (U1).
   - Risk: none. The card only reads, and home without app notes is unchanged.
+- **L11** (2026-11-17, user): "dile a esdras que haga los cambios, la cheshbon escribio". Checked: `Cheshbon/2026-W46.md` exists, with `type: cheshbon-spending-note`, `period: 2026-W46`, 11-09 to 11-15, `spent: 833122`, `income: 1720548`, `net: 887426`, COP, `generated_at: 2026-11-17T14:42:50-05:00`. Its body lists the top accounts and merchants by name; whether they stay is the user's open decision. U1's Cheshbon part is done. Sent to `esdras`: the user's words, read as his pending items (the weekly-review line and the briefing mention), quoting only frontmatter totals. Any other reading is to be confirmed with the user in his session.
