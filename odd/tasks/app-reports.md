@@ -79,3 +79,4 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
   - E1's follow-up: Esdras's weekly-review line and briefing mention, in progress in his session;
   - the user's privacy decision on the accounts and merchants in Cheshbon's note body;
   - T2, the streaks, after about two weeks of good data.
+- **L14** (2026-11-17, user): "si dale porfavor", the go-ahead for R1: release 0.22.0 (minor: something new to use).
