@@ -147,12 +147,14 @@ function moneyView(cheshbon: CheshbonReport | null, t: Translator): MoneyView {
 	};
 }
 
-/** The folded line: the phone and the spending of the week, each only when it has data. */
+/**
+ * The folded line: the phone and the spending of the week, each only when it has data. The spending
+ * opens the line in sentence case ("Gastos $ 412.300") when the phone has no part.
+ */
 function summaryOf(phone: PhoneView, money: MoneyView, t: Translator): string[] {
-	const parts = [
-		...(phone.kind === 'data' ? [t('report.fold.phone', { total: phone.total })] : []),
-		...(money.kind === 'data' && money.rows[0] ? [t('report.fold.money', { amount: money.rows[0].value })] : []),
-	];
+	const phonePart = phone.kind === 'data' ? [t('report.fold.phone', { total: phone.total })] : [];
+	const moneyKey = phonePart.length > 0 ? 'report.fold.money' : 'report.fold.moneyFirst';
+	const parts = [...phonePart, ...(money.kind === 'data' && money.rows[0] ? [t(moneyKey, { amount: money.rows[0].value })] : [])];
 	return parts.length > 0 ? parts : [t('report.fold.none')];
 }
 

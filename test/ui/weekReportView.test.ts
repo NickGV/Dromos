@@ -167,7 +167,8 @@ describe('weekReportView: an app that never wrote (S7)', () => {
 
 	it('drops the parts with no data from the folded line', () => {
 		expect(shown(REAL, []).summary).toEqual(['3 min en apps vigiladas']);
-		expect(shown([], [W46]).summary).toEqual(['gastos $ 412.300']);
+		expect(shown([], [W46]).summary).toEqual(['Gastos $ 412.300']);
+		expect(shown([], [W46], en).summary).toEqual(['Spent $412,300']);
 		expect(shown([day('2026-11-02', 10)], [spending('2026-W45', 1, 1, 0)]).summary).toEqual(['Sin datos de esta semana.']);
 	});
 });

@@ -224,6 +224,7 @@ export const en: Readonly<Record<MessageKey, string>> = {
 	'report.late.cheshbon': 'Cheshbon has not written since the week of {date}.',
 	'report.fold.phone': '{total} in watched apps',
 	'report.fold.money': 'spent {amount}',
+	'report.fold.moneyFirst': 'Spent {amount}',
 	'report.fold.none': 'No data for this week.',
 	'report.duration.minutes': '{minutes} min',
 	'report.duration.hours': '{hours} h',

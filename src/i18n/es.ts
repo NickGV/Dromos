@@ -225,6 +225,7 @@ export const es = {
 	'report.late.cheshbon': 'Cheshbon no escribe desde la semana del {date}.',
 	'report.fold.phone': '{total} en apps vigiladas',
 	'report.fold.money': 'gastos {amount}',
+	'report.fold.moneyFirst': 'Gastos {amount}',
 	'report.fold.none': 'Sin datos de esta semana.',
 	'report.duration.minutes': '{minutes} min',
 	'report.duration.hours': '{hours} h',
