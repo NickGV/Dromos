@@ -36,7 +36,7 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
 | T0 | S1-S3 | Mockups of the week card: two or three placements, the real state today and a full week, light and dark, 840 and 390 px | delegated mockup writer (context backstop: the parent session is long); scratch only | done (L8); the user's choice pending | `../dromos-worktrees/app-reports-mockups/` |
 | K1 | S5 | Kairos: `type: kairos-day`; what `screen_minutes` measures | Kairos, with the user's OK in its session | `screen_minutes` answered (L4); `type` pending | Kairos repo |
 | U1 | S1, S2 | The user: Cheshbon's folder at `Logos/Cheshbon/`; why Kairos stopped after 2026-11-13 (Ajustes > Obsidian, `adb shell dumpsys package com.nickgv.kairos`) | the user | Cheshbon done (L11); Kairos pending | phone |
-| T1 | S1-S3, S7 | Build option C | delegated writer (context backstop: the parent session is long); the phone part shows data once K1 lands | done (L10); the user's look pending (needs K1 or U1 for real data) | `37aeaf8`, `d8f8b46` |
+| T1 | S1-S3, S7 | Build option C | delegated writer (context backstop: the parent session is long); the phone part shows data once K1 lands | done (L10, L12); the user's look done on desktop (L13) | `37aeaf8`, `d8f8b46`, `769d108` |
 | T2 | S4 | Titles and streaks | after about two weeks of good data; decisions first | pending | |
 | R1 | S6 | Release with the user's go-ahead | inline | pending | |
 
@@ -73,3 +73,9 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
   - Risk: none. The card only reads, and home without app notes is unchanged.
 - **L11** (2026-11-17, user): "dile a esdras que haga los cambios, la cheshbon escribio". Checked: `Cheshbon/2026-W46.md` exists, with `type: cheshbon-spending-note`, `period: 2026-W46`, 11-09 to 11-15, `spent: 833122`, `income: 1720548`, `net: 887426`, COP, `generated_at: 2026-11-17T14:42:50-05:00`. Its body lists the top accounts and merchants by name; whether they stay is the user's open decision. U1's Cheshbon part is done. Sent to `esdras`: the user's words, read as his pending items (the weekly-review line and the briefing mention), quoting only frontmatter totals. Any other reading is to be confirmed with the user in his session.
 - **L12** (2026-11-17, user): "si porfavor", to installing the branch on desktop. `npm run install:local` (it copies only `main.js`, `manifest.json` and `styles.css`; `data.json` untouched), then `obsidian vault="Logos" plugin:reload id=dromos` printed "Reloaded: dromos", with no errors. The vault's Dromos UI is in English. The card renders below "Reading now", folded: "Your week | Last week, November 9 to 15 | spent $833,122". The lowercase start broke sentence case, so it was fixed inline (RED: "Received gastos $ 412.300"; GREEN): a `report.fold.moneyFirst` string when the spending opens the line. Commit `769d108`; 2524 tests passed, lint 0 errors, build passed. Reinstalled and reloaded; it now reads "Spent $833,122", no errors. The user's look is pending.
+- **L13** (2026-11-17, user): "bien, se ve bien la verdad, ya podemos cerrar esta parte". Step 1 (the week card, T1) is closed on desktop. Still open:
+  - R1, the release and the Android check: a pushed tag publishes, so the parent asks for the go-ahead;
+  - K1, Kairos writing `type: kairos-day`;
+  - E1's follow-up: Esdras's weekly-review line and briefing mention, in progress in his session;
+  - the user's privacy decision on the accounts and merchants in Cheshbon's note body;
+  - T2, the streaks, after about two weeks of good data.
