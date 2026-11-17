@@ -1,7 +1,7 @@
 # App reports: Kairos and Cheshbon in Dromos
 
 Objective: Dromos reads the notes that Kairos (phone time) and Cheshbon (spending) write into Logos, first as a "your week" card, then as titles and streaks. Planned with the `esdras`, `kairos` and `cheshbon` sessions on 2026-11-17.
-Branch `feat/app-reports`. Delivery: the vault ADR first (Esdras), work-unit commits, `--no-ff` merge into `main`, a release only with the user's go-ahead. Runner: Vitest (`npm test`), then `npm run lint` and `npm run build`.
+Branch `feat/app-reports`. Delivery: the vault ADR first (Esdras, Dromos ADR-022), mockups first as with every card ("Arrancaría con maquetas, como siempre", stage-card), work-unit commits, `--no-ff` merge into `main`, a release only with the user's go-ahead. Runner: Vitest (`npm test`), then `npm run lint` and `npm run build`.
 
 ## Specs
 
@@ -21,10 +21,11 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
 | P1 | S1-S5 | Plan with Esdras, Kairos and Cheshbon | inline (cross-session messages) | done (L2) | read-only |
-| E1 | S5 | Esdras: the ADR, the dictionary row, the skill exemptions for `Cheshbon/` | Esdras, with the user's OK in his session | sent, pending | vault, `logos-dotfiles` |
+| E1 | S5 | Esdras: the ADR, the dictionary row, the skill exemptions for `Cheshbon/` | Esdras, with the user's OK in his session | done (L5): Dromos ADR-022; its `final` line to correct | vault, `logos-dotfiles` `a164571` (branch `docs/app-notes`, not pushed) |
+| T0 | S1-S3 | Mockups of the week card: two or three placements, the real state today and a full week, light and dark, 840 and 390 px | delegated mockup writer (context backstop: the parent session is long); scratch only | launched (L5) | `../dromos-worktrees/app-reports-mockups/` |
 | K1 | S5 | Kairos: `type: kairos-day`; what `screen_minutes` measures | Kairos, with the user's OK in its session | `screen_minutes` answered (L4); `type` pending | Kairos repo |
 | U1 | S1, S2 | The user: Cheshbon's folder at `Logos/Cheshbon/`; why Kairos stopped after 2026-11-13 (Ajustes > Obsidian, `adb shell dumpsys package com.nickgv.kairos`) | the user | pending | phone |
-| T1 | S1-S3 | Build the week card | inline unless a writer trigger holds; blocked on E1 and K1 | pending | |
+| T1 | S1-S3 | Build the chosen week card | inline unless a writer trigger holds; after T0 and the user's choice; the phone part shows data once K1 lands | pending | |
 | T2 | S4 | Titles and streaks | after about two weeks of good data; decisions first | pending | |
 | R1 | S6 | Release with the user's go-ahead | inline | pending | |
 
@@ -40,3 +41,4 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
 - **L4** (2026-11-17): two corrections from the sessions, folded into S1-S4.
   - Cheshbon: `net = income - spent`, real money only (transfers between own accounts and debt movements left out), so a week with the pay is almost always positive and the rest negative; a streak on `net > 0` cannot pass one week with a monthly or fortnightly pay. A week with nothing captured gives `net = 0`, like no data. A weekly note can still be rewritten until the next Monday, then never. With the DAILY cadence no weekly note is written, so the card must handle a missing week.
   - Kairos: `screen_minutes = floor(sum of foreground seconds of the enabled watched apps / 60)`; each table row is floored alone, so rows can add up to less. An app is in `exceeded` when its seconds are strictly above its free limit (`dailyFreeMinutes × 60`); bought minutes and modes do not change it; apps without a limit never appear, so a day without limited apps gives `exceeded: []` for free. `type: kairos-day` reaches only the notes Kairos rewrites (yesterday), so the 16 old notes would never get it unless Kairos backfills. Kairos takes items 1 and 3-5 of K1 to the user in its session before touching code.
+- **L5** (2026-11-17): E1 done by Esdras with the user's OK in his session ("SI DALE"): Dromos ADR-022 "Las notas de las apps: `kairos-day` y `cheshbon-spending-note`", accepted, amends ADR-013 (read by the parent in `03-Tech-Decisions.md`); dictionary 23 types in `vault-context.md`; `system-prompt.md`, `RULES.md`, `weekly-review` 2.2, `clean-note` 2.4, `process-inbox` 2.3 protect both folders; `logos-dotfiles` `a164571` on `docs/app-notes`, not pushed. Kairos has its own ADR-022 (F10): say "Dromos ADR-022". One mismatch: the ADR says a `kairos-day` is provisional until `final: true`, but Kairos writes no `final`; sent to Esdras (proposal: only the purchase fields can be stale, the usage fields are final once written) and to Kairos (asked whether a later run can change a date's usage fields). Dromos reads only the usage fields. Calendar: today is Tuesday 2026-11-17; the last complete ISO week is 2026-W46 (Monday 11-09 to Sunday 11-15); Kairos has notes for 11-09 to 11-13 of it, Cheshbon none. T0 launched.
