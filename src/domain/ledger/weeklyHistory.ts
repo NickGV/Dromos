@@ -36,7 +36,7 @@ const LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
  *   add up to the XP the character counts over them. Every row counts on the date it was written.
  * - The XP by stat sums every skill row, as each skill gains the deed's XP; the deeds with no skill
  *   keep their own share. The stat comes from the skill as the vault knows it now.
- * - An exact repeat of a row counts once, as in `foldLedger`. A row whose date cannot be read is left out.
+ * - A repeat of the same transition and skill counts once, as in `foldLedger` (`uniqueRows`). A row whose date cannot be read is left out.
  */
 export function weeklyHistory(rows: readonly LedgerRow[], skills: readonly Pick<SkillXpSource, 'id' | 'stat'>[], today: string, limit = HISTORY_WEEKS): WeekTally[] {
 	const dated = uniqueRows(rows).filter((row) => LOCAL_DATE.test(row.date));

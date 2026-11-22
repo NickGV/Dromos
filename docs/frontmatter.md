@@ -197,7 +197,7 @@ The book card shows what you wrote in each section, read-only and rendered as th
 | `source` | `complete`, `revert` or `streak` |
 | `n` | Which completion of that task this is |
 
-Do not edit rows by hand: a damaged row is listed as unreadable, and Dromos may add that change again. A row repeated exactly counts once.
+Do not edit rows by hand: a damaged row is listed as unreadable, and Dromos may add that change again. A row repeated exactly counts once. So do two rows of a to-do with the same task, source, `n` and skill but different dates, which a device that was out of date can write; only the first counts.
 
 ## Briefing
 

@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **A to-do unchecked twice**: when a device that was out of date synced a to-do you had already unchecked, it wrote the uncheck again under its own day, and Dromos took the to-do's XP back twice. A to-do's change now counts once whatever day each device wrote it, for XP, skills, completions and the chronicle. The same goes for a to-do's completion written again under a new date.
+
 ## [0.22.1] - 2026-11-22
 
 ### Fixed

@@ -42,7 +42,7 @@ describe('foldLedger: character XP', () => {
 	});
 
 	it('counts the daily of two different days as two transitions', () => {
-		const rows = [row({ date: '2026-11-02', xp: 5 }), row({ date: '2026-11-03', xp: 5 })];
+		const rows = [row({ kind: 'daily', date: '2026-11-02', xp: 5 }), row({ kind: 'daily', date: '2026-11-03', xp: 5 })];
 
 		expect(foldLedger(rows, []).characterXp).toBe(10);
 	});

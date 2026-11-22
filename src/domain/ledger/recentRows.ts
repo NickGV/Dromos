@@ -2,8 +2,8 @@ import type { LedgerRow, LedgerSource } from './LedgerRow';
 import { uniqueRows } from './foldLedger';
 
 /**
- * The rows newest first: by date, and within a day the row written later first. An exact repeat
- * counts once, as in `foldLedger`. Each row keeps its place in the ledger as written.
+ * The rows newest first: by date, and within a day the row written later first. A repeat of the same
+ * transition and skill counts once, as in `foldLedger` (`uniqueRows`). Each row keeps its place in the ledger as written.
  */
 function newestFirst(rows: readonly LedgerRow[]): { readonly row: LedgerRow; readonly index: number }[] {
 	return uniqueRows(rows)
@@ -13,7 +13,8 @@ function newestFirst(rows: readonly LedgerRow[]): { readonly row: LedgerRow; rea
 
 /**
  * The last `limit` rows of each skill, newest first: by date, and within a day the row written
- * later first. An exact repeat counts once, as in `foldLedger`. Rows without a skill are left out.
+ * later first. A repeat of the same transition and skill counts once, as in `foldLedger`. Rows
+ * without a skill are left out.
  */
 export function recentRowsBySkill(rows: readonly LedgerRow[], limit: number): Map<string, LedgerRow[]> {
 	const bySkill = new Map<string, LedgerRow[]>();
@@ -44,7 +45,8 @@ export interface Deed {
 
 /**
  * The last `limit` deeds of the ledger, newest first in the order of `recentRowsBySkill`: the rows
- * of one transition make one deed with all their skills. An exact repeat counts once.
+ * of one transition make one deed with all their skills. A repeat of the same transition and skill
+ * counts once (`uniqueRows`).
  */
 export function recentDeeds(rows: readonly LedgerRow[], limit: number): Deed[] {
 	const deeds = new Map<string, { first: LedgerRow; firstIndex: number; skills: { id: string; index: number }[] }>();
