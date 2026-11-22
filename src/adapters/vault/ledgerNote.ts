@@ -70,32 +70,59 @@ export function newLedgerNote(month: string, created: string): string {
 }
 
 /**
- * The note with `rows` added under the last row of its table; everything else is
- * kept as it was. A note that lost its table gets the header again at the end.
+ * The note with `rows` added under the last row of its table, and without the rows of that
+ * table that repeat an earlier row exactly (ledger-repeats S1): a sync on a stale vault that
+ * Obsidian Sync later merged leaves such copies, and each write cleans its month. Everything
+ * else is kept as it was. A note that lost its table gets the header again at the end.
  */
 export function appendLedgerRows(text: string, rows: readonly LedgerRow[]): string {
 	if (rows.length === 0) return text;
+	return withoutRepeatedRows(withRowsAdded(text, rows));
+}
+
+function withRowsAdded(text: string, rows: readonly LedgerRow[]): string {
 	const added = rows.map(formatLedgerRow);
 	const lines = text.split('\n');
-	const start = frontmatterEnd(lines);
-	const lastTableLine = ledgerTableEnd(lines, start);
-	if (lastTableLine === -1) return `${text.replace(/\n*$/, '\n')}\n${HEADER}\n${SEPARATOR}\n${added.join('\n')}\n`;
-	const before = lines.slice(0, lastTableLine + 1).join('\n');
-	const after = lines.slice(lastTableLine + 1).join('\n');
+	const table = ledgerTable(lines, frontmatterEnd(lines));
+	if (table === null) return `${text.replace(/\n*$/, '\n')}\n${HEADER}\n${SEPARATOR}\n${added.join('\n')}\n`;
+	const before = lines.slice(0, table.end + 1).join('\n');
+	const after = lines.slice(table.end + 1).join('\n');
 	return `${before}\n${added.join('\n')}\n${after}`;
 }
 
 /**
- * Index of the last line of the ledger table: the run of `|` lines that starts at the ledger
- * header. Any other table or pipe line lower in the note is the user's and is not touched.
- * `-1` when the note has no ledger header.
+ * `text` without the ledger rows whose eight cells equal those of an earlier row; the first
+ * copy keeps its place and its spacing. The kept copy is the one `uniqueRows` reads, so the
+ * game reads the same. A line that does not parse as a row always stays: it is the user's to fix.
  */
-function ledgerTableEnd(lines: readonly string[], start: number): number {
+function withoutRepeatedRows(text: string): string {
+	const lines = text.split('\n');
+	const table = ledgerTable(lines, frontmatterEnd(lines));
+	if (table === null) return text;
+	const seen = new Set<string>();
+	const kept = lines.filter((line, index) => {
+		if (index <= table.header || index > table.end) return true;
+		const values = cells(line.trim());
+		if (rowFrom(values) === null) return true;
+		const key = JSON.stringify(values);
+		if (seen.has(key)) return false;
+		seen.add(key);
+		return true;
+	});
+	return kept.length === lines.length ? text : kept.join('\n');
+}
+
+/**
+ * Where the ledger table sits: its header line and its last line, the run of `|` lines that
+ * starts at the ledger header. Any other table or pipe line lower in the note is the user's
+ * and is not touched. `null` when the note has no ledger header.
+ */
+function ledgerTable(lines: readonly string[], start: number): { readonly header: number; readonly end: number } | null {
 	const header = lines.findIndex((line, index) => index >= start && line.trim().startsWith('|') && isHeader(line.trim()));
-	if (header === -1) return -1;
+	if (header === -1) return null;
 	let end = header;
 	while (end + 1 < lines.length && (lines[end + 1] ?? '').trim().startsWith('|')) end += 1;
-	return end;
+	return { header, end };
 }
 
 function cells(line: string): string[] {

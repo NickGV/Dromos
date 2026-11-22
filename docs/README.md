@@ -26,7 +26,7 @@ Dromos shows your productive life as a calm RPG inside Obsidian. Your notes hold
 |---|---|---|
 | `Dromos/Character.md` | You: `name`, `title` | Writes the level, the XP and the stats |
 | `Dromos/Skills/<id>.md` | You or your guide: the definition | Writes the unlock, the level and the XP |
-| `Dromos/Ledger/YYYY-MM.md` | Dromos only | Adds rows, never changes one |
+| `Dromos/Ledger/YYYY-MM.md` | Dromos only | Adds rows, never changes one; removes exact repeated copies when it writes |
 | `Dromos/Rules.md` | You, optional | Only reads it |
 | `Dromos/Briefing.md` | Esdras, your guide | Only reads it |
 | Project and research notes | You or your guide | Only writes `habitica_id` when you send something to Habitica |

@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Repeated ledger rows**: when a device opened Obsidian on an out-of-date vault, Dromos could sync before Obsidian Sync brought the newer ledger, and the merge kept the same rows two or more times. Each time Dromos now writes to a month's ledger, it removes the rows that repeat an earlier one cell for cell and keeps the first copy. The copies never counted twice toward XP, and nothing else in the note changes.
+
 ## [0.22.0] - 2026-11-17
 
 ### Added

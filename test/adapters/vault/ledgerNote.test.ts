@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { appendLedgerRows, formatLedgerRow, ledgerMonthOf, newLedgerNote, parseLedgerNote, rowsByMonth } from '../../../src/adapters/vault/ledgerNote';
+import { uniqueRows } from '../../../src/domain/ledger/foldLedger';
 import { row } from '../../domain/ledger/ledgerFixtures';
 
 const NOTE = `---
@@ -155,6 +156,81 @@ month: 2026-11
 
 	it('appending nothing changes nothing', () => {
 		expect(appendLedgerRows(NOTE, [])).toBe(NOTE);
+	});
+});
+
+describe('appendLedgerRows drops exact repeats (ledger-repeats)', () => {
+	const READ = '| 2026-11-03 | 3f2a1c8e-0000-4000-8000-000000000001 | Leer cap. 3 de Clean Architecture | todo | lector | 10 | complete | 1 |';
+	const REVERT = '| 2026-11-04 | 3f2a1c8e-0000-4000-8000-000000000001 | Leer cap. 3 de Clean Architecture | todo | lector | -10 | revert | 1 |';
+	const ROUTINE = '| 2026-11-03 | 9c1b77d2-0000-4000-8000-000000000002 | Rutina de la mañana | daily |  | 5 | complete | 1 |';
+	const NEW = '| 2026-11-09 | new | Read chapter 3 | todo | lector | 10 | complete | 1 |';
+	const head = (rows: readonly string[], below = '') =>
+		`---\ntype: dromos-ledger\nmonth: 2026-11\n---\n\n# Ledger 2026-11\n\n| date | habitica_id | task | kind | skill | xp | source | n |\n|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n${below}`;
+
+	it('S1: keeps the first copy where it is and drops the later ones', () => {
+		const text = head([READ, REVERT, READ, ROUTINE, REVERT, READ], '\nSome note the user wrote below.\n');
+
+		const result = appendLedgerRows(text, [row({ date: '2026-11-09', habiticaId: 'new' })]);
+
+		expect(result).toBe(head([READ, REVERT, ROUTINE, NEW], '\nSome note the user wrote below.\n'));
+	});
+
+	it('S1: spaces around a cell do not make a different row, and the first copy keeps its own spacing', () => {
+		const padded = '| 2026-11-03 | 3f2a1c8e-0000-4000-8000-000000000001 | Leer cap. 3 de Clean Architecture | todo  | lector | 10  | complete | 1   |';
+
+		expect(appendLedgerRows(head([padded, ROUTINE, READ]), [row({ date: '2026-11-09', habiticaId: 'new' })])).toBe(head([padded, ROUTINE, NEW]));
+		expect(appendLedgerRows(head([READ, ROUTINE, padded]), [row({ date: '2026-11-09', habiticaId: 'new' })])).toBe(head([READ, ROUTINE, NEW]));
+	});
+
+	it('S1: a written row that repeats one already in the table is not added twice', () => {
+		const result = appendLedgerRows(head([READ, ROUTINE]), [row({ habiticaId: '3f2a1c8e-0000-4000-8000-000000000001', task: 'Leer cap. 3 de Clean Architecture' })]);
+
+		expect(result).toBe(head([READ, ROUTINE]));
+	});
+
+	it('S2: rows that differ in any cell all stay', () => {
+		const renamed = READ.replace('Leer cap. 3 de Clean Architecture', 'Leer capítulo 3');
+		const otherXp = READ.replace('| 10 |', '| 15 |');
+		const secondTime = READ.replace('| complete | 1 |', '| complete | 2 |');
+		const text = head([READ, renamed, otherXp, secondTime]);
+
+		const result = appendLedgerRows(text, [row({ date: '2026-11-09', habiticaId: 'new' })]);
+
+		expect(result).toBe(head([READ, renamed, otherXp, secondTime, NEW]));
+	});
+
+	it('S2: a repeated line that does not parse stays, and so do repeats in another table', () => {
+		const broken = '| 2026-11-03 | 3f2a1c8e | Something | weekly |  | 5 | complete | 1 |';
+		const mine = '\nMy own notes:\n\n| thing | value |\n|---|---|\n| a | b |\n| a | b |\n';
+		const text = head([READ, broken, broken], mine);
+
+		const result = appendLedgerRows(text, [row({ date: '2026-11-09', habiticaId: 'new' })]);
+
+		expect(result).toBe(head([READ, broken, broken, NEW], mine));
+		expect(parseLedgerNote(result).unreadable.filter((line) => line.text === broken)).toHaveLength(2);
+	});
+
+	it('S2: a note with no repeats gets exactly the append it got before', () => {
+		const text = `${NOTE}\nSome note the user wrote below.\n`;
+
+		const result = appendLedgerRows(text, [row({ date: '2026-11-09', habiticaId: 'new' })]);
+
+		expect(result).toBe(`${NOTE.trimEnd()}\n${NEW}\n\nSome note the user wrote below.\n`);
+	});
+
+	it('S3: the rows Dromos reads after the write are the unique rows it read before, plus the new one', () => {
+		const text = head([READ, REVERT, READ, ROUTINE, REVERT, ROUTINE, READ]);
+		const added = row({ date: '2026-11-09', habiticaId: 'new' });
+
+		const result = appendLedgerRows(text, [added]);
+
+		expect(parseLedgerNote(result).rows).toEqual([...uniqueRows(parseLedgerNote(text).rows), added]);
+	});
+
+	it('S4: writing nothing leaves the repeats in place', () => {
+		const text = head([READ, ROUTINE, READ]);
+
+		expect(appendLedgerRows(text, [])).toBe(text);
 	});
 });
 
