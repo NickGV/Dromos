@@ -9,7 +9,8 @@ export type LedgerSource = 'complete' | 'revert' | 'streak';
 /**
  * One row of `Dromos/Ledger/YYYY-MM.md`: a state transition of a Habitica task,
  * never an edit. A quest with several skills writes one row per skill that share
- * `date`, `habiticaId`, `source` and `n`, which together identify the transition.
+ * `date`, `habiticaId`, `source` and `n`; `transitionKey` names the transition (a to-do's
+ * without its date, since its `n` grows over its whole history).
  */
 export interface LedgerRow {
 	/** Local date as `YYYY-MM-DD`. */
