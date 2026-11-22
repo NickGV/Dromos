@@ -11,17 +11,19 @@ The user chose option A (L1): "que Dromos limpie las copias exactas cada vez que
 - **S2 Nothing else changes.** Frontmatter, prose, the header, the separator, rows that differ in any cell, other tables and pipe lines lower in the note stay as they were. A note with no repeats gets exactly the text the append wrote before this change. Assumption: a repeated line that does not parse as a row stays, because Dromos shows it as unreadable for the user to fix.
 - **S3 Same game.** What Dromos computes from the ledger does not change: the first copy is the one `uniqueRows` already keeps, so totals, each task's last state, recent deeds and the weekly history read the same.
 - **S4 Only when writing.** A sync that adds no row leaves the note untouched, so copies can stay until the next sync that writes to that month.
-- **S6 Plan without repeats** (L5: "si dale porfavor, arreglalo en esta rama", to "que Dromos descarte las copias también al calcular qué devolver"). When a sync plans the rows to append, it reads the ledger without repeated rows, the same rows `uniqueRows` counts for XP. Unchecking a daily then takes its completion and its streak bonus back once, and a to-do's completion is reverted once, however many copies the note holds. A ledger without repeats plans exactly the rows it planned before.
 - **S5 Contract and docs.** The ledger port, `docs/README.md` and `docs/frontmatter.md` stop saying that Dromos never changes a row; the CHANGELOG gets an Unreleased "Fixed" entry.
+- **S6 Plan without repeats** (L5: "si dale porfavor, arreglalo en esta rama", to "que Dromos descarte las copias también al calcular qué devolver"). When a sync plans the rows to append, it reads the ledger without repeated rows, the same rows `uniqueRows` counts for XP. Unchecking a daily then takes its completion and its streak bonus back once, and a to-do's completion is reverted once, however many copies the note holds. A ledger without repeats plans exactly the rows it planned before.
 
 ## Tasks
 
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
-| T1 | S1-S5 | Drop exact repeats in `appendLedgerRows`, tests first; port, docs and CHANGELOG | inline (one unit, no writer reason) | done (L3) | see L3 |
+| T1 | S1-S5 | Drop exact repeats in `appendLedgerRows`, tests first; port, docs and CHANGELOG | inline (one unit, no writer reason) | done (L3) | `2834ba7`, docs fix `d82a983` |
 | V1 | S1-S5 | Independent verifier: Risk item 1 (stored data) and item 3 (the documented "never changes a row") | delegated verifier | done: S1-S4 PASS; S5's blocker fixed and rechecked (L4) | see L4 |
-| F1 | S6 | Advisory 1: sync planning (`streakRows`, `nextRows`) reads raw rows, so repeats double what an uncheck takes back; a baseline bug. `rowsToAppend` plans over `uniqueRows(history)`, tests first | inline (one small unit) | done (L6) | see L6 |
-| V2 | S6 | Independent verifier of F1: Risk item 1 (the rows a sync writes) | delegated verifier | pending | |
+| F1 | S6 | Advisory 1: sync planning (`streakRows`, `nextRows`) reads raw rows, so repeats double what an uncheck takes back; a baseline bug. `rowsToAppend` plans over `uniqueRows(history)`, tests first | inline (one small unit) | done (L6) | `7aa6f46` |
+| V2 | S6 | Independent verifier of F1: Risk item 1 (the rows a sync writes) | delegated verifier | done: S6 PASS, no blockers (L7) | see L7 |
+| F2 | none yet | V2 advisory 2: a stale device's uncheck of a to-do is dated today, so it is not a repeat of the fresh device's revert and the fold counts both; a baseline bug | not authorized | the user's decision | |
+| R1 | S1-S6 | Merge into `main` and release 0.22.1 (patch: only fixes) | inline | waiting for the user's go-ahead | |
 
 ## Log
 
@@ -35,3 +37,12 @@ The user chose option A (L1): "que Dromos limpie las copias exactas cada vez que
   - Scratch: the verifier's `/tmp/tmp.*` copies and the parent's `diff-base` were removed by the parent. The backup of the original ledger stays in the session scratchpad.
 - **L5** (2026-11-22, user): "si dale porfavor, arreglalo en esta rama", to fixing advisory 1 on this branch before the merge ("que Dromos descarte las copias también al calcular qué devolver"). S6 written. Map: `rowsToAppend` (`planRows.ts`) is the only planning entry point, called once from `SyncGame.ts:208`. It passes raw `history` to `nextRows`, whose `revertRows` copies each repeated paid row, and to `streakRows`, whose `paid` map sums every copy of a streak row. The fix goes there: plan over `uniqueRows(history)`.
 - **L6** (2026-11-22): F1 inline. RED: 3 tests in `planRows.test.ts` failed. The daily got 2 reverts plus the streak, the to-do 3 reverts, and the plans with and without repeats differed. GREEN: `rowsToAppend` plans over `uniqueRows(history)`; `nextRows` and `streakRows` are unchanged. The daily test checks that the uncheck leaves character XP at the to-do's 10. CHANGELOG "Fixed" gains the uncheck entry. Checks: `planRows.test.ts` 12 passed; `npm test` 180 files, 2535 passed; lint 0 errors (4 old warnings); build passed. Differential, base `d82a983` against the change, on 156 plans (each task-day of the real ledger, checked and unchecked, with and without a streak of 7): on the cleaned vault ledger all 156 are identical. On the backup with repeats, all 156 new plans equal the plan over its unique rows, where the base differed in 64. Risk: item 1 (the rows a sync writes to the ledger), so V2 runs.
+- **L7** (2026-11-22): V2, independent verifier on `7aa6f46` against `d82a983`, scratch copies only. S6 PASS, no blockers, no effect on S1-S5. Suite 2535 passed, tsc and eslint clean, and the candidate's tests on baseline code fail exactly the 3 S6 tests. Harness `ALL OK`:
+  - histories without repeated keys: 38,859 plans equal to baseline;
+  - histories with copies: 37,488 plans equal to baseline over `uniqueRows`, where the raw baseline differed in 5,218;
+  - 20,000 hand-made histories: equal to baseline;
+  - the uncheck, recheck, uncheck sequence: XP matches the run without copies at every step, where the baseline drifted;
+  - stale-device model: final totals right in 4,000 of 4,000 runs, the baseline wrong in 40;
+  - real ledgers: 344 plans byte-identical on the cleaned one, and equal over `uniqueRows` on the backup.
+
+  Advisories: (1) S6 uses `uniqueRows`'s key, which is looser than S1's eight cells, so a row renamed between devices stays in the note but plans as one, as the fold already counts it. (2) A baseline bug outside S6, recorded as F2: unchecks are dated today (`gameTaskMapper.ts:36`) while completions use Habitica's `dateCompleted` (`:37`). A stale device's revert on another day is therefore not a repeat, and the fold counts both reverts, in old and new code alike. (3) Vitest wrote its results cache into the real `node_modules/.vite` through the symlink; it is gitignored. The parent removed the scratch (`/tmp/tmp.lsyb6wG8qH`, `/tmp/tmp.RoHgLGtyHu`, scratchpad `v2-verify`) and its spot check ran `planRows.test.ts` and `ledgerNote.test.ts`: 45 passed. Next: the user's go-ahead for R1.
