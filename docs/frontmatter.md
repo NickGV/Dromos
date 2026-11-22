@@ -184,7 +184,7 @@ The book card shows what you wrote in each section, read-only and rendered as th
 
 ## Ledger
 
-`<folder>/Ledger/YYYY-MM.md`, one note a month. Dromos only adds rows, and every level comes from them.
+`<folder>/Ledger/YYYY-MM.md`, one note a month. Dromos adds rows, and every level comes from them. When it writes to a month, it also removes any row of the ledger table that repeats an earlier row cell for cell, keeping the first copy. Such copies appear when a device syncs Dromos on an out-of-date vault and Obsidian Sync then merges both versions; they never counted twice.
 
 | Column | Meaning |
 |---|---|

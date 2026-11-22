@@ -7,8 +7,9 @@ import { appendLedgerRows, newLedgerNote, parseLedgerNote, rowsByMonth } from '.
 const MONTH_NOTE = /^\d{4}-\d{2}\.md$/;
 
 /**
- * The ledger notes of `Dromos/Ledger/`, one per month. It only adds rows: `vault.process`
- * reads and writes a note in one step, so rows already there are never lost, and appends
+ * The ledger notes of `Dromos/Ledger/`, one per month. It adds rows, and each write drops the
+ * exact repeats of its month (`appendLedgerRows`). `vault.process` reads and writes a note
+ * in one step, so rows already there are never lost, and appends
  * run one after another so two syncs cannot create the same month twice.
  */
 export class VaultLedgerRepository implements LedgerRepository {

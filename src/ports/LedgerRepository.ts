@@ -20,7 +20,8 @@ export interface LedgerRepository {
 
 	/**
 	 * Appends rows to the note of the month of each row, creating the note when it
-	 * does not exist. It only adds: no row is edited or removed.
+	 * does not exist. No row is edited; the only rows it removes are exact repeats of an
+	 * earlier row in the note it writes, keeping the first copy (ledger-repeats).
 	 */
 	append(rows: readonly LedgerRow[]): Promise<void>;
 }
