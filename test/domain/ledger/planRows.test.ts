@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TaskObservation } from '../../../src/domain/ledger/nextRows';
+import { foldLedger } from '../../../src/domain/ledger/foldLedger';
 import { resolveGameStart, rowsToAppend } from '../../../src/domain/ledger/planRows';
 import { row } from './ledgerFixtures';
 
@@ -22,6 +23,40 @@ describe('rowsToAppend: the game starts counting on its first day (no gifted pro
 		const rows = rowsToAppend(history, [observation({ completed: false, date: '2026-11-04' })], '2026-11-03');
 
 		expect(rows).toEqual([row({ date: '2026-11-04', xp: -10, source: 'revert' })]);
+	});
+});
+
+describe('rowsToAppend: repeated rows in the ledger are planned once (ledger-repeats S6)', () => {
+	const daily = observation({ kind: 'daily', habiticaId: 'd', title: 'Stretch', skills: ['atleta'], streak: 7 });
+	const paidDaily = rowsToAppend([], [daily], '2026-11-03');
+	const todo = row({ habiticaId: 'todo-1', task: 'Write', skill: null, xp: 10 });
+
+	it('takes a daily and its streak bonus back once when a merge copied them', () => {
+		const history = [todo, ...paidDaily, ...paidDaily];
+
+		const rows = rowsToAppend(history, [{ ...daily, completed: false }], '2026-11-03');
+
+		expect(rows.map((item) => [item.source, item.xp, item.n])).toEqual([
+			['revert', -5, 1],
+			['streak', -10, 2],
+		]);
+		expect(foldLedger([...history, ...rows], []).characterXp).toBe(10);
+	});
+
+	it('reverts a to-do once when a merge copied its completion', () => {
+		const paid = row({ date: '2026-11-03' });
+
+		const rows = rowsToAppend([paid, paid, paid], [observation({ completed: false, date: '2026-11-04' })], '2026-11-03');
+
+		expect(rows).toEqual([row({ date: '2026-11-04', xp: -10, source: 'revert' })]);
+	});
+
+	it('plans the same rows for a ledger with repeats as for the same ledger without them', () => {
+		const unique = [todo, ...paidDaily, row({ habiticaId: 'r', date: '2026-11-03' })];
+		const repeated = [...unique, todo, ...paidDaily, ...unique];
+		const sync = [{ ...daily, completed: false }, observation({ habiticaId: 'r', completed: false, date: '2026-11-04' }), observation({ habiticaId: 'new', date: '2026-11-04' })];
+
+		expect(rowsToAppend(repeated, sync, '2026-11-03')).toEqual(rowsToAppend(unique, sync, '2026-11-03'));
 	});
 });
 

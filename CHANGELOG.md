@@ -7,6 +7,7 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 ### Fixed
 
 - **Repeated ledger rows**: when a device opened Obsidian on an out-of-date vault, Dromos could sync before Obsidian Sync brought the newer ledger, and the merge kept the same rows two or more times. Each time Dromos now writes to a month's ledger, it removes the rows that repeat an earlier one cell for cell and keeps the first copy. The copies never counted twice toward XP, and nothing else in the note changes.
+- **Unchecking with repeated rows**: unchecking a daily whose completion and streak bonus had been copied by such a merge took the bonus back once per copy, which could lower your XP. Each sync now plans from the rows Dromos counts, so a completion or a bonus is taken back once.
 
 ## [0.22.0] - 2026-11-17
 
