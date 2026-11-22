@@ -31,8 +31,8 @@ export interface GameTotals {
  * - A stat is fed by the XP of its unlocked skills, and `disciplina` also by the dailies
  *   that carry no skill; it shows the level that XP has on the skill curve, so a stat of 3
  *   and a skill of level 3 mean the same.
- * - A line repeated exactly (same unique key) counts once, so a hand edit that copies a row
- *   never doubles XP.
+ * - A row repeated for the same change and skill counts once (`uniqueRows`), so a hand edit that
+ *   copies a row, or a to-do change two devices dated on different days, never doubles XP.
  * - No total goes below zero.
  */
 export function foldLedger(rows: readonly LedgerRow[], skills: readonly SkillXpSource[], rules: Pick<GameRules, 'skillCurve'> = DEFAULT_RULES): GameTotals {
@@ -64,11 +64,22 @@ export function foldLedger(rows: readonly LedgerRow[], skills: readonly SkillXpS
 	return { characterXp: Math.max(0, characterTotal(unique)), skillXp, statXp, stats };
 }
 
-/** The rows of the ledger without exact repeats of the same unique key; the first of each stays. */
+/**
+ * Which state change of a task a row belongs to; the rows of one change share it, one per skill.
+ * A to-do's `n` grows over its whole history, so its task, source and `n` name the change whatever
+ * the date: a second row with them comes from a device that missed rows, such as an uncheck it
+ * dated on another day (ledger-repeats S7). A daily's `n` restarts every day, so its date counts.
+ */
+export function transitionKey(row: LedgerRow): string {
+	const key = `${row.habiticaId}|${row.source}|${row.n}`;
+	return row.kind === 'todo' ? key : `${key}|${row.date}`;
+}
+
+/** The rows of the ledger without repeats of the same change and skill (`transitionKey`); the first of each stays. */
 export function uniqueRows(rows: readonly LedgerRow[]): LedgerRow[] {
 	const seen = new Set<string>();
 	return rows.filter((row) => {
-		const key = `${row.habiticaId}|${row.source}|${row.n}|${row.skill ?? ''}|${row.date}`;
+		const key = `${transitionKey(row)}|${row.skill ?? ''}`;
 		if (seen.has(key)) return false;
 		seen.add(key);
 		return true;
@@ -78,7 +89,7 @@ export function uniqueRows(rows: readonly LedgerRow[]): LedgerRow[] {
 function characterTotal(rows: readonly LedgerRow[]): number {
 	const transitions = new Map<string, number>();
 	for (const row of rows) {
-		const key = `${row.habiticaId}|${row.source}|${row.n}|${row.date}`;
+		const key = transitionKey(row);
 		if (!transitions.has(key)) transitions.set(key, row.xp);
 	}
 	let total = 0;

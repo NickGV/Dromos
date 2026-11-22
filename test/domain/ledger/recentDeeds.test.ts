@@ -18,8 +18,8 @@ describe('recentDeeds (game-ui S18)', () => {
 			row({ habiticaId: 'h1', n: 1 }),
 			row({ habiticaId: 'h1', n: 1, source: 'revert', xp: -10 }),
 			row({ habiticaId: 'h1', n: 2 }),
-			row({ habiticaId: 'h2', n: 1 }),
-			row({ habiticaId: 'h2', n: 1, date: '2026-11-02' }),
+			row({ habiticaId: 'h2', kind: 'daily', n: 1 }),
+			row({ habiticaId: 'h2', kind: 'daily', n: 1, date: '2026-11-02' }),
 		];
 
 		expect(recentDeeds(rows, 10).map((deed) => [deed.habiticaId, deed.source, deed.xp, deed.date])).toEqual([

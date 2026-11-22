@@ -50,7 +50,7 @@ The same command creates it again. `name` and `title` lived only in that note, s
 
 ### I edited a ledger row by hand
 
-A damaged row is listed as unreadable in the Skills section. Dromos cannot know what it said, so it may add that change again. A row repeated exactly counts once.
+A damaged row is listed as unreadable in the Skills section. Dromos cannot know what it said, so it may add that change again. A row repeated exactly counts once, and so does a to-do's change that two devices wrote on different days.
 
 ### A skill does not appear, or the Skills section names a note
 
