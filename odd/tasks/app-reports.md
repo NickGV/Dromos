@@ -38,7 +38,7 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
 | U1 | S1, S2 | The user: Cheshbon's folder at `Logos/Cheshbon/`; why Kairos stopped after 2026-11-13 (Ajustes > Obsidian, `adb shell dumpsys package com.nickgv.kairos`) | the user | Cheshbon done (L11); Kairos pending | phone |
 | T1 | S1-S3, S7 | Build option C | delegated writer (context backstop: the parent session is long); the phone part shows data once K1 lands | done (L10, L12); the user's look done on desktop (L13) | `37aeaf8`, `d8f8b46`, `769d108` |
 | T2 | S4 | Titles and streaks | after about two weeks of good data; decisions first | pending | |
-| R1 | S6 | Release with the user's go-ahead | inline | pending | |
+| R1 | S6 | Release with the user's go-ahead | inline | released (L15); the Android check is not recorded | `05e73b1` (tag `0.22.0`), merge `c8b906b` |
 
 ## Log
 
@@ -80,3 +80,4 @@ The user's request (L1): "A base de crear notas directamente en logos se puede c
   - the user's privacy decision on the accounts and merchants in Cheshbon's note body;
   - T2, the streaks, after about two weeks of good data.
 - **L14** (2026-11-17, user): "si dale porfavor", the go-ahead for R1: release 0.22.0 (minor: something new to use).
+- **L15** (2026-11-22, user): "si dale porfavor", to marking R1. Checked on GitHub: tag `0.22.0` on `05e73b1`, merged into `main` as `c8b906b`; release 0.22.0 published 2026-11-17 and marked Latest; the "Release Obsidian plugin" run for `0.22.0` and the "Node.js build" run on `main` both passed. On the second PC (`~/Projects/Dromos`), `main` was fast-forwarded from 0.6.1 to `c8b906b` and `npm run install:local` put 0.22.0 into the Logos vault (manifest reads 0.22.0). The Android check that S6 asks for is not recorded. Still open from L13: K1, the E1 follow-up, the privacy decision on Cheshbon's note body, and T2; U1's Kairos part too.
