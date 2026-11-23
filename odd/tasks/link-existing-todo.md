@@ -24,7 +24,7 @@ From issue #11 (its Goal, Scope, Acceptance criteria, Tests and Out of scope, qu
 | T2 | S1, S3, S6 | The action and the picker: presenter, button, picker adapter, container wiring, messages in en and es, README, docs and CHANGELOG, tests first | inline | done (L4) | see L4 |
 | V1 | S1-S7 | Independent verifier at the feature's end: Risk item 3 (shared campaign sync code and its requests) | delegated verifier | done: no blockers; advisories 1, 3, 5, 6, 7 fixed (L5) | see L5 |
 | M1 | S7 | The manual check in Obsidian | the user | skipped by the user (L7) | |
-| R1 | all | Merge, release and close #11 | inline, with the user's go-ahead | pending | |
+| R1 | all | Merge, release and close #11 | inline, with the user's go-ahead | released and closed (L8); the check on the devices is not recorded | merge `81df097`, tag `0.23.0` on `cae89ab`, release merge `3104a9f` |
 
 ## Log
 
@@ -94,3 +94,8 @@ From issue #11 (its Goal, Scope, Acceptance criteria, Tests and Out of scope, qu
   The parent removed the scratch: three `/tmp/tmp.*` copies, the scratchpad `harness/` and the lint and paths files.
 - **L6** (2026-11-22, user): "si dale", to installing the branch for M1. The vault had moved: Obsidian's vault list now points to `/home/nickgv/Documents/logos`, lowercase. The folder was renamed at 18:53, and it holds the same vault (44 ledger rows, 22 Kairos notes, Dromos 0.22.2 from BRAT). The user's `~/.zshenv` still exports `DROMOS_VAULT=/home/nickgv/Documents/Logos`, so `npm run install:local` found no vault. It was run with `DROMOS_VAULT=/home/nickgv/Documents/logos` for that command only; `~/.zshenv` is untouched. The vault's `main.js` matches the branch build at `0d04826`. The manifest still reads 0.22.2, since the branch bumps no version. M1 waits for the user's check in Obsidian.
 - **L7** (2026-11-22, user): "yo confio en que funcionara bien, demosla por cerrada". M1 was skipped by the user's decision. Not checked by hand in Obsidian: the picker modal (`TodoPickerModal`), `CampaignsPanel.linkFromList`, the look of the button, and the end-to-end progress after completing the linked to-do. Vitest cannot run these (no DOM, no `obsidian`). The rest is covered by the tests and V1. R1, the merge, the release and closing #11, waits for the user's go-ahead.
+- **L8** (2026-11-22, user): "si dale porfavor, mergea y publica la 0.23.0", answering "¿Mergeo, publico la 0.23.0 y cierro el #11?".
+  - Release: `feat/link-existing-todo` merged into `main` with `--no-ff` (`81df097`). On `release/0.23.0`, the CHANGELOG's Unreleased became "0.23.0 - 2026-11-22" (`86eefbc`), and `npm version minor` (something new to use) tagged `0.23.0` (`cae89ab`); merged into `main` (`3104a9f`).
+  - Checks on `main` before pushing: 2576 tests passed, lint 0 errors (4 old warnings), build passed.
+  - GitHub: the "Release Obsidian plugin" run for `0.23.0` and the "Node.js build" run on `main` both succeeded. Release 0.23.0 is published and Latest, with `main.js`, `manifest.json` and `styles.css`. Issue #11 is closed with a comment pointing to the release.
+  - Not recorded: BRAT updating the devices, and M1, which the user skipped (L7).
