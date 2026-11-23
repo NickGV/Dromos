@@ -18,7 +18,8 @@ const DELETED: TaskStatus = { kind: 'deleted' };
  * completed lists, then looks up one by one the ids neither answered, because `completedTodos`
  * forgets everything past the 30 most recent; a 404 there is `deleted`. For the dailies, reads the
  * one list of dailies: a daily in it has its streak, one not in it is `deleted`, so a daily never
- * spends a lookup. A list is only asked for when some id needs it. Rejects only with
+ * spends a lookup. With `openTodos`, every open to-do of the open list is answered too, with its
+ * title (link-existing-todo S5). A list is only asked for when some id needs it. Rejects only with
  * `TaskSourceError`, and then answers nothing, so nothing is taken for deleted.
  */
 export class HabiticaTaskStatusSource implements TaskStatusSource {
@@ -27,7 +28,7 @@ export class HabiticaTaskStatusSource implements TaskStatusSource {
 		private readonly maxLookups: number = DEFAULT_MAX_LOOKUPS,
 	) {}
 
-	async fetchStatuses({ todos, dailies }: LinkedTasks): Promise<ReadonlyMap<string, TaskStatus>> {
+	async fetchStatuses({ todos, dailies, openTodos = false }: LinkedTasks): Promise<ReadonlyMap<string, TaskStatus>> {
 		const statuses = new Map<string, TaskStatus>();
 		const wantedDailies = [...new Set(dailies)];
 		const wantedTodos = [...new Set(todos)].filter((id) => !wantedDailies.includes(id));
@@ -35,14 +36,17 @@ export class HabiticaTaskStatusSource implements TaskStatusSource {
 
 		const validTodos = wantedTodos.filter((id) => !statuses.has(id));
 		const validDailies = wantedDailies.filter((id) => !statuses.has(id));
-		if (validTodos.length === 0 && validDailies.length === 0) return statuses;
+		if (validTodos.length === 0 && validDailies.length === 0 && !openTodos) return statuses;
 
 		try {
-			if (validTodos.length > 0) {
-				for (const path of [TODOS_PATH, COMPLETED_PATH]) {
+			if (validTodos.length > 0 || openTodos) {
+				for (const path of validTodos.length > 0 ? [TODOS_PATH, COMPLETED_PATH] : [TODOS_PATH]) {
 					for (const dto of readHabiticaTasks(await this.client.get(path))) {
 						const id = idOf(dto);
-						if (validTodos.includes(id) && !statuses.has(id)) statuses.set(id, statusOf(dto));
+						if (statuses.has(id)) continue;
+						const status = statusOf(dto);
+						if (openTodos && path === TODOS_PATH && status.kind === 'open' && HABITICA_ID.test(id)) statuses.set(id, { ...status, title: dto.text.trim() });
+						else if (validTodos.includes(id)) statuses.set(id, status);
 					}
 				}
 			}

@@ -5,7 +5,7 @@ import { SystemClock } from '../obsidian/SystemClock';
 import { buildAreas } from './areaMapper';
 import { onCacheChanged, waitForCache, type Timers } from './cacheWait';
 import { linkHabiticaIdInFrontmatter, linkHabitHabiticaIdInFrontmatter, relinkHabiticaIdInFrontmatter, relinkHabitHabiticaIdInFrontmatter } from './campaignLink';
-import { buildActiveCampaigns, buildCompletedCampaigns, linkPath, type VaultNote } from './campaignMapper';
+import { buildActiveCampaigns, buildCompletedCampaigns, linkedTaskIdsOf, linkPath, type VaultNote } from './campaignMapper';
 
 /** Note types the lists need: the campaigns, the sessions of a research, and the areas (ADR-017). */
 const RELEVANT_TYPES: readonly unknown[] = ['index', 'research', 'study-session', 'archeion'];
@@ -35,6 +35,10 @@ export class VaultCampaignRepository implements CampaignRepository, AreaReposito
 
 	listAreas(): Promise<readonly Area[]> {
 		return Promise.resolve(buildAreas(this.notes()));
+	}
+
+	linkedTaskIds(): Promise<ReadonlySet<string>> {
+		return Promise.resolve(linkedTaskIdsOf(this.notes()));
 	}
 
 	linkHabiticaId(campaignPath: string, taskTitle: string, habiticaId: string): Promise<LinkResult> {

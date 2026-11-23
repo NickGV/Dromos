@@ -6,7 +6,14 @@ export class InMemoryCampaignRepository implements CampaignRepository {
 	constructor(
 		private campaigns: readonly Campaign[] = [],
 		private completed: readonly Campaign[] = [],
+		/** Campaigns in any other status (planning, paused, archived): only their linked ids are read. */
+		private readonly others: readonly Campaign[] = [],
 	) {}
+
+	linkedTaskIds(): Promise<ReadonlySet<string>> {
+		const projects = [...this.campaigns, ...this.completed, ...this.others].filter((campaign) => campaign.kind === 'project');
+		return Promise.resolve(new Set(projects.flatMap((campaign) => campaign.tasks.flatMap((task) => (task.habiticaId ? [task.habiticaId] : [])))));
+	}
 
 	listActive(): Promise<readonly Campaign[]> {
 		return Promise.resolve(this.campaigns);

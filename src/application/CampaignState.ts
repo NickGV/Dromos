@@ -56,3 +56,9 @@ export class CampaignState {
 function copy({ campaigns, areas, issues }: CampaignLists): Pick<CampaignSnapshot, 'campaigns' | 'areas' | 'issues'> {
 	return { campaigns: [...campaigns], areas: [...areas], issues: [...issues] };
 }
+
+/** An open Habitica to-do the last campaign sync listed: what a campaign task can be linked to (link-existing-todo S5). */
+export interface OpenTodo {
+	readonly habiticaId: string;
+	readonly title: string;
+}

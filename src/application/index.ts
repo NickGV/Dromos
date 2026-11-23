@@ -7,6 +7,7 @@ export * from './gameEvents';
 export * from './GameState';
 export * from './LinkHabitToArea';
 export * from './LinkHabitToCampaign';
+export * from './LinkExistingTask';
 export * from './LinkTaskToCampaign';
 export * from './FinishReading';
 export * from './mergeTaskStatuses';

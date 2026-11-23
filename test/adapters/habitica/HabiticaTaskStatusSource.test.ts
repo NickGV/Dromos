@@ -259,3 +259,34 @@ describe('HabiticaTaskStatusSource.fetchStatuses: dailies, from the list of dail
 		expect(error).toMatchObject({ kind: 'RateLimited', retryAfterSeconds: 30 });
 	});
 });
+
+describe('HabiticaTaskStatusSource.fetchStatuses: the open to-do list (link-existing-todo S5)', () => {
+	it('answers every open to-do with its title from the open list alone', async () => {
+		const { source, http } = setup(envelope([todo(id(1)), todo(id(2), { text: '  Write the report ' })]));
+
+		const statuses = await source.fetchStatuses({ todos: [], dailies: [], openTodos: true });
+
+		expect([...statuses]).toEqual([
+			[id(1), { kind: 'open', title: `Task ${id(1)}` }],
+			[id(2), { kind: 'open', title: 'Write the report' }],
+		]);
+		expect(http.sent()).toEqual([`GET ${TODOS_URL}`]);
+	});
+
+	it('with linked to-dos, reads each list once and adds the open ones to the linked answers', async () => {
+		const { source, http } = setup(envelope([todo(id(1)), todo(id(2))]), envelope([todo(id(3), { completed: true, dateCompleted: '2026-11-20T15:00:00.000Z' })]));
+
+		const statuses = await source.fetchStatuses({ todos: [id(3), id(1)], dailies: [], openTodos: true });
+
+		expect(statuses.get(id(3))).toMatchObject({ kind: 'completed' });
+		expect(statuses.get(id(1))).toEqual({ kind: 'open', title: `Task ${id(1)}` });
+		expect(statuses.get(id(2))).toEqual({ kind: 'open', title: `Task ${id(2)}` });
+		expect(http.sent()).toEqual([`GET ${TODOS_URL}`, `GET ${COMPLETED_URL}`]);
+	});
+
+	it('without the list, still answers only the linked to-dos, with no title', async () => {
+		const { source } = setup(envelope([todo(id(1)), todo(id(2))]));
+
+		expect([...(await source.fetchStatuses({ todos: [id(1)], dailies: [] }))]).toEqual([[id(1), { kind: 'open' }]]);
+	});
+});

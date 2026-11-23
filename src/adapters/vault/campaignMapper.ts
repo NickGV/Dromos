@@ -104,6 +104,16 @@ export function buildActiveCampaigns(notes: readonly VaultNote[]): Campaign[] {
 		.sort((left, right) => comparePriority(left.priority, right.priority) || left.title.localeCompare(right.title));
 }
 
+/** The pure core of `linkedTaskIds`: the task ids of every project README, whatever its status (link-existing-todo S4). */
+export function linkedTaskIdsOf(notes: readonly VaultNote[]): Set<string> {
+	const ids = new Set<string>();
+	for (const note of notes) {
+		if (asRecord(note.frontmatter).type !== 'index' || !PROJECT_README.test(note.path)) continue;
+		for (const task of projectTasks(asRecord(note.frontmatter).tasks)) if (task.habiticaId !== null) ids.add(task.habiticaId);
+	}
+	return ids;
+}
+
 /** `skill` is a single id or a list of ids; both read as a list of lowercase ids (like the tags), and an empty text or `null` is no skill. */
 export function skillsFrom(value: unknown): string[] {
 	const items = Array.isArray(value) ? value : [value];
