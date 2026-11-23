@@ -2107,7 +2107,8 @@
 	font-size: var(--font-ui-small);
 }
 
-.dromos-root .dromos-send-button { flex: 0 0 auto; }
+.dromos-root .dromos-send-button,
+.dromos-root .dromos-link-button { flex: 0 0 auto; }
 
 .dromos-root .dromos-spinner {
 	display: inline-block;

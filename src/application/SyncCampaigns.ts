@@ -100,12 +100,26 @@ export class SyncCampaigns {
 		if (!hasCredentials()) {
 			failure = { kind: 'not-configured' };
 		} else if (todos.length + dailies.length > 0 || listOpenTodos) {
+			// With linked to-dos the list comes from the read they need anyway; without them it is read
+			// on its own afterwards, so its failure only leaves the last list (link-existing-todo S5).
+			const together = listOpenTodos && todos.length > 0;
 			try {
-				const answers = await this.settled(await source.fetchStatuses(listOpenTodos ? { todos, dailies, openTodos: true } : { todos, dailies }), todos);
-				for (const [id, status] of answers) this.known.set(id, status);
-				if (listOpenTodos) this.openTodoList = [...answers].flatMap(([habiticaId, status]) => (status.kind === 'open' && status.title !== undefined ? [{ habiticaId, title: status.title }] : []));
+				if (todos.length + dailies.length > 0) {
+					const answers = await this.settled(await source.fetchStatuses(together ? { todos, dailies, openTodos: true } : { todos, dailies }), todos);
+					for (const [id, status] of answers) this.known.set(id, status);
+					if (together) this.openTodoList = openTodosOf(answers);
+				}
 			} catch (error) {
 				failure = statusForFailure(error);
+			}
+			if (listOpenTodos && !together && failure === null) {
+				try {
+					const answers = await source.fetchStatuses({ todos: [], dailies: [], openTodos: true });
+					for (const [id, status] of answers) this.known.set(id, status);
+					this.openTodoList = openTodosOf(answers);
+				} catch {
+					// Keeps the last list; nothing else depended on this read.
+				}
 			}
 		}
 
@@ -149,6 +163,11 @@ export class SyncCampaigns {
 		const fromAreas = mergeAreaStatuses(areas, this.known);
 		return { campaigns: fromCampaigns.campaigns, areas: fromAreas.areas, issues: [...fromCampaigns.issues, ...fromAreas.issues] };
 	}
+}
+
+/** The open to-dos of an answer that listed them, in its order: the ones with a title. */
+function openTodosOf(answers: ReadonlyMap<string, TaskStatus>): OpenTodo[] {
+	return [...answers].flatMap(([habiticaId, status]) => (status.kind === 'open' && status.title !== undefined ? [{ habiticaId, title: status.title }] : []));
 }
 
 /** The Habitica ids of the linked items, in order. */

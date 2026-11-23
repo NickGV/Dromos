@@ -500,4 +500,29 @@ describe('SyncCampaigns: the open to-dos a task can link (link-existing-todo S5)
 		expect(source.calls).toBe(1);
 		expect(snapshot.campaigns?.[0]?.tasks[0]).toMatchObject({ habiticaId: H1, completed: false, checklist });
 	});
+
+	it('reads the list on its own when nothing linked needs it, so its failure leaves the sync and the streaks as they were', async () => {
+		const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+		const { sync, source } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })], areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: H3 })] })] });
+		source.resolves({ [H3]: { kind: 'daily', streak: 6 } }).rejects(new TaskSourceError('Offline'));
+
+		const snapshot = await sync.execute();
+
+		expect(source.requests).toEqual([
+			{ todos: [], dailies: [H3] },
+			{ todos: [], dailies: [], openTodos: true },
+		]);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+		expect(snapshot.areas?.[0]?.habits[0]?.streak).toBe(6);
+		expect(sync.openTodos()).toBeNull();
+	});
+
+	it('does not read the list after the statuses already failed', async () => {
+		const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+		const { sync, source } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })], areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: H3 })] })] });
+		source.rejects(new TaskSourceError('Offline'));
+
+		expect((await sync.execute()).status).toEqual({ kind: 'offline' });
+		expect(source.calls).toBe(1);
+	});
 });

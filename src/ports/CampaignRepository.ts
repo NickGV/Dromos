@@ -29,8 +29,8 @@ export interface CampaignRepository {
 	linkHabiticaId(campaignPath: string, taskTitle: string, habiticaId: string): Promise<LinkResult>;
 
 	/**
-	 * The Habitica ids in the `tasks[]` of every project note, whatever its status: the to-dos already
-	 * linked to a campaign task, which no other task may take (link-existing-todo S4).
+	 * The Habitica ids in the `tasks[]` of every project note, whatever its status, and of every study
+	 * session: the to-dos already linked to a campaign task, which no other task may take (link-existing-todo S4).
 	 */
 	linkedTaskIds(): Promise<ReadonlySet<string>>;
 

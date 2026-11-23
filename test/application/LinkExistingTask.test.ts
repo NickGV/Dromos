@@ -38,6 +38,13 @@ describe('LinkExistingTask.choices (link-existing-todo S3, S4)', () => {
 		expect(await setup({ openTodos: null }).link.choices()).toBeNull();
 	});
 
+	it('has no choices, and does not reject, when the notes cannot be read', async () => {
+		const { link, repository } = setup();
+		repository.linkedTaskIds = () => Promise.reject(new Error('vault down'));
+
+		expect(await link.choices()).toBeNull();
+	});
+
 	it('leaves out every to-do already linked to a task of any campaign, and keeps the order', async () => {
 		const paused = campaign({ path: '02 - Projects/Salto/README.md', status: 'paused', tasks: [task('a', null, { habiticaId: H4 })] });
 		const done = campaign({ path: '02 - Projects/Viejo/README.md', status: 'completed', tasks: [task('a', null, { habiticaId: H2 })] });

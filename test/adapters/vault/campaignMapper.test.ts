@@ -481,6 +481,12 @@ describe('linkedTaskIdsOf (link-existing-todo S4)', () => {
 		expect([...linkedTaskIdsOf(notes)].sort()).toEqual([H1, H2, H3].sort());
 	});
 
+	it('collects the to-do of every study session too: it is a task of its research', () => {
+		const notes = [note('03 - Areas/Estudio/Rust/Sesion 1.md', { type: 'study-session', research: '[[Rust]]', habitica_id: H1 }), note('03 - Areas/Estudio/Rust/Sesion 2.md', { type: 'study-session', habitica_id: '' })];
+
+		expect([...linkedTaskIdsOf(notes)]).toEqual([H1]);
+	});
+
 	it('leaves out habits, notes that are not a project README, and research notes', () => {
 		const notes = [
 			note('02 - Projects/Kairos/README.md', { type: 'index', status: 'active', habits: [{ title: 'h', habitica_id: H1 }] }),

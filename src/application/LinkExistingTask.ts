@@ -32,12 +32,19 @@ export class LinkExistingTask {
 
 	constructor(private readonly deps: LinkExistingTaskDeps) {}
 
-	/** The open to-dos no campaign task holds, in the sync's order; `null` while the sync has listed none (S3, S4). */
+	/**
+	 * The open to-dos no campaign task holds, in the sync's order; `null` while the sync has listed none,
+	 * or when the notes cannot be read to tell which are taken (S3, S4). Never rejects.
+	 */
 	async choices(): Promise<readonly OpenTodo[] | null> {
 		const listed = this.deps.openTodos();
 		if (listed === null) return null;
-		const linked = await this.deps.repository.linkedTaskIds();
-		return listed.filter((todo) => !linked.has(todo.habiticaId));
+		try {
+			const linked = await this.deps.repository.linkedTaskIds();
+			return listed.filter((todo) => !linked.has(todo.habiticaId));
+		} catch {
+			return null;
+		}
 	}
 
 	/** Runs one link per task; a second pick for the same task joins the one already running. */

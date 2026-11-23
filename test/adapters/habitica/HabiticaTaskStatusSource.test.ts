@@ -284,6 +284,12 @@ describe('HabiticaTaskStatusSource.fetchStatuses: the open to-do list (link-exis
 		expect(http.sent()).toEqual([`GET ${TODOS_URL}`, `GET ${COMPLETED_URL}`]);
 	});
 
+	it('leaves out of the list an open to-do whose title is blank', async () => {
+		const { source } = setup(envelope([todo(id(1), { text: '   ' }), todo(id(2))]));
+
+		expect([...(await source.fetchStatuses({ todos: [], dailies: [], openTodos: true })).keys()]).toEqual([id(2)]);
+	});
+
 	it('without the list, still answers only the linked to-dos, with no title', async () => {
 		const { source } = setup(envelope([todo(id(1)), todo(id(2))]));
 

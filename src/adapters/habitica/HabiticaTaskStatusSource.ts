@@ -45,7 +45,8 @@ export class HabiticaTaskStatusSource implements TaskStatusSource {
 						const id = idOf(dto);
 						if (statuses.has(id)) continue;
 						const status = statusOf(dto);
-						if (openTodos && path === TODOS_PATH && status.kind === 'open' && HABITICA_ID.test(id)) statuses.set(id, { ...status, title: dto.text.trim() });
+						const title = typeof dto.text === 'string' ? dto.text.trim() : '';
+						if (openTodos && path === TODOS_PATH && status.kind === 'open' && HABITICA_ID.test(id) && title !== '') statuses.set(id, { ...status, title });
 						else if (validTodos.includes(id)) statuses.set(id, status);
 					}
 				}
