@@ -25,8 +25,8 @@ The user chose option A (L1): "que Dromos limpie las copias exactas cada vez que
 | V2 | S6 | Independent verifier of F1: Risk item 1 (the rows a sync writes) | delegated verifier | done: S6 PASS, no blockers (L7) | see L7 |
 | F2 | S7 | V2 advisory 2: a stale device's uncheck of a to-do is dated today, so it is not a repeat of the fresh device's revert and the fold counts both; a baseline bug. One `transitionKey` without the date for to-dos, used by `uniqueRows`, `characterTotal` and `standingCompletionCount`, tests first | inline (one small unit), branch `fix/ledger-todo-reverts` | done (L10) | see L10 |
 | V3 | S7 | Independent verifier of F2: Risk item 1 (the levels and XP Dromos writes from the fold) | delegated verifier | done: S7 PASS, no blockers (L11) | see L11 |
-| R2 | S7 | Merge into `main` and release 0.22.2 (patch: only fixes) | inline | released (L12); the check on the devices is not recorded | merge `5597842`, tag `0.22.2` on `3291364`, release merge `ebdc880` |
-| R1 | S1-S6 | Merge into `main` and release 0.22.1 (patch: only fixes) | inline | released (L8); the check on the devices is not recorded | merge `b6de220`, tag `0.22.1` on `c313f1b`, release merge `f15cdf1` |
+| R2 | S7 | Merge into `main` and release 0.22.2 (patch: only fixes) | inline | released (L12); checked on the devices by the user (L13) | merge `5597842`, tag `0.22.2` on `3291364`, release merge `ebdc880` |
+| R1 | S1-S6 | Merge into `main` and release 0.22.1 (patch: only fixes) | inline | released (L8); checked on the devices by the user (L13) | merge `b6de220`, tag `0.22.1` on `c313f1b`, release merge `f15cdf1` |
 
 ## Log
 
@@ -70,3 +70,4 @@ The user chose option A (L1): "que Dromos limpie las copias exactas cada vez que
 
   The parent removed the scratch (`/tmp/tmp.Sh8gcJC7Vk`, `/tmp/tmp.o16ql1RCIt`, scratchpad `v3-verify`). Next: R2, as the user asked.
 - **L12** (2026-11-22): R2, with the user's go-ahead in L11. `fix/ledger-todo-reverts` merged into `main` with `--no-ff` (`5597842`); on `release/0.22.2`, the CHANGELOG's Unreleased became "0.22.2 - 2026-11-22" (`4698c9b`) and `npm version patch` tagged `0.22.2` (`3291364`); merged into `main` (`ebdc880`). On `main` before pushing: 2540 tests passed, lint 0 errors (4 old warnings), build passed. GitHub: the "Release Obsidian plugin" run for `0.22.2` and the "Node.js build" run on `main` both succeeded; release 0.22.2 is published and Latest, with `main.js`, `manifest.json` and `styles.css`. Not recorded: BRAT updating the devices and a look in Obsidian.
+- **L13** (2026-11-23, user): "1 ya revise / 2 ya se hizo la prueba / 3 no creo que lo hayamos hecho / 4 ya con esdras cambiamos el tema de logos-dotfiles, ahora esta directamente en el vault". Item 1 is BRAT updating the devices to 0.22.1 and 0.22.2 (and on to 0.23.0), checked by the user.

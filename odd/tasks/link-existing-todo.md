@@ -23,8 +23,8 @@ From issue #11 (its Goal, Scope, Acceptance criteria, Tests and Out of scope, qu
 | T1 | S2, S4, S5 | The data and the use case: the open to-dos from the campaign sync, the linked ids of every campaign note, `LinkExistingTask`, tests first | inline (T2 depends on it; no writer reason) | done (L3) | see L3 |
 | T2 | S1, S3, S6 | The action and the picker: presenter, button, picker adapter, container wiring, messages in en and es, README, docs and CHANGELOG, tests first | inline | done (L4) | see L4 |
 | V1 | S1-S7 | Independent verifier at the feature's end: Risk item 3 (shared campaign sync code and its requests) | delegated verifier | done: no blockers; advisories 1, 3, 5, 6, 7 fixed (L5) | see L5 |
-| M1 | S7 | The manual check in Obsidian | the user | skipped by the user (L7) | |
-| R1 | all | Merge, release and close #11 | inline, with the user's go-ahead | released and closed (L8); the check on the devices is not recorded | merge `81df097`, tag `0.23.0` on `cae89ab`, release merge `3104a9f` |
+| M1 | S7 | The manual check in Obsidian | the user | done by the user (L9) | |
+| R1 | all | Merge, release and close #11 | inline, with the user's go-ahead | released and closed (L8); checked on the devices by the user (L9) | merge `81df097`, tag `0.23.0` on `cae89ab`, release merge `3104a9f` |
 
 ## Log
 
@@ -99,3 +99,4 @@ From issue #11 (its Goal, Scope, Acceptance criteria, Tests and Out of scope, qu
   - Checks on `main` before pushing: 2576 tests passed, lint 0 errors (4 old warnings), build passed.
   - GitHub: the "Release Obsidian plugin" run for `0.23.0` and the "Node.js build" run on `main` both succeeded. Release 0.23.0 is published and Latest, with `main.js`, `manifest.json` and `styles.css`. Issue #11 is closed with a comment pointing to the release.
   - Not recorded: BRAT updating the devices, and M1, which the user skipped (L7).
+- **L9** (2026-11-23, user): "1 ya revise / 2 ya se hizo la prueba / 3 no creo que lo hayamos hecho / 4 ya con esdras cambiamos el tema de logos-dotfiles, ahora esta directamente en el vault". Item 2 is this feature's manual check, done by the user after L7, so M1 is done; item 1 is BRAT updating the devices to 0.23.0, checked by the user.
