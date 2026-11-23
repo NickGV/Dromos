@@ -21,7 +21,7 @@ From issue #11 (its Goal, Scope, Acceptance criteria, Tests and Out of scope, qu
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
 | T1 | S2, S4, S5 | The data and the use case: the open to-dos from the campaign sync, the linked ids of every campaign note, `LinkExistingTask`, tests first | inline (T2 depends on it; no writer reason) | done (L3) | see L3 |
-| T2 | S1, S3, S6 | The action and the picker: presenter, button, picker adapter, container wiring, messages in en and es, README, docs and CHANGELOG, tests first | inline | pending | |
+| T2 | S1, S3, S6 | The action and the picker: presenter, button, picker adapter, container wiring, messages in en and es, README, docs and CHANGELOG, tests first | inline | done (L4) | see L4 |
 | V1 | S1-S7 | Independent verifier at the feature's end: Risk item 3 (shared campaign sync code and its requests) | delegated verifier | pending | |
 | M1 | S7 | The manual check in Obsidian | the user | pending | |
 | R1 | all | Merge, release and close #11 | inline, with the user's go-ahead | pending | |
@@ -54,3 +54,19 @@ From issue #11 (its Goal, Scope, Acceptance criteria, Tests and Out of scope, qu
   - `LinkExistingTask`: `choices()` and `execute()`, with the outcomes `linked`, `already-linked`, `taken`, `not-found`, `not-a-project` and `write-failed`. Its only dependencies are the repository and the list, so it cannot reach Habitica; S2's "never calls the task creator" holds by construction, and the test checks that the repository's link is its only write.
 
   Checks: `npm test` 182 files, 2560 passed; lint 0 errors (4 old warnings); tsc clean.
+- **L4** (2026-11-22): T2 inline. RED: 3 of the 4 `CampaignTaskRow` tests in `linkExisting.test.tsx` failed and `linkExistingView.test.ts` could not load. Two of the test's own mistakes were fixed: calling a hook-using molecule as a function, now tested through a hook-free `LinkButton` atom, and a hand-built screen view, now the real one.
+
+  GREEN:
+  - `canLink`, set only when true, on project rows that can be sent, once `SyncCampaigns.openTodos()` is not `null` (`campaignView`). Emitting it only when true keeps every card view identical, so the pin "keeps everything else a card showed before" holds.
+  - `canLink` on `CampaignTaskView`. `LinkButton` sits after `SendButton`, and `SendButton` gains `disabled`, so both ignore clicks while either runs. `Sending.kind` gains `'link'`, and `CampaignScreen.onLinkExisting` takes the task title.
+  - `CampaignsPanel.linkFromList`:
+    - a list of `null` or empty shows `noChoicesView`;
+    - otherwise it opens `pickTodo`; closing it does nothing;
+    - picking runs `execute`, shows `linkExistingOutcomeView`, then `reload()`.
+  - `TodoPickerModal`: Obsidian's `FuzzySuggestModal`. It resolves `null` on a close without a choice, deferred one turn, because Obsidian closes before it reports the choice.
+  - Wiring in `createDromos.ts`.
+  - Strings `task.link`, `task.linking` and nine `link.existing.*`, in en and es.
+  - Styles for `.dromos-link-button`, on the shared button rules, with a transparent background.
+  - Docs: README (feature, requests, writes), `docs/habitica.md` ("Link an existing to-do" and the requests row), `docs/frontmatter.md`, and the CHANGELOG Unreleased "Added".
+
+  Checks: `npm test` 184 files, 2571 passed; lint 0 errors (4 old warnings); tsc and build passed. Not covered by tests: `CampaignsPanel`'s effects and the Obsidian modal (no DOM in Vitest, and nothing under test may import `obsidian`); M1 covers them in Obsidian. No mockup was made: the change is one button beside an existing one, so the look is to be judged in M1.

@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Link existing** (issue #11): beside **Send to Habitica**, a project task with no `habitica_id` can be linked to a to-do you already have in Habitica. Pick it from your open to-dos, filtered as you type; only its id is written into the note, and the task shows its state at once. Nothing is created or changed in Habitica. A to-do already linked to a task of any campaign is not offered. While a project task has no id, the campaign sync reads your open to-dos to offer them, which it already did whenever something was linked; opening the list sends no request.
+
 ## [0.22.2] - 2026-11-22
 
 ### Fixed

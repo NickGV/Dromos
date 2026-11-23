@@ -9,7 +9,8 @@ import type { LinkOutcomeView } from '../presenters/linkOutcomeView';
 
 /** A task or a habit on its way to Habitica; their titles are told apart by the kind. */
 export interface Sending {
-	readonly kind: 'task' | 'habit';
+	/** `link`: a task being linked to an open to-do (link-existing-todo S3). */
+	readonly kind: 'task' | 'habit' | 'link';
 	readonly title: string;
 }
 
@@ -26,6 +27,8 @@ export interface CampaignScreenProps {
 	readonly onSendHabit: (habitTitle: string) => void;
 	/** "Send again" for a task Habitica confirmed deleted (ADR-021). */
 	readonly onResend?: (taskTitle: string) => void;
+	/** "Link existing": picks an open to-do for the task with this title (link-existing-todo S3). */
+	readonly onLinkExisting?: (taskTitle: string) => void;
 	/** "Send again" for a daily Habitica confirmed deleted (ADR-021). */
 	readonly onResendHabit?: (habitTitle: string) => void;
 	/** Expands or folds the phase panel with this key (missions S3). */
@@ -38,7 +41,7 @@ export interface CampaignScreenProps {
  * The campaigns screen under its header card (game-ui S8): a tab per campaign, the header panel
  * of the one shown, its path, its tasks by phase and its dailies (ADR-021), with its notices and problems.
  */
-export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onResend, onResendHabit, onToggleGroup, onToggleMission }: CampaignScreenProps) {
+export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, onSend, onSendHabit, onResend, onResendHabit, onLinkExisting, onToggleGroup, onToggleMission }: CampaignScreenProps) {
 	const { campaign } = view;
 	return (
 		<div className="dromos-campaign-screen dromos-campaigns">
@@ -82,7 +85,9 @@ export function CampaignScreen({ view, sending, message, onSelect, onOpenNote, o
 														key={`${index}:${row.title}`}
 														row={row}
 														sending={sending?.kind === 'task' && sending.title === row.title}
+														linking={sending?.kind === 'link' && sending.title === row.title}
 														onSend={() => (row.canResend ? onResend?.(row.title) : onSend(row.title))}
+														onLink={() => onLinkExisting?.(row.title)}
 														onToggleSubtasks={() => onToggleMission?.(row.title)}
 													/>
 											))}

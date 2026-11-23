@@ -13,6 +13,8 @@ export interface TaskRowView {
 	readonly canSend: boolean;
 	/** Only a task Habitica confirmed deleted can be sent again, and only while Habitica is set up (ADR-021). */
 	readonly canResend: boolean;
+	/** A task that can be sent can also be linked to an open to-do, once the sync listed them (link-existing-todo S3). */
+	readonly canLink?: boolean;
 	/**
 	 * The id of the task's phase as stored, matching `PhaseSegmentView.id`; `null` when it has none.
 	 * `campaignCardView` always sets it; it is optional only so rows built by hand stay valid.
@@ -87,6 +89,8 @@ export interface CampaignViewContext {
 	readonly canSend: boolean;
 	/** True once Habitica has answered this session. Until then a project's progress is unknown. */
 	readonly habiticaKnown: boolean;
+	/** True once the campaign sync listed the open to-dos (`SyncCampaigns.openTodos`): a task can be linked to one. */
+	readonly canLink?: boolean;
 	readonly t: Translator;
 }
 
@@ -126,7 +130,9 @@ export function campaignCardView(campaign: Campaign, context: CampaignViewContex
 						: campaign.kind === 'project' && task.habiticaId === null
 							? 'unsent'
 							: 'pending';
-			const row = { title: task.title, state, canSend: state === 'unsent' && context.canSend, canResend: state === 'deleted' && context.canSend, phase: task.phase };
+			const canSend = state === 'unsent' && context.canSend;
+			const canLink = canSend && (context.canLink ?? false);
+			const row = { title: task.title, state, canSend, canResend: state === 'deleted' && context.canSend, ...(canLink ? { canLink } : {}), phase: task.phase };
 			return isMission(task.checklist) ? { ...row, mission: task.checklist } : row;
 		}),
 		habits: campaign.habits.map((habit) => habitRow(habit, gone.get(habit.title) ?? null, context)),

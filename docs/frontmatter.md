@@ -111,7 +111,7 @@ habits:
 | `skill` | One id or a list; a task with no `skill` trains these | None |
 | `stale_after_days` | Overrides the setting for this campaign | The setting |
 | `phases[].status` | Same values as `status` | `planning` |
-| `tasks[].habitica_id` | Written by **Send to Habitica**; a task is done when its to-do is completed | None |
+| `tasks[].habitica_id` | Written by **Send to Habitica**, or by **Link existing** with the id of a to-do you picked; a task is done when its to-do is completed | None |
 | `habits[].days` | Streak days that build the habit: with a positive whole number, a habit you are building, shown over its target and "built" once reached; without one (or with anything else), a routine, shown with its streak alone (ADR-021) | None: a routine |
 | `habits[].repeat` | The weekdays its daily repeats on: a list of `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun` (a single one may be written as text), in any case; an unknown or empty entry is dropped | Every day: also when the list is empty or none of its entries is a weekday |
 | `habits[].checklist` | The items of its daily's checklist, as texts; blank items are dropped. Sent only when the daily is created: editing it later changes nothing in Habitica | None |

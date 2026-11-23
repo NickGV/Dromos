@@ -27,9 +27,11 @@ export function homeDeps(
 	const quests = options.quests ?? IDLE_QUESTS;
 	const game = options.game ?? IDLE_GAME;
 	const campaigns: CampaignsDeps = {
-		syncCampaigns: { execute: never, reload: never },
+		syncCampaigns: { execute: never, reload: never, openTodos: () => null },
 		linkTask: { execute: never, resend: never },
 		linkHabit: { execute: never, resend: never },
+		linkExisting: { choices: never, execute: never },
+		pickTodo: never,
 		campaignSnapshot: () => options.campaigns ?? IDLE_CAMPAIGNS,
 		staleAfterDays: () => 14,
 		openNote: noop,

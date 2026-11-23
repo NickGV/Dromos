@@ -1,5 +1,6 @@
 // Obsidian-backed adapters: plugin settings, the settings tab, the system clock and the book card modal.
 export * from './BookCardModal';
+export * from './TodoPickerModal';
 export * from './DromosSettingTab';
 export * from './LocalDeviceStore';
 export * from './PluginSettingsStore';

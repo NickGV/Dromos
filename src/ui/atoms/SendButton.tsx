@@ -4,6 +4,8 @@ const SEND = 'M4 12l16-8-6 16-3-7z';
 export interface SendButtonProps {
 	/** True while the task or habit is on its way: the button stays focusable but ignores clicks. */
 	readonly sending: boolean;
+	/** True while something else runs on the row, such as linking it (link-existing-todo S3): no spinner, no clicks. */
+	readonly disabled?: boolean;
 	readonly onSend: () => void;
 	/** "Send to Habitica". */
 	readonly label: string;
@@ -15,9 +17,10 @@ export interface SendButtonProps {
  * "Send to Habitica" on a campaign task or habit. While it sends it is `aria-disabled`, not
  * `disabled`, so the keyboard focus stays on it, and a spinner replaces the icon.
  */
-export function SendButton({ sending, onSend, label, sendingLabel }: SendButtonProps) {
+export function SendButton({ sending, disabled = false, onSend, label, sendingLabel }: SendButtonProps) {
+	const idle = !sending && !disabled;
 	return (
-		<button type="button" className="dromos-send-button" aria-disabled={sending} aria-busy={sending} onClick={sending ? undefined : onSend}>
+		<button type="button" className="dromos-send-button" aria-disabled={!idle} aria-busy={sending} onClick={idle ? onSend : undefined}>
 			{sending ? (
 				<>
 					<span className="dromos-spinner" aria-hidden="true" />

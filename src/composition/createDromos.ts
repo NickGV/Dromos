@@ -12,7 +12,7 @@ import {
 	HabiticaTaskStatusSource,
 	type HabiticaCredentials,
 } from '../adapters/habitica';
-import { createMarkdownRender, createOpenCardModal, createOpenSettings, DromosSettingTab, renderIcon, isDesktopApp, linksOpenInObsidian, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
+import { createMarkdownRender, createOpenCardModal, createOpenSettings, createTodoPicker, DromosSettingTab, renderIcon, isDesktopApp, linksOpenInObsidian, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import {
 	notePathIn,
 	purseNotePath,
@@ -31,7 +31,7 @@ import {
 	VaultSkillRepository,
 	VaultTitleRepository,
 } from '../adapters/vault';
-import { BuyOffer, BuyReward, CampaignState, ChooseTitle, FinishReading, GameState, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadShop, LoadTitles, LoadWeekReport, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { BuyOffer, BuyReward, CampaignState, ChooseTitle, FinishReading, GameState, LinkExistingTask, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadShop, LoadTitles, LoadWeekReport, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
@@ -188,6 +188,9 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				syncCampaigns,
 				linkTask: new LinkTaskToCampaign(sendDeps),
 				linkHabit: new LinkHabitToCampaign(sendDeps),
+				// "Vincular existente" (issue #11): the to-dos the campaign sync listed; writes only the id, sends nothing.
+				linkExisting: new LinkExistingTask({ repository: campaignRepository, openTodos: () => syncCampaigns.openTodos() }),
+				pickTodo: createTodoPicker(plugin.app),
 				campaignSnapshot: () => campaignState.snapshot(),
 				staleAfterDays: () => settings.staleAfterDays,
 				openNote,

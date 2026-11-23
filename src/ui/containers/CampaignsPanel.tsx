@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CampaignSnapshot, LinkHabitToCampaign, LinkTaskToCampaign, SyncCampaigns } from '../../application';
+import type { CampaignSnapshot, LinkExistingTask, LinkHabitToCampaign, LinkTaskToCampaign, OpenTodo, SyncCampaigns } from '../../application';
 import type { Clock } from '../../ports';
 import { useT } from '../i18n';
 import { CampaignBoard } from '../organisms/CampaignBoard';
@@ -9,15 +9,26 @@ import { campaignHomeCardView } from '../presenters/campaignHomeView';
 import { campaignScreenView, groupToggleKey, taskToggleKey } from '../presenters/campaignScreenView';
 import { toggled } from '../presenters/toggled';
 import { campaignListView } from '../presenters/campaignView';
+import { linkExistingOutcomeView, noChoicesView } from '../presenters/linkExistingView';
 import { linkOutcomeView, type LinkOutcomeView } from '../presenters/linkOutcomeView';
 
 /** What the campaigns panel needs from the application layer; built in `src/composition`. */
+/**
+ * Shows `todos` and resolves with the one picked, or `null` when closed without a choice
+ * (link-existing-todo S3). Built in `src/composition` on Obsidian's search list.
+ */
+export type TodoPicker = (todos: readonly OpenTodo[], labels: { readonly placeholder: string; readonly empty: string }) => Promise<OpenTodo | null>;
+
 export interface CampaignsDeps {
-	readonly syncCampaigns: Pick<SyncCampaigns, 'execute' | 'reload'>;
+	/** `openTodos` tells whether the last sync listed the open to-dos a task can be linked to. */
+	readonly syncCampaigns: Pick<SyncCampaigns, 'execute' | 'reload' | 'openTodos'>;
 	/** `execute` sends a task for the first time; `resend` sends again one Habitica confirmed deleted (ADR-021). */
 	readonly linkTask: Pick<LinkTaskToCampaign, 'execute' | 'resend'>;
 	/** The same for a daily. */
 	readonly linkHabit: Pick<LinkHabitToCampaign, 'execute' | 'resend'>;
+	/** "Vincular existente": the to-dos a task can take, and the link itself, with no Habitica request (issue #11). */
+	readonly linkExisting: Pick<LinkExistingTask, 'choices' | 'execute'>;
+	readonly pickTodo: TodoPicker;
 	/** The session's campaigns right now; reads `syncing` as soon as `syncCampaigns.execute()` returns. */
 	readonly campaignSnapshot: () => CampaignSnapshot;
 	/** The `staleAfterDays` setting, read on every render so a change applies at once. */
@@ -69,7 +80,8 @@ let campaignsCount = 0;
 /**
  * Container of the campaigns (S5, S6): syncs when it mounts and whenever `syncKey` changes
  * (the home's "Sincronizar"), and sends a task to Habitica on request, or again once Habitica
- * confirmed it deleted (ADR-021). It never polls (S4).
+ * confirmed it deleted (ADR-021), or links it to an open to-do picked from the sync's list
+ * (link-existing-todo S3). It never polls (S4).
  */
 export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: CampaignsPanelProps) {
 	const [snapshot, setSnapshot] = useState<CampaignSnapshot>(deps.campaignSnapshot);
@@ -120,8 +132,32 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: 
 		[deps, sync, t],
 	);
 
+	const linkFromList = useCallback(
+		async (path: string, title: string): Promise<void> => {
+			setMessage(null);
+			const choices = await deps.linkExisting.choices();
+			if (!mounted.current) return;
+			if (choices === null || choices.length === 0) {
+				setMessage({ ...noChoicesView(choices, t), path });
+				return;
+			}
+			const picked = await deps.pickTodo(choices, { placeholder: t('link.existing.placeholder'), empty: t('link.existing.noMatch') });
+			if (picked === null || !mounted.current) return;
+			setSending({ kind: 'link', title });
+			const outcome = await deps.linkExisting.execute(path, title, picked.habiticaId);
+			if (!mounted.current) return;
+			setMessage({ ...linkExistingOutcomeView(outcome, picked.title, t), path });
+			// As after a send: the note changed, so re-read the vault. The sync already holds the
+			// picked to-do's state, so the task shows it at once, with no Habitica request.
+			const reloaded = await deps.syncCampaigns.reload();
+			if (mounted.current) setSnapshot(reloaded);
+			if (mounted.current) setSending(null);
+		},
+		[deps, t],
+	);
+
 	if (hidden) return null;
-	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), t });
+	const view = campaignListView(snapshot, { today: deps.clock.today(), defaultStaleAfterDays: deps.staleAfterDays(), canLink: deps.syncCampaigns.openTodos() !== null, t });
 	if (home) {
 		const cards = view.cards.map((card) => campaignHomeCardView(card, t));
 		return <CampaignBoard list={view} cards={cards} open={home.open} idPrefix={idPrefix} onToggle={home.onToggle} onOpen={home.onOpen} />;
@@ -146,6 +182,9 @@ export function CampaignsPanel({ deps, syncKey, hidden = false, home, screen }: 
 				}}
 				onResend={(taskTitle) => {
 					if (shown !== null) void send(shown, 'task', taskTitle, true);
+				}}
+				onLinkExisting={(taskTitle) => {
+					if (shown !== null) void linkFromList(shown, taskTitle);
 				}}
 				onResendHabit={(habitTitle) => {
 					if (shown !== null) void send(shown, 'habit', habitTitle, true);
