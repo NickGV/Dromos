@@ -85,6 +85,17 @@ A task marked **Not found in Habitica** has a `habitica_id` that is not a Habiti
 
 The notes of a created to-do or daily hold the title of its campaign (or of its area) and a Markdown link, **Open in Obsidian** (in the language of the settings), to an `obsidian://` address made of your vault's name and the note's path. Habitica, on the web and on Android, makes only web and mail addresses clickable on their own, so a bare `obsidian://` address, as in the tasks sent before 0.12.1, stays plain text; the Markdown link opens the note. They go only to your own account.
 
+## Link an existing to-do
+
+A project task with no `habitica_id` also shows **Link existing**, beside **Send to Habitica**, once the last **Sync** has read your open to-dos. Use it when the to-do already exists in Habitica, so sending would make a copy.
+
+It opens Obsidian's search list with your open Habitica to-dos, filtered as you type. Pick one and Dromos writes its id into the task's entry of the note, as **Send to Habitica** would; the task then shows that to-do's state. Nothing is sent to Habitica: the to-do keeps its title, notes and tags, so add the `skill/<id>` tags by hand if it should feed a skill.
+
+- **One to-do, one task.** A to-do already linked to a task of any campaign, active or not, is left out of the list, and checked again when you pick it, so one to-do never counts twice.
+- **Only existing tasks.** It links a task already listed in `tasks[]`; it never adds one.
+- **No extra request.** The list is the one the sync read. While a project task has no `habitica_id`, the sync reads your open to-dos, which it already does when something is linked, so it usually costs nothing more. Opening the list sends no request.
+- To link another to-do later, edit or remove the `habitica_id` in the note: Dromos does not unlink or change an id.
+
 ## Start reading a book
 
 A pending book (`status: planning`) offers **Empezar a leer** on its card in the library. It creates one reading to-do per book, then writes `status: active`, `started` (today) and its `habitica_id` into the book note:
@@ -155,6 +166,7 @@ Only when the tab opens, when you select **Sync**, when you open the Shop and wh
 |---|---|
 | Opening the tab or selecting **Sync** | About eight reads, plus up to 10 for linked to-dos missing from the lists. The linked dailies, of campaigns and of the habits beside the Library's desk, cost one read in all, the list of dailies, and no lookup; opening the Library sends nothing |
 | **Send to Habitica**, **Send again** | One write for the task. With skills, one read of your tags and one write for each that does not exist. The same for a habit beside the Library's desk |
+| **Link existing** | None: it picks from the open to-dos the last sync read, which costs one read of `type=todos` on a sync where nothing linked needed it, and writes only the note |
 | **Empezar a leer** | One read of your tags, one write for `skill/lector` if it does not exist, and one write for the to-do. None for a book that already has a `habitica_id` |
 | **Terminar** | None |
 | Opening the Shop, or selecting **Sync** on it | Two reads: `GET /user?userFields=stats` for the gold and `GET /tasks/user?type=rewards` for your rewards. A third, `GET /tags`, to find the `kairos` tag, only when one of your rewards carries a tag |

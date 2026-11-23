@@ -87,11 +87,12 @@ describe('SyncCampaigns', () => {
 		expect(source.calls).toBe(1);
 	});
 
-	it('makes no request when no task is linked, and still syncs', async () => {
-		const { sync, source } = setup({ campaigns: [campaign({ tasks: [task('a', null)] })] });
+	it('makes no request when nothing is linked and no project task could be, and still syncs', async () => {
+		const { sync, source } = setup({ campaigns: [campaign({ tasks: [] })] });
 
 		expect((await sync.execute()).status).toEqual({ kind: 'synced' });
 		expect(source.calls).toBe(0);
+		expect(sync.openTodos()).toBeNull();
 	});
 
 	it('shows the campaigns without asking Habitica when the account is not configured', async () => {
@@ -437,5 +438,91 @@ describe('SyncCampaigns: what Habitica deleted (ADR-021, S3)', () => {
 
 		expect(snapshot.issues.map((issue) => issue.kind)).toEqual(['habitica-task-missing', 'habitica-task-missing']);
 		expect([sync.isDeleted(H1), sync.isDeleted(D1)]).toEqual([false, false]);
+	});
+});
+
+describe('SyncCampaigns: the open to-dos a task can link (link-existing-todo S5)', () => {
+	const P = '02 - Projects/Cheshbon/README.md';
+	const H3 = '3f2a1c8e-0000-4000-8000-000000000003';
+
+	it('asks only for the open to-do list when a project task has no id and nothing is linked', async () => {
+		const { sync, source } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })] });
+		source.resolves({ [H1]: { kind: 'open', title: 'Write the report' } });
+
+		expect((await sync.execute()).status).toEqual({ kind: 'synced' });
+
+		expect(source.requests).toEqual([{ todos: [], dailies: [], openTodos: true }]);
+		expect(sync.openTodos()).toEqual([{ habiticaId: H1, title: 'Write the report' }]);
+	});
+
+	it('lists the open to-dos Habitica answered with a title, in its order, the linked ones too', async () => {
+		const { sync, source } = setup();
+		source.resolves({ [H1]: { kind: 'open', title: 'a' }, [H3]: { kind: 'open', title: 'Other' }, [H2]: { kind: 'completed', completedOn: '2026-10-30' } });
+
+		await sync.execute();
+
+		expect(source.requests).toEqual([{ todos: [H1, H2], dailies: [], openTodos: true }]);
+		expect(sync.openTodos()).toEqual([
+			{ habiticaId: H1, title: 'a' },
+			{ habiticaId: H3, title: 'Other' },
+		]);
+	});
+
+	it('does not ask for the list when every project task is linked', async () => {
+		const { sync, source } = setup({ campaigns: [campaign({ tasks: [task('a', null, { habiticaId: H1 })] })] });
+		source.resolves({ [H1]: { kind: 'open' } });
+
+		await sync.execute();
+
+		expect(source.requests).toEqual([{ todos: [H1], dailies: [] }]);
+		expect(sync.openTodos()).toBeNull();
+	});
+
+	it('keeps the last list when a later sync fails', async () => {
+		const { sync, source } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })] });
+		source.resolves({ [H1]: { kind: 'open', title: 'Write the report' } }).rejects(new TaskSourceError('Offline'));
+
+		await sync.execute();
+		await sync.execute();
+
+		expect(sync.openTodos()).toEqual([{ habiticaId: H1, title: 'Write the report' }]);
+	});
+
+	it('shows a to-do linked from the list with its Habitica state on reload, with no request', async () => {
+		const checklist = { done: 1, total: 2 };
+		const { sync, source, repository } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })] });
+		source.resolves({ [H1]: { kind: 'open', title: 'Write the report', checklist } });
+		await sync.execute();
+		await repository.linkHabiticaId(P, 'a', H1);
+
+		const snapshot = await sync.reload();
+
+		expect(source.calls).toBe(1);
+		expect(snapshot.campaigns?.[0]?.tasks[0]).toMatchObject({ habiticaId: H1, completed: false, checklist });
+	});
+
+	it('reads the list on its own when nothing linked needs it, so its failure leaves the sync and the streaks as they were', async () => {
+		const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+		const { sync, source } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })], areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: H3 })] })] });
+		source.resolves({ [H3]: { kind: 'daily', streak: 6 } }).rejects(new TaskSourceError('Offline'));
+
+		const snapshot = await sync.execute();
+
+		expect(source.requests).toEqual([
+			{ todos: [], dailies: [H3] },
+			{ todos: [], dailies: [], openTodos: true },
+		]);
+		expect(snapshot.status).toEqual({ kind: 'synced' });
+		expect(snapshot.areas?.[0]?.habits[0]?.streak).toBe(6);
+		expect(sync.openTodos()).toBeNull();
+	});
+
+	it('does not read the list after the statuses already failed', async () => {
+		const BIBLIOTHEKE = '03 - Areas/Bibliotheke/Archeion - Bibliotheke.md';
+		const { sync, source } = setup({ campaigns: [campaign({ path: P, tasks: [task('a', null)] })], areas: [area({ path: BIBLIOTHEKE, habits: [habit('Leer 10 minutos', { habiticaId: H3 })] })] });
+		source.rejects(new TaskSourceError('Offline'));
+
+		expect((await sync.execute()).status).toEqual({ kind: 'offline' });
+		expect(source.calls).toBe(1);
 	});
 });

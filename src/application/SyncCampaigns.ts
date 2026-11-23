@@ -1,6 +1,6 @@
 import { isReadingHabit, standingCompletionDate, type Area, type Campaign, type LedgerRow } from '../domain';
 import type { AreaRepository, CampaignRepository, Clock, LedgerRepository, TaskStatus, TaskStatusSource } from '../ports';
-import type { CampaignLists, CampaignSnapshot, CampaignState } from './CampaignState';
+import type { CampaignLists, CampaignSnapshot, CampaignState, OpenTodo } from './CampaignState';
 import { mergeAreaStatuses, mergeTaskStatuses } from './mergeTaskStatuses';
 import type { PendingOrFailedStatus } from './QuestState';
 import { statusForFailure } from './statusForFailure';
@@ -27,13 +27,24 @@ export interface SyncCampaignsDeps {
  * (ADR-017: a habit whose skills, its own or else its area's, include `lector`). The vault is read on every run, so a hand edit shows up; Habitica's answers are
  * remembered for the session, so a failed sync keeps the last known progress (D3). A to-do Habitica
  * no longer has is deleted only when the ledger shows no standing completion; an id with no answer
- * keeps its last known state and is never taken for deleted (ADR-021). Never rejects.
+ * keeps its last known state and is never taken for deleted (ADR-021). While a project task has no
+ * `habitica_id`, the same request lists the open to-dos it can be linked to (link-existing-todo S5).
+ * Never rejects.
  */
 export class SyncCampaigns {
 	private inFlight: Promise<CampaignSnapshot> | null = null;
 	private readonly known = new Map<string, TaskStatus>();
+	private openTodoList: readonly OpenTodo[] | null = null;
 
 	constructor(private readonly deps: SyncCampaignsDeps) {}
+
+	/**
+	 * The open to-dos of the last sync that listed them, in Habitica's order, the linked ones too; `null`
+	 * before any. A failed sync keeps the last list, as it keeps the last known progress.
+	 */
+	openTodos(): readonly OpenTodo[] | null {
+		return this.openTodoList;
+	}
 
 	/**
 	 * True when Habitica's last answer about `habiticaId` was that it no longer has it, and, for a
@@ -85,13 +96,30 @@ export class SyncCampaigns {
 		const projects = campaigns.filter((campaign) => campaign.kind === 'project');
 		const todos = linkedIds(projects.flatMap((campaign) => campaign.tasks));
 		const dailies = linkedIds([...projects.flatMap((campaign) => campaign.habits), ...areas.flatMap((area) => area.habits.filter((habit) => isReadingHabit(habit, area)))]);
+		const listOpenTodos = projects.some((campaign) => campaign.tasks.some((task) => task.habiticaId === null));
 		if (!hasCredentials()) {
 			failure = { kind: 'not-configured' };
-		} else if (todos.length + dailies.length > 0) {
+		} else if (todos.length + dailies.length > 0 || listOpenTodos) {
+			// With linked to-dos the list comes from the read they need anyway; without them it is read
+			// on its own afterwards, so its failure only leaves the last list (link-existing-todo S5).
+			const together = listOpenTodos && todos.length > 0;
 			try {
-				for (const [id, status] of await this.settled(await source.fetchStatuses({ todos, dailies }), todos)) this.known.set(id, status);
+				if (todos.length + dailies.length > 0) {
+					const answers = await this.settled(await source.fetchStatuses(together ? { todos, dailies, openTodos: true } : { todos, dailies }), todos);
+					for (const [id, status] of answers) this.known.set(id, status);
+					if (together) this.openTodoList = openTodosOf(answers);
+				}
 			} catch (error) {
 				failure = statusForFailure(error);
+			}
+			if (listOpenTodos && !together && failure === null) {
+				try {
+					const answers = await source.fetchStatuses({ todos: [], dailies: [], openTodos: true });
+					for (const [id, status] of answers) this.known.set(id, status);
+					this.openTodoList = openTodosOf(answers);
+				} catch {
+					// Keeps the last list; nothing else depended on this read.
+				}
 			}
 		}
 
@@ -135,6 +163,11 @@ export class SyncCampaigns {
 		const fromAreas = mergeAreaStatuses(areas, this.known);
 		return { campaigns: fromCampaigns.campaigns, areas: fromAreas.areas, issues: [...fromCampaigns.issues, ...fromAreas.issues] };
 	}
+}
+
+/** The open to-dos of an answer that listed them, in its order: the ones with a title. */
+function openTodosOf(answers: ReadonlyMap<string, TaskStatus>): OpenTodo[] {
+	return [...answers].flatMap(([habiticaId, status]) => (status.kind === 'open' && status.title !== undefined ? [{ habiticaId, title: status.title }] : []));
 }
 
 /** The Habitica ids of the linked items, in order. */

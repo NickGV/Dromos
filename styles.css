@@ -1066,6 +1066,7 @@
 .dromos-root .dromos-btn,
 .dromos-root .dromos-sync-button,
 .dromos-root .dromos-send-button,
+.dromos-root .dromos-link-button,
 .dromos-root .dromos-briefing-request {
 	gap: 8px;
 	height: auto;
@@ -1083,7 +1084,8 @@
 
 .dromos-root .dromos-btn.is-small,
 .dromos-root .dromos-sync-button,
-.dromos-root .dromos-send-button {
+.dromos-root .dromos-send-button,
+.dromos-root .dromos-link-button {
 	min-height: 36px;
 	padding: 5px 12px;
 	font-size: 13px;
@@ -1094,6 +1096,7 @@
 .dromos-root .dromos-btn:not([aria-disabled="true"]):hover,
 .dromos-root .dromos-sync-button:not([aria-disabled="true"]):hover,
 .dromos-root .dromos-send-button:not([aria-disabled="true"]):hover,
+.dromos-root .dromos-link-button:not([aria-disabled="true"]):hover,
 .dromos-root .dromos-briefing-request:hover { background-color: var(--dromos-panel); }
 
 .dromos-root .dromos-btn.is-primary:not([aria-disabled="true"]):hover { background-color: var(--dromos-ochre-hover); }
@@ -1101,6 +1104,7 @@
 .dromos-root .dromos-btn:focus-visible,
 .dromos-root .dromos-sync-button:focus-visible,
 .dromos-root .dromos-send-button:focus-visible,
+.dromos-root .dromos-link-button:focus-visible,
 .dromos-root .dromos-briefing-request:focus-visible {
 	outline: 2px solid var(--dromos-focus);
 	outline-offset: 2px;
@@ -1109,7 +1113,8 @@
 
 .is-mobile .dromos-root .dromos-btn.is-small,
 .is-mobile .dromos-root .dromos-sync-button,
-.is-mobile .dromos-root .dromos-send-button { min-height: 44px; }
+.is-mobile .dromos-root .dromos-send-button,
+.is-mobile .dromos-root .dromos-link-button { min-height: 44px; }
 
 /* A busy button keeps its focus (aria-disabled, not disabled) and ignores clicks. Obsidian
    already dims it as it dims a disabled one; a muted color on top would fall under 4.5:1. */
@@ -2102,7 +2107,8 @@
 	font-size: var(--font-ui-small);
 }
 
-.dromos-root .dromos-send-button { flex: 0 0 auto; }
+.dromos-root .dromos-send-button,
+.dromos-root .dromos-link-button { flex: 0 0 auto; }
 
 .dromos-root .dromos-spinner {
 	display: inline-block;
@@ -3075,6 +3081,9 @@
 }
 
 .dromos-root .dromos-task .dromos-send-button { margin-left: auto; }
+
+/* "Link existing" beside "Send to Habitica" (link-existing-todo S3): the same shape, on the row's own paper, so the send stays the main action. */
+.dromos-root .dromos-task .dromos-link-button { background-color: transparent; }
 
 /* The send icon beside "Send to Habitica". */
 .dromos-root .dromos-send-icon {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	buildActiveCampaigns,
+	linkedTaskIdsOf,
 	buildCompletedCampaigns,
 	campaignFromNote,
 	isCampaignNote,
@@ -461,5 +462,39 @@ describe('campaign dailies: repeat days and checklist (ADR-021)', () => {
 
 	it('has no checklist when `checklist` is missing or not a list', () => {
 		for (const checklist of [undefined, null, 'Agua', 3, {}]) expect(habitOf({ checklist })?.checklist).toEqual([]);
+	});
+});
+
+describe('linkedTaskIdsOf (link-existing-todo S4)', () => {
+	const H1 = '3f2a1c8e-0000-4000-8000-000000000001';
+	const H2 = '3f2a1c8e-0000-4000-8000-000000000002';
+	const H3 = '3f2a1c8e-0000-4000-8000-000000000003';
+	const H4 = '3f2a1c8e-0000-4000-8000-000000000004';
+
+	it('collects the ids of the tasks of every project note, whatever its status', () => {
+		const notes = [
+			note('02 - Projects/Kairos/README.md', { type: 'index', status: 'active', tasks: [{ title: 'a', habitica_id: H1 }, { title: 'b' }, { title: 'c', habitica_id: '  ' }] }),
+			note('02 - Projects/Salto/README.md', { type: 'index', status: 'paused', tasks: [{ title: 'a', habitica_id: H2 }] }),
+			note('02 - Projects/Viejo/README.md', { type: 'index', status: 'completed', tasks: [{ title: 'a', habitica_id: H3 }] }),
+		];
+
+		expect([...linkedTaskIdsOf(notes)].sort()).toEqual([H1, H2, H3].sort());
+	});
+
+	it('collects the to-do of every study session too: it is a task of its research', () => {
+		const notes = [note('03 - Areas/Estudio/Rust/Sesion 1.md', { type: 'study-session', research: '[[Rust]]', habitica_id: H1 }), note('03 - Areas/Estudio/Rust/Sesion 2.md', { type: 'study-session', habitica_id: '' })];
+
+		expect([...linkedTaskIdsOf(notes)]).toEqual([H1]);
+	});
+
+	it('leaves out habits, notes that are not a project README, and research notes', () => {
+		const notes = [
+			note('02 - Projects/Kairos/README.md', { type: 'index', status: 'active', habits: [{ title: 'h', habitica_id: H1 }] }),
+			note('02 - Projects/Kairos/Plan.md', { type: 'index', status: 'active', tasks: [{ title: 'a', habitica_id: H2 }] }),
+			note('03 - Areas/Estudio/Rust.md', { type: 'research', status: 'active', tasks: [{ title: 'a', habitica_id: H3 }] }),
+			note('02 - Projects/Otro/README.md', { type: 'book', tasks: [{ title: 'a', habitica_id: H4 }] }),
+		];
+
+		expect([...linkedTaskIdsOf(notes)]).toEqual([]);
 	});
 });
