@@ -14,7 +14,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - "**El texto nunca va directo sobre la imagen**: siempre sobre un panel de pergamino, para mantener el contraste AA."
   - "**Si la imagen no está, se dibuja la escena de siempre en SVG**: nada se rompe por una imagen que falta o que todavía no se sincronizó."
 - **S2 First scenes** (L2: "por la recomendada porfavor"; narrowed in L6: "si dale vamos con esos 3 porfavor"): the Library's wall (behind the alcoves) and desk (behind the scrolls being read), and the Archive room, `wall`, `desk` and `archive`. The shelf and the card keep their drawing. The shelf writes text straight on its background (S1), and a card leaves 8-11% of a painting visible (L5).
-- **S3 The painting replaces the drawing** (L3: "1", to "La imagen reemplaza al dibujo"). While a scene's painting for the current theme is there, it fills the background layer and the SVG drawing layer is not drawn. The panels, with their text and buttons, stay on parchment as today.
+- **S3 The painting replaces the drawing** (L3: "1", to "La imagen reemplaza al dibujo"). While a scene's painting for the current theme is there, it fills the background layer and the SVG drawing layer is not drawn. The panels, with their text and buttons, stay on parchment as today. The archive's painting is anchored to the bottom of its scene, so its worktable shows on wide panes (L8, recommended; accepted in L9).
 - **S4 Where the images come from** (L4: "2", to "Te escribo los prompts para generarlas con una IA de imágenes, uno por escena y por tema"): Dromos's side writes one prompt per scene and theme, in the Dromos style and with the panels' places left quiet; the user generates the images. File names and formats, announced as defaults and not objected to:
   - `<vault folder>/Arte/<scene>-light.<ext>` and `<scene>-dark.<ext>`, with the scenes `wall`, `desk` and `archive`, and `webp`, `png` or `jpg`;
   - a theme whose file is missing draws the SVG, even when the other theme has one;
@@ -28,6 +28,9 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | R0 | S2-S4 | Reference renders and measurements of the five scenes, and the ten prompts | delegated (context backstop: the parent session is long); scratch only | done (L5) | scratchpad `own-art-refs/` (`measurements.md`, `prompts.md`, renders) |
 | D1 | S2, S4 | `docs/own-art.md`: where the files go, their names, and the six prompts, kept in the repo since the scratch was wiped once | inline | done (L6) | see L6 |
 | T0 | S1-S3 | Mockups of the three scenes with the user's paintings and without, light and dark, desktop and phone | inline; scratch only | done for 5 of 6 images (L8); `wall-light` pending | scratchpad `own-art-mock/` (`gallery.html`) |
+| T1 | S1, S2, S4 | Find the paintings: `SceneArt` (domain), the `PaintingSource` port, `LoadSceneArt`, `VaultPaintingSource`, wired in `createDromos` | inline (no writer reason: T2 depends on it) | pending | |
+| T2 | S1-S4 | Show them: `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel` | inline | pending | |
+| T3 | S4 | `docs/own-art.md`, README and CHANGELOG; the five images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | pending | |
 
 ## Log
 
@@ -70,3 +73,4 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - The desk's lamp is painted larger and lower than the prompt asked (y 9-24%). Centred, it shows in the top band with its top cut; anchored to the top, it hides behind the scroll cards. Centred is better.
   - The archive's paintings put the table top at y 82%, not 60%, and the window reaches x 23% and y 4-80%. Centred on wide panes, only the tops of the table's objects show, and the first pigeonhole covers the window's right edge. Anchored to the bottom, the whole table and the candle show, and only the top of the window's arch is cut. Phones show the whole table either way. Two fixes: anchor the archive to the bottom, or regenerate its two images with the table higher.
   - Size: the JPEGs are 1.4-2.4 MB each. As WebP at quality 80 and the master size, they are 33-58 KB each, far under the 600 KB in `docs/own-art.md`.
+- **L9** (2026-11-25, user): "me encanta como quedo", to the mockups and to the recommendation to anchor the archive's painting to the bottom instead of regenerating it. S3 gains that anchor. Next: T1-T3 on `feat/own-art`, inline, in two work-unit commits (the lookup, then the scenes with their docs). Release only with the user's go-ahead.
