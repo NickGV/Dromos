@@ -2,6 +2,16 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Own art**: the Library's wall, desk and shelves and the archive's room can show your own paintings, one for the light theme and one for the dark theme, from `<folder>/Arte/` in your vault (`wall-light`, `wall-dark`, `desk-light`, `desk-dark`, `shelf-light`, `shelf-dark`, `archive-light`, `archive-dark`; WebP, PNG or JPG). On a painted shelf, the row titles and each scroll's state sit on parchment. A painting replaces the scene's drawing in its theme; a theme without one keeps the drawing. Text and buttons stay on their parchment panels. The paintings are read when the Library opens and on **Sync**, and sync to your phone with the vault. [docs/own-art.md](docs/own-art.md) says how to make them.
+
+### Changed
+
+- **Library**: the books on the reading desk are papyrus scrolls unrolled on the desk, with deckled edges and a rolled end at each side, instead of cards with a scroll drawn inside. A book's or a resource's card opens as a scroll lying on the reading desk, over the desk's painting when you have one; its buttons stay below, on the plain panel.
+
 ## [0.23.0] - 2026-11-22
 
 ### Added

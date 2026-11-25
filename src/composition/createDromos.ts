@@ -14,6 +14,7 @@ import {
 } from '../adapters/habitica';
 import { createMarkdownRender, createOpenCardModal, createOpenSettings, createTodoPicker, DromosSettingTab, renderIcon, isDesktopApp, linksOpenInObsidian, LocalDeviceStore, obsidianNoteLink, PluginSettingsStore, showNotice, SystemClipboard, SystemClock } from '../adapters/obsidian';
 import {
+	artFolderPath,
 	notePathIn,
 	purseNotePath,
 	shopNotePath,
@@ -25,13 +26,14 @@ import {
 	VaultGameStateRepository,
 	VaultLedgerRepository,
 	VaultOfferRepository,
+	VaultPaintingSource,
 	VaultPurseRepository,
 	VaultResourceRepository,
 	VaultRulesRepository,
 	VaultSkillRepository,
 	VaultTitleRepository,
 } from '../adapters/vault';
-import { BuyOffer, BuyReward, CampaignState, ChooseTitle, FinishReading, GameState, LinkExistingTask, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadShop, LoadTitles, LoadWeekReport, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
+import { BuyOffer, BuyReward, CampaignState, ChooseTitle, FinishReading, GameState, LinkExistingTask, LinkHabitToArea, LinkHabitToCampaign, LinkTaskToCampaign, LoadAvatar, LoadHome, LoadLibrary, LoadSceneArt, LoadShop, LoadTitles, LoadWeekReport, MarkResourceFinished, PayLevelBonus, QuestState, ReadReflection, ReadTakeaway, RequestBriefing, StartReading, SyncCampaigns, SyncGame, SyncQuests } from '../application';
 import type { Settings } from '../ports';
 import type { HomeScreenDeps } from '../ui/containers/HomeScreen';
 import { linkOutcomeView } from '../ui/presenters/linkOutcomeView';
@@ -199,6 +201,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			// "Empezar a leer", "Terminar" (M7 S3, S4), a resource's "Marcar como leído" (M8 S6) and a habit's "Enviar a Habitica" (ADR-017) or "Enviar de nuevo" (ADR-021) toast their outcome; the screen reads again after.
 			library: {
 				loadLibrary: new LoadLibrary({ books, resources }),
+				// The user's paintings in `<Dromos folder>/Arte/` (own-art S1), read on open and on Sync.
+				sceneArt: new LoadSceneArt({ source: new VaultPaintingSource(plugin.app, notePathIn(vaultFolder, artFolderPath)) }),
 				readReflection: new ReadReflection({ books }),
 				renderMarkdown,
 				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),

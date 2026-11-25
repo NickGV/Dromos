@@ -3,6 +3,7 @@ import { Umbilicus } from '../atoms/LibraryArt';
 import { MarkdownBlock, type MarkdownRender } from '../atoms/MarkdownBlock';
 import { SceneLayers } from '../atoms/SceneLayers';
 import type { BookCardView } from '../presenters/bookCardView';
+import type { ScenePaintingView } from '../presenters/sceneArtView';
 import { focusOnDraw, followedLink } from './cardEvents';
 
 /** The state action under way, whose button says so; `null` while none is. */
@@ -26,6 +27,8 @@ export interface BookCardProps {
 	readonly focusNote?: boolean;
 	/** Starts the id of the line under "Empezar a leer", unique to the open view. */
 	readonly idPrefix?: string;
+	/** The reading desk's paintings, behind the sheet: an open scroll lies on the desk (own-art L13); absent or `null`, the plain panel. */
+	readonly painting?: ScenePaintingView | null;
 }
 
 /**
@@ -36,7 +39,7 @@ export interface BookCardProps {
  * buttons its state allows. The modal's own close button and Escape close it: the card adds no
  * second one. A busy button keeps its focus (aria-disabled) and says what it is doing.
  */
-export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMarkdown, onFollowLink, focusNote = false, idPrefix = 'dromos-library' }: BookCardProps) {
+export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMarkdown, onFollowLink, focusNote = false, idPrefix = 'dromos-library', painting = null }: BookCardProps) {
 	const { start, finish, openNote } = view.actions;
 	const hintId = `${idPrefix}-start-hint`;
 	const idle = busy === null;
@@ -45,6 +48,7 @@ export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMark
 		<div className={`dromos-book-card is-${view.state}`}>
 			<SceneLayers
 				scene="card"
+				painting={painting}
 				drawing={
 					<>
 						<Umbilicus side="left" />

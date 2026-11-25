@@ -4,6 +4,7 @@ import { SceneLayers } from '../atoms/SceneLayers';
 import { ArchivePigeonhole } from '../molecules/ArchivePigeonhole';
 import { ResourceRow } from '../molecules/ResourceRow';
 import type { ArchiveFilter, ArchiveView } from '../presenters/archiveView';
+import type { SceneArtView } from '../presenters/sceneArtView';
 
 export interface ArchiveRoomProps {
 	readonly view: ArchiveView;
@@ -15,6 +16,8 @@ export interface ArchiveRoomProps {
 	readonly onToggleMore: () => void;
 	/** Starts the ids of the headings and of the lines that describe the titles, unique to the open view. */
 	readonly idPrefix?: string;
+	/** The user's paintings, of which the room takes the archive's (own-art S3); absent or `null`, it is drawn. */
+	readonly art?: SceneArtView | null;
 }
 
 /**
@@ -22,12 +25,13 @@ export interface ArchiveRoomProps {
  * window and the worktable with the rack of pigeonholes as filter buttons, built in layers as the
  * library's scenes are; then the summary; then the sections, each resource a row whose title opens
  * its card. On a phone the stylesheet shrinks the room and makes the pigeonholes a row of chips;
- * the order stays the same. An empty archive keeps its room and says so.
+ * the order stays the same. An empty archive keeps its room and says so. The user's painting from the
+ * vault, when given, replaces the room's drawing in its theme (own-art S3).
  */
-export function ArchiveRoom({ view, onSelect, onOpenCard, onToggleMore, idPrefix = 'dromos-library' }: ArchiveRoomProps) {
+export function ArchiveRoom({ view, onSelect, onOpenCard, onToggleMore, idPrefix = 'dromos-library', art = null }: ArchiveRoomProps) {
 	return (
 		<div className="dromos-archive">
-			<SceneLayers scene="archive" className="dromos-panel" drawing={<ArchiveRoomArt />}>
+			<SceneLayers scene="archive" className="dromos-panel" drawing={<ArchiveRoomArt />} painting={art?.archive}>
 				{view.pigeonholes.length > 0 ? (
 					<div className="dromos-pigeonholes" role="group" aria-label={view.pigeonholesLabel}>
 						{view.pigeonholes.map((pigeonhole) => (

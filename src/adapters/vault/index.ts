@@ -12,6 +12,7 @@ export * from './VaultBriefingRepository';
 export * from './VaultGameStateRepository';
 export * from './VaultCampaignRepository';
 export * from './VaultLedgerRepository';
+export * from './VaultPaintingSource';
 export * from './VaultRulesRepository';
 export * from './VaultSkillRepository';
 export * from './rulesMapper';

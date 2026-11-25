@@ -1,21 +1,21 @@
 # Own art
 
-Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme. The feature is being built (`odd/tasks/own-art.md`); this page holds what you need to make the images in the meantime.
+Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme, instead of their drawing. This page says where the files go and how to make them.
 
-The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The shelf and the book and resource cards keep their drawing: the shelf writes text straight on its background, and a card leaves almost none of a painting visible.
+The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** (inside an alcove) has one too; on a painted shelf, its row titles and each scroll's state sit on parchment. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
 
 ## Where the files go
 
-- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `archive`, and `<ext>` one of `webp`, `png`, `jpg`.
+- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
 - A theme without its file draws the scene as always, even when the other theme has one.
 - While a painting is there, it replaces the scene's drawing: the lamp, the ink pot, and the archive's window and worktable come from the painting, which is why the prompts ask for them. Text and buttons stay on their parchment panels.
-- Dromos looks for the files when its view opens and on **Sync**.
+- Dromos looks for the files when the Library opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
 
 ## Making the images
 
-Paste the shared style block first, then one scene prompt. Percentages are of the finished image: x from the left, y from the top. Dromos shows the image cropped to fill the scene and centred, so wide panes keep the full width and lose some of the top and bottom, while phones keep the full height and only a central strip. The **focal area** of each prompt is the part every pane keeps.
+Paste the shared style block first, then one scene prompt. Percentages are of the finished image: x from the left, y from the top. Dromos shows the image cropped to fill the scene and centred, so wide panes keep the full width and lose some of the top and bottom, while phones keep the full height and only a central strip. The archive is the exception: its painting is anchored to the bottom, so the worktable stays on wide panes and the top of the wall is what they lose. The **focal area** of each prompt is the part every pane keeps.
 
-If the generator cannot make the exact ratio, make the closest one it offers, extend the sides by outpainting, and resize to the given size. Export as WebP at about quality 80 and keep each file under about 600 KB: the files sync to your phone with the vault.
+If the generator cannot make the exact ratio, make the closest one it offers, extend the sides by outpainting, and resize to the given size. Export as WebP at about quality 80 and keep each file under about 600 KB: the files sync to your phone with the vault. A generator's JPEG converts with `cwebp -q 80 wall-dark.jpeg -o wall-dark.webp`; the first paintings went from about 2 MB to about 50 KB each with no visible loss.
 
 ### Shared style block
 
@@ -109,4 +109,34 @@ SCENE: a small archive room on a summer afternoon, seen straight on, wide panora
 MUST NOT SHOW: shelves, pigeonholes, racks, boxes or anything on the wall right of the window; that area is covered by drawn pigeonholes. No people.
 LAYOUT: window at x 2-16%, y 15-55% (it must fit inside that, frame included). Wall from x 17% to the right edge and from the top down to y 58%: empty, even, quiet. Table top from y 60% to the bottom; keep its objects between y 66% and 86%, low and small, spread from x 5% to 95%; the table's front edge in the last 5%.
 FORMAT: 3600 x 1200 px, aspect 3:1. Focal (always kept) area x 24-76%, y 13-87%: plain wall above, table below. The window shows on wide panes only; phones keep x 24-76%.
+```
+
+### shelf: inside an alcove
+
+Box: 1068 x 822 CSS px on the desktop pane (1.3:1), 784 x 822 at 840 px (0.95:1), 334 x 687 on a
+phone (0.49:1), shorter or taller with the books on it. Its top is rounded into an arch by Dromos,
+its planks are drawn under each row of scrolls, and the rows move with the books, so the painting
+is only the back of the niche: no planks, nothing on it. It shows almost everywhere (66-85%),
+behind the scrolls, their hanging tags and the row titles, so it must stay very even. Dromos
+anchors it to the top, so the top edge (the arch's shadow) always shows and short shelves lose
+the bottom.
+
+#### shelf-dark
+
+```text
+SCENE: the back wall inside a deep arched niche of an ancient library at night, seen straight on, flat frontal view with no perspective, no floor and no shelves. Smooth, softly worn plaster over stone in deep warm brown (#211B16 to #2A231C), with a very faint fine grain. Along the top edge, a soft shadow cast by the arch: the top 6-10% slightly darker, fading down evenly across the whole width. A faint warm lamplight (#E8B04A at very low strength) reaches in from the lower left and fades out before the middle.
+MUST NOT SHOW: shelves, planks, boards, ledges, scrolls, books, tablets, boxes, jars, tags, the arch itself, the niche's edges, cracks, stains, or any frame. Planks, scrolls and labels are drawn on top in rows whose positions change.
+COMPOSITION: an even, almost uniform surface that reads well when cropped anywhere and at any height; no focal object and no horizontal lines that could look like shelves.
+QUIET ZONE: everywhere. Titles and labels sit on top: keep the contrast very low and no detail sharper than the plaster grain.
+FORMAT: 2400 x 2400 px, aspect 1:1. Anchored to the top: the top edge always shows; phones keep only the central half of the width (x 26-74%), and wide panes the top three quarters.
+```
+
+#### shelf-light
+
+```text
+SCENE: the back wall inside a deep arched niche of an ancient library on a summer afternoon, seen straight on, flat frontal view with no perspective, no floor and no shelves. Smooth pale limestone plaster (#EADCBD, the niche's shade #E2D2B0), with a very faint fine grain. Along the top edge, a soft shadow cast by the arch: the top 6-10% slightly darker (#E2D2B0 to #D9C9A6), fading down evenly across the whole width. Gentle, even half-shade below; at most a very soft lift of warm cream daylight (#FFF6DE, translucent) from the upper left.
+MUST NOT SHOW: shelves, planks, boards, ledges, scrolls, books, tablets, boxes, jars, tags, the arch itself, the niche's edges, cracks, stains, light shafts with hard edges, or any frame. Planks, scrolls and labels are drawn on top in rows whose positions change.
+COMPOSITION: an even, almost flat surface that reads well when cropped anywhere and at any height; no focal object and no horizontal lines that could look like shelves.
+QUIET ZONE: everywhere. Dark text sits on top: keep it light and nearly flat, no patch darker than #D9C9A6 below the top band.
+FORMAT: 2400 x 2400 px, aspect 1:1. Anchored to the top: the top edge always shows; phones keep only the central half of the width (x 26-74%), and wide panes the top three quarters.
 ```

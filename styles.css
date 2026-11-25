@@ -3497,7 +3497,7 @@
 /* ── Library (M7 S5, S6) ────────────────────────────────────────────────────────────────────
    The reading room, a shelf and the book card. Text always sits on paper or a parchment panel,
    never on the stone or the wood, so the contrast of the palette holds. Each scene stacks three
-   layers: a background left empty for a later painted image from the vault, the line drawing, and
+   layers: a background for the user's painting from the vault (own-art), the line drawing, and
    the panels; the first two take no pointer. Night is the dark theme, or the light theme's night
    hours (the scene's period): the oil lamp on the desk is lit then, and the day's light is gone. */
 .dromos-root {
@@ -3511,6 +3511,16 @@
 	/* Papyrus: the scrolls, lighter than the panel they lie on. */
 	--dromos-papyrus: #cfbe9c;
 	--dromos-papyrus-line: rgba(59, 47, 42, 0.45);
+	/* A sheet unrolled on the desk (own-art L13): lamplit papyrus, its fibres, its rolled ends, rods and knobs. */
+	--dromos-sheet: #362c21;
+	--dromos-sheet-fiber: rgba(237, 227, 207, 0.022);
+	--dromos-sheet-fiber-soft: rgba(237, 227, 207, 0.016);
+	--dromos-sheet-blot: rgba(0, 0, 0, 0.16);
+	--dromos-sheet-roll-light: #5a4a3a;
+	--dromos-sheet-roll-dark: #1d1712;
+	--dromos-sheet-rod: #5e4129;
+	--dromos-sheet-knob: #8a6440;
+	--dromos-sheet-drop: rgba(0, 0, 0, 0.55);
 	--dromos-light-shaft: transparent;
 	/* The lamp: a clay body, a small flame and a flat warm halo, never a glow. */
 	--dromos-lamp-flame: #e8b04a;
@@ -3527,6 +3537,15 @@
 	--dromos-wood-edge: #c4a274;
 	--dromos-papyrus: #fbf7ee;
 	--dromos-papyrus-line: rgba(139, 94, 60, 0.5);
+	--dromos-sheet: #f1e4c4;
+	--dromos-sheet-fiber: rgba(139, 94, 60, 0.05);
+	--dromos-sheet-fiber-soft: rgba(139, 94, 60, 0.035);
+	--dromos-sheet-blot: rgba(139, 94, 60, 0.07);
+	--dromos-sheet-roll-light: #faf1db;
+	--dromos-sheet-roll-dark: #c4a777;
+	--dromos-sheet-rod: #7d5434;
+	--dromos-sheet-knob: #a8743f;
+	--dromos-sheet-drop: rgba(90, 60, 30, 0.32);
 	--dromos-light-shaft: rgba(255, 246, 222, 0.55);
 	--dromos-lamp-flame: #d9902a;
 	--dromos-lamp-halo: rgba(217, 144, 42, 0.16);
@@ -3540,6 +3559,41 @@
 .dromos-root .dromos-scene-layer.is-background { z-index: 0; background-position: center; background-size: cover; }
 .dromos-root .dromos-scene-layer.is-drawing { z-index: 1; }
 .dromos-root .dromos-scene-layer.is-panels { position: relative; z-index: 2; }
+
+/* Own art (own-art S3): the user's painting from the vault fills the background layer and replaces
+   the drawing, in each theme that has one; a theme without its painting keeps the drawing. Dark is
+   the default, as for every token; the light theme undoes the dark painting and sets its own. */
+.dromos-root .dromos-library-scene.has-art-dark > .is-background { background-image: var(--dromos-art-dark); }
+.dromos-root .dromos-library-scene.has-art-dark > .is-drawing { display: none; }
+.theme-light .dromos-root .dromos-library-scene > .is-background { background-image: none; }
+.theme-light .dromos-root .dromos-library-scene.has-art-dark > .is-drawing { display: block; }
+.theme-light .dromos-root .dromos-library-scene.has-art-light > .is-background { background-image: var(--dromos-art-light); }
+.theme-light .dromos-root .dromos-library-scene.has-art-light > .is-drawing { display: none; }
+/* The archive's painting keeps its worktable on wide panes, which crop a 3:1 painting top and bottom. */
+.dromos-root .dromos-library-scene.is-archive > .is-background { background-position: center bottom; }
+/* A painted desk shows whole (own-art L17): the scene is at least a third of its width tall, the
+   painting's 3:1 shape, with room above the scrolls for the lamp and the ink pot and the scrolls in the
+   middle of the desk. More scrolls than fit make it taller, and the painting is then cropped at its
+   sides. The spacer and the panels share the grid's one cell, so the taller of the two sets its height
+   (an aspect-ratio would not grow past it, the scene clipping its overflow). */
+.dromos-root .dromos-library-scene.is-desk:is(.has-art-light, .has-art-dark) { display: grid; }
+.dromos-root .dromos-library-scene.is-desk:is(.has-art-light, .has-art-dark)::before { content: ''; grid-area: 1 / 1; padding-top: 33.333%; }
+.dromos-root .dromos-library-scene.is-desk:is(.has-art-light, .has-art-dark) > .is-panels { grid-area: 1 / 1; align-self: center; padding-top: max(46px, 8%); padding-bottom: max(26px, 2.5%); }
+/* The shelf's painting keeps the arch's shadow at its top: the rows below grow and shrink with the books. */
+.dromos-root .dromos-library-scene.is-shelf > .is-background { background-position: center top; }
+/* On a painted shelf, its words sit on parchment (own-art S1, L16): the row titles and each scroll's state. */
+.dromos-root .dromos-library-scene.is-shelf:is(.has-art-light, .has-art-dark) :is(.dromos-shelf-row-title, .dromos-shelf-scroll-status) {
+	width: fit-content;
+	max-width: 100%;
+	border: 1px solid var(--dromos-rule);
+	border-radius: 4px;
+	background-color: var(--dromos-paper);
+}
+.dromos-root .dromos-library-scene.is-shelf:is(.has-art-light, .has-art-dark) .dromos-shelf-row-title { padding: 3px 12px 4px; }
+.dromos-root .dromos-library-scene.is-shelf:is(.has-art-light, .has-art-dark) .dromos-shelf-scroll-status { padding: 3px 8px 4px; }
+/* The card's rods belong to its scroll, not to the room: they stay over the desk's painting (own-art L13). */
+.dromos-root .dromos-library-scene.is-card.has-art-dark > .is-drawing,
+.theme-light .dromos-root .dromos-library-scene.is-card.has-art-light > .is-drawing { display: block; }
 
 .dromos-root .dromos-library { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .dromos-root .dromos-library-note { margin: 0; padding: 16px; color: var(--dromos-ink-muted); }
@@ -3741,7 +3795,7 @@
 .dromos-root .dromos-desk-scrolls {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-	gap: 14px;
+	gap: 18px 22px;
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -3753,21 +3807,62 @@
 	align-items: flex-start;
 	justify-content: flex-start;
 	gap: 2px;
+	position: relative;
+	isolation: isolate;
 	width: 100%;
 	height: auto;
-	padding: 14px 16px 16px;
-	border: 1px solid var(--dromos-umber);
-	border-radius: 8px;
-	background-color: var(--dromos-panel);
+	padding: 24px 50px 26px;
+	border: 0;
+	border-radius: 0;
+	background: none;
 	box-shadow: none;
+	filter: drop-shadow(0 3px 2px var(--dromos-sheet-drop));
 	color: var(--dromos-ink);
 	font: inherit;
 	text-align: left;
 	white-space: normal;
 	cursor: pointer;
 }
-.dromos-root button.dromos-desk-scroll:hover { background-color: var(--dromos-card-hover); }
-.dromos-root .dromos-desk-scroll .dromos-scroll-art { width: 100%; max-width: 300px; height: auto; margin: 0 auto 10px; }
+.dromos-root button.dromos-desk-scroll:hover { background: none; filter: drop-shadow(0 4px 4px var(--dromos-sheet-drop)) brightness(1.03); }
+/* The papyrus (own-art L13), the desk's scrolls and the card's sheet: deckled top and bottom edges and
+   faint crossed fibres. Drawn here, not painted, so it grows with its text and keeps the ink's contrast. */
+.dromos-root button.dromos-desk-scroll::before,
+.dromos-root .dromos-book-sheet::before {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	background-color: var(--dromos-sheet);
+	background-image:
+		radial-gradient(ellipse 55% 45% at 22% 30%, var(--dromos-sheet-blot), transparent 70%),
+		radial-gradient(ellipse 45% 60% at 78% 72%, var(--dromos-sheet-blot), transparent 70%),
+		repeating-linear-gradient(90deg, var(--dromos-sheet-fiber) 0 1px, transparent 1px 11px),
+		repeating-linear-gradient(90deg, var(--dromos-sheet-fiber-soft) 0 2px, transparent 2px 17px),
+		repeating-linear-gradient(91deg, var(--dromos-sheet-fiber-soft) 0 1px, transparent 1px 29px),
+		repeating-linear-gradient(0deg, var(--dromos-sheet-fiber) 0 1px, transparent 1px 6px),
+		repeating-linear-gradient(179deg, var(--dromos-sheet-fiber-soft) 0 2px, transparent 2px 23px),
+		linear-gradient(180deg, var(--dromos-sheet-blot), transparent 14%, transparent 86%, var(--dromos-sheet-blot));
+	clip-path: polygon(0.0% 1px, 2.08% 2px, 4.17% 0px, 6.25% 3px, 8.33% 1px, 10.42% 0px, 12.5% 1px, 14.58% 0px, 16.67% 2px, 18.75% 1px, 20.83% 3px, 22.92% 0px, 25.0% 0px, 27.08% 4px, 29.17% 3px, 31.25% 3px, 33.33% 2px, 35.42% 1px, 37.5% 3px, 39.58% 1px, 41.67% 1px, 43.75% 0px, 45.83% 1px, 47.92% 4px, 50.0% 0px, 52.08% 3px, 54.17% 1px, 56.25% 0px, 58.33% 4px, 60.42% 3px, 62.5% 3px, 64.58% 2px, 66.67% 3px, 68.75% 1px, 70.83% 3px, 72.92% 1px, 75.0% 1px, 77.08% 4px, 79.17% 0px, 81.25% 1px, 83.33% 2px, 85.42% 4px, 87.5% 1px, 89.58% 0px, 91.67% 3px, 93.75% 1px, 95.83% 1px, 97.92% 2px, 100.0% 4px, 100.0% calc(100% - 0px), 97.92% calc(100% - 0px), 95.83% calc(100% - 2px), 93.75% calc(100% - 1px), 91.67% calc(100% - 2px), 89.58% calc(100% - 0px), 87.5% calc(100% - 3px), 85.42% calc(100% - 2px), 83.33% calc(100% - 1px), 81.25% calc(100% - 3px), 79.17% calc(100% - 3px), 77.08% calc(100% - 1px), 75.0% calc(100% - 1px), 72.92% calc(100% - 1px), 70.83% calc(100% - 2px), 68.75% calc(100% - 2px), 66.67% calc(100% - 2px), 64.58% calc(100% - 4px), 62.5% calc(100% - 1px), 60.42% calc(100% - 0px), 58.33% calc(100% - 0px), 56.25% calc(100% - 3px), 54.17% calc(100% - 1px), 52.08% calc(100% - 4px), 50.0% calc(100% - 3px), 47.92% calc(100% - 1px), 45.83% calc(100% - 3px), 43.75% calc(100% - 3px), 41.67% calc(100% - 3px), 39.58% calc(100% - 2px), 37.5% calc(100% - 1px), 35.42% calc(100% - 0px), 33.33% calc(100% - 0px), 31.25% calc(100% - 3px), 29.17% calc(100% - 0px), 27.08% calc(100% - 4px), 25.0% calc(100% - 1px), 22.92% calc(100% - 3px), 20.83% calc(100% - 2px), 18.75% calc(100% - 0px), 16.67% calc(100% - 0px), 14.58% calc(100% - 2px), 12.5% calc(100% - 0px), 10.42% calc(100% - 3px), 8.33% calc(100% - 3px), 6.25% calc(100% - 0px), 4.17% calc(100% - 0px), 2.08% calc(100% - 4px), 0.0% calc(100% - 1px));
+}
+.dromos-root button.dromos-desk-scroll::before { inset: 8px 30px; }
+/* A desk scroll's rolled ends, each on its rod with a knob at both ends. */
+.dromos-root button.dromos-desk-scroll::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-repeat: no-repeat;
+	background-image:
+		radial-gradient(closest-side, var(--dromos-sheet-knob) 75%, transparent),
+		radial-gradient(closest-side, var(--dromos-sheet-knob) 75%, transparent),
+		radial-gradient(closest-side, var(--dromos-sheet-knob) 75%, transparent),
+		radial-gradient(closest-side, var(--dromos-sheet-knob) 75%, transparent),
+		linear-gradient(90deg, var(--dromos-sheet-roll-dark), var(--dromos-sheet-roll-light) 42%, var(--dromos-sheet-roll-dark)),
+		linear-gradient(90deg, var(--dromos-sheet-roll-dark), var(--dromos-sheet-roll-light) 58%, var(--dromos-sheet-roll-dark)),
+		linear-gradient(var(--dromos-sheet-rod), var(--dromos-sheet-rod)),
+		linear-gradient(var(--dromos-sheet-rod), var(--dromos-sheet-rod));
+	background-size: 16px 10px, 16px 10px, 16px 10px, 16px 10px, 24px calc(100% - 14px), 24px calc(100% - 14px), 6px 100%, 6px 100%;
+	background-position: left 14px top 0, left 14px bottom 0, right 14px top 0, right 14px bottom 0, left 10px center, right 10px center, left 19px top 0, right 19px top 0;
+}
 .dromos-root .dromos-desk-scroll-title {
 	font-family: var(--dromos-font-display);
 	font-size: 22px;
@@ -3973,41 +4068,43 @@
 .dromos-root.dromos-book-modal .modal-content { margin: 0; padding: 0; }
 
 .dromos-root .dromos-book-card { display: flex; flex-direction: column; gap: 16px; }
-.dromos-root .dromos-library-scene.is-card { margin-top: 28px; padding: 0 26px; }
-/* The umbilicus: a rod at each end of the sheet, a knob at both of its ends. */
+/* The card's scroll lies on the reading desk (own-art L13): the scene reaches the modal's edges, with a
+   band of desk above the sheet that clears the modal's close button. */
+.dromos-root .dromos-library-scene.is-card { margin: calc(-1 * var(--dromos-book-modal-pad)) calc(-1 * var(--dromos-book-modal-pad)) 0; padding: 68px 52px 34px; }
+.dromos-root .dromos-library-scene.is-card > .is-background { background-position: 14% top; }
+/* The umbilicus: the sheet's rolled end at each side, on its rod, a knob at both of its ends. */
 .dromos-root .dromos-umbilicus {
 	position: absolute;
-	top: 9px;
-	bottom: 9px;
-	width: 16px;
-	border: 1px solid var(--dromos-umber);
-	border-radius: 8px;
-	background-color: var(--dromos-papyrus);
-	box-shadow: inset -4px 0 0 var(--dromos-roll);
+	top: 62px;
+	bottom: 28px;
+	width: 26px;
+	border-radius: 5px;
+	background: linear-gradient(90deg, var(--dromos-sheet-roll-dark), var(--dromos-sheet-roll-light) 42%, var(--dromos-sheet-roll-dark));
 }
-.dromos-root .dromos-umbilicus.is-left { left: 4px; }
-.dromos-root .dromos-umbilicus.is-right { right: 4px; box-shadow: inset 4px 0 0 var(--dromos-roll); }
+.dromos-root .dromos-umbilicus.is-left { left: 28px; }
+.dromos-root .dromos-umbilicus.is-right { right: 28px; background: linear-gradient(90deg, var(--dromos-sheet-roll-dark), var(--dromos-sheet-roll-light) 58%, var(--dromos-sheet-roll-dark)); }
 .dromos-root .dromos-umbilicus::before,
 .dromos-root .dromos-umbilicus::after {
 	content: '';
 	position: absolute;
 	left: 50%;
-	width: 8px;
-	height: 8px;
-	border: 1px solid var(--dromos-umber);
-	border-radius: 3px;
-	background: var(--dromos-wood);
+	width: 18px;
+	height: 12px;
+	border-radius: 50%;
+	background: radial-gradient(closest-side, var(--dromos-sheet-knob) 70%, var(--dromos-sheet-rod));
 	transform: translateX(-50%);
 }
-.dromos-root .dromos-umbilicus::before { top: -9px; }
-.dromos-root .dromos-umbilicus::after { bottom: -9px; }
+.dromos-root .dromos-umbilicus::before { top: -10px; }
+.dromos-root .dromos-umbilicus::after { bottom: -10px; }
 .dromos-root .dromos-library-scene.is-card { overflow: visible; }
 
 .dromos-root .dromos-book-sheet {
-	padding: 22px 26px 18px;
-	border-block: 1px solid var(--dromos-umber);
-	background-color: var(--dromos-paper);
+	position: relative;
+	isolation: isolate;
+	padding: 28px 30px 24px;
+	filter: drop-shadow(0 3px 3px var(--dromos-sheet-drop));
 }
+.dromos-root .dromos-book-sheet::before { inset: 0; }
 .dromos-root .dromos-book-card-title {
 	margin: 0;
 	padding-right: 8px;
@@ -4087,7 +4184,8 @@
 	.dromos-root button.dromos-alcove .dromos-alcove-art { width: 112px; }
 	.dromos-root .dromos-alcove-label { align-items: flex-start; }
 	.dromos-root .dromos-library-scene.is-desk > .is-panels { padding-inline: 12px; }
-	.dromos-root .dromos-desk-scroll .dromos-scroll-art { max-width: 210px; margin-bottom: 6px; }
+	.dromos-root button.dromos-desk-scroll { padding: 22px 44px 24px; }
+	.dromos-root button.dromos-desk-scroll::before { inset: 8px 26px; }
 	.dromos-root .dromos-shelf-row { padding-inline: 12px; }
 	.dromos-root .dromos-shelf-scrolls > li { flex-basis: 100%; }
 	.dromos-root button.dromos-shelf-scroll { display: grid; grid-template-columns: 116px minmax(0, 1fr); column-gap: 12px; align-items: start; }
@@ -4095,9 +4193,13 @@
 	.dromos-root button.dromos-shelf-scroll .dromos-sillybos { margin-top: 0; }
 	.dromos-root button.dromos-shelf-scroll .dromos-sillybos::before { display: none; }
 	.dromos-root.dromos-book-modal { --dromos-book-modal-pad: 16px; padding: 16px 12px; }
-	.dromos-root .dromos-library-scene.is-card { padding: 0 18px; }
-	.dromos-root .dromos-umbilicus { width: 12px; }
-	.dromos-root .dromos-book-sheet { padding: 18px 14px 14px; }
+	.dromos-root .dromos-library-scene.is-card { padding: 60px 34px 28px; }
+	.dromos-root .dromos-umbilicus { top: 54px; bottom: 22px; width: 18px; }
+	.dromos-root .dromos-umbilicus.is-left { left: 17px; }
+	.dromos-root .dromos-umbilicus.is-right { right: 17px; }
+	.dromos-root .dromos-umbilicus::before,
+	.dromos-root .dromos-umbilicus::after { width: 14px; height: 10px; }
+	.dromos-root .dromos-book-sheet { padding: 20px 16px 18px; }
 	.dromos-root .dromos-book-card-title { font-size: 28px; }
 	.dromos-root .dromos-book-sections { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 	.dromos-root .dromos-book-card-actions,
