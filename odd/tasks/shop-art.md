@@ -17,7 +17,7 @@ Branch: `feat/shop-art`. Delivery: merge into main, release on the user's go-ahe
 |----|-------|-------|--------|----------|
 | T1 | S1-S4 | inline | done | 790d85d (L3) |
 | T2 | S5 (prompts, docs) | inline | done | 790d85d (L3) |
-| T3 | S5 (paintings in, loops out) | inline | waiting for the user's paintings | |
+| T3 | S5 (paintings in, loops out) | inline | done | in the vault (L4) |
 | T4 | release | inline | waiting for the user's go-ahead | |
 
 ## Log
@@ -38,3 +38,16 @@ Branch: `feat/shop-art`. Delivery: merge into main, release on the user's go-ahe
   - **Prompts:** the Shop prompts paint the merchant, as the drawing has him. This is the one exception to the style block's "No people".
   - **Measurements:** the box is 1128×291 on desktop, 808×229 at 840 and 358×171 on a phone. The plaque sits at image x 87-99%, y 25-45% on wide panes, and over x 64-77% on a phone.
   - **Next:** T3 waits for the user's two paintings.
+- **L4** (2026-11-25, user): sent two Gemini paintings and said "quedaron un poco raras".
+  - **Cause:** Gemini painted the prompt's layout figures into both images as cream labels ("x 21-79%", "y 20%", "x 22%", "x 77%", "x 87-99% y 25-45%", "x 42-58%" and the counter's hex codes). The composition is otherwise right.
+  - **Cleanup:** only the eight label boxes per image were touched (scratch `unlabel.py`):
+    - In the middle of the awning, each column of the box was redrawn from the pixel above to the pixel below, along the stripes.
+    - Elsewhere, the letters (lighter than a 21 px median) were masked and refilled by normalised convolution, and a second pass removed their darker rim.
+    - Rendered in the real stall at 1160, 840 and 390, in both themes, no label shows.
+  - **Files:** both images were exported with `cwebp -q 80` (3936×1088, 86 and 113 KB).
+  - **Loops:** made with the same recipe as the Library's.
+    - shop-dark: the two lamp flames at (0.368, 0.26) and (0.652, 0.26), r 0.04, strength 0.18, 4 s, 246 KB.
+    - shop-light: the sunlit parts dim 8% over 8 s, 768 KB.
+    - In Chrome the first frame differs from the painting by 1.2 and 1.7 levels of 255, and the seam is within the normal frame step.
+  - **Vault:** all four files are in `Dromos/Arte/`. The released 0.25.0 ignores them until this branch ships.
+  - **Docs:** the shared style block now says the percentages and hex codes are never painted as labels.
