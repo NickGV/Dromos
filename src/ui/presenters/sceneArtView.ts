@@ -10,6 +10,15 @@ export interface ScenePaintingView {
 	readonly className: string;
 	/** `--dromos-art-light` and `--dromos-art-dark`, each a CSS `url("…")`. */
 	readonly style: Readonly<Record<string, string>>;
+	/** The loops that play over the paintings, one per theme that has one (scene-video S1-S4). */
+	readonly videos: readonly SceneVideoView[];
+}
+
+/** A theme's video and its painting, the poster it shows until it plays and whenever it cannot. */
+export interface SceneVideoView {
+	readonly theme: 'light' | 'dark';
+	readonly src: string;
+	readonly poster: string;
 }
 
 /** Each scene's view, `null` for a scene without paintings. */
@@ -23,15 +32,18 @@ export function cssUrl(url: string): string {
 export function scenePaintingView(painting: ScenePainting): ScenePaintingView | null {
 	const classes: string[] = [];
 	const style: Record<string, string> = {};
+	const videos: SceneVideoView[] = [];
 	if (painting.light !== null) {
 		classes.push('has-art-light');
 		style['--dromos-art-light'] = cssUrl(painting.light);
+		if (painting.lightVideo !== null) videos.push({ theme: 'light', src: painting.lightVideo, poster: painting.light });
 	}
 	if (painting.dark !== null) {
 		classes.push('has-art-dark');
 		style['--dromos-art-dark'] = cssUrl(painting.dark);
+		if (painting.darkVideo !== null) videos.push({ theme: 'dark', src: painting.darkVideo, poster: painting.dark });
 	}
-	return classes.length === 0 ? null : { className: classes.join(' '), style };
+	return classes.length === 0 ? null : { className: classes.join(' '), style, videos };
 }
 
 export function sceneArtView(art: SceneArt): SceneArtView {

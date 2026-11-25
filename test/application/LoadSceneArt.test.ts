@@ -25,6 +25,6 @@ describe('LoadSceneArt: the paintings for the scenes (own-art S1, S4)', () => {
 
 	it('passes the files on as the source lists them', () => {
 		const art = new LoadSceneArt({ source: source([{ name: 'desk-light.png', url: 'app://vault/desk-light.png' }]) }).execute();
-		expect(art.desk).toEqual({ light: 'app://vault/desk-light.png', dark: null });
+		expect(art.desk).toEqual({ light: 'app://vault/desk-light.png', dark: null, lightVideo: null, darkVideo: null });
 	});
 });

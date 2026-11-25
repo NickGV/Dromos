@@ -140,3 +140,29 @@ COMPOSITION: an even, almost flat surface that reads well when cropped anywhere 
 QUIET ZONE: everywhere. Dark text sits on top: keep it light and nearly flat, no patch darker than #D9C9A6 below the top band.
 FORMAT: 2400 x 2400 px, aspect 1:1. Anchored to the top: the top edge always shows; phones keep only the central half of the width (x 26-74%), and wide panes the top three quarters.
 ```
+
+## Videos
+
+A painted scene can also play a short loop over its painting: `<scene>-<theme>.webm` (or `.mp4`) beside the painting, for example `Dromos/Arte/archive-dark.webm` next to `archive-dark.webp`.
+
+- A video plays only over its own theme's painting. Without that painting it is ignored, and the painting is what shows until the first frame, whenever the video cannot play, and on any device that does not have the file yet.
+- It is muted and loops. It plays only while you can see it: it pauses when you scroll it away, switch tabs, switch theme or hide the window, and it never plays when your system asks to reduce motion.
+- The cards play the desk's video, since they lie on the desk.
+- Keep it short and light: a 2-4 second loop, WebM, about 1800 px wide, under about 2 MB. Obsidian Sync's Standard plan refuses files over 5 MB, and the phone gets the video only when **Videos** is on in Sync's selective sync; until then it shows the painting.
+
+### Making the videos
+
+Give the generator the painting as the first frame (image-to-video), paste the motion block, then one scene's line.
+
+```text
+MOTION (Dromos). Animate this painting as a seamless 4-second loop: the last frame must match the first. The camera does not move: no pan, no zoom, no parallax. Only the motion described below happens; everything else stays perfectly still, in the same painterly style, colours and light. No people, no hands, no text, no new objects. Slow and calm, nothing sudden.
+```
+
+- **archive-dark**: The candle flame flickers gently and its warm halo on the table breathes softly. In the window, two or three stars twinkle faintly.
+- **desk-dark**: The oil lamp's small flame flickers gently, and the warm light it casts across the desk breathes softly.
+- **wall-dark**: The warm lamplight on the lower right of the wall breathes very softly, as from a flame just out of the picture.
+- **shelf-dark**: The warm glow at the lower left breathes very softly, as from a lamp just out of the picture.
+- **archive-light**: Fine dust drifts slowly through the shaft of sunlight; outside the window the cypress sways very slightly and the cloud drifts.
+- **desk-light**: Fine dust drifts slowly in the afternoon light above the desk.
+- **wall-light**: Fine dust drifts slowly through the shaft of sunlight.
+- **shelf-light**: Fine dust drifts very slowly in the soft light.

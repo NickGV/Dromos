@@ -3594,6 +3594,19 @@
 /* The card's rods belong to its scroll, not to the room: they stay over the desk's painting (own-art L13). */
 .dromos-root .dromos-library-scene.is-card.has-art-dark > .is-drawing,
 .theme-light .dromos-root .dromos-library-scene.is-card.has-art-light > .is-drawing { display: block; }
+/* Scene videos (scene-video S2-S4): a short loop over its painting, cropped as the painting is, in its
+   own theme only and never under reduced motion. A hidden video is never in sight, so it never plays. */
+.dromos-root .dromos-scene-video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.dromos-root .dromos-scene-video.is-light { display: none; }
+.theme-light .dromos-root .dromos-scene-video.is-dark { display: none; }
+.theme-light .dromos-root .dromos-scene-video.is-light { display: block; }
+.dromos-root .dromos-library-scene.is-archive .dromos-scene-video { object-position: center bottom; }
+.dromos-root .dromos-library-scene.is-shelf .dromos-scene-video { object-position: center top; }
+.dromos-root .dromos-library-scene.is-card .dromos-scene-video { object-position: 14% top; }
+@media (prefers-reduced-motion: reduce) {
+	.dromos-root .dromos-scene-video.is-dark,
+	.theme-light .dromos-root .dromos-scene-video.is-light { display: none; }
+}
 
 .dromos-root .dromos-library { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .dromos-root .dromos-library-note { margin: 0; padding: 16px; color: var(--dromos-ink-muted); }

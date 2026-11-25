@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Scene videos**: a painted scene can play a short muted loop over its painting, from `<folder>/Arte/<scene>-<theme>.webm` (or `.mp4`) beside it. It plays only while you can see it, pauses when scrolled away, in another tab, in the other theme or with the window hidden, and never plays when your system asks to reduce motion; the painting shows whenever it cannot play. [docs/own-art.md](docs/own-art.md#videos) has prompts for making them.
+
 ## [0.24.0] - 2026-11-25
 
 ### Added

@@ -401,7 +401,7 @@ describe('LibraryRoom: a reading daily deleted in Habitica (ADR-021)', () => {
 });
 
 describe('LibraryRoom: paintings from the vault (own-art S3)', () => {
-	const art = sceneArtView({ ...NO_SCENE_ART, wall: { light: null, dark: 'app://v/wall-dark.webp' }, desk: { light: 'app://v/desk-light.webp', dark: 'app://v/desk-dark.webp' } });
+	const art = sceneArtView({ ...NO_SCENE_ART, wall: { light: null, dark: 'app://v/wall-dark.webp', lightVideo: null, darkVideo: null }, desk: { light: 'app://v/desk-light.webp', dark: 'app://v/desk-dark.webp', lightVideo: null, darkVideo: null } });
 	const painted = renderToStaticMarkup(<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, es)} onOpenShelf={noop} onOpenCard={noop} art={art} />);
 
 	it('marks the wall and the desk with their themes and passes the paintings to the stylesheet', () => {
@@ -436,7 +436,7 @@ describe('The scroll on the desk and the book card (own-art L13)', () => {
 	});
 
 	it('lays the book card on the desk painting and keeps its rods', () => {
-		const desk = sceneArtView({ ...NO_SCENE_ART, desk: { light: 'app://v/desk-light.webp', dark: 'app://v/desk-dark.webp' } }).desk;
+		const desk = sceneArtView({ ...NO_SCENE_ART, desk: { light: 'app://v/desk-light.webp', dark: 'app://v/desk-dark.webp', lightVideo: null, darkVideo: null } }).desk;
 		const html = renderToStaticMarkup(
 			<BookCard view={bookCardView(aBook({ path: 'B/x.md', title: 'X' }), TODAY, es, { start: true, finish: true }, null)} busy={null} onStart={noop} onFinish={noop} onOpenNote={noop} renderMarkdown={renderNothing} painting={desk} />,
 		);
@@ -458,7 +458,7 @@ describe('LibraryShelf: a painting from the vault (own-art L16)', () => {
 	if (!view) throw new Error('no shelf');
 
 	it('marks the shelf with its themes and passes the paintings to the stylesheet', () => {
-		const art = sceneArtView({ ...NO_SCENE_ART, shelf: { light: 'app://v/shelf-light.webp', dark: 'app://v/shelf-dark.webp' } });
+		const art = sceneArtView({ ...NO_SCENE_ART, shelf: { light: 'app://v/shelf-light.webp', dark: 'app://v/shelf-dark.webp', lightVideo: null, darkVideo: null } });
 		const html = renderToStaticMarkup(<LibraryShelf view={view} onOpenCard={noop} art={art} />);
 		expect(html).toContain('class="dromos-library-scene is-shelf dromos-library-shelf has-art-light has-art-dark" data-scene="shelf" style="--dromos-art-light:url(&quot;app://v/shelf-light.webp&quot;);--dromos-art-dark:url(&quot;app://v/shelf-dark.webp&quot;)"');
 		expect(layersOf(html, 'shelf')).toEqual(['background', 'drawing', 'panels']);
