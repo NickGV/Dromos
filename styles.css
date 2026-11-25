@@ -3571,6 +3571,14 @@
 .theme-light .dromos-root .dromos-library-scene.has-art-light > .is-drawing { display: none; }
 /* The archive's painting keeps its worktable on wide panes, which crop a 3:1 painting top and bottom. */
 .dromos-root .dromos-library-scene.is-archive > .is-background { background-position: center bottom; }
+/* A painted desk shows whole (own-art L17): the scene is at least a third of its width tall, the
+   painting's 3:1 shape, with room above the scrolls for the lamp and the ink pot and the scrolls in the
+   middle of the desk. More scrolls than fit make it taller, and the painting is then cropped at its
+   sides. The spacer and the panels share the grid's one cell, so the taller of the two sets its height
+   (an aspect-ratio would not grow past it, the scene clipping its overflow). */
+.dromos-root .dromos-library-scene.is-desk:is(.has-art-light, .has-art-dark) { display: grid; }
+.dromos-root .dromos-library-scene.is-desk:is(.has-art-light, .has-art-dark)::before { content: ''; grid-area: 1 / 1; padding-top: 33.333%; }
+.dromos-root .dromos-library-scene.is-desk:is(.has-art-light, .has-art-dark) > .is-panels { grid-area: 1 / 1; align-self: center; padding-top: max(46px, 8%); padding-bottom: max(26px, 2.5%); }
 /* The shelf's painting keeps the arch's shadow at its top: the rows below grow and shrink with the books. */
 .dromos-root .dromos-library-scene.is-shelf > .is-background { background-position: center top; }
 /* On a painted shelf, its words sit on parchment (own-art S1, L16): the row titles and each scroll's state. */

@@ -14,7 +14,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - "**El texto nunca va directo sobre la imagen**: siempre sobre un panel de pergamino, para mantener el contraste AA."
   - "**Si la imagen no está, se dibuja la escena de siempre en SVG**: nada se rompe por una imagen que falta o que todavía no se sincronizó."
 - **S2 First scenes** (L2: "por la recomendada porfavor"; narrowed in L6: "si dale vamos con esos 3 porfavor"; widened in L12: "nos faltaria dentro del shelves y tambien cuando abrimos un libro"): the Library's wall (behind the alcoves) and desk (behind the scrolls being read), and the Archive room, `wall`, `desk` and `archive`. The shelf (`shelf`, L16) too: its row titles and state lines sit on parchment on a painted shelf (S1), and its painting is anchored to the top. The card takes no image of its own (L13: "si me voy con tu idea"): when a book opens, its scroll lies on the reading desk, so the card shows the `desk` paintings around the sheet. Its own art would show only in 8-11% (L5).
-- **S3 The painting replaces the drawing** (L3: "1", to "La imagen reemplaza al dibujo"). While a scene's painting for the current theme is there, it fills the background layer and the SVG drawing layer is not drawn. The panels, with their text and buttons, stay on parchment as today. The archive's painting is anchored to the bottom of its scene, so its worktable shows on wide panes (L8, recommended; accepted in L9).
+- **S3 The painting replaces the drawing** (L3: "1", to "La imagen reemplaza al dibujo"). While a scene's painting for the current theme is there, it fills the background layer and the SVG drawing layer is not drawn. The panels, with their text and buttons, stay on parchment as today. The archive's painting is anchored to the bottom of its scene, so its worktable shows on wide panes (L8, recommended; accepted in L9). A painted desk is at least a third of its width tall, its painting's 3:1 shape, so the whole painting shows behind the books being read (L17).
 - **S4 Where the images come from** (L4: "2", to "Te escribo los prompts para generarlas con una IA de imágenes, uno por escena y por tema"): Dromos's side writes one prompt per scene and theme, in the Dromos style and with the panels' places left quiet; the user generates the images. File names and formats, announced as defaults and not objected to:
   - `<vault folder>/Arte/<scene>-light.<ext>` and `<scene>-dark.<ext>`, with the scenes `wall`, `desk` and `archive`, and `webp`, `png` or `jpg`;
   - a theme whose file is missing draws the SVG, even when the other theme has one;
@@ -35,6 +35,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top | inline (the real code rendered as the mockup) | done (L16) | 3423ed0 |
 | T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); the book and the resource card, from the Library and from home | inline | done (L15) | 68bd93b |
 | T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13) | inline | done (L15) | 68bd93b |
+| T7 | S3 | The painted desk at least 3:1 tall, the lamp and the ink pot above the scrolls (L17) | inline | done (L17) | see L17 |
 | V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
 
 ## Log
@@ -129,3 +130,9 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - CSS: the shelf's painting is anchored to the top. On a painted shelf (either theme's class), the row titles and each scroll's status sit on paper plates with a rule border.
   - The real code, rendered at 1160 and 390 px in both themes, served as the mockup; T4 needed no separate mockup.
   - Checks: `npm test` 187 files, 2604 tests passed; `npm run lint` 0 errors (the same 4 warnings); `npm run install:local` built and installed it.
+- **L17** (2026-11-25, user): "puedes hacer la mesa del reading now mas alta para que se vea toda la imagen, de resto se ve perfecto".
+  - T7, CSS only. A painted desk scene is a one-cell grid. A `::before` spacer with `padding-top: 33.333%` and the panels share that cell, so the scene is at least a third of its width tall and grows with more scrolls. Then the painting is cropped at its sides.
+  - The panels sit centred, with `max(46px, 8%)` above the scrolls for the lamp and the ink pot and `max(26px, 2.5%)` below.
+  - Not an `aspect-ratio`: with the scene's `overflow: hidden`, it did not grow past 3:1. On a phone it cut the second scroll, even with `min-height: min-content`. This was seen in the render and fixed before delivery.
+  - Rendered with the real code at 1160, 840 and 390 px in both themes. The whole painting, lamp and ink pot included, shows on desktop and at 840. On a phone the desk grows with its two scrolls.
+  - Checks: `npm test` 187 files, 2604 tests passed; `npm run lint` 0 errors (the same 4 warnings). Installed with `install:local`.
