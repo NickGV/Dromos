@@ -2127,27 +2127,66 @@
 /* Reduced motion holds the spinner still (with the clouds, above); the label beside it already
    says what is happening. */
 
-/* Panel of Esdras as a scroll (game-ui S5), folded to its summary (S13): rolled at its top and its
-   bottom, a scroll icon in a circle, the top line, the mission and the closest skill, an excerpt,
-   and the row that unrolls the letter, whose text is in a large serif. */
-.dromos-root .dromos-briefing { padding: 0; overflow: hidden; }
-
-.dromos-root .dromos-scroll-edge {
-	height: 11px;
-	border-bottom: 1px solid var(--dromos-umber);
-	background: var(--dromos-roll);
+/* Panel of Esdras as a scroll (game-ui S5), folded to its summary (S13): the papyrus of the desk
+   (letter-art S1), rolled at its top and its bottom on a rod with knobs, its sides deckled, with the
+   top line, the mission and the row that unrolls the letter, whose text is in a large serif. It is
+   drawn here, static, so it grows with its text, keeps the ink's contrast and costs nothing once drawn (S3). */
+.dromos-root .dromos-briefing.dromos-card {
+	position: relative;
+	isolation: isolate;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
 }
 
-.dromos-root .dromos-briefing-sheet + .dromos-scroll-edge { border-top: 1px solid var(--dromos-umber); border-bottom: 0; }
+/* The rolls: the papyrus wound on its rod, a knob at each end. */
+.dromos-root .dromos-scroll-edge {
+	position: relative;
+	z-index: 1;
+	height: 20px;
+	background-repeat: no-repeat;
+	background-image:
+		radial-gradient(closest-side, var(--dromos-sheet-knob) 75%, transparent),
+		radial-gradient(closest-side, var(--dromos-sheet-knob) 75%, transparent),
+		linear-gradient(180deg, var(--dromos-sheet-roll-dark), var(--dromos-sheet-roll-light) 40%, var(--dromos-sheet-roll-dark)),
+		linear-gradient(var(--dromos-sheet-rod), var(--dromos-sheet-rod));
+	background-size: 10px 16px, 10px 16px, calc(100% - 24px) 20px, 100% 6px;
+	background-position: left center, right center, center, center;
+	filter: drop-shadow(0 2px 2px var(--dromos-sheet-drop));
+}
 
-/* Esdras's portrait stands beside the head and the text (M11 S2); on phones it sits inline with the
-   top line (S14). */
+/* Esdras's portrait stands beside the head and the text (M11 S2), large enough for a painting to read
+   (letter-art S2); on phones it sits inline with the top line (S14). The sheet runs a little under the rolls. */
 .dromos-root .dromos-briefing-sheet {
+	position: relative;
+	z-index: 0;
 	display: grid;
-	grid-template-columns: 46px minmax(0, 1fr);
+	grid-template-columns: 64px minmax(0, 1fr);
 	grid-template-rows: auto 1fr;
 	column-gap: 18px;
-	padding: 16px 22px;
+	margin: -4px 10px;
+	padding: 22px 26px 20px;
+}
+
+/* The papyrus itself: the desk's fibres and blots, darker towards its deckled sides. */
+.dromos-root .dromos-briefing-sheet::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-color: var(--dromos-sheet);
+	background-image:
+		radial-gradient(ellipse 55% 45% at 22% 30%, var(--dromos-sheet-blot), transparent 70%),
+		radial-gradient(ellipse 45% 60% at 78% 72%, var(--dromos-sheet-blot), transparent 70%),
+		repeating-linear-gradient(90deg, var(--dromos-sheet-fiber) 0 1px, transparent 1px 11px),
+		repeating-linear-gradient(90deg, var(--dromos-sheet-fiber-soft) 0 2px, transparent 2px 17px),
+		repeating-linear-gradient(91deg, var(--dromos-sheet-fiber-soft) 0 1px, transparent 1px 29px),
+		repeating-linear-gradient(0deg, var(--dromos-sheet-fiber) 0 1px, transparent 1px 6px),
+		repeating-linear-gradient(179deg, var(--dromos-sheet-fiber-soft) 0 2px, transparent 2px 23px),
+		linear-gradient(90deg, var(--dromos-sheet-blot), transparent 10%, transparent 90%, var(--dromos-sheet-blot));
+	clip-path: polygon(3px 0.00%, 4px 3.12%, 3px 6.25%, 3px 9.38%, 4px 12.50%, 4px 15.62%, 1px 18.75%, 1px 21.88%, 4px 25.00%, 3px 28.12%, 4px 31.25%, 1px 34.38%, 0px 37.50%, 3px 40.62%, 2px 43.75%, 1px 46.88%, 0px 50.00%, 4px 53.12%, 0px 56.25%, 4px 59.38%, 3px 62.50%, 3px 65.62%, 4px 68.75%, 1px 71.88%, 4px 75.00%, 0px 78.12%, 4px 81.25%, 0px 84.38%, 0px 87.50%, 0px 90.62%, 1px 93.75%, 1px 96.88%, 4px 100.00%, calc(100% - 0px) 100.00%, calc(100% - 3px) 96.88%, calc(100% - 2px) 93.75%, calc(100% - 3px) 90.62%, calc(100% - 4px) 87.50%, calc(100% - 1px) 84.38%, calc(100% - 4px) 81.25%, calc(100% - 1px) 78.12%, calc(100% - 2px) 75.00%, calc(100% - 3px) 71.88%, calc(100% - 0px) 68.75%, calc(100% - 0px) 65.62%, calc(100% - 3px) 62.50%, calc(100% - 2px) 59.38%, calc(100% - 3px) 56.25%, calc(100% - 4px) 53.12%, calc(100% - 0px) 50.00%, calc(100% - 2px) 46.88%, calc(100% - 2px) 43.75%, calc(100% - 1px) 40.62%, calc(100% - 4px) 37.50%, calc(100% - 2px) 34.38%, calc(100% - 0px) 31.25%, calc(100% - 0px) 28.12%, calc(100% - 4px) 25.00%, calc(100% - 0px) 21.88%, calc(100% - 3px) 18.75%, calc(100% - 0px) 15.62%, calc(100% - 2px) 12.50%, calc(100% - 3px) 9.38%, calc(100% - 0px) 6.25%, calc(100% - 0px) 3.12%, calc(100% - 0px) 0.00%);
 }
 
 .dromos-root .dromos-briefing-seal {
@@ -2155,8 +2194,8 @@
 	display: block;
 	grid-row: 1 / span 2;
 	align-self: start;
-	width: 46px;
-	height: 57px;
+	width: 64px;
+	height: 79px;
 }
 
 .dromos-root .dromos-briefing-head {
@@ -2341,13 +2380,14 @@
    the text takes the whole width under them. */
 @container dromos-view (max-width: 472px) {
 	.dromos-root .dromos-briefing-sheet {
-		grid-template-columns: 40px minmax(0, 1fr);
+		grid-template-columns: 48px minmax(0, 1fr);
 		grid-template-rows: auto auto;
 		column-gap: 12px;
-		padding: 14px 16px;
+		margin-inline: 8px;
+		padding: 18px 18px 16px;
 	}
 
-	.dromos-root .dromos-briefing-seal { grid-row: 1; width: 40px; height: 50px; }
+	.dromos-root .dromos-briefing-seal { grid-row: 1; width: 48px; height: 59px; }
 	.dromos-root .dromos-briefing-seal .dromos-portrait-seal { right: -7px; bottom: -7px; width: 18px; height: 20px; }
 	.dromos-root .dromos-briefing-head { align-self: center; margin-bottom: 0; }
 	.dromos-root .dromos-briefing-text { grid-column: 1 / -1; margin-top: 10px; }
