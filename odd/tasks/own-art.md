@@ -35,7 +35,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top | inline (the real code rendered as the mockup) | done (L16) | 3423ed0 |
 | T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); the book and the resource card, from the Library and from home | inline | done (L15) | 68bd93b |
 | T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13) | inline | done (L15) | 68bd93b |
-| T7 | S3 | The painted desk at least 3:1 tall, the lamp and the ink pot above the scrolls (L17) | inline | done (L17) | see L17 |
+| T7 | S3 | The painted desk at least 3:1 tall, the lamp and the ink pot above the scrolls (L17) | inline | done (L17) | 284fb60 |
 | V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
 
 ## Log
