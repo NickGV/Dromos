@@ -18,10 +18,34 @@ The user's request (L1): "ya luego si hacemos el tema de los videos para ver que
 
 | ID | Specs | Task | Route | Status | Commit |
 |----|-------|------|-------|--------|--------|
-| T1 | S1, S2, S4 | Find the videos beside the paintings (domain, `sceneArtView`) | inline | pending | |
-| T2 | S2-S5 | Play them in the scene's background layer: `SceneLayers`, a playback hook on `watchSight`, the CSS by theme and reduced motion | inline | pending | |
-| T3 | S6 | Placeholder loops for `archive-dark` and `desk-dark`, video prompts in `docs/own-art.md`, README and CHANGELOG, `install:local` | inline | pending | |
+| T1 | S1, S2, S4 | Find the videos beside the paintings (domain, `sceneArtView`) | inline | done (L2) | 215e84e |
+| T2 | S2-S5 | Play them in the scene's background layer: `SceneLayers`, a playback hook on `watchSight`, the CSS by theme and reduced motion | inline | done (L2) | 215e84e |
+| T3 | S6 | Placeholder loops for `archive-dark` and `desk-dark`, video prompts in `docs/own-art.md`, README and CHANGELOG, `install:local` | inline | done (L2) | see L2 |
 
 ## Log
 
 - **L1** (2026-11-25, user): "si subamos esto de dromos porfavor y subamos la version si es necesario y continuemos con el tema de los videos". Own art was released as 0.24.0 first (own-art L18). This document starts the videos. The specs come from the recommendation sent to Esdras for the user (own-art L12), which the user carried on with.
+- **L2** (2026-11-25): T1-T3 done, inline, test first.
+  - RED then GREEN: in `SceneArt.test.ts`, 4 new tests (a video beside its painting, webm before mp4, none without its painting, other formats ignored) plus 3 expectations updated to the new shape; `scenePlayback.test.ts` (6); `sceneArtView.test.ts` (1 new, 2 updated); `archive.test.tsx` (2).
+  - Code:
+    - `ScenePainting` gains `lightVideo` and `darkVideo`, set only beside their theme's painting.
+    - `ScenePaintingView.videos` holds the theme, the source and the poster (the painting).
+    - `SceneVideo` renders a `<video>` (muted, loop, `playsInline`, `preload="none"`, painting as poster) inside the background layer.
+    - `playWhileSeen` (`src/ui/atoms/scenePlayback.ts`) plays while `watchSight` reports it in sight and the page is shown, and pauses otherwise.
+  - CSS: the other theme's video and every video under reduced motion are `display: none`, so they are never in sight. `object-position` follows each scene's painting.
+  - The cards play the desk's video too, since they take the desk's painting view. This is the assumption announced in S6, "every painted scene".
+  - Checks:
+    - `npm test` 188 files, 2617 tests passed; lint 0 errors (the same 4 warnings); build passed.
+    - Differential against `main`: the room, archive, shelf and card with all eight paintings and no video, and the room with no art, give byte-identical HTML.
+  - Placeholders:
+    - `archive-dark.webm` (251 KB) and `desk-dark.webm` (276 KB), 1800×594, 4 s, VP8.
+    - Made from the user's paintings with a seamless flicker of the flame and its light: PIL frames encoded with Playwright's bundled ffmpeg, which has no pipe protocol, so the frames go through a file.
+    - Copied into `Dromos/Arte/`.
+  - Real playback, the real code bundled for the browser with Playwright's Chrome:
+    - dark theme playing (t=2.51), light theme paused, dark again playing;
+    - scrolled out of sight, paused;
+    - reduced motion, paused from the start;
+    - always muted.
+  - The decode check gave 1800×594, 4.00 s, and the flame's luminance moved 135→136→137→116 (archive) and 148→149→150→127 (desk).
+  - Docs: `docs/own-art.md` "Videos" (where, rules, size, the Sync **Videos** switch, a motion block and a line per scene), README, CHANGELOG `[Unreleased]`. `install:local` done.
+  - Next: the user's look in Obsidian; the user's real videos replace the placeholders; merge and release with the user's go-ahead.
