@@ -13,7 +13,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - "**Una versión clara y una oscura** de cada escena (la sala, el estante, el encabezado)."
   - "**El texto nunca va directo sobre la imagen**: siempre sobre un panel de pergamino, para mantener el contraste AA."
   - "**Si la imagen no está, se dibuja la escena de siempre en SVG**: nada se rompe por una imagen que falta o que todavía no se sincronizó."
-- **S2 First scenes** (L2: "por la recomendada porfavor"; narrowed in L6: "si dale vamos con esos 3 porfavor"; widened in L12: "nos faltaria dentro del shelves y tambien cuando abrimos un libro"): the Library's wall (behind the alcoves) and desk (behind the scrolls being read), and the Archive room, `wall`, `desk` and `archive`. Next, the shelf (`shelf`), once its row titles and state lines sit on parchment (S1), its painting anchored to the top. The card is open (L12): today a card leaves 8-11% of a painting visible (L5).
+- **S2 First scenes** (L2: "por la recomendada porfavor"; narrowed in L6: "si dale vamos con esos 3 porfavor"; widened in L12: "nos faltaria dentro del shelves y tambien cuando abrimos un libro"): the Library's wall (behind the alcoves) and desk (behind the scrolls being read), and the Archive room, `wall`, `desk` and `archive`. Next, the shelf (`shelf`), once its row titles and state lines sit on parchment (S1), its painting anchored to the top. The card takes no image of its own (L13: "si me voy con tu idea"): when a book opens, its scroll lies on the reading desk, so the card shows the `desk` paintings around the sheet. Its own art would show only in 8-11% (L5).
 - **S3 The painting replaces the drawing** (L3: "1", to "La imagen reemplaza al dibujo"). While a scene's painting for the current theme is there, it fills the background layer and the SVG drawing layer is not drawn. The panels, with their text and buttons, stay on parchment as today. The archive's painting is anchored to the bottom of its scene, so its worktable shows on wide panes (L8, recommended; accepted in L9).
 - **S4 Where the images come from** (L4: "2", to "Te escribo los prompts para generarlas con una IA de imágenes, uno por escena y por tema"): Dromos's side writes one prompt per scene and theme, in the Dromos style and with the panels' places left quiet; the user generates the images. File names and formats, announced as defaults and not objected to:
   - `<vault folder>/Arte/<scene>-light.<ext>` and `<scene>-dark.<ext>`, with the scenes `wall`, `desk` and `archive`, and `webp`, `png` or `jpg`;
@@ -33,7 +33,8 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T3 | S4 | The six images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | done (L11, L12) | |
 | D2 | S2, S4 | The shelf's two prompts in `docs/own-art.md` | inline | done (L12) | see L12 |
 | T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top; mockup first | inline | waiting for the shelf's images | |
-| T5 | S2 | The card | | waiting for the user's decision (L12) | |
+| T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); mockup first | inline | mockup done (L13), waiting for the user's look | scratchpad `own-art-mock/papyrus.html` |
+| T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13); mockup first | inline | mockup done (L13), waiting for the user's look | same |
 | V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
 
 ## Log
@@ -95,3 +96,11 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - Card: the book card and the resource card keep a painting only in the two 26 px strips behind the rods (8-11%), so an image of their own shows almost nothing.
   - Proposal to the user: when a book opens, the scroll lies on the reading desk, so the card could show the `desk` paintings around the scroll, with no new images. That needs the card's frame redrawn so the painting shows around it, and a mockup first.
   - Videos (Esdras's question): after the Library, as the user asked.
+
+- **L13** (2026-11-25, user): "si me voy con tu idea me parece mejor, y ahora que veo podriamos mejorar un poco mejor el podria ser algo mas como esto [a Gemini image: a pale papyrus unrolled across the desk between two wooden rods, the lamp and the ink pot above it, "El viejo y el mar" with its dotted underline and "Ernest Hemingway" at its lower left] claramente no tiene que ser igual". The card goes on the desk (S2). The image's dotted title and author are the desk's scroll card ("Leyendo ahora"), so the mockup covers both that card and the book card.
+  - Design, in a mockup only (scratch `own-art-mock/papyrus.css` over the real components and `styles.css`):
+    - Each desk scroll is a sheet of papyrus with deckled top and bottom edges (a `clip-path` polygon) and faint crossed fibres (layered repeating gradients). It has a rolled end with its rod and two knobs at each side and a soft drop shadow on the desk. The scroll drawing inside the card goes, since the card is now the scroll.
+    - The book card's scene takes the `desk` painting from edge to edge, the sheet is the same papyrus, and the rods become rolled ends with knobs. The buttons stay below, on the plain panel, so no text sits on the painting (S1).
+  - The papyrus is CSS, not an image: the cards change height with their text, and a painted sheet under text would break S1's AA contrast.
+  - Colours: light papyrus #F1E4C4 with ink #3B2F2A (about 10.5:1), muted #665243 (about 6:1) and ochre #7A5A12 (about 5:1). Dark papyrus #362C21 with ink #EDE3CF (about 11:1), muted #B8A68E (about 6:1) and ochre #DCB25E (about 7:1).
+  - Rendered at 1160 and 390 px, light and dark, before and after, in `own-art-mock/papyrus.html`, which was opened for the user.
