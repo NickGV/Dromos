@@ -32,7 +32,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T2 | S1-S4 | Show them: `sceneArtView`, `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel`; wired in `createDromos`; `docs/own-art.md`, README and CHANGELOG | inline | done (L10) | 55e744b |
 | T3 | S4 | The six images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | done (L11, L12) | |
 | D2 | S2, S4 | The shelf's two prompts in `docs/own-art.md` | inline | done (L12) | see L12 |
-| T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top | inline (the real code rendered as the mockup) | done (L16) | see L16 |
+| T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top | inline (the real code rendered as the mockup) | done (L16) | 3423ed0 |
 | T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); the book and the resource card, from the Library and from home | inline | done (L15) | 68bd93b |
 | T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13) | inline | done (L15) | 68bd93b |
 | V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
