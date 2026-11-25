@@ -47,5 +47,11 @@ export function scenePaintingView(painting: ScenePainting): ScenePaintingView | 
 }
 
 export function sceneArtView(art: SceneArt): SceneArtView {
-	return { wall: scenePaintingView(art.wall), desk: scenePaintingView(art.desk), shelf: scenePaintingView(art.shelf), archive: scenePaintingView(art.archive) };
+	return {
+		wall: scenePaintingView(art.wall),
+		desk: scenePaintingView(art.desk),
+		shelf: scenePaintingView(art.shelf),
+		archive: scenePaintingView(art.archive),
+		shop: scenePaintingView(art.shop),
+	};
 }

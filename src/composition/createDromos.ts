@@ -135,6 +135,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 	// Per-device marks (the letter last opened, the levels whose bonus this device still owes) in Obsidian's local storage, never in the vault or data.json.
 	const deviceStore = new LocalDeviceStore(plugin.app);
 	const gameState = new GameState();
+	// The user's paintings in `<Dromos folder>/Arte/` (own-art S1, shop-art S1): the Library's scenes and the Shop's stall, read on open and on Sync.
+	const sceneArt = new LoadSceneArt({ source: new VaultPaintingSource(plugin.app, notePathIn(vaultFolder, artFolderPath)) });
 	const skills = new VaultSkillRepository(plugin.app, vaultFolder);
 	const syncGame = new SyncGame({
 		skills,
@@ -201,8 +203,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 			// "Empezar a leer", "Terminar" (M7 S3, S4), a resource's "Marcar como leído" (M8 S6) and a habit's "Enviar a Habitica" (ADR-017) or "Enviar de nuevo" (ADR-021) toast their outcome; the screen reads again after.
 			library: {
 				loadLibrary: new LoadLibrary({ books, resources }),
-				// The user's paintings in `<Dromos folder>/Arte/` (own-art S1), read on open and on Sync.
-				sceneArt: new LoadSceneArt({ source: new VaultPaintingSource(plugin.app, notePathIn(vaultFolder, artFolderPath)) }),
+				sceneArt,
 				readReflection: new ReadReflection({ books }),
 				renderMarkdown,
 				startReading: async (path) => showNotice(readingOutcomeView(await startReading.execute(path), createTranslator(settings.language)).message),
@@ -228,6 +229,7 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 				buyOffer: new BuyOffer({ rewards: rewardCatalog, gold: goldAccount, purse, store: deviceStore, clock, hasCredentials }),
 				openCard: createOpenCardModal(plugin.app),
 				notify: showNotice,
+				sceneArt,
 			},
 		},
 		settings: () => settings,

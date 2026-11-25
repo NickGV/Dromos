@@ -1,8 +1,10 @@
 import type { KeyboardEvent } from 'react';
 import { Coin } from '../atoms/Coin';
+import { SceneLayers } from '../atoms/SceneLayers';
 import { StallArt } from '../atoms/StallArt';
 import { WareArt, WareLock } from '../atoms/WareArt';
 import type { DayPeriod } from '../presenters/dayPeriod';
+import type { ScenePaintingView } from '../presenters/sceneArtView';
 import type { PurchasesView } from '../presenters/shopView';
 import { nextTab, type ShopTab, type StallTabView, type StallView, type WareDetailView, type WaresView, type WareTab, type WareTileView } from '../presenters/stallView';
 import { ScreenHeader } from './ScreenHeader';
@@ -11,6 +13,8 @@ export interface ShopScreenProps {
 	readonly view: StallView;
 	/** The time of day the stall's sky shows; the stylesheet sets its colors from it. */
 	readonly period?: DayPeriod;
+	/** The user's paintings of the stall from the vault (shop-art S1, S2); absent or `null`, the drawing shows. */
+	readonly painting?: ScenePaintingView | null;
 	/** Buy was clicked: the key of the chosen ware. A held Buy calls nothing. */
 	readonly onBuy: (key: string) => void;
 	/** A tab was picked, by a click or a key. */
@@ -31,16 +35,16 @@ export interface ShopScreenProps {
  * why and last day, its price, the gold left after it, and Buy, which names what it buys and its
  * price. Buy dearer than the gold stays focusable but held, described by how much is missing. Every
  * tab panel stays in the page, hidden but the chosen one. Offline the offers and the purchases show
- * with no Buy. Every amount is words for screen readers; the drawings are skipped.
+ * with no Buy. Every amount is words for screen readers; the drawings are skipped. The stall shows the
+ * user's painting of it from the vault in each theme that has one (shop-art S1, S2), the plaque over it.
  */
-export function ShopScreen({ view, period = 'day', onBuy, onTab, onChoose, idPrefix = 'dromos-shop' }: ShopScreenProps) {
+export function ShopScreen({ view, period = 'day', painting = null, onBuy, onTab, onChoose, idPrefix = 'dromos-shop' }: ShopScreenProps) {
 	const selected = view.tabs.find((tab) => tab.selected)?.id ?? null;
 	return (
 		<div className="dromos-shop">
 			<ScreenHeader title={view.title} />
 			<div className="dromos-stall-frame">
-				<div className={view.offline ? 'dromos-stall is-offline' : 'dromos-stall'} data-period={period}>
-					<StallArt />
+				<SceneLayers scene="shop" className={view.offline ? 'dromos-stall is-offline' : 'dromos-stall'} period={period} drawing={<StallArt />} painting={painting}>
 					{view.gold ? (
 						<p className="dromos-stall-plaque">
 							<span className="dromos-visually-hidden">{view.gold.label}</span>
@@ -50,7 +54,7 @@ export function ShopScreen({ view, period = 'day', onBuy, onTab, onChoose, idPre
 							</span>
 						</p>
 					) : null}
-				</div>
+				</SceneLayers>
 				<div className="dromos-stall-counter">
 					{view.note ? <p className={`dromos-panel dromos-shop-note is-${view.note.tone}`}>{view.note.text}</p> : null}
 					{view.tabs.length > 0 ? tabList(view, onTab, idPrefix) : null}

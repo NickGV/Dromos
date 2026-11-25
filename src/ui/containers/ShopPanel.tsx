@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import type { BuyOffer, BuyReward, LoadShop, PurchaseOutcome, ShopSnapshot } from '../../application';
+import type { BuyOffer, BuyReward, LoadSceneArt, LoadShop, PurchaseOutcome, ShopSnapshot } from '../../application';
 import type { Language } from '../../i18n';
 import { useT } from '../i18n';
 import { ShopConfirm } from '../organisms/ShopConfirm';
 import { ShopScreen } from '../organisms/ShopScreen';
 import type { DayPeriod } from '../presenters/dayPeriod';
+import { scenePaintingView } from '../presenters/sceneArtView';
 import { offerKey, purchaseConfirmView, purchaseMessage, rewardKey } from '../presenters/shopView';
 import { NO_CHOICE, stallView, type ShopTab, type StallChoice, type WareTab } from '../presenters/stallView';
 import type { CardModal } from './LibraryPanel';
@@ -22,6 +23,8 @@ export interface ShopDeps {
 	readonly openCard: OpenCard;
 	/** Shows a brief toast: what a purchase did. */
 	readonly notify: (message: string) => void;
+	/** The user's paintings, the stall's among them, from the vault (shop-art S1); never throws. */
+	readonly sceneArt: Pick<LoadSceneArt, 'execute'>;
 }
 
 export interface ShopPanelProps {
@@ -43,7 +46,7 @@ export interface ShopPanelProps {
  * runs at a time. When the card closes, the focus goes back to Buy. The outcome is a toast; the shop
  * then shows the gold Habitica returned, the purchase in the purse and the offer gone, with no
  * request, or is read again when that cannot be told. Leaving the screen closes an open
- * confirmation, which buys nothing.
+ * confirmation, which buys nothing. The stall's paintings are read with the shop (shop-art S1).
  */
 export function ShopPanel({ deps, language, syncKey, period = 'day' }: ShopPanelProps) {
 	const t = useT();
@@ -56,6 +59,8 @@ export function ShopPanel({ deps, language, syncKey, period = 'day' }: ShopPanel
 	const seenSyncKey = useRef(syncKey);
 	const card = useRef<CardModal | null>(null);
 	const body = useRef<HTMLDivElement>(null);
+	// The stall's paintings, read when the screen opens and again on each Sync, as the Library's (own-art S4).
+	const [art, setArt] = useState(() => deps.sceneArt.execute());
 
 	const reload = useCallback(async (): Promise<void> => {
 		const next = await deps.loadShop.execute();
@@ -75,8 +80,9 @@ export function ShopPanel({ deps, language, syncKey, period = 'day' }: ShopPanel
 	useEffect(() => {
 		if (seenSyncKey.current === syncKey) return;
 		seenSyncKey.current = syncKey;
+		setArt(deps.sceneArt.execute());
 		void reload();
-	}, [syncKey, reload]);
+	}, [deps, syncKey, reload]);
 
 	const settle = (outcome: PurchaseOutcome | null): void => {
 		if (outcome === null || !mounted.current) return;
@@ -127,7 +133,7 @@ export function ShopPanel({ deps, language, syncKey, period = 'day' }: ShopPanel
 
 	return (
 		<div className="dromos-shop-frame" ref={body}>
-			<ShopScreen view={stallView(shop, busy, choice, t)} period={period} onBuy={buy} onTab={pickTab} onChoose={choose} idPrefix={idPrefix} />
+			<ShopScreen view={stallView(shop, busy, choice, t)} period={period} painting={scenePaintingView(art.shop)} onBuy={buy} onTab={pickTab} onChoose={choose} idPrefix={idPrefix} />
 		</div>
 	);
 }

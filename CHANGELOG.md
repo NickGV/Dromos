@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Own art in the Shop**: the Shop's stall can show your own paintings too, `<folder>/Arte/shop-light` and `shop-dark` (WebP, PNG or JPG), with the loop beside each (`shop-<theme>.webm`) playing over it as in the Library. A painting replaces the drawn stall, merchant included, in its theme; the gold stays on its plaque over it, and an offline stall still looks faded. Without them the Shop looks as before. [docs/own-art.md](docs/own-art.md#shop-the-shops-stall) has the prompts.
+
 ## [0.25.0] - 2026-11-25
 
 ### Added

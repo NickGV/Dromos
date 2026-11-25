@@ -3603,6 +3603,12 @@
 .dromos-root .dromos-library-scene.is-archive .dromos-scene-video { object-position: center bottom; }
 .dromos-root .dromos-library-scene.is-shelf .dromos-scene-video { object-position: center top; }
 .dromos-root .dromos-library-scene.is-card .dromos-scene-video { object-position: 14% top; }
+/* The Shop's stall (shop-art S1-S3): its panels fill it, so the plaque hangs where it did; a painting
+   and its video are cropped as the drawing is, keeping the counter, and fade with it offline. */
+.dromos-root .dromos-stall > .dromos-scene-layer.is-panels { position: absolute; inset: 0; }
+.dromos-root .dromos-library-scene.is-shop > .is-background { background-position: center bottom; }
+.dromos-root .dromos-library-scene.is-shop .dromos-scene-video { object-position: center bottom; }
+.dromos-root .dromos-stall.is-offline > .is-background { filter: saturate(0.62) sepia(0.14); }
 @media (prefers-reduced-motion: reduce) {
 	.dromos-root .dromos-scene-video.is-dark,
 	.theme-light .dromos-root .dromos-scene-video.is-light { display: none; }

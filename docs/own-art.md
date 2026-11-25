@@ -2,14 +2,14 @@
 
 Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme, instead of their drawing. This page says where the files go and how to make them.
 
-The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** (inside an alcove) has one too; on a painted shelf, its row titles and each scroll's state sit on parchment. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
+The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** (inside an alcove) has one too; on a painted shelf, its row titles and each scroll's state sit on parchment. The Shop's stall is the **shop** scene: its painting replaces the drawn stall, merchant included, and the gold stays on its plaque over it. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
 
 ## Where the files go
 
-- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
+- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, `shop`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
 - A theme without its file draws the scene as always, even when the other theme has one.
 - While a painting is there, it replaces the scene's drawing: the lamp, the ink pot, and the archive's window and worktable come from the painting, which is why the prompts ask for them. Text and buttons stay on their parchment panels.
-- Dromos looks for the files when the Library opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
+- Dromos looks for the files when the Library or the Shop opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
 
 ## Making the images
 
@@ -23,7 +23,7 @@ If the generator cannot make the exact ratio, make the closest one it offers, ex
 STYLE (Dromos). A background painting for a calm role-playing game of one person's real life, set in an ancient library and scriptorium of the Mediterranean and Near East in the age of papyrus: dressed limestone, plaster, cedar and olive wood, papyrus, clay, wax tablets, bronze and clay oil lamps. Warm, painterly and restrained, like a quiet museum illustration or a gouache background for an animated film: soft brushwork, gentle light, subtle surface texture. Never cartoonish, never childlike, never glossy, never photographic, never fantasy-epic.
 Mood: serene, unhurried, a place visited every day. Low contrast and soft edges everywhere; no single bright spot except where the scene prompt asks for one.
 Palette, use only these families. Light theme (daylight): paper #FAF5EA, parchment #F3E9D2, limestone #EADCBD, niche shade #E2D2B0, pale wood #D9BC8C and #C4A274, umber lines #8B5E3C, ochre #C9962B, olive #6E8B4E and #8FA66B, clay #B5593C, pale sky #CFE3E8 to #E6EFEB, warm cream light. Dark theme (night): paper #1B1713, parchment #262019, stone #2A231C, niche #211B16, wood #4A3826 and #362818, umber #A8825F, papyrus #CFBE9C, ochre #D4A64A, lamp flame #E8B04A with a flat warm halo, night sky #121629 to #283049, moon #E8DDB5, hills #34452F; warm and lamplit, never cold, never blue-black.
-Absolutely no text, letters, numbers, glyphs, hieroglyphs, inscriptions, pseudo-writing, signatures, watermarks, logos or frames. No people, figures, faces or hands. No modern objects, no books with spines, no screens. No neon, no glow effects, no lens flare, no bloom, no hard shadows, no heavy vignette, no strong gradients.
+Absolutely no text, letters, numbers, glyphs, hieroglyphs, inscriptions, pseudo-writing, signatures, watermarks, logos or frames. The scene prompt gives positions as percentages and colours as hex codes: they say where things go and what colour they are, and are never painted as labels. No people, figures, faces or hands. No modern objects, no books with spines, no screens. No neon, no glow effects, no lens flare, no bloom, no hard shadows, no heavy vignette, no strong gradients.
 This image sits behind interface panels: keep it quiet and even so text panels placed on top stay readable. Do not paint any shelves, niches, scrolls, buttons or boxes in the areas the scene prompt says will be covered.
 ```
 
@@ -141,6 +141,37 @@ QUIET ZONE: everywhere. Dark text sits on top: keep it light and nearly flat, no
 FORMAT: 2400 x 2400 px, aspect 1:1. Anchored to the top: the top edge always shows; phones keep only the central half of the width (x 26-74%), and wide panes the top three quarters.
 ```
 
+### shop: the Shop's stall
+
+Box: 1128 x 291 CSS px on the desktop pane (3.9:1), 808 x 229 at 840 px (3.5:1), 358 x 171 on a
+phone (2.1:1). Nothing covers it but the gold plaque, which Dromos hangs at the upper right: image
+x 87-99%, y 25-45% on wide panes, so keep that corner plain shade; on a phone it covers x 64-77% at
+the same height, over the right lamp, which the left one makes up for. Dromos anchors the painting to the
+bottom, as the drawing is, so the counter always shows: wide panes lose the top 7%, and phones keep
+only the central strip (x 21-79%), where the merchant stands. The time of day does not change a
+painting: the light one shows in the light theme and the dark one in the dark theme.
+
+This scene has one person, the merchant, and it is the only exception to the style block's "No
+people": he is part of the stall, as in the drawing.
+
+#### shop-dark
+
+```text
+SCENE: a market stall of the ancient Mediterranean at night, seen from the customer's side of its counter, straight on, wide panorama. This scene is the one exception to the style block's "No people": it shows one person, the merchant, and nobody else. A striped linen awning (#B4A584 and dyed red-brown #84432F, muted by the night) runs across the whole top, its scalloped edge ending at y 20%. Two wooden posts hold it up at x 22% and x 77%. Between the posts, behind the stall, the night market: a few closed stalls and low limestone buildings with a small columned temple, a palm and a cypress, under a night sky (#121629 to #283049) with a small moon (#E8DDB5) and a few faint stars. In the stall's shaded sides, left of the left post and right of the right post (there only below y 45%), simple wooden shelves of wares: clay jars, baskets of figs and dates, a fold of purple cloth, a few bronze pieces. Two small clay oil lamps hang from the awning at x 32% and x 68%, each with a small steady flame and a flat warm halo (#E8B04A) that lights the stall softly. Behind the counter, at the centre (x 42-58%), the merchant: an older man in a plain striped robe and a light head cloth, standing calmly with one open hand, welcoming; his face simple and kind, painted softly at the scale of the scene. Along the whole bottom, the wooden counter (#4A3826, front edge #362818) seen from slightly above, with a small bronze balance left of the merchant, a small heap of gold coins and a leather pouch right of him.
+MUST NOT SHOW: any sign, plaque, banner or board, above all at the upper right; Dromos hangs the gold plaque there. No other people. No text or marks on the wares.
+LAYOUT: awning from the top down to y 20%. Market and sky between the posts from y 20% to y 80%. Merchant from y 30% to the counter. Counter top from y 82% to the bottom; its front edge in the last 6%. Quiet patch, plain shade with no ware or object: x 87-99%, y 25-45%.
+FORMAT: 3600 x 1000 px, aspect 3.6:1. Focal (always kept) area x 21-79%, y 7-100%: the merchant, the lamps, the market behind him and the counter.
+```
+
+#### shop-light
+
+```text
+SCENE: a market stall of the ancient Mediterranean on a summer afternoon, seen from the customer's side of its counter, straight on, wide panorama. This scene is the one exception to the style block's "No people": it shows one person, the merchant, and nobody else. A striped linen awning (#FAF5EA and clay red #B5593C) runs across the whole top, its scalloped edge ending at y 20%, casting a soft cool shade over the stall. Two wooden posts hold it up at x 22% and x 77%. Between the posts, behind the stall, the sunlit market: a few stalls and low limestone buildings with a small columned temple, a palm and a cypress, olive hills (#8FA66B, #6E8B4E), and a pale sky (#CFE3E8 to #E6EFEB) with one soft outlined cloud. In the stall's shaded sides, left of the left post and right of the right post (there only below y 45%), simple wooden shelves of wares: clay jars (#C47A4E), baskets of figs and dates, a fold of purple cloth, a few bronze pieces. Two small clay oil lamps hang unlit from the awning at x 32% and x 68%. Behind the counter, at the centre (x 42-58%), the merchant: an older man in a plain striped robe and a light head cloth, standing calmly with one open hand, welcoming; his face simple and kind, painted softly at the scale of the scene. Warm cream sunlight falls across the counter from the front. Along the whole bottom, the pale wooden counter (#D9BC8C, front edge #C4A274) seen from slightly above, with a small bronze balance left of the merchant, a small heap of gold coins and a leather pouch right of him.
+MUST NOT SHOW: any sign, plaque, banner or board, above all at the upper right; Dromos hangs the gold plaque there. No other people. No text or marks on the wares.
+LAYOUT: awning from the top down to y 20%. Market and sky between the posts from y 20% to y 80%. Merchant from y 30% to the counter. Counter top from y 82% to the bottom; its front edge in the last 6%. Quiet patch, plain shade with no ware or object: x 87-99%, y 25-45%.
+FORMAT: 3600 x 1000 px, aspect 3.6:1. Focal (always kept) area x 21-79%, y 7-100%: the merchant, the market behind him and the counter.
+```
+
 ## Videos
 
 A painted scene can also play a short loop over its painting: `<scene>-<theme>.webm` (or `.mp4`) beside the painting, for example `Dromos/Arte/archive-dark.webm` next to `archive-dark.webp`.
@@ -166,3 +197,5 @@ MOTION (Dromos). Animate this painting as a seamless 4-second loop: the last fra
 - **desk-light**: Fine dust drifts slowly in the afternoon light above the desk.
 - **wall-light**: Fine dust drifts slowly through the shaft of sunlight.
 - **shelf-light**: Fine dust drifts very slowly in the soft light.
+- **shop-dark**: The two hanging lamps' small flames flicker gently, and their warm light on the stall breathes softly.
+- **shop-light**: The awning's shade stirs very slightly, as from a light breeze; the sunlight on the counter breathes softly.

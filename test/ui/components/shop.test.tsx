@@ -1,11 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { ShopSnapshot } from '../../../src/application';
+import { NO_SCENE_ART, type ScenePainting } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { focusOnDraw } from '../../../src/ui/organisms/cardEvents';
 import { ShopConfirm } from '../../../src/ui/organisms/ShopConfirm';
 import { ShopScreen, type ShopScreenProps } from '../../../src/ui/organisms/ShopScreen';
+import { sceneArtView } from '../../../src/ui/presenters/sceneArtView';
 import { purchaseConfirmView } from '../../../src/ui/presenters/shopView';
 import { NO_CHOICE, stallView, type StallChoice } from '../../../src/ui/presenters/stallView';
 import { aReward } from '../../fakes/FakeHabiticaShop';
@@ -52,8 +54,10 @@ describe('ShopScreen: the stall (M10 S1, S4, S6)', () => {
 	it('draws the stall for the time of day as a picture screen readers skip, and still and faded offline', () => {
 		const html = renderToStaticMarkup(<ShopScreen view={stallView(READY, null, NO_CHOICE, en)} period="dusk" onBuy={noop} onTab={noop} onChoose={noop} />);
 
-		expect(html).toMatch(/<div class="dromos-stall" data-period="dusk"><svg class="dromos-stall-art[^"]*"[^>]*aria-hidden="true"/);
-		expect(screen({ ...READY, status: { kind: 'offline' }, gold: null, rewards: null })).toContain('<div class="dromos-stall is-offline" data-period="day">');
+		expect(html).toMatch(
+			/<div class="dromos-library-scene is-shop dromos-stall" data-scene="shop" data-period="dusk"><div class="dromos-scene-layer is-background" data-layer="background" aria-hidden="true"><\/div><div class="dromos-scene-layer is-drawing" data-layer="drawing" aria-hidden="true"><svg class="dromos-stall-art[^"]*"[^>]*aria-hidden="true"/,
+		);
+		expect(screen({ ...READY, status: { kind: 'offline' }, gold: null, rewards: null })).toContain('<div class="dromos-library-scene is-shop dromos-stall is-offline" data-scene="shop" data-period="day">');
 	});
 
 	it("puts the tabs in a real tab list, each controlling its panel, the user's Habitica rewards shown first and the others hidden", () => {
@@ -273,6 +277,37 @@ describe('ShopConfirm (M10 S1)', () => {
 	});
 });
 
+describe('ShopScreen: paintings from the vault (shop-art S1-S4)', () => {
+	const shopArt = (painting: ScenePainting) => sceneArtView({ ...NO_SCENE_ART, shop: painting }).shop;
+	const stall = (painting: ShopScreenProps['painting']) => renderToStaticMarkup(<ShopScreen view={stallView(READY, null, NO_CHOICE, en)} onBuy={noop} onTab={noop} onChoose={noop} painting={painting} />);
+	const painted = stall(shopArt({ light: 'app://v/shop-light.webp', dark: 'app://v/shop-dark.webp', lightVideo: null, darkVideo: 'app://v/shop-dark.webm' }));
+	const layers = (html: string): string[] => [...html.slice(html.indexOf('data-scene="shop"')).matchAll(/data-layer="(\w+)"/g)].slice(0, 3).map((match) => match[1] ?? '');
+
+	it('marks the stall with its themes and passes the paintings to the stylesheet (S1)', () => {
+		expect(painted).toContain(
+			'<div class="dromos-library-scene is-shop dromos-stall has-art-light has-art-dark" data-scene="shop" data-period="day" style="--dromos-art-light:url(&quot;app://v/shop-light.webp&quot;);--dromos-art-dark:url(&quot;app://v/shop-dark.webp&quot;)">',
+		);
+	});
+
+	it('keeps the drawing in its layer for a theme without a painting, and plays a video over its painting (S1, S2)', () => {
+		expect(layers(painted)).toEqual(['background', 'drawing', 'panels']);
+		expect(painted).toMatch(/<div class="dromos-scene-layer is-background" data-layer="background" aria-hidden="true"><video class="dromos-scene-video is-dark" src="app:\/\/v\/shop-dark\.webm" poster="app:\/\/v\/shop-dark\.webp"/);
+		expect(painted).toContain('<svg class="dromos-stall-art');
+	});
+
+	it('keeps the gold on its parchment plaque, over the painting (S3)', () => {
+		expect(painted).toMatch(/<div class="dromos-scene-layer is-panels" data-layer="panels"><p class="dromos-stall-plaque"><span class="dromos-visually-hidden">Your gold: 124 gold<\/span>/);
+	});
+
+	it('leaves the stall as it was without paintings (S4)', () => {
+		const plain = screen(READY);
+		expect(plain).not.toContain('has-art');
+		expect(plain).not.toContain('<video');
+		expect(stall(null)).toBe(plain);
+		expect(stall(sceneArtView(NO_SCENE_ART).shop)).toBe(plain);
+	});
+});
+
 describe('HomeScreen: the Shop screen (M10 S4)', () => {
 	it('opens the shop behind its plank, burnt in, with nothing of the other screens', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="shop" />);
@@ -280,7 +315,17 @@ describe('HomeScreen: the Shop screen (M10 S4)', () => {
 		expect(html).toMatch(/<button type="button" class="dromos-plank is-current" aria-current="page">Shop<\/button>/);
 		expect(html).toMatch(/<h2[^>]*>Shop<\/h2>/);
 		expect(html).toContain('Reading your gold and rewards from Habitica…');
-		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-skills', 'dromos-chronicle', 'dromos-library']) expect(html).not.toContain(section);
+		// Whole class names: the stall's own layers are `dromos-library-scene` (shop-art S1), which is not the Library.
+		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-skills', 'dromos-chronicle', 'dromos-library']) expect(html).not.toMatch(new RegExp(`[" ]${section}[" ]`));
+	});
+
+	it('lays the Shop paintings found in the vault on the stall (shop-art S1)', () => {
+		const deps = homeDeps();
+		const painted = { ...NO_SCENE_ART, shop: { light: null, dark: 'app://v/shop-dark.webp', lightVideo: null, darkVideo: null } };
+		const html = renderToStaticMarkup(<HomeScreen deps={{ ...deps, shop: { ...deps.shop, sceneArt: { execute: () => painted } } }} initialScreen="shop" />);
+
+		expect(html).toContain('<div class="dromos-library-scene is-shop dromos-stall has-art-dark" data-scene="shop" data-period="');
+		expect(html).toContain('style="--dromos-art-dark:url(&quot;app://v/shop-dark.webp&quot;)"');
 	});
 
 	it('keeps the shop off the other screens', () => {

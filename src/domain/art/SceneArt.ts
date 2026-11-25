@@ -1,5 +1,8 @@
-/** The scenes that can show a painting from the vault (own-art S2): the Library's wall, desk and shelf, and the archive room. */
-export const ART_SCENES = ['wall', 'desk', 'shelf', 'archive'] as const;
+/**
+ * The scenes that can show a painting from the vault (own-art S2): the Library's wall, desk and shelf,
+ * the archive room, and the Shop's stall (shop-art S1), named `shop` in the art folder.
+ */
+export const ART_SCENES = ['wall', 'desk', 'shelf', 'archive', 'shop'] as const;
 export type ArtScene = (typeof ART_SCENES)[number];
 
 /**
@@ -25,7 +28,7 @@ export interface ArtFile {
 const NONE: ScenePainting = { light: null, dark: null, lightVideo: null, darkVideo: null };
 
 /** No painting anywhere: every scene keeps its drawing. */
-export const NO_SCENE_ART: SceneArt = { wall: NONE, desk: NONE, shelf: NONE, archive: NONE };
+export const NO_SCENE_ART: SceneArt = { wall: NONE, desk: NONE, shelf: NONE, archive: NONE, shop: NONE };
 
 /** The formats a painting may have, in the order one is chosen when a painting has several files; `jpeg` is `jpg`. */
 const EXTENSIONS = ['webp', 'png', 'jpg', 'jpeg'] as const;
@@ -64,5 +67,5 @@ export function sceneArtFrom(files: readonly ArtFile[]): SceneArt {
 			darkVideo: dark === null ? null : first(scene, 'dark', VIDEO_EXTENSIONS),
 		};
 	};
-	return { wall: sceneOf('wall'), desk: sceneOf('desk'), shelf: sceneOf('shelf'), archive: sceneOf('archive') };
+	return { wall: sceneOf('wall'), desk: sceneOf('desk'), shelf: sceneOf('shelf'), archive: sceneOf('archive'), shop: sceneOf('shop') };
 }
