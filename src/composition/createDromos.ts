@@ -154,6 +154,8 @@ export async function createDromos(plugin: Plugin): Promise<Dromos> {
 
 	return {
 		home: {
+			// Esdras's portrait in his letter (letter-art S2), read with the Library's and the Shop's paintings.
+			sceneArt,
 			loadHome: new LoadHome({ repository, briefings: new VaultBriefingRepository(plugin.app, vaultFolder), state }),
 			syncQuests: new SyncQuests({ source, clock, state, hasCredentials }),
 			syncGame,

@@ -15,6 +15,7 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 			shelf: still(null, null),
 			archive: still(url('archive-light.webp'), null),
 			shop: still(null, null),
+			esdras: still(null, null),
 		});
 	});
 
@@ -25,6 +26,10 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 	it('finds the Shop\'s paintings and their videos too (shop-art S1, S2)', () => {
 		const art = sceneArtFrom([file('shop-dark.webp'), file('shop-light.png'), file('shop-dark.webm')]);
 		expect(art.shop).toEqual({ light: url('shop-light.png'), dark: url('shop-dark.webp'), lightVideo: null, darkVideo: url('shop-dark.webm') });
+	});
+
+	it('finds Esdras\'s portraits too (letter-art S2)', () => {
+		expect(sceneArtFrom([file('esdras-dark.webp'), file('Esdras-Light.PNG')]).esdras).toEqual(still(url('Esdras-Light.PNG'), url('esdras-dark.webp')));
 	});
 
 	it('leaves a theme without its file empty, even when the other theme has one', () => {

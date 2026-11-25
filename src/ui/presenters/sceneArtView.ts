@@ -53,5 +53,20 @@ export function sceneArtView(art: SceneArt): SceneArtView {
 		shelf: scenePaintingView(art.shelf),
 		archive: scenePaintingView(art.archive),
 		shop: scenePaintingView(art.shop),
+		esdras: scenePaintingView(art.esdras),
 	};
+}
+
+/** Esdras's painted portrait (letter-art S2): each theme's image, `null` for a theme without one. */
+export interface PortraitPaintingView {
+	readonly light: string | null;
+	readonly dark: string | null;
+}
+
+/**
+ * The portrait's images, or `null` without any, which keeps the drawn scribe. A video beside it is never
+ * taken: Home is always on screen, and nothing on it plays (letter-art S3).
+ */
+export function portraitPaintingView(painting: ScenePainting): PortraitPaintingView | null {
+	return painting.light === null && painting.dark === null ? null : { light: painting.light, dark: painting.dark };
 }

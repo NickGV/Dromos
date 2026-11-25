@@ -1383,6 +1383,11 @@
 .dromos-root .dromos-portrait-field { fill: var(--dromos-portrait-sky); stroke: none; }
 .dromos-root .dromos-portrait-art.is-scribe .dromos-portrait-field { fill: var(--dromos-scribe-lamp); }
 .dromos-root .dromos-portrait-molding { fill: none; stroke: var(--dromos-umber); stroke-width: 1.4; stroke-opacity: 0.7; }
+/* Esdras's painted portrait (letter-art S2): the current theme's painting lies over the drawn scribe;
+   a theme without its painting shows the drawing. */
+.dromos-root .dromos-portrait-painting.is-light { display: none; }
+.theme-light .dromos-root .dromos-portrait-painting.is-dark { display: none; }
+.theme-light .dromos-root .dromos-portrait-painting.is-light { display: inline; }
 
 .dromos-root .dromos-portrait-skin { fill: var(--dromos-portrait-skin); }
 .dromos-root .dromos-portrait-white { fill: var(--dromos-portrait-white); }

@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import type { AvatarView } from '../presenters/avatar';
+import type { PortraitPaintingView } from '../presenters/sceneArtView';
 import { Bust } from './avatar/Bust';
 import { Scribe } from './portrait/Scribe';
 
@@ -12,9 +13,10 @@ const FRAME = 'M1.5 124V50C1.5 23 23.2 1.5 50 1.5S98.5 23 98.5 50V124Z';
  * A painted panel portrait of the era (M11 S1-S2): a figure under a round arch, its field the sky
  * for the character and lamplight for the scribe, clipped to the arch, with a molding along it. It
  * is decoration, hidden from screen readers; the clip's id is unique in the window, so two open views
- * never share it.
+ * never share it. A painting of the figure (letter-art S2) lies over the drawn one under the arch, one
+ * image per theme, and the stylesheet shows the current theme's.
  */
-function Niche({ who, place, children }: { readonly who: 'character' | 'scribe'; readonly place: string; readonly children: ReactNode }) {
+function Niche({ who, place, painting = null, children }: { readonly who: 'character' | 'scribe'; readonly place: string; readonly painting?: PortraitPaintingView | null; readonly children: ReactNode }) {
 	const clip = `dromos-portrait-${who}-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 	return (
 		<svg className={`dromos-portrait-art is-niche is-${who}`} viewBox="0 0 100 124" aria-hidden="true" focusable="false">
@@ -27,6 +29,8 @@ function Niche({ who, place, children }: { readonly who: 'character' | 'scribe';
 			<path className="dromos-portrait-field" d={ARCH} />
 			<g clipPath={`url(#${clip})`}>
 				<g transform={place}>{children}</g>
+				{painting?.light ? <PaintedFigure theme="light" href={painting.light} /> : null}
+				{painting?.dark ? <PaintedFigure theme="dark" href={painting.dark} /> : null}
 			</g>
 			<path className="dromos-portrait-molding" d={ARCH} />
 		</svg>
@@ -58,10 +62,15 @@ export function PortraitButton({ label, onOpen, children }: { readonly label: st
 	);
 }
 
-/** Esdras's portrait in his letter: the scribe under a smaller arch (M11 S2). */
-export function ScribePortrait() {
+/** One theme's painting of the figure, filling the niche's box and cropped by its arch. */
+function PaintedFigure({ theme, href }: { readonly theme: 'light' | 'dark'; readonly href: string }) {
+	return <image className={`dromos-portrait-painting is-${theme}`} href={href} width="100" height="124" preserveAspectRatio="xMidYMid slice" />;
+}
+
+/** Esdras's portrait in his letter: the scribe under a smaller arch (M11 S2), or the user's painting of him (letter-art S2). */
+export function ScribePortrait({ painting = null }: { readonly painting?: PortraitPaintingView | null }) {
 	return (
-		<Niche who="scribe" place="translate(-5 17) scale(1.1)">
+		<Niche who="scribe" place="translate(-5 17) scale(1.1)" painting={painting}>
 			<Scribe />
 		</Niche>
 	);

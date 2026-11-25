@@ -71,6 +71,7 @@ export function homeDeps(
 		takeGameAnnouncements: () => [],
 		notify: noop,
 		renderMarkdown: renderNothing,
+		sceneArt: { execute: () => NO_SCENE_ART },
 		renderIcon: noop,
 		requestBriefing: null,
 		openSettings: options.openSettings ?? null,

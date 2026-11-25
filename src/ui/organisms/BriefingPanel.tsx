@@ -4,6 +4,7 @@ import { ScribePortrait, WaxSeal } from '../atoms/Portrait';
 import { SkillIcon } from '../atoms/SkillIcon';
 import type { TextSegment } from '../presenters/briefingText';
 import type { BriefingNearView, BriefingView } from '../presenters/briefingView';
+import type { PortraitPaintingView } from '../presenters/sceneArtView';
 
 export interface BriefingPanelProps {
 	readonly view: BriefingView;
@@ -19,16 +20,18 @@ export interface BriefingPanelProps {
 	readonly onToggle: () => void;
 	/** The fold button at the letter's end; the container sends the focus back to the top toggle. */
 	readonly onFold: () => void;
+	/** The user's painted portrait of Esdras (letter-art S2); absent or `null`, the drawn scribe. */
+	readonly portrait?: PortraitPaintingView | null;
 }
 
 /**
- * The panel of Esdras as a scroll (game-ui S5), folded to its summary (S13): rolled at its top and
- * its bottom, Esdras's portrait as a scribe that a new letter marks with an ochre wax seal (M11 S2), the top
+ * The panel of Esdras as a papyrus scroll (game-ui S5, letter-art S1), folded to its summary (S13): rolled at its top and
+ * its bottom, Esdras's portrait as a scribe, drawn or painted (letter-art S2), that a new letter marks with an ochre wax seal (M11 S2), the top
  * line, the mission, and the row that unrolls the letter (home-fit S4). The letter (the mission's
  * why, the closest skill, the text of the day in a large serif, the foot) stays mounted and hidden
  * while folded, so the note renders once. With no letter, the notice says why.
  */
-export function BriefingPanel({ view, renderMarkdown, onRequest, renderIcon, open, letterId, onToggle, onFold }: BriefingPanelProps) {
+export function BriefingPanel({ view, renderMarkdown, onRequest, renderIcon, open, letterId, onToggle, onFold, portrait = null }: BriefingPanelProps) {
 	const { letter } = view;
 	const toggleId = `${letterId}-toggle`;
 	const letterBoxId = `${letterId}-letter`;
@@ -45,7 +48,7 @@ export function BriefingPanel({ view, renderMarkdown, onRequest, renderIcon, ope
 			<div className="dromos-scroll-edge" aria-hidden="true" />
 			<div className="dromos-briefing-sheet">
 				<span className={view.newLabel ? 'dromos-briefing-seal is-wax' : 'dromos-briefing-seal'} aria-hidden="true">
-					<ScribePortrait />
+					<ScribePortrait painting={portrait} />
 					{view.newLabel ? <WaxSeal /> : null}
 				</span>
 				<div className="dromos-briefing-head">
