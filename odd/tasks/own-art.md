@@ -36,7 +36,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); the book and the resource card, from the Library and from home | inline | done (L15) | 68bd93b |
 | T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13) | inline | done (L15) | 68bd93b |
 | T7 | S3 | The painted desk at least 3:1 tall, the lamp and the ink pot above the scrolls (L17) | inline | done (L17) | 284fb60 |
-| V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
+| V1 | | Looping video backgrounds (Esdras's question for the user, L12) | own feature: `odd/tasks/scene-video.md` (L18) | moved | |
 
 ## Log
 
@@ -136,3 +136,11 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - Not an `aspect-ratio`: with the scene's `overflow: hidden`, it did not grow past 3:1. On a phone it cut the second scroll, even with `min-height: min-content`. This was seen in the render and fixed before delivery.
   - Rendered with the real code at 1160, 840 and 390 px in both themes. The whole painting, lamp and ink pot included, shows on desktop and at 840. On a phone the desk grows with its two scrolls.
   - Checks: `npm test` 187 files, 2604 tests passed; `npm run lint` 0 errors (the same 4 warnings). Installed with `install:local`.
+- **L18** (2026-11-25, user): "si subamos esto de dromos porfavor y subamos la version si es necesario y continuemos con el tema de los videos".
+  - Released as 0.24.0 (minor: something new to use), following the 0.23.0 path:
+    - `feat/own-art` merged into `main` (2f66749);
+    - `release/0.24.0` with `docs(changelog): 0.24.0` and `npm version minor` (3f598cb, tag `0.24.0`), merged back (d04e20e).
+  - Before pushing: `npm test` 2604 passed, lint 0 errors, build passed. `main` and the tag were pushed as NickGV.
+  - `release.yml` succeeded, and the GitHub release 0.24.0 carries `main.js`, `manifest.json` and `styles.css`.
+  - The eight paintings are already in the vault, so a device shows them after BRAT updates to 0.24.0 and Sync brings `Dromos/Arte/`.
+  - Next: V1, the videos, in their own feature document (`odd/tasks/scene-video.md`).
