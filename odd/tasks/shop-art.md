@@ -18,7 +18,7 @@ Branch: `feat/shop-art`. Delivery: merge into main, release on the user's go-ahe
 | T1 | S1-S4 | inline | done | 790d85d (L3) |
 | T2 | S5 (prompts, docs) | inline | done | 790d85d (L3) |
 | T3 | S5 (paintings in, loops out) | inline | done | in the vault (L4) |
-| T4 | release | inline | waiting for the user's go-ahead | |
+| T4 | release | inline | done | 0.26.0 (L5) |
 
 ## Log
 
@@ -51,3 +51,7 @@ Branch: `feat/shop-art`. Delivery: merge into main, release on the user's go-ahe
     - In Chrome the first frame differs from the painting by 1.2 and 1.7 levels of 255, and the seam is within the normal frame step.
   - **Vault:** all four files are in `Dromos/Arte/`. The released 0.25.0 ignores them until this branch ships.
   - **Docs:** the shared style block now says the percentages and hex codes are never painted as labels.
+- **L5** (2026-11-25, user): "aun no veo los cambios, pero si como las dejaste me parece bien como quedaron". I asked "¿Publico la 0.26.0?" and took this as the go-ahead.
+  - **Merge and release:** feat/shop-art was merged into main (bdbed3c). release/0.26.0 holds the changelog (cea34a1) and `npm version minor` (0c64b63, tag 0.26.0), and was merged back (e6a7b48).
+  - **Checks:** 2623 tests pass, lint 0 errors (4 old warnings), build OK.
+  - **Release:** main and the tag were pushed as NickGV. release.yml run 45702617644 finished with success, and release 0.26.0 has main.js, manifest.json and styles.css.
