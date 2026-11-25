@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
-import type { CampaignSnapshot, LoadLibrary, ReadReflection, ReadTakeaway, SyncCampaigns } from '../../application';
+import type { CampaignSnapshot, LoadLibrary, LoadSceneArt, ReadReflection, ReadTakeaway, SyncCampaigns } from '../../application';
 import type { Language } from '../../i18n';
 import type { Clock } from '../../ports';
 import type { MarkdownRender } from '../atoms/MarkdownBlock';
@@ -11,6 +11,7 @@ import { ScreenHeader } from '../organisms/ScreenHeader';
 import { archiveDoorView, archiveView, type ArchiveFilter } from '../presenters/archiveView';
 import type { DayPeriod } from '../presenters/dayPeriod';
 import { libraryHabitsView, libraryRoomView, libraryShelfView } from '../presenters/libraryView';
+import { sceneArtView } from '../presenters/sceneArtView';
 import { runHabitSend, type BookAction, type HabitSend } from './libraryActions';
 import { useLibraryCards } from './useLibraryCards';
 
@@ -72,6 +73,8 @@ export interface LibraryDeps {
 	readonly linksOpenInObsidian?: () => boolean;
 	/** The habits beside the desk (ADR-017). */
 	readonly habits: LibraryHabitsDeps;
+	/** The user's paintings for the wall, the desk and the archive, from the vault (own-art S1); never throws. */
+	readonly sceneArt: Pick<LoadSceneArt, 'execute'>;
 	readonly clock: Clock;
 }
 
@@ -111,6 +114,7 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 	const seenSyncKey = useRef(syncKey);
 	const mounted = useRef(false);
 	const body = useRef<HTMLDivElement>(null);
+	const [art, setArt] = useState(() => deps.sceneArt.execute());
 	const today = deps.clock.today();
 	useLevelFocus(inArchive ? 'archive' : shelf === null ? null : `shelf:${shelf}`, body);
 
@@ -128,6 +132,11 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 			if (mounted.current) setHabits(next);
 		});
 	}, [deps]);
+
+	// The paintings are read again on each Sync (own-art S4), so one added or changed since shows.
+	useEffect(() => {
+		setArt(deps.sceneArt.execute());
+	}, [deps, syncKey]);
 
 	// Each later bump joins the sync the campaigns panel starts for it: one request for both screens.
 	useEffect(() => {
@@ -151,6 +160,7 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 		});
 	};
 
+	const paintings = sceneArtView(art);
 	const loaded = library?.kind === 'loaded' ? library : null;
 	const archive = inArchive && loaded ? archiveView(loaded.resources, today, { filter: pigeonhole, expanded: processedOpen }, t) : null;
 	// A pigeonhole whose last resource left is no filter to keep: back to "Todos".
@@ -191,7 +201,7 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 				) : library.kind === 'unreadable' ? (
 					<p className="dromos-library-note is-error">{t('library.unreadable')}</p>
 				) : archive ? (
-					<ArchiveRoom view={archive} onSelect={selectPigeonhole} onOpenCard={openResource} onToggleMore={() => setProcessedOpen((open) => !open)} idPrefix={idPrefix} />
+					<ArchiveRoom view={archive} onSelect={selectPigeonhole} onOpenCard={openResource} onToggleMore={() => setProcessedOpen((open) => !open)} idPrefix={idPrefix} art={paintings} />
 				) : shelfView ? (
 					<LibraryShelf view={shelfView} onOpenCard={openBook} idPrefix={idPrefix} />
 				) : (
@@ -206,6 +216,7 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 						onResendHabit={(areaPath, title) => sendHabit(areaPath, title, true)}
 						archive={archiveDoorView(library.resources, t)}
 						onOpenArchive={openArchive}
+						art={paintings}
 					/>
 				)}
 			</div>

@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest';
+import { NO_SCENE_ART } from '../../src/domain';
+import { cssUrl, sceneArtView, scenePaintingView } from '../../src/ui/presenters/sceneArtView';
+
+describe('scenePaintingView: what a scene needs to show its paintings (own-art S3)', () => {
+	it('marks each theme that has a painting and passes its URL to the stylesheet', () => {
+		expect(scenePaintingView({ light: 'app://v/wall-light.webp', dark: 'app://v/wall-dark.webp' })).toEqual({
+			className: 'has-art-light has-art-dark',
+			style: { '--dromos-art-light': 'url("app://v/wall-light.webp")', '--dromos-art-dark': 'url("app://v/wall-dark.webp")' },
+		});
+	});
+
+	it('marks only the theme that has one, so the other keeps its drawing', () => {
+		expect(scenePaintingView({ light: null, dark: 'app://v/desk-dark.webp' })).toEqual({
+			className: 'has-art-dark',
+			style: { '--dromos-art-dark': 'url("app://v/desk-dark.webp")' },
+		});
+	});
+
+	it('gives nothing to a scene without paintings', () => {
+		expect(scenePaintingView({ light: null, dark: null })).toBeNull();
+	});
+});
+
+describe('sceneArtView', () => {
+	it('gives each scene its view, none when no painting was found', () => {
+		expect(sceneArtView(NO_SCENE_ART)).toEqual({ wall: null, desk: null, archive: null });
+		expect(sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/a.png', dark: null } }).archive?.className).toBe('has-art-light');
+	});
+});
+
+describe('cssUrl', () => {
+	it('quotes the URL and escapes what would end the CSS string', () => {
+		expect(cssUrl('app://v/Dromos/Arte/wall-dark.webp?1732540800')).toBe('url("app://v/Dromos/Arte/wall-dark.webp?1732540800")');
+		expect(cssUrl('app://v/a"b\\c\nd.png')).toBe('url("app://v/a\\"b\\\\cd.png")');
+	});
+});

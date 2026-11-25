@@ -7,6 +7,7 @@ import { DeskScroll } from '../molecules/DeskScroll';
 import { HabitRow } from '../molecules/HabitRow';
 import type { ArchiveDoorView } from '../presenters/archiveView';
 import type { LibraryHabitsView, LibraryRoomView } from '../presenters/libraryView';
+import type { SceneArtView } from '../presenters/sceneArtView';
 
 /** A habit beside the desk on its way to Habitica: the area it is declared in and its title. */
 export interface SendingHabit {
@@ -34,6 +35,8 @@ export interface LibraryRoomProps {
 	readonly archive?: ArchiveDoorView | null;
 	/** Opens the archive in place of the room. */
 	readonly onOpenArchive?: () => void;
+	/** The user's paintings for the wall and the desk (own-art S3); absent or `null`, both are drawn. */
+	readonly art?: SceneArtView | null;
 }
 
 /**
@@ -44,9 +47,10 @@ export interface LibraryRoomProps {
  * the back of the room on wide panes; on phones the stylesheet puts the desk and the habits first,
  * so what is being read shows without scrolling. Each scene is built in layers (S6). An empty
  * library keeps a bare niche and a bare desk, which says so. When given, the doorway to the archive
- * (M8 S2) opens in the wall after the alcoves, in an empty library too.
+ * (M8 S2) opens in the wall after the alcoves, in an empty library too. The user's paintings from the
+ * vault, when given, replace the drawing of the wall and the desk in their theme (own-art S3).
  */
-export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-library', habits = null, sendingHabit = null, onSendHabit, onResendHabit, archive = null, onOpenArchive }: LibraryRoomProps) {
+export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-library', habits = null, sendingHabit = null, onSendHabit, onResendHabit, archive = null, onOpenArchive, art = null }: LibraryRoomProps) {
 	const deskLine = view.empty ?? view.desk.empty;
 	return (
 		<div className="dromos-library-room">
@@ -55,7 +59,7 @@ export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-
 				<h3 className="dromos-card-title" id={`${idPrefix}-wall`}>
 					{view.shelvesTitle}
 				</h3>
-				<SceneLayers scene="wall" className="dromos-panel" drawing={<WallArt />}>
+				<SceneLayers scene="wall" className="dromos-panel" drawing={<WallArt />} painting={art?.wall}>
 					{view.alcoves.length === 0 ? (
 						<div className="dromos-alcoves is-bare">
 							<AlcoveArt scrolls={0} capsa={false} />
@@ -80,7 +84,7 @@ export function LibraryRoom({ view, onOpenShelf, onOpenCard, idPrefix = 'dromos-
 				<h3 className="dromos-card-title" id={`${idPrefix}-desk`}>
 					{view.desk.title}
 				</h3>
-				<SceneLayers scene="desk" className="dromos-panel" drawing={<DeskArt />}>
+				<SceneLayers scene="desk" className="dromos-panel" drawing={<DeskArt />} painting={art?.desk}>
 					{view.desk.scrolls.length > 0 ? (
 						<ul className="dromos-desk-scrolls">
 							{view.desk.scrolls.map((scroll, index) => (

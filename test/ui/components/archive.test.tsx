@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { Resource } from '../../../src/domain';
+import { NO_SCENE_ART, type Resource } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import { ListToggle } from '../../../src/ui/atoms/ListToggle';
 import { ResourceArt } from '../../../src/ui/atoms/ResourceArt';
@@ -11,6 +11,7 @@ import { ArchiveRoom } from '../../../src/ui/organisms/ArchiveRoom';
 import { LibraryRoom } from '../../../src/ui/organisms/LibraryRoom';
 import { archiveDoorView, archiveView, type ArchiveFilter } from '../../../src/ui/presenters/archiveView';
 import { libraryRoomView } from '../../../src/ui/presenters/libraryView';
+import { sceneArtView } from '../../../src/ui/presenters/sceneArtView';
 import { aBook } from '../../fakes/books';
 import { aResource } from '../../fakes/resources';
 import { clickOf, componentsOf, elementsOf } from './elements';
@@ -195,5 +196,18 @@ describe('LibraryRoom: the doorway to the archive (M8 S2)', () => {
 		(componentsOf(tree, ArchiveDoor)[0]?.props.onOpen as () => void)();
 
 		expect(opened).toBe(2);
+	});
+});
+
+describe('ArchiveRoom: a painting from the vault (own-art S3)', () => {
+	it('marks the archive scene with its theme and passes the painting to the stylesheet', () => {
+		const art = sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/archive-light.webp', dark: null } });
+		const html = renderToStaticMarkup(<ArchiveRoom view={view()} onSelect={noop} onOpenCard={noop} onToggleMore={noop} art={art} />);
+		expect(html).toContain('class="dromos-library-scene is-archive dromos-panel has-art-light" data-scene="archive" style="--dromos-art-light:url(&quot;app://v/archive-light.webp&quot;)"');
+	});
+
+	it('leaves the archive as it was without one', () => {
+		const html = renderToStaticMarkup(<ArchiveRoom view={view()} onSelect={noop} onOpenCard={noop} onToggleMore={noop} art={sceneArtView(NO_SCENE_ART)} />);
+		expect(html).toBe(archive());
 	});
 });

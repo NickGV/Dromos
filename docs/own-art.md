@@ -1,21 +1,21 @@
 # Own art
 
-Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme. The feature is being built (`odd/tasks/own-art.md`); this page holds what you need to make the images in the meantime.
+Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme, instead of their drawing. This page says where the files go and how to make them.
 
 The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The shelf and the book and resource cards keep their drawing: the shelf writes text straight on its background, and a card leaves almost none of a painting visible.
 
 ## Where the files go
 
-- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `archive`, and `<ext>` one of `webp`, `png`, `jpg`.
+- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `archive`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
 - A theme without its file draws the scene as always, even when the other theme has one.
 - While a painting is there, it replaces the scene's drawing: the lamp, the ink pot, and the archive's window and worktable come from the painting, which is why the prompts ask for them. Text and buttons stay on their parchment panels.
-- Dromos looks for the files when its view opens and on **Sync**.
+- Dromos looks for the files when the Library opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
 
 ## Making the images
 
-Paste the shared style block first, then one scene prompt. Percentages are of the finished image: x from the left, y from the top. Dromos shows the image cropped to fill the scene and centred, so wide panes keep the full width and lose some of the top and bottom, while phones keep the full height and only a central strip. The **focal area** of each prompt is the part every pane keeps.
+Paste the shared style block first, then one scene prompt. Percentages are of the finished image: x from the left, y from the top. Dromos shows the image cropped to fill the scene and centred, so wide panes keep the full width and lose some of the top and bottom, while phones keep the full height and only a central strip. The archive is the exception: its painting is anchored to the bottom, so the worktable stays on wide panes and the top of the wall is what they lose. The **focal area** of each prompt is the part every pane keeps.
 
-If the generator cannot make the exact ratio, make the closest one it offers, extend the sides by outpainting, and resize to the given size. Export as WebP at about quality 80 and keep each file under about 600 KB: the files sync to your phone with the vault.
+If the generator cannot make the exact ratio, make the closest one it offers, extend the sides by outpainting, and resize to the given size. Export as WebP at about quality 80 and keep each file under about 600 KB: the files sync to your phone with the vault. A generator's JPEG converts with `cwebp -q 80 wall-dark.jpeg -o wall-dark.webp`; the first paintings went from about 2 MB to about 50 KB each with no visible loss.
 
 ### Shared style block
 

@@ -3541,6 +3541,18 @@
 .dromos-root .dromos-scene-layer.is-drawing { z-index: 1; }
 .dromos-root .dromos-scene-layer.is-panels { position: relative; z-index: 2; }
 
+/* Own art (own-art S3): the user's painting from the vault fills the background layer and replaces
+   the drawing, in each theme that has one; a theme without its painting keeps the drawing. Dark is
+   the default, as for every token; the light theme undoes the dark painting and sets its own. */
+.dromos-root .dromos-library-scene.has-art-dark > .is-background { background-image: var(--dromos-art-dark); }
+.dromos-root .dromos-library-scene.has-art-dark > .is-drawing { display: none; }
+.theme-light .dromos-root .dromos-library-scene > .is-background { background-image: none; }
+.theme-light .dromos-root .dromos-library-scene.has-art-dark > .is-drawing { display: block; }
+.theme-light .dromos-root .dromos-library-scene.has-art-light > .is-background { background-image: var(--dromos-art-light); }
+.theme-light .dromos-root .dromos-library-scene.has-art-light > .is-drawing { display: none; }
+/* The archive's painting keeps its worktable on wide panes, which crop a 3:1 painting top and bottom. */
+.dromos-root .dromos-library-scene.is-archive > .is-background { background-position: center bottom; }
+
 .dromos-root .dromos-library { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .dromos-root .dromos-library-note { margin: 0; padding: 16px; color: var(--dromos-ink-muted); }
 .dromos-root .dromos-library-note.is-error { color: var(--dromos-ink-error); }

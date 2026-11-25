@@ -1,4 +1,5 @@
 import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src/application';
+import { NO_SCENE_ART } from '../../../src/domain';
 import { createTranslator, type Language } from '../../../src/i18n';
 import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
 import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
@@ -39,6 +40,7 @@ export function homeDeps(
 	};
 	const library: LibraryDeps = {
 		loadLibrary: { execute: never },
+		sceneArt: { execute: () => NO_SCENE_ART },
 		readReflection: { execute: never },
 		readTakeaway: { execute: never },
 		renderMarkdown: renderNothing,

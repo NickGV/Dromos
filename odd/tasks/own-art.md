@@ -28,9 +28,9 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | R0 | S2-S4 | Reference renders and measurements of the five scenes, and the ten prompts | delegated (context backstop: the parent session is long); scratch only | done (L5) | scratchpad `own-art-refs/` (`measurements.md`, `prompts.md`, renders) |
 | D1 | S2, S4 | `docs/own-art.md`: where the files go, their names, and the six prompts, kept in the repo since the scratch was wiped once | inline | done (L6) | see L6 |
 | T0 | S1-S3 | Mockups of the three scenes with the user's paintings and without, light and dark, desktop and phone | inline; scratch only | done for 5 of 6 images (L8); `wall-light` pending | scratchpad `own-art-mock/` (`gallery.html`) |
-| T1 | S1, S2, S4 | Find the paintings: `SceneArt` (domain), the `PaintingSource` port, `LoadSceneArt`, `VaultPaintingSource`, wired in `createDromos` | inline (no writer reason: T2 depends on it) | pending | |
-| T2 | S1-S4 | Show them: `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel` | inline | pending | |
-| T3 | S4 | `docs/own-art.md`, README and CHANGELOG; the five images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | pending | |
+| T1 | S1, S2, S4 | Find the paintings: `SceneArt` and `sceneArtFrom` (domain), the `PaintingSource` port, `LoadSceneArt`, `VaultPaintingSource` | inline (no writer reason: T2 depends on it) | done (L10) | 5a7fc9a |
+| T2 | S1-S4 | Show them: `sceneArtView`, `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel`; wired in `createDromos`; `docs/own-art.md`, README and CHANGELOG | inline | done (L10) | the commit after 5a7fc9a |
+| T3 | S4 | The five images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | pending | |
 
 ## Log
 
@@ -74,3 +74,10 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - The archive's paintings put the table top at y 82%, not 60%, and the window reaches x 23% and y 4-80%. Centred on wide panes, only the tops of the table's objects show, and the first pigeonhole covers the window's right edge. Anchored to the bottom, the whole table and the candle show, and only the top of the window's arch is cut. Phones show the whole table either way. Two fixes: anchor the archive to the bottom, or regenerate its two images with the table higher.
   - Size: the JPEGs are 1.4-2.4 MB each. As WebP at quality 80 and the master size, they are 33-58 KB each, far under the 600 KB in `docs/own-art.md`.
 - **L9** (2026-11-25, user): "me encanta como quedo", to the mockups and to the recommendation to anchor the archive's painting to the bottom instead of regenerating it. S3 gains that anchor. Next: T1-T3 on `feat/own-art`, inline, in two work-unit commits (the lookup, then the scenes with their docs). Release only with the user's go-ahead.
+- **L10** (2026-11-25): T1 and T2 done on `feat/own-art`, inline, test first.
+  - RED then GREEN: `test/domain/art/SceneArt.test.ts` (7), `test/application/LoadSceneArt.test.ts` (3), `test/ui/sceneArtView.test.ts` (5), and new cases in `library.test.tsx` (3) and `archive.test.tsx` (2).
+  - The matching takes names in any case, `.jpeg` as `.jpg`, and WebP before PNG before JPG when one painting has several files. These were not asked for. `.jpeg` is what the generator saved the user's files as.
+  - Checks: `npm test` 187 files, 2596 tests passed; `npm run lint` 0 errors (4 warnings, all in files this change does not touch: `withTimeout.ts` and `DromosSettingTab.ts`); `npm run build` passed.
+  - Differential check against `main` in a `mktemp -d` copy: the HTML of the reading room (full and empty), the archive and a shelf, with no paintings, is byte-identical.
+  - The T0 harness, now passing the paintings through the real `art` prop with no injected CSS, renders the wall, desk and archive pixel-identical to the approved mockups (the archive anchored to the bottom) at 1160 and 840 px. At 390 px the largest channel difference is 13 of 255, in the text antialiasing.
+  - The docs moved to T2 with the code; T3 keeps the images and the local install.

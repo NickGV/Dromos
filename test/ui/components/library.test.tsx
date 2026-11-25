@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { CampaignSnapshot } from '../../../src/application';
-import type { Book } from '../../../src/domain';
+import { NO_SCENE_ART, type Book } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import type { ReflectionText } from '../../../src/ports';
 import { MarkdownBlock, type MarkdownRender } from '../../../src/ui/atoms/MarkdownBlock';
@@ -15,6 +15,7 @@ import { LibraryShelf } from '../../../src/ui/organisms/LibraryShelf';
 import { bookCardView, type BookCardActions } from '../../../src/ui/presenters/bookCardView';
 import { I18nProvider } from '../../../src/ui/i18n';
 import { libraryHabitsView, libraryRoomView, libraryShelfView, shelfId } from '../../../src/ui/presenters/libraryView';
+import { sceneArtView } from '../../../src/ui/presenters/sceneArtView';
 import { area, habit } from '../../domain/campaign/campaignFixtures';
 import { aBook, aReflection } from '../../fakes/books';
 import { clickOf, componentsOf, elementsOf } from './elements';
@@ -396,5 +397,29 @@ describe('LibraryRoom: a reading daily deleted in Habitica (ADR-021)', () => {
 		for (const row of componentsOf(tree, HabitRow)) (row.props.onSend as () => void)();
 
 		expect(calls).toEqual([`resend:${BIBLIOTHEKE}|Leer 10 minutos`, `send:${BIBLIOTHEKE}|Releer notas`]);
+	});
+});
+
+describe('LibraryRoom: paintings from the vault (own-art S3)', () => {
+	const art = sceneArtView({ ...NO_SCENE_ART, wall: { light: null, dark: 'app://v/wall-dark.webp' }, desk: { light: 'app://v/desk-light.webp', dark: 'app://v/desk-dark.webp' } });
+	const painted = renderToStaticMarkup(<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, es)} onOpenShelf={noop} onOpenCard={noop} art={art} />);
+
+	it('marks the wall and the desk with their themes and passes the paintings to the stylesheet', () => {
+		expect(painted).toContain('class="dromos-library-scene is-wall dromos-panel has-art-dark" data-scene="wall" style="--dromos-art-dark:url(&quot;app://v/wall-dark.webp&quot;)"');
+		expect(painted).toContain(
+			'class="dromos-library-scene is-desk dromos-panel has-art-light has-art-dark" data-scene="desk" style="--dromos-art-light:url(&quot;app://v/desk-light.webp&quot;);--dromos-art-dark:url(&quot;app://v/desk-dark.webp&quot;)"',
+		);
+	});
+
+	it('keeps the three layers, the drawing included, for the stylesheet to choose by theme', () => {
+		expect(layersOf(painted, 'wall')).toEqual(['background', 'drawing', 'panels']);
+		expect(layersOf(painted, 'desk')).toEqual(['background', 'drawing', 'panels']);
+	});
+
+	it('leaves a scene without paintings as it was', () => {
+		const html = room();
+		expect(html).not.toContain('has-art');
+		expect(html).not.toContain('--dromos-art');
+		expect(renderToStaticMarkup(<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, es)} onOpenShelf={noop} onOpenCard={noop} art={sceneArtView(NO_SCENE_ART)} />)).toBe(html);
 	});
 });
