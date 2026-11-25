@@ -452,3 +452,21 @@ describe('The scroll on the desk and the book card (own-art L13)', () => {
 		expect(renderToStaticMarkup(<BookCard view={bookCardView(entry, TODAY, es, { start: true, finish: true }, null)} busy={null} onStart={noop} onFinish={noop} onOpenNote={noop} renderMarkdown={renderNothing} painting={null} />)).toBe(plain);
 	});
 });
+
+describe('LibraryShelf: a painting from the vault (own-art L16)', () => {
+	const view = libraryShelfView(LIBRARY, shelfId('Teología'), TODAY, es);
+	if (!view) throw new Error('no shelf');
+
+	it('marks the shelf with its themes and passes the paintings to the stylesheet', () => {
+		const art = sceneArtView({ ...NO_SCENE_ART, shelf: { light: 'app://v/shelf-light.webp', dark: 'app://v/shelf-dark.webp' } });
+		const html = renderToStaticMarkup(<LibraryShelf view={view} onOpenCard={noop} art={art} />);
+		expect(html).toContain('class="dromos-library-scene is-shelf dromos-library-shelf has-art-light has-art-dark" data-scene="shelf" style="--dromos-art-light:url(&quot;app://v/shelf-light.webp&quot;);--dromos-art-dark:url(&quot;app://v/shelf-dark.webp&quot;)"');
+		expect(layersOf(html, 'shelf')).toEqual(['background', 'drawing', 'panels']);
+	});
+
+	it('leaves the shelf as it was without one', () => {
+		const plain = shelf('Teología');
+		expect(plain).not.toContain('has-art');
+		expect(renderToStaticMarkup(<LibraryShelf view={view} onOpenCard={noop} art={sceneArtView(NO_SCENE_ART)} />)).toBe(plain);
+	});
+});

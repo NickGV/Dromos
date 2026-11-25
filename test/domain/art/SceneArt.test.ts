@@ -9,8 +9,13 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 		expect(art).toEqual({
 			wall: { light: 'app://vault/Dromos/Arte/wall-light.png', dark: 'app://vault/Dromos/Arte/wall-dark.webp' },
 			desk: { light: null, dark: 'app://vault/Dromos/Arte/desk-dark.jpg' },
+			shelf: { light: null, dark: null },
 			archive: { light: 'app://vault/Dromos/Arte/archive-light.webp', dark: null },
 		});
+	});
+
+	it('finds the shelf\'s paintings too (L16)', () => {
+		expect(sceneArtFrom([file('shelf-dark.webp'), file('shelf-light.jpg')]).shelf).toEqual({ light: 'app://vault/Dromos/Arte/shelf-light.jpg', dark: 'app://vault/Dromos/Arte/shelf-dark.webp' });
 	});
 
 	it('leaves a theme without its file empty, even when the other theme has one', () => {
@@ -35,7 +40,7 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 	});
 
 	it('ignores other scenes, other formats and other names', () => {
-		const art = sceneArtFrom([file('shelf-dark.webp'), file('card-light.png'), file('wall-dark.gif'), file('wall-dark copy.webp'), file('wall.webp'), file('notes.md')]);
+		const art = sceneArtFrom([file('card-dark.webp'), file('card-light.png'), file('wall-dark.gif'), file('wall-dark copy.webp'), file('wall.webp'), file('notes.md')]);
 		expect(art).toEqual(NO_SCENE_ART);
 	});
 });

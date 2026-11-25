@@ -204,7 +204,7 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 				) : archive ? (
 					<ArchiveRoom view={archive} onSelect={selectPigeonhole} onOpenCard={openResource} onToggleMore={() => setProcessedOpen((open) => !open)} idPrefix={idPrefix} art={paintings} />
 				) : shelfView ? (
-					<LibraryShelf view={shelfView} onOpenCard={openBook} idPrefix={idPrefix} />
+					<LibraryShelf view={shelfView} onOpenCard={openBook} idPrefix={idPrefix} art={paintings} />
 				) : (
 					<LibraryRoom
 						view={libraryRoomView(library.books, today, t)}

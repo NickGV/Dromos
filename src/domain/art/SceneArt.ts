@@ -1,5 +1,5 @@
-/** The scenes that can show a painting from the vault (own-art S2): the Library's wall and desk, and the archive room. */
-export const ART_SCENES = ['wall', 'desk', 'archive'] as const;
+/** The scenes that can show a painting from the vault (own-art S2): the Library's wall, desk and shelf, and the archive room. */
+export const ART_SCENES = ['wall', 'desk', 'shelf', 'archive'] as const;
 export type ArtScene = (typeof ART_SCENES)[number];
 
 /** One scene's paintings: the URL Obsidian serves each file at, `null` for a theme without one. */
@@ -19,7 +19,7 @@ export interface ArtFile {
 const NONE: ScenePainting = { light: null, dark: null };
 
 /** No painting anywhere: every scene keeps its drawing. */
-export const NO_SCENE_ART: SceneArt = { wall: NONE, desk: NONE, archive: NONE };
+export const NO_SCENE_ART: SceneArt = { wall: NONE, desk: NONE, shelf: NONE, archive: NONE };
 
 /** The formats a painting may have, in the order one is chosen when a painting has several files; `jpeg` is `jpg`. */
 const EXTENSIONS = ['webp', 'png', 'jpg', 'jpeg'] as const;
@@ -44,5 +44,5 @@ export function sceneArtFrom(files: readonly ArtFile[]): SceneArt {
 		return null;
 	};
 	const sceneOf = (scene: ArtScene): ScenePainting => ({ light: painting(scene, 'light'), dark: painting(scene, 'dark') });
-	return { wall: sceneOf('wall'), desk: sceneOf('desk'), archive: sceneOf('archive') };
+	return { wall: sceneOf('wall'), desk: sceneOf('desk'), shelf: sceneOf('shelf'), archive: sceneOf('archive') };
 }

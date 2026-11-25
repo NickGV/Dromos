@@ -24,7 +24,8 @@ describe('scenePaintingView: what a scene needs to show its paintings (own-art S
 
 describe('sceneArtView', () => {
 	it('gives each scene its view, none when no painting was found', () => {
-		expect(sceneArtView(NO_SCENE_ART)).toEqual({ wall: null, desk: null, archive: null });
+		expect(sceneArtView(NO_SCENE_ART)).toEqual({ wall: null, desk: null, shelf: null, archive: null });
+		expect(sceneArtView({ ...NO_SCENE_ART, shelf: { light: null, dark: 'app://v/s.webp' } }).shelf?.className).toBe('has-art-dark');
 		expect(sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/a.png', dark: null } }).archive?.className).toBe('has-art-light');
 	});
 });

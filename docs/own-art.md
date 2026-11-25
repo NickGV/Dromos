@@ -2,11 +2,11 @@
 
 Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme, instead of their drawing. This page says where the files go and how to make them.
 
-The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** comes next: its prompts are below, and Dromos will show its painting once the shelf's titles and state lines sit on parchment, which is being built. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
+The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** (inside an alcove) has one too; on a painted shelf, its row titles and each scroll's state sit on parchment. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
 
 ## Where the files go
 
-- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `archive`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
+- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
 - A theme without its file draws the scene as always, even when the other theme has one.
 - While a painting is there, it replaces the scene's drawing: the lamp, the ink pot, and the archive's window and worktable come from the painting, which is why the prompts ask for them. Text and buttons stay on their parchment panels.
 - Dromos looks for the files when the Library opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
@@ -111,7 +111,7 @@ LAYOUT: window at x 2-16%, y 15-55% (it must fit inside that, frame included). W
 FORMAT: 3600 x 1200 px, aspect 3:1. Focal (always kept) area x 24-76%, y 13-87%: plain wall above, table below. The window shows on wide panes only; phones keep x 24-76%.
 ```
 
-### shelf: inside an alcove (coming next)
+### shelf: inside an alcove
 
 Box: 1068 x 822 CSS px on the desktop pane (1.3:1), 784 x 822 at 840 px (0.95:1), 334 x 687 on a
 phone (0.49:1), shorter or taller with the books on it. Its top is rounded into an arch by Dromos,
