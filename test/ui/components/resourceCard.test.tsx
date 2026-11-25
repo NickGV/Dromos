@@ -194,7 +194,7 @@ describe('ResourceCard: the card in the modal (M8 S6)', () => {
 
 describe('ResourceCard on the desk (own-art L13)', () => {
 	it('lays the card on the desk painting and keeps its rods', () => {
-		const desk = sceneArtView({ ...NO_SCENE_ART, desk: { light: null, dark: 'app://v/desk-dark.webp' } }).desk;
+		const desk = sceneArtView({ ...NO_SCENE_ART, desk: { light: null, dark: 'app://v/desk-dark.webp', lightVideo: null, darkVideo: null } }).desk;
 		const html = renderToStaticMarkup(
 			<ResourceCard view={resourceCardView(modules(), TODAY, es, true, null)} busy={false} onMark={noop} onOpenNote={noop} renderMarkdown={renderNothing} painting={desk} />,
 		);

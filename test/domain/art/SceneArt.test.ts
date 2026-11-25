@@ -2,24 +2,27 @@ import { describe, expect, it } from 'vitest';
 import { NO_SCENE_ART, sceneArtFrom } from '../../../src/domain';
 
 const file = (name: string) => ({ name, url: `app://vault/Dromos/Arte/${name}` });
+const url = (name: string) => `app://vault/Dromos/Arte/${name}`;
+/** A scene's paintings with no video. */
+const still = (light: string | null, dark: string | null) => ({ light, dark, lightVideo: null, darkVideo: null });
 
 describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 	it('gives each scene its light and dark painting by file name', () => {
 		const art = sceneArtFrom([file('wall-dark.webp'), file('wall-light.png'), file('desk-dark.jpg'), file('archive-light.webp')]);
 		expect(art).toEqual({
-			wall: { light: 'app://vault/Dromos/Arte/wall-light.png', dark: 'app://vault/Dromos/Arte/wall-dark.webp' },
-			desk: { light: null, dark: 'app://vault/Dromos/Arte/desk-dark.jpg' },
-			shelf: { light: null, dark: null },
-			archive: { light: 'app://vault/Dromos/Arte/archive-light.webp', dark: null },
+			wall: still(url('wall-light.png'), url('wall-dark.webp')),
+			desk: still(null, url('desk-dark.jpg')),
+			shelf: still(null, null),
+			archive: still(url('archive-light.webp'), null),
 		});
 	});
 
 	it('finds the shelf\'s paintings too (L16)', () => {
-		expect(sceneArtFrom([file('shelf-dark.webp'), file('shelf-light.jpg')]).shelf).toEqual({ light: 'app://vault/Dromos/Arte/shelf-light.jpg', dark: 'app://vault/Dromos/Arte/shelf-dark.webp' });
+		expect(sceneArtFrom([file('shelf-dark.webp'), file('shelf-light.jpg')]).shelf).toEqual(still(url('shelf-light.jpg'), url('shelf-dark.webp')));
 	});
 
 	it('leaves a theme without its file empty, even when the other theme has one', () => {
-		expect(sceneArtFrom([file('desk-dark.webp')]).desk).toEqual({ light: null, dark: 'app://vault/Dromos/Arte/desk-dark.webp' });
+		expect(sceneArtFrom([file('desk-dark.webp')]).desk).toEqual(still(null, url('desk-dark.webp')));
 	});
 
 	it('finds nothing in an empty folder', () => {
@@ -42,5 +45,25 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 	it('ignores other scenes, other formats and other names', () => {
 		const art = sceneArtFrom([file('card-dark.webp'), file('card-light.png'), file('wall-dark.gif'), file('wall-dark copy.webp'), file('wall.webp'), file('notes.md')]);
 		expect(art).toEqual(NO_SCENE_ART);
+	});
+
+	it('finds a video beside its painting, in its theme (scene-video S1, S4)', () => {
+		const art = sceneArtFrom([file('archive-dark.webp'), file('archive-dark.webm'), file('archive-light.webp'), file('desk-dark.png'), file('desk-dark.mp4')]);
+		expect(art.archive).toEqual({ light: url('archive-light.webp'), dark: url('archive-dark.webp'), lightVideo: null, darkVideo: url('archive-dark.webm') });
+		expect(art.desk.darkVideo).toBe(url('desk-dark.mp4'));
+	});
+
+	it('takes webm before mp4 when one video has both', () => {
+		expect(sceneArtFrom([file('wall-dark.webp'), file('wall-dark.mp4'), file('wall-dark.webm')]).wall.darkVideo).toBe(url('wall-dark.webm'));
+	});
+
+	it('ignores a video without its theme\'s painting, its still frame and fallback (scene-video S2)', () => {
+		const art = sceneArtFrom([file('archive-light.webp'), file('archive-dark.webm'), file('desk-light.mp4')]);
+		expect(art.archive).toEqual(still(url('archive-light.webp'), null));
+		expect(art.desk).toEqual(still(null, null));
+	});
+
+	it('ignores other video formats', () => {
+		expect(sceneArtFrom([file('wall-dark.webp'), file('wall-dark.mov'), file('wall-dark.gif')]).wall).toEqual(still(null, url('wall-dark.webp')));
 	});
 });

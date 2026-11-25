@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ScenePaintingView } from '../presenters/sceneArtView';
+import { SceneVideo } from './SceneVideo';
 
 export interface SceneLayersProps {
 	/** Names the scene for the stylesheet and for the art: `wall`, `desk`, `shelf`, `card`, `archive`. */
@@ -15,7 +16,8 @@ export interface SceneLayersProps {
 
 /**
  * One scene of the library in three layers, back to front (M7 S6): the background, where the user's
- * painting from the vault goes ("Arte propio", own-art S3); the line drawing, which the stylesheet
+ * painting from the vault goes ("Arte propio", own-art S3), with its theme's video over it when there
+ * is one (scene-video S2); the line drawing, which the stylesheet
  * hides in each theme that has a painting; and the panels with the text and the buttons, which never
  * sit straight on an image. The first two are decoration and take no pointer, so a painting changes
  * nothing a reader or a tap reaches.
@@ -24,7 +26,11 @@ export function SceneLayers({ scene, className, drawing, painting = null, childr
 	const classes = ['dromos-library-scene', `is-${scene}`, className, painting?.className].filter(Boolean).join(' ');
 	return (
 		<div className={classes} data-scene={scene} style={painting?.style}>
-			<div className="dromos-scene-layer is-background" data-layer="background" aria-hidden="true" />
+			<div className="dromos-scene-layer is-background" data-layer="background" aria-hidden="true">
+				{painting?.videos.map((video) => (
+					<SceneVideo key={video.theme} view={video} />
+				))}
+			</div>
 			<div className="dromos-scene-layer is-drawing" data-layer="drawing" aria-hidden="true">
 				{drawing}
 			</div>

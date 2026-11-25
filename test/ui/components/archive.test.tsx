@@ -201,7 +201,7 @@ describe('LibraryRoom: the doorway to the archive (M8 S2)', () => {
 
 describe('ArchiveRoom: a painting from the vault (own-art S3)', () => {
 	it('marks the archive scene with its theme and passes the painting to the stylesheet', () => {
-		const art = sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/archive-light.webp', dark: null } });
+		const art = sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/archive-light.webp', dark: null, lightVideo: null, darkVideo: null } });
 		const html = renderToStaticMarkup(<ArchiveRoom view={view()} onSelect={noop} onOpenCard={noop} onToggleMore={noop} art={art} />);
 		expect(html).toContain('class="dromos-library-scene is-archive dromos-panel has-art-light" data-scene="archive" style="--dromos-art-light:url(&quot;app://v/archive-light.webp&quot;)"');
 	});
@@ -209,5 +209,22 @@ describe('ArchiveRoom: a painting from the vault (own-art S3)', () => {
 	it('leaves the archive as it was without one', () => {
 		const html = renderToStaticMarkup(<ArchiveRoom view={view()} onSelect={noop} onOpenCard={noop} onToggleMore={noop} art={sceneArtView(NO_SCENE_ART)} />);
 		expect(html).toBe(archive());
+	});
+});
+
+describe('ArchiveRoom: a video over the painting (scene-video S2, S4)', () => {
+	it('puts each theme\'s video in the background layer, its painting as the poster', () => {
+		const art = sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/archive-light.webp', dark: 'app://v/archive-dark.webp', lightVideo: null, darkVideo: 'app://v/archive-dark.webm' } });
+		const html = renderToStaticMarkup(<ArchiveRoom view={view()} onSelect={noop} onOpenCard={noop} onToggleMore={noop} art={art} />);
+		const background = html.slice(html.indexOf('data-layer="background"'), html.indexOf('data-layer="drawing"'));
+		expect(background).toContain('class="dromos-scene-video is-dark"');
+		expect(background).toContain('src="app://v/archive-dark.webm"');
+		expect(background).toContain('poster="app://v/archive-dark.webp"');
+		expect(html).not.toContain('is-light"');
+	});
+
+	it('leaves the background layer empty without a video', () => {
+		const art = sceneArtView({ ...NO_SCENE_ART, archive: { light: 'app://v/archive-light.webp', dark: null, lightVideo: null, darkVideo: null } });
+		expect(renderToStaticMarkup(<ArchiveRoom view={view()} onSelect={noop} onOpenCard={noop} onToggleMore={noop} art={art} />)).not.toContain('<video');
 	});
 });
