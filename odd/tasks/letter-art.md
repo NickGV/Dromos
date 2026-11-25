@@ -17,10 +17,10 @@ Branch: `feat/letter-art`. Delivery: merge into main, release on the user's go-a
 
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
-| T1 | S1 | inline | pending | |
-| T2 | S2, S3 (no video) | inline | pending | |
-| T3 | S3 (measurements) | inline | pending | |
-| T4 | S4 (prompts, docs) | inline | pending | |
+| T1 | S1 | inline | done | 6833334 |
+| T2 | S2, S3 (no video) | inline | done | 4a2c77c |
+| T3 | S3 (measurements) | inline | done | L3 |
+| T4 | S4 (prompts, docs) | inline | done | docs commit (L3) |
 | T5 | S4 (portraits in) | inline | waiting for the user's portraits | |
 | T6 | release | inline | waiting for the user's go-ahead | |
 
@@ -31,3 +31,25 @@ Branch: `feat/letter-art`. Delivery: merge into main, release on the user's go-a
   - **Mockup:** a scratch harness rendered the real `BriefingPanel` with an extra stylesheet, folded and open, light and dark, at 600 and 360 px. The letter loses its card border: the papyrus `::before` is the desk's, with a vertical deckle (seed 11), and the two `.dromos-scroll-edge` become rolls on a rod with knobs. The portrait grows from 46×57 to 64×79 on wide panes, so a painting reads; phones keep a small one inline.
   - **No portrait video:** Home is always on screen, and a loop the size of a thumbnail is not worth a decoder running all the time (S3).
   - **Route:** inline, because no writer trigger applies.
+- **L3** (2026-11-25): T1-T4 are done.
+  - **T1 (6833334):** the papyrus letter is CSS only. The real `BriefingPanel` was rendered with the real stylesheet, folded and open, at 600 and 360 px, in both themes.
+  - **T2 (4a2c77c):**
+    - **RED:** 8 tests failed first. **GREEN:** 2630 tests pass, lint has 0 errors (4 old warnings), build OK.
+    - **Markup:** the painting is an `<image>` per theme laid over the drawn figure inside the arch's clip, so the markup without a portrait is unchanged.
+    - **Wiring:** the Home wiring has no DOM test. A scratch harness mounted the real `HomeScreen` in Chrome with the test deps and a stand-in portrait: the letter shows the dark painting in the dark theme and the light one in the light theme, with no `<video>` and no page errors.
+  - **T3, measurements:** headless Chrome without a GPU on a 24-core machine, 10 s after 3 s of warm-up, CPU of every Chrome process. Obsidian composites on the GPU, so its absolute numbers are likely lower; the ratios are what count.
+
+    | Scenario | CPU (% of one core) |
+    |---|---|
+    | Blank page | 0.1 |
+    | Home, landscape animations running, with the new letter | 11.8 |
+    | Home with reduced motion: the letter alone is static | 0.2 |
+    | Library, painted, no video | 0.1 |
+    | Library, wall and desk loops at 1800 px and 24 fps | 15.4 |
+    | The same loops at 960 px and 12 fps | 5.5 |
+    | Two CSS-only breathing glows (opacity animation) | 11.6 (software compositing; untested on a GPU) |
+
+    - **The letter** adds no measurable cost.
+    - **The landscape plan:** today's animated landscape already costs about as much as one full-size loop. A painted landscape with one light loop at about 960 px and 12 fps should cost less than today, and a still painting costs nothing.
+  - **T4:** the `esdras` prompts (dark, light), with a 4:5 box under the arch, export at 400×496 WebP, and no video. README and CHANGELOG `[Unreleased]` are updated.
+  - **Next:** T5 waits for the user's two portraits.

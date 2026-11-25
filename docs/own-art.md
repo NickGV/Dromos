@@ -2,14 +2,14 @@
 
 Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme, instead of their drawing. This page says where the files go and how to make them.
 
-The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** (inside an alcove) has one too; on a painted shelf, its row titles and each scroll's state sit on parchment. The Shop's stall is the **shop** scene: its painting replaces the drawn stall, merchant included, and the gold stays on its plaque over it. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
+The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** (inside an alcove) has one too; on a painted shelf, its row titles and each scroll's state sit on parchment. The Shop's stall is the **shop** scene: its painting replaces the drawn stall, merchant included, and the gold stays on its plaque over it. Esdras's portrait in his letter is **esdras**: the painting fills the niche under its arch, and the frame and the new letter's wax seal stay. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
 
 ## Where the files go
 
-- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, `shop`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
+- In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, `shop`, `esdras`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
 - A theme without its file draws the scene as always, even when the other theme has one.
 - While a painting is there, it replaces the scene's drawing: the lamp, the ink pot, and the archive's window and worktable come from the painting, which is why the prompts ask for them. Text and buttons stay on their parchment panels.
-- Dromos looks for the files when the Library or the Shop opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
+- Dromos looks for the files when Home, the Library or the Shop opens and on **Sync**, so a painting you add shows after the next **Sync**. Obsidian serves them from the vault (`Vault.getResourcePath`): they sync to your phone with the vault, and the plugin carries none.
 
 ## Making the images
 
@@ -172,13 +172,45 @@ LAYOUT: awning from the top down to y 20%. Market and sky between the posts from
 FORMAT: 3600 x 1000 px, aspect 3.6:1. Focal (always kept) area x 21-79%, y 7-100%: the merchant, the market behind him and the counter.
 ```
 
+### esdras: Esdras's portrait in his letter
+
+Box: 64 x 79 CSS px on wide panes, 48 x 59 on a phone, a 4:5 portrait under a round arch: the arch
+cuts the top corners, and a frame and a molding run along it. A new letter's small wax seal covers
+the lower right corner. Nothing in the image is read, so it only needs to read at that size: one
+face, simple shapes, soft light. It never moves: Home is always on screen, so a video beside the
+portrait is ignored.
+
+This scene is a portrait, the other exception to the style block's "No people": it shows Esdras, and
+nobody else.
+
+#### esdras-dark
+
+```text
+SCENE: a head-and-shoulders portrait of Esdras, a scribe of the ancient Near East, at night, facing the viewer, calm and kind, as a small painted panel portrait. This scene is an exception to the style block's "No people": it shows one person, Esdras, and nobody else. A linen shawl with thin indigo stripes over his head frames his face; dark brows, a short dark beard going grey, an indigo robe; in his right hand, raised near his shoulder, a reed pen. Behind him a plain dark plaster wall (#2A231C), warmly lit from the lower left by an oil lamp just out of the picture (#E8B04A, a flat warm light on his face and shawl, never a glow).
+MUST NOT SHOW: any lettering, scroll text or labels; other people; hands other than the one holding the pen; a frame or an arch (Dromos draws the arch and the frame).
+LAYOUT: his eyes at about a third from the top, his face in the middle third of the width, his shoulders reaching the bottom edge; the top corners plain wall, since the arch cuts them.
+FORMAT: 1000 x 1240 px, aspect 4:5. Focal (always kept) area: the face and the shawl around it.
+```
+
+#### esdras-light
+
+```text
+SCENE: a head-and-shoulders portrait of Esdras, a scribe of the ancient Near East, on a summer afternoon, facing the viewer, calm and kind, as a small painted panel portrait. This scene is an exception to the style block's "No people": it shows one person, Esdras, and nobody else. A linen shawl with thin indigo stripes over his head frames his face; dark brows, a short dark beard going grey, an indigo robe; in his right hand, raised near his shoulder, a reed pen. Behind him a plain pale limestone wall (#EADCBD), in soft warm daylight from the upper left (#FFF6DE), gentle shadows.
+MUST NOT SHOW: any lettering, scroll text or labels; other people; hands other than the one holding the pen; a frame or an arch (Dromos draws the arch and the frame).
+LAYOUT: his eyes at about a third from the top, his face in the middle third of the width, his shoulders reaching the bottom edge; the top corners plain wall, since the arch cuts them.
+FORMAT: 1000 x 1240 px, aspect 4:5. Focal (always kept) area: the face and the shawl around it.
+```
+
+Export it small: 400 x 496 px WebP at about quality 80 (some 20-40 KB), which is sharp at the size
+Dromos shows it on any screen.
+
 ## Videos
 
 A painted scene can also play a short loop over its painting: `<scene>-<theme>.webm` (or `.mp4`) beside the painting, for example `Dromos/Arte/archive-dark.webm` next to `archive-dark.webp`.
 
 - A video plays only over its own theme's painting. Without that painting it is ignored, and the painting is what shows until the first frame, whenever the video cannot play, and on any device that does not have the file yet.
 - It is muted and loops. It plays only while you can see it: it pauses when you scroll it away, switch tabs, switch theme or hide the window, and it never plays when your system asks to reduce motion.
-- The cards play the desk's video, since they lie on the desk.
+- The cards play the desk's video, since they lie on the desk. Esdras's portrait never plays one.
 - Keep it short and light: a 2-4 second loop, WebM, about 1800 px wide, under about 2 MB. Obsidian Sync's Standard plan refuses files over 5 MB, and the phone gets the video only when **Videos** is on in Sync's selective sync; until then it shows the painting.
 
 ### Making the videos

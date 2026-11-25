@@ -2,6 +2,16 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Esdras's letter** is now the papyrus of the reading desk, rolled at its top and its bottom on a rod with knobs, its sides deckled, with a larger portrait. Every word, button and behaviour stays.
+
+### Added
+
+- **Esdras's portrait** can be your own painting: `<folder>/Arte/esdras-light` and `esdras-dark` (WebP, PNG or JPG) fill the niche of his portrait in each theme, keeping its frame and the new letter's wax seal; a theme without one keeps the drawn scribe. Nothing on Home plays or moves because of it: a video beside the portrait is ignored. [docs/own-art.md](docs/own-art.md#esdras-esdrass-portrait-in-his-letter) has the prompts.
+
 ## [0.26.0] - 2026-11-25
 
 ### Added
