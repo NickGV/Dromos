@@ -232,7 +232,8 @@ describe('HomeScreen screens', () => {
 	});
 
 	it('keeps the library off the other screens', () => {
-		for (const screen of ['home', 'campaigns', 'skills', 'shop'] as const) expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).not.toContain('dromos-library');
+		// The whole class name: the Shop's stall has the scene layers' `dromos-library-scene` (shop-art S1), which is not the Library.
+		for (const screen of ['home', 'campaigns', 'skills', 'shop'] as const) expect(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen={screen} />)).not.toMatch(/[" ]dromos-library[" ]/);
 	});
 
 	it('draws the same scene on every screen, as tall as the home screen had it (S2)', () => {

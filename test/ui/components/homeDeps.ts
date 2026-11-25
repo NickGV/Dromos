@@ -55,6 +55,7 @@ export function homeDeps(
 		buyOffer: { execute: never },
 		openCard: () => ({ show: noop, close: noop }),
 		notify: noop,
+		sceneArt: { execute: () => NO_SCENE_ART },
 	};
 	return {
 		loadHome: { execute: never },

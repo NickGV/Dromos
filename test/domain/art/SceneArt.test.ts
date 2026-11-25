@@ -14,11 +14,17 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 			desk: still(null, url('desk-dark.jpg')),
 			shelf: still(null, null),
 			archive: still(url('archive-light.webp'), null),
+			shop: still(null, null),
 		});
 	});
 
 	it('finds the shelf\'s paintings too (L16)', () => {
 		expect(sceneArtFrom([file('shelf-dark.webp'), file('shelf-light.jpg')]).shelf).toEqual(still(url('shelf-light.jpg'), url('shelf-dark.webp')));
+	});
+
+	it('finds the Shop\'s paintings and their videos too (shop-art S1, S2)', () => {
+		const art = sceneArtFrom([file('shop-dark.webp'), file('shop-light.png'), file('shop-dark.webm')]);
+		expect(art.shop).toEqual({ light: url('shop-light.png'), dark: url('shop-dark.webp'), lightVideo: null, darkVideo: url('shop-dark.webm') });
 	});
 
 	it('leaves a theme without its file empty, even when the other theme has one', () => {
