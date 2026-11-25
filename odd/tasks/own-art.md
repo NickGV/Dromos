@@ -29,8 +29,8 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | D1 | S2, S4 | `docs/own-art.md`: where the files go, their names, and the six prompts, kept in the repo since the scratch was wiped once | inline | done (L6) | see L6 |
 | T0 | S1-S3 | Mockups of the three scenes with the user's paintings and without, light and dark, desktop and phone | inline; scratch only | done for 5 of 6 images (L8); `wall-light` pending | scratchpad `own-art-mock/` (`gallery.html`) |
 | T1 | S1, S2, S4 | Find the paintings: `SceneArt` and `sceneArtFrom` (domain), the `PaintingSource` port, `LoadSceneArt`, `VaultPaintingSource` | inline (no writer reason: T2 depends on it) | done (L10) | 5a7fc9a |
-| T2 | S1-S4 | Show them: `sceneArtView`, `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel`; wired in `createDromos`; `docs/own-art.md`, README and CHANGELOG | inline | done (L10) | the commit after 5a7fc9a |
-| T3 | S4 | The five images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | pending | |
+| T2 | S1-S4 | Show them: `sceneArtView`, `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel`; wired in `createDromos`; `docs/own-art.md`, README and CHANGELOG | inline | done (L10) | 55e744b |
+| T3 | S4 | The five images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | done (L11); the user's look pending | |
 
 ## Log
 
@@ -81,3 +81,4 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - Differential check against `main` in a `mktemp -d` copy: the HTML of the reading room (full and empty), the archive and a shelf, with no paintings, is byte-identical.
   - The T0 harness, now passing the paintings through the real `art` prop with no injected CSS, renders the wall, desk and archive pixel-identical to the approved mockups (the archive anchored to the bottom) at 1160 and 840 px. At 390 px the largest channel difference is 13 of 255, in the text antialiasing.
   - The docs moved to T2 with the code; T3 keeps the images and the local install.
+- **L11** (2026-11-25): T3. The five JPEGs, converted with `cwebp -q 80` at their own size, are in the vault as `Dromos/Arte/wall-dark.webp` (29 KB), `desk-dark.webp` (40 KB), `desk-light.webp` (83 KB), `archive-dark.webp` (46 KB) and `archive-light.webp` (66 KB). The folder did not exist before. `npm run install:local` put the `feat/own-art` build (55e744b) in the desktop vault's plugin folder. Obsidian must be reloaded or the plugin toggled to see it. The phone keeps the BRAT release, which ignores the folder. Next: the user's look in Obsidian; `wall-light` when the user makes it; merge and release only with the user's go-ahead.
