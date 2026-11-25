@@ -49,3 +49,10 @@ The user's request (L1): "ya luego si hacemos el tema de los videos para ver que
   - The decode check gave 1800×594, 4.00 s, and the flame's luminance moved 135→136→137→116 (archive) and 148→149→150→127 (desk).
   - Docs: `docs/own-art.md` "Videos" (where, rules, size, the Sync **Videos** switch, a motion block and a line per scene), README, CHANGELOG `[Unreleased]`. `install:local` done.
   - Next: the user's look in Obsidian; the user's real videos replace the placeholders; merge and release with the user's go-ahead.
+- **L3** (2026-11-25, user): "publica ya porfavor".
+  - Released as 0.25.0 (minor), as 0.24.0 was:
+    - `feat/scene-video` merged into `main` (0a150f9);
+    - `release/0.25.0` with `docs(changelog): 0.25.0` and `npm version minor` (190a01b, tag `0.25.0`), merged back (ed16537).
+  - On `main` before pushing: `npm test` 2617 passed, lint 0 errors, build passed. `main` and the tag were pushed as NickGV.
+  - `release.yml` succeeded, and the release carries `main.js`, `manifest.json` and `styles.css`.
+  - The two placeholder videos are in `Dromos/Arte/`. The phone gets them only with Sync's **Videos** switch on; otherwise it shows the paintings.
