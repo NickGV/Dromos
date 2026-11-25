@@ -15,8 +15,8 @@ Branch: `feat/shop-art`. Delivery: merge into main, release on the user's go-ahe
 
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
-| T1 | S1-S4 | inline | done | feature commit (L3) |
-| T2 | S5 (prompts, docs) | inline | done | feature commit (L3) |
+| T1 | S1-S4 | inline | done | 790d85d (L3) |
+| T2 | S5 (prompts, docs) | inline | done | 790d85d (L3) |
 | T3 | S5 (paintings in, loops out) | inline | waiting for the user's paintings | |
 | T4 | release | inline | waiting for the user's go-ahead | |
 
