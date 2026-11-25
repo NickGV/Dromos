@@ -423,3 +423,32 @@ describe('LibraryRoom: paintings from the vault (own-art S3)', () => {
 		expect(renderToStaticMarkup(<LibraryRoom view={libraryRoomView(LIBRARY, TODAY, es)} onOpenShelf={noop} onOpenCard={noop} art={sceneArtView(NO_SCENE_ART)} />)).toBe(html);
 	});
 });
+
+describe('The scroll on the desk and the book card (own-art L13)', () => {
+	const view = libraryRoomView(LIBRARY, TODAY, es);
+	const [scroll] = view.desk.scrolls;
+	if (!scroll) throw new Error('missing scroll');
+
+	it('draws no scroll inside a desk scroll: the papyrus is the scroll', () => {
+		const html = renderToStaticMarkup(<DeskScroll view={scroll} onOpen={noop} />);
+		expect(html).not.toContain('dromos-scroll-art');
+		expect(html).toContain('Mero cristianismo');
+	});
+
+	it('lays the book card on the desk painting and keeps its rods', () => {
+		const desk = sceneArtView({ ...NO_SCENE_ART, desk: { light: 'app://v/desk-light.webp', dark: 'app://v/desk-dark.webp' } }).desk;
+		const html = renderToStaticMarkup(
+			<BookCard view={bookCardView(aBook({ path: 'B/x.md', title: 'X' }), TODAY, es, { start: true, finish: true }, null)} busy={null} onStart={noop} onFinish={noop} onOpenNote={noop} renderMarkdown={renderNothing} painting={desk} />,
+		);
+		expect(html).toContain('class="dromos-library-scene is-card has-art-light has-art-dark" data-scene="card" style="--dromos-art-light:url(&quot;app://v/desk-light.webp&quot;);--dromos-art-dark:url(&quot;app://v/desk-dark.webp&quot;)"');
+		expect(html).toContain('dromos-umbilicus is-left');
+		expect(html).toContain('dromos-umbilicus is-right');
+	});
+
+	it('leaves the book card as it was without a desk painting', () => {
+		const entry = aBook({ path: 'B/x.md', title: 'X' });
+		const plain = renderToStaticMarkup(<BookCard view={bookCardView(entry, TODAY, es, { start: true, finish: true }, null)} busy={null} onStart={noop} onFinish={noop} onOpenNote={noop} renderMarkdown={renderNothing} />);
+		expect(plain).not.toContain('has-art');
+		expect(renderToStaticMarkup(<BookCard view={bookCardView(entry, TODAY, es, { start: true, finish: true }, null)} busy={null} onStart={noop} onFinish={noop} onOpenNote={noop} renderMarkdown={renderNothing} painting={null} />)).toBe(plain);
+	});
+});

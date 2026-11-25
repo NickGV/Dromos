@@ -7,6 +7,7 @@ import { BookCard, type BookCardBusy } from '../organisms/BookCard';
 import { ResourceCard } from '../organisms/ResourceCard';
 import { bookCardView } from '../presenters/bookCardView';
 import { resourceCardView } from '../presenters/resourceCardView';
+import type { ScenePaintingView } from '../presenters/sceneArtView';
 import type { CardModal, LibraryDeps } from './LibraryPanel';
 import { closeForWebViewer, reflectionLoader, runBookAction } from './libraryActions';
 
@@ -44,8 +45,9 @@ export interface LibraryCards {
  * left, is read each time its card opens and after each state action, and the card is drawn again
  * when it arrives; until then the card says "Escrita" ("Escrito"). "Abrir la nota", or a link
  * followed in that text, closes the card and opens the note. Leaving the screen closes the card.
+ * The open card lies on `desk`, the reading desk's paintings, when given (own-art L13).
  */
-export function useLibraryCards(deps: LibraryDeps, language: Language): LibraryCards {
+export function useLibraryCards(deps: LibraryDeps, language: Language, desk: ScenePaintingView | null = null): LibraryCards {
 	const t = useT();
 	const [library, setLibrary] = useState<LibraryState | null>(null);
 	const [card, setCard] = useState<OpenCard | null>(null);
@@ -136,6 +138,7 @@ export function useLibraryCards(deps: LibraryDeps, language: Language): LibraryC
 						onFollowLink={() => modal.current?.close()}
 						onOpenLink={closeForWebViewer(deps.linksOpenInObsidian, () => modal.current?.close())}
 						focusNote={focusNote.current}
+						painting={desk}
 					/>
 				),
 			};
@@ -157,6 +160,7 @@ export function useLibraryCards(deps: LibraryDeps, language: Language): LibraryC
 					onFollowLink={() => modal.current?.close()}
 					focusNote={focusNote.current}
 					idPrefix={idPrefix}
+					painting={desk}
 				/>
 			),
 		};

@@ -5,6 +5,7 @@ import { ResourceArt } from '../atoms/ResourceArt';
 import { ResourceLink } from '../atoms/ResourceLink';
 import { SceneLayers } from '../atoms/SceneLayers';
 import type { ResourceCardView } from '../presenters/resourceCardView';
+import type { ScenePaintingView } from '../presenters/sceneArtView';
 import { focusOnDraw, followedLink } from './cardEvents';
 
 export interface ResourceCardProps {
@@ -22,6 +23,8 @@ export interface ResourceCardProps {
 	readonly onOpenLink?: () => void;
 	/** Moves the focus to "Abrir la nota" once drawn: the button that had it is gone after "Marcar como leído". */
 	readonly focusNote?: boolean;
+	/** The reading desk's paintings, behind the sheet: an open scroll lies on the desk (own-art L13); absent or `null`, the plain panel. */
+	readonly painting?: ScenePaintingView | null;
 }
 
 /**
@@ -34,12 +37,13 @@ export interface ResourceCardProps {
  * scrolls and the buttons stay at the foot, as in the book card. A busy button keeps its focus
  * (aria-disabled) and says what it is doing.
  */
-export function ResourceCard({ view, busy, onMark, onOpenNote, renderMarkdown, onFollowLink, onOpenLink, focusNote = false }: ResourceCardProps) {
+export function ResourceCard({ view, busy, onMark, onOpenNote, renderMarkdown, onFollowLink, onOpenLink, focusNote = false, painting = null }: ResourceCardProps) {
 	const { openLink, mark, openNote } = view.actions;
 	return (
 		<div className={`dromos-book-card dromos-resource-card is-${view.state}`}>
 			<SceneLayers
 				scene="card"
+				painting={painting}
 				drawing={
 					<>
 						<Umbilicus side="left" />

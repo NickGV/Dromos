@@ -2,7 +2,7 @@
 
 Dromos can show paintings you keep in your vault behind some scenes, one for the light theme and one for the dark theme, instead of their drawing. This page says where the files go and how to make them.
 
-The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** comes next: its prompts are below, and Dromos will show its painting once the shelf's titles and state lines sit on parchment, which is being built. The book and resource cards keep their drawing: a card leaves almost none of a painting visible.
+The first scenes are the Library's **wall** (behind the alcoves) and **desk** (behind the scrolls being read), and the **archive** room. The **shelf** comes next: its prompts are below, and Dromos will show its painting once the shelf's titles and state lines sit on parchment, which is being built. The book and resource cards take no painting of their own: a card opens as a scroll lying on the reading desk, so it shows the **desk** paintings around its sheet.
 
 ## Where the files go
 

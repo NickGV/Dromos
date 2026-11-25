@@ -33,8 +33,8 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T3 | S4 | The six images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | done (L11, L12) | |
 | D2 | S2, S4 | The shelf's two prompts in `docs/own-art.md` | inline | done (L12) | see L12 |
 | T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top; mockup first | inline | waiting for the shelf's images | |
-| T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); mockup first | inline | mockup done (L13), waiting for the user's look | scratchpad `own-art-mock/papyrus.html` |
-| T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13); mockup first | inline | mockup done (L13), waiting for the user's look | same |
+| T5 | S2, S3 | The card on the desk: the `desk` painting behind the card's scene, the sheet as papyrus with rolled ends (L13); the book and the resource card, from the Library and from home | inline | done (L15) | see L15 |
+| T6 | S1 | The desk's scrolls as papyrus unrolled on the desk, the scroll drawing inside each one dropped (L13) | inline | done (L15) | see L15 |
 | V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
 
 ## Log
@@ -104,3 +104,21 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - The papyrus is CSS, not an image: the cards change height with their text, and a painted sheet under text would break S1's AA contrast.
   - Colours: light papyrus #F1E4C4 with ink #3B2F2A (about 10.5:1), muted #665243 (about 6:1) and ochre #7A5A12 (about 5:1). Dark papyrus #362C21 with ink #EDE3CF (about 11:1), muted #B8A68E (about 6:1) and ochre #DCB25E (about 7:1).
   - Rendered at 1160 and 390 px, light and dark, before and after, in `own-art-mock/papyrus.html`, which was opened for the user.
+- **L14** (2026-11-25, user): "si me gusta mucho mejor como me lo diste sobre lo que me estabas diciendo de los lugares que faltan". The papyrus mockup is approved. T5 and T6 go to code now. T4 waits for the shelf's two images (prompts in `docs/own-art.md`). The home's small reading desk opens the same card, so it gets the desk painting too, read when home opens.
+- **L15** (2026-11-25): T5 and T6 done, inline, test first.
+  - RED: 3 new tests failed: the desk scroll has no scroll drawing, and the book card and the resource card take the desk painting and keep their rods. GREEN after the change. 2 more tests pin the cards unchanged without a painting.
+  - Code:
+    - `BookCard` and `ResourceCard` take `painting`.
+    - `useLibraryCards(deps, language, desk)` lays the open card on it.
+    - `LibraryPanel` passes `sceneArtView(art).desk`. `ReadingDeskPanel` (home) reads the paintings once when home opens.
+    - `DeskScroll` drops its `ScrollArt`.
+  - CSS:
+    - New tokens `--dromos-sheet*` in both themes.
+    - One papyrus rule for the desk scrolls and the card's sheet: a deckled `clip-path` polygon, layered fibres, and a drop shadow on the parent.
+    - The desk scrolls' rolled ends, rods and knobs are background layers of `::after`. The umbilicus becomes a rolled end with knobs.
+    - The card's scene reaches the modal's edges, with a 68 px band of desk that clears the close button, and the painting at 14% top.
+    - The card keeps its drawing layer (the rods) over a painting.
+  - Finding: the `@container dromos-view` rule that set the modal's own padding on phones never applies, since a container cannot query itself. The modal keeps 20 px, so the card's negative margins follow `--dromos-book-modal-pad` on phones too. This was already the case before this change and is left as it is.
+  - Checks: `npm test` 187 files, 2601 tests passed; `npm run lint` 0 errors (the same 4 warnings); `npm run build` passed.
+  - Differential against 55e744b: the book card (reading, and finished while busy) and the resource card with a video and a takeaway, without a painting, give byte-identical HTML.
+  - The real code, rendered with the paintings at 1160 and 390 px in both themes, matches the approved mockup. `install:local` done.

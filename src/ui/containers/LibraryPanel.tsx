@@ -102,7 +102,10 @@ export interface LibraryPanelProps {
  */
 export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelProps) {
 	const t = useT();
-	const { library, openBook, openResource, idPrefix } = useLibraryCards(deps, language);
+	// The paintings, read when the screen opens and again on each Sync (own-art S4); the cards lie on the desk's.
+	const [art, setArt] = useState(() => deps.sceneArt.execute());
+	const paintings = sceneArtView(art);
+	const { library, openBook, openResource, idPrefix } = useLibraryCards(deps, language, paintings.desk);
 	const [shelf, setShelf] = useState<string | null>(null);
 	// The archive (M8 S2) is on show in place of the room, with its pigeonhole and its unfolded processed ones.
 	const [inArchive, setInArchive] = useState(false);
@@ -114,7 +117,6 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 	const seenSyncKey = useRef(syncKey);
 	const mounted = useRef(false);
 	const body = useRef<HTMLDivElement>(null);
-	const [art, setArt] = useState(() => deps.sceneArt.execute());
 	const today = deps.clock.today();
 	useLevelFocus(inArchive ? 'archive' : shelf === null ? null : `shelf:${shelf}`, body);
 
@@ -160,7 +162,6 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 		});
 	};
 
-	const paintings = sceneArtView(art);
 	const loaded = library?.kind === 'loaded' ? library : null;
 	const archive = inArchive && loaded ? archiveView(loaded.resources, today, { filter: pigeonhole, expanded: processedOpen }, t) : null;
 	// A pigeonhole whose last resource left is no filter to keep: back to "Todos".

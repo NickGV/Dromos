@@ -1,11 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { Resource } from '../../../src/domain';
+import { NO_SCENE_ART, type Resource } from '../../../src/domain';
 import { createTranslator } from '../../../src/i18n';
 import { MarkdownBlock, type MarkdownRender } from '../../../src/ui/atoms/MarkdownBlock';
 import { ResourceLink } from '../../../src/ui/atoms/ResourceLink';
 import { ResourceCard } from '../../../src/ui/organisms/ResourceCard';
 import { resourceCardView } from '../../../src/ui/presenters/resourceCardView';
+import { sceneArtView } from '../../../src/ui/presenters/sceneArtView';
 import { aResource } from '../../fakes/resources';
 import { componentsOf, elementsOf } from './elements';
 import { noop, renderNothing } from './homeDeps';
@@ -188,5 +189,20 @@ describe('ResourceCard: the card in the modal (M8 S6)', () => {
 
 	it('speaks English', () => {
 		expect(actionTexts(card(modules(), { t: en }))).toEqual(['Open the link ↗', 'Mark as read', 'Open the note']);
+	});
+});
+
+describe('ResourceCard on the desk (own-art L13)', () => {
+	it('lays the card on the desk painting and keeps its rods', () => {
+		const desk = sceneArtView({ ...NO_SCENE_ART, desk: { light: null, dark: 'app://v/desk-dark.webp' } }).desk;
+		const html = renderToStaticMarkup(
+			<ResourceCard view={resourceCardView(modules(), TODAY, es, true, null)} busy={false} onMark={noop} onOpenNote={noop} renderMarkdown={renderNothing} painting={desk} />,
+		);
+		expect(html).toContain('class="dromos-library-scene is-card has-art-dark" data-scene="card" style="--dromos-art-dark:url(&quot;app://v/desk-dark.webp&quot;)"');
+		expect(html).toContain('dromos-umbilicus is-left');
+	});
+
+	it('leaves the card as it was without one', () => {
+		expect(card(modules())).not.toContain('has-art');
 	});
 });
