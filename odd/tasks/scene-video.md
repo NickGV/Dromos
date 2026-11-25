@@ -20,7 +20,7 @@ The user's request (L1): "ya luego si hacemos el tema de los videos para ver que
 |----|-------|------|-------|--------|--------|
 | T1 | S1, S2, S4 | Find the videos beside the paintings (domain, `sceneArtView`) | inline | done (L2) | 215e84e |
 | T2 | S2-S5 | Play them in the scene's background layer: `SceneLayers`, a playback hook on `watchSight`, the CSS by theme and reduced motion | inline | done (L2) | 215e84e |
-| T3 | S6 | Placeholder loops for `archive-dark` and `desk-dark`, video prompts in `docs/own-art.md`, README and CHANGELOG, `install:local` | inline | done (L2) | see L2 |
+| T3 | S6 | Placeholder loops for `archive-dark` and `desk-dark`, video prompts in `docs/own-art.md`, README and CHANGELOG, `install:local` | inline | done (L2) | 6b103c7 |
 
 ## Log
 
