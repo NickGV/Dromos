@@ -13,7 +13,7 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - "**Una versión clara y una oscura** de cada escena (la sala, el estante, el encabezado)."
   - "**El texto nunca va directo sobre la imagen**: siempre sobre un panel de pergamino, para mantener el contraste AA."
   - "**Si la imagen no está, se dibuja la escena de siempre en SVG**: nada se rompe por una imagen que falta o que todavía no se sincronizó."
-- **S2 First scenes** (L2: "por la recomendada porfavor"; narrowed in L6: "si dale vamos con esos 3 porfavor"): the Library's wall (behind the alcoves) and desk (behind the scrolls being read), and the Archive room, `wall`, `desk` and `archive`. The shelf and the card keep their drawing. The shelf writes text straight on its background (S1), and a card leaves 8-11% of a painting visible (L5).
+- **S2 First scenes** (L2: "por la recomendada porfavor"; narrowed in L6: "si dale vamos con esos 3 porfavor"; widened in L12: "nos faltaria dentro del shelves y tambien cuando abrimos un libro"): the Library's wall (behind the alcoves) and desk (behind the scrolls being read), and the Archive room, `wall`, `desk` and `archive`. Next, the shelf (`shelf`), once its row titles and state lines sit on parchment (S1), its painting anchored to the top. The card is open (L12): today a card leaves 8-11% of a painting visible (L5).
 - **S3 The painting replaces the drawing** (L3: "1", to "La imagen reemplaza al dibujo"). While a scene's painting for the current theme is there, it fills the background layer and the SVG drawing layer is not drawn. The panels, with their text and buttons, stay on parchment as today. The archive's painting is anchored to the bottom of its scene, so its worktable shows on wide panes (L8, recommended; accepted in L9).
 - **S4 Where the images come from** (L4: "2", to "Te escribo los prompts para generarlas con una IA de imágenes, uno por escena y por tema"): Dromos's side writes one prompt per scene and theme, in the Dromos style and with the panels' places left quiet; the user generates the images. File names and formats, announced as defaults and not objected to:
   - `<vault folder>/Arte/<scene>-light.<ext>` and `<scene>-dark.<ext>`, with the scenes `wall`, `desk` and `archive`, and `webp`, `png` or `jpg`;
@@ -30,7 +30,11 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
 | T0 | S1-S3 | Mockups of the three scenes with the user's paintings and without, light and dark, desktop and phone | inline; scratch only | done for 5 of 6 images (L8); `wall-light` pending | scratchpad `own-art-mock/` (`gallery.html`) |
 | T1 | S1, S2, S4 | Find the paintings: `SceneArt` and `sceneArtFrom` (domain), the `PaintingSource` port, `LoadSceneArt`, `VaultPaintingSource` | inline (no writer reason: T2 depends on it) | done (L10) | 5a7fc9a |
 | T2 | S1-S4 | Show them: `sceneArtView`, `SceneLayers` takes a painting; the wall, the desk and the archive; the CSS by theme; the archive anchored to the bottom; read on open and on Sync in `LibraryPanel`; wired in `createDromos`; `docs/own-art.md`, README and CHANGELOG | inline | done (L10) | 55e744b |
-| T3 | S4 | The five images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | done (L11); the user's look pending | |
+| T3 | S4 | The six images as WebP in `Dromos/Arte/` and `install:local` for the user's look on the desktop | inline | done (L11, L12) | |
+| D2 | S2, S4 | The shelf's two prompts in `docs/own-art.md` | inline | done (L12) | see L12 |
+| T4 | S1-S3 | The shelf: `shelf` among the art scenes, its row titles and state lines on parchment, its painting anchored to the top; mockup first | inline | waiting for the shelf's images | |
+| T5 | S2 | The card | | waiting for the user's decision (L12) | |
+| V1 | | Looping video backgrounds (Esdras's question for the user, L12) | after the Library | pending | |
 
 ## Log
 
@@ -82,3 +86,12 @@ The user's request (L1): "si dale, arranquemos con el arte propio", the idea rec
   - The T0 harness, now passing the paintings through the real `art` prop with no injected CSS, renders the wall, desk and archive pixel-identical to the approved mockups (the archive anchored to the bottom) at 1160 and 840 px. At 390 px the largest channel difference is 13 of 255, in the text antialiasing.
   - The docs moved to T2 with the code; T3 keeps the images and the local install.
 - **L11** (2026-11-25): T3. The five JPEGs, converted with `cwebp -q 80` at their own size, are in the vault as `Dromos/Arte/wall-dark.webp` (29 KB), `desk-dark.webp` (40 KB), `desk-light.webp` (83 KB), `archive-dark.webp` (46 KB) and `archive-light.webp` (66 KB). The folder did not exist before. `npm run install:local` put the `feat/own-art` build (55e744b) in the desktop vault's plugin folder. Obsidian must be reloaded or the plugin toggled to see it. The phone keeps the BRAT release, which ignores the folder. Next: the user's look in Obsidian; `wall-light` when the user makes it; merge and release only with the user's go-ahead.
+- **L12** (2026-11-25, user): "vamos haciendolo, se me olvido pasarte el wall light y no se creo que nos falto algunos otros fondos no crees? … Pero si podriamos primero terminar library, la verdad me gusta mucho como se ve. Por ejemplo nos faltaria dentro del shelves y tambien cuando abrimos un libro, estaria bien que cambiemos el fondo tambien o no? Revisa cuales nos faltaria para hacer las imagenes, me das los prompts y ya luego si hacemos el tema de los videos para ver que tal funcionaria todo".
+  - `wall-light` (2912×1440, Gemini) is in the vault as `Dromos/Arte/wall-light.webp` (32 KB). With the real code and the T0 harness, the light wall reads well on desktop and phone.
+  - Shelf: its planks are each row's bottom border, in the panels layer, so they stay with a painting. Only the arch's shade, the drawing layer, goes away.
+  - The shelf's painting shows at 66-85% (L5). It is a plain niche back with the arch's shadow along its top, anchored to the top.
+  - The row titles ("Leyendo · 2") and the state lines under the tags ("En la mesa de lectura", "Pendiente") sit straight on the scene, so S1 needs them on parchment first.
+  - Two prompts (`shelf-dark`, `shelf-light`, 2400×2400) were added to `docs/own-art.md`.
+  - Card: the book card and the resource card keep a painting only in the two 26 px strips behind the rods (8-11%), so an image of their own shows almost nothing.
+  - Proposal to the user: when a book opens, the scroll lies on the reading desk, so the card could show the `desk` paintings around the scroll, with no new images. That needs the card's frame redrawn so the painting shows around it, and a mockup first.
+  - Videos (Esdras's question): after the Library, as the user asked.
