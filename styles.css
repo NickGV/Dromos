@@ -731,6 +731,21 @@
 	}
 }
 
+/* The user's painted walker (landscape-art S9): his stage's painting sits beside the drawn figure in the
+   walker's body, so it walks, bobs and breathes with it, and it shows only where the scene shows its
+   theme's painting, as variant C does; everywhere else the drawn figure shows, so a theme without a
+   landscape painting looks as before. By day he shows as painted; at dawn, at dusk and at night (always
+   night in the dark theme) his images take the hour's light from one colour-matrix filter each, defined in
+   the landscape's own defs (FigureShading, its url in --dromos-hour-<hour> on the <svg>). The breathing body
+   repaints that filter every frame, yet on the painted Home at night it measured 2.1 % of one core with the
+   filter and 2.1 % without, so the hours need no pre-graded files. */
+.dromos-root .dromos-walker-painted { display: none; }
+:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker-painted { display: inline; }
+:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker.is-painted .dromos-scene-figure { display: none; }
+.theme-light .dromos-root .dromos-scene.has-art-light[data-period='dawn'] .dromos-walker-painted image { filter: var(--dromos-hour-dawn); }
+.theme-light .dromos-root .dromos-scene.has-art-light[data-period='dusk'] .dromos-walker-painted image { filter: var(--dromos-hour-dusk); }
+:is(.theme-light .dromos-root .dromos-scene.has-art-light[data-period='night'], body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker-painted image { filter: var(--dromos-hour-night); }
+
 .dromos-root .dromos-scene-sky-top { stop-color: var(--dromos-scene-sky-top); }
 .dromos-root .dromos-scene-sky-bottom { stop-color: var(--dromos-scene-sky-bottom); }
 .dromos-root .dromos-scene-sun { fill: var(--dromos-scene-sun); stroke: var(--dromos-scene-line); stroke-width: 1; }

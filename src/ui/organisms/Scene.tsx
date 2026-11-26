@@ -7,6 +7,7 @@ import { Signpost, type DromosScreen } from '../molecules/Signpost';
 import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
 import type { DayPeriod } from '../presenters/dayPeriod';
 import type { LandscapeArtView } from '../presenters/landscapeArtView';
+import type { WalkerPaintingView } from '../presenters/walkerArtView';
 
 export interface SceneProps {
 	readonly screen: DromosScreen;
@@ -28,6 +29,8 @@ export interface SceneProps {
 	readonly avatar?: AvatarView;
 	/** The user's painting of the landscape for this time of day (landscape-art S1); absent or `null`, the landscape is drawn. */
 	readonly painting?: LandscapeArtView | null;
+	/** The user's painting of the walker at its stage (landscape-art S9); it belongs to the painted landscape, so without `painting` it is not drawn. */
+	readonly walkerPainting?: WalkerPaintingView | null;
 }
 
 /**
@@ -38,16 +41,16 @@ export interface SceneProps {
  * nothing overlaps its foot. The world reacts (S17): the sky follows the time of day, through
  * `data-period`, and a campfire burns on a complete day. With the user's painting (landscape-art S1-S3)
  * the painting takes the drawn landscape's place behind the gate, the walker and the campfire, in each
- * theme that has one.
+ * theme that has one, and over it the walker can be the user's painting of his stage (S9).
  */
-export function Scene({ screen, offline, onGo, onSettings, ribbon = null, walker = null, gateLabel = null, period = 'day', campfire = false, avatar = FIRST_AVATAR, painting = null }: SceneProps) {
+export function Scene({ screen, offline, onGo, onSettings, ribbon = null, walker = null, gateLabel = null, period = 'day', campfire = false, avatar = FIRST_AVATAR, painting = null, walkerPainting = null }: SceneProps) {
 	const classes = ['dromos-scene', offline ? 'is-offline' : null, painting?.className].filter(Boolean).join(' ');
 	return (
 		<div className={classes} data-period={period} style={painting?.style}>
 			{painting ? <LandscapeArt videos={painting.videos} /> : null}
 			<Landscape painted={painting?.painted ?? 'none'}>
 				{campfire ? <Campfire /> : null}
-				<Walker fraction={walker} avatar={avatar} />
+				<Walker fraction={walker} avatar={avatar} painting={painting ? walkerPainting : null} />
 			</Landscape>
 			{gateLabel ? <GatePlaque label={gateLabel} /> : null}
 			<Signpost current={screen} onGo={onGo} onSettings={onSettings} />

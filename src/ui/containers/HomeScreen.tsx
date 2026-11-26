@@ -30,6 +30,7 @@ import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
 import { landscapeArtView } from '../presenters/landscapeArtView';
 import { portraitPaintingView } from '../presenters/sceneArtView';
+import { PAINTED_OBJECT_IDS, walkerArtView } from '../presenters/walkerArtView';
 import { historyView } from '../presenters/historyView';
 import { ceremonyView, gameNotices } from '../presenters/levelUpView';
 import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
@@ -90,6 +91,8 @@ export interface HomeScreenDeps {
 	readonly renderMarkdown: MarkdownRender;
 	/** The user's paintings from the vault, Esdras's portrait among them (letter-art S2), read on open and on every sync. Never throws. */
 	readonly sceneArt: Pick<LoadSceneArt, 'execute'>;
+	/** The user's painting of the walker and of the skills' objects (landscape-art S9), read with the paintings: on open and on every sync. Never throws. */
+	readonly walkerArt: Pick<LoadSceneArt, 'walker'>;
 	/** Draws a line icon of the host app. */
 	readonly renderIcon: IconRender;
 	/** Copies the command of the job; `null` where it cannot be run, and the button does not show. */
@@ -205,6 +208,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [letterOpen, setLetterOpen] = useState(false);
 	// The paintings, Esdras's portrait and the landscape among them (letter-art S2, landscape-art S1): read when the view opens and again on every sync.
 	const [art, setArt] = useState(() => deps.sceneArt.execute());
+	// The painted walker, read with them (landscape-art S9).
+	const [walkerArt, setWalkerArt] = useState(() => deps.walkerArt.walker(PAINTED_OBJECT_IDS));
 	// Today's quests fold to 4 rows on every open of the view (missions S3, home-fit S3).
 	const [questsExpanded, setQuestsExpanded] = useState(false);
 	// The chronicle folds to its three newest deeds on every open of the view (home-fit S2).
@@ -347,6 +352,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		setCharacter(home.character);
 		setBriefing(home.briefing);
 		setArt(deps.sceneArt.execute());
+		setWalkerArt(deps.walkerArt.walker(PAINTED_OBJECT_IDS));
 		setArrival(null);
 		void readAvatar();
 		void readWeek();
@@ -530,6 +536,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						campfire={questPanel.dayComplete}
 						avatar={avatar}
 						painting={landscapeArtView(art.landscape, period)}
+						walkerPainting={walkerArtView(walkerArt, avatar)}
 					/>
 					<CharacterPanel
 						state={panel}

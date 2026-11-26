@@ -1,5 +1,5 @@
 import type { CampaignSnapshot, GameSnapshot, QuestSnapshot } from '../../../src/application';
-import { NO_SCENE_ART } from '../../../src/domain';
+import { NO_SCENE_ART, NO_WALKER_ART } from '../../../src/domain';
 import { createTranslator, type Language } from '../../../src/i18n';
 import type { CampaignsDeps } from '../../../src/ui/containers/CampaignsPanel';
 import type { HomeScreenDeps } from '../../../src/ui/containers/HomeScreen';
@@ -72,6 +72,7 @@ export function homeDeps(
 		notify: noop,
 		renderMarkdown: renderNothing,
 		sceneArt: { execute: () => NO_SCENE_ART },
+		walkerArt: { walker: () => NO_WALKER_ART },
 		renderIcon: noop,
 		requestBriefing: null,
 		openSettings: options.openSettings ?? null,

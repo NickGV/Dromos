@@ -165,3 +165,15 @@ export function SkillObject({ id }: { readonly id: string }) {
 	const drawing = THINGS[id];
 	return drawing ? <g className={`dromos-avatar-thing is-${id}`}>{drawing}</g> : null;
 }
+
+/**
+ * The square every painted object is drawn in, in the objects' own units around their origin, the same for
+ * all fourteen (landscape-art S9): the preparation maps each painting's outline onto its drawn object's box
+ * inside it, so one frame places them all where their drawings would be.
+ */
+export const OBJECT_FRAME = { x: -18, y: -18, width: 36, height: 36 } as const;
+
+/** A skill's object as the user painted it (`object-<skill>` in the art folder), around its own origin as its drawing is. */
+export function PaintedObject({ id, src }: { readonly id: string; readonly src: string }) {
+	return <image className={`dromos-avatar-painted is-${id}`} href={src} x={OBJECT_FRAME.x} y={OBJECT_FRAME.y} width={OBJECT_FRAME.width} height={OBJECT_FRAME.height} />;
+}

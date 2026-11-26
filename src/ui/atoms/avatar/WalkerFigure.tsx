@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import type { StageId } from '../../../domain/character/Stage';
 import type { AvatarView } from '../../presenters/avatar';
+import type { WalkerPaintingView } from '../../presenters/walkerArtView';
 import { WALKER_LAYER, walkerAnchor, type WalkerLayer } from './anchors';
 import { isOpenMantle, n, STAGE_LOOKS, type Beard, type Garment, type Hair, type StageLook } from './looks';
-import { placedObjects, SkillObject, type PlacedObject } from './SkillObject';
+import { PaintedObject, placedObjects, SkillObject, type PlacedObject } from './SkillObject';
 
 /** Where the lantern's light hangs from the hook of the staff while he walks upright. */
 const LAMP = { x: 25.6, y: -58.4 } as const;
@@ -210,15 +211,18 @@ const CAPSA = (
 	</>
 );
 
-/** The objects of one layer of the walker, each at its spot. */
-function WalkerObjects({ look, objects, layer }: { readonly look: StageLook; readonly objects: readonly PlacedObject[]; readonly layer: WalkerLayer }) {
+/** The objects of one layer of the walker, each at its spot: painted where `paintings` has its painting, drawn otherwise. */
+function WalkerObjects({ look, objects, layer, paintings = {} }: { readonly look: StageLook; readonly objects: readonly PlacedObject[]; readonly layer: WalkerLayer; readonly paintings?: Readonly<Record<string, string>> }) {
 	return objects
 		.filter((object) => WALKER_LAYER[object.spot] === layer)
-		.map(({ id, spot }) => (
-			<g key={id} transform={walkerAnchor(look, spot)}>
-				<SkillObject id={id} />
-			</g>
-		));
+		.map(({ id, spot }) => {
+			const painting = paintings[id];
+			return (
+				<g key={id} transform={walkerAnchor(look, spot)}>
+					{painting === undefined ? <SkillObject id={id} /> : <PaintedObject id={id} src={painting} />}
+				</g>
+			);
+		});
 }
 
 /**
@@ -291,6 +295,47 @@ export function WalkerFigure({ avatar }: { readonly avatar: AvatarView }) {
 			{/* The lantern on its ring: its glass, unlit by day, takes the lamp's light at night. */}
 			<path className="dromos-scene-lantern" d={`M23.8 ${n(lampY - 3)}H27.4L27.8 ${n(lampY + 2.8)}H23.4zM23.4 ${n(lampY - 3)}L25.6 ${n(lampY - 5.2)} 27.8 ${n(lampY - 3)}z`} />
 			<circle className="dromos-scene-lamp" cx={LAMP.x} cy={lampY} r="1.6" />
+		</g>
+	);
+}
+
+/**
+ * The frame every stage's painting is drawn in, in the walker's units with his feet at the origin, the same
+ * for all twelve (landscape-art S9): the preparation lays each painting in it with its feet on the origin and
+ * its staff on the drawn staff, scaled to the drawn staff's height, so the painted walker stands where the
+ * drawn one does and his objects' spots fall on him without numbers per painting.
+ */
+export const WALKER_FRAME = { x: -20, y: -74, width: 52, height: 78 } as const;
+
+/** The layers whose objects are laid over the painting, in the drawn figure's order; the `behind` layer goes under it. */
+const OVER_PAINTING: readonly WalkerLayer[] = ['staff', 'body', 'satchel', 'arm', 'head', 'front'];
+
+/**
+ * The walker as the user painted him (landscape-art S9), drawn beside the drawn figure in the body that walks
+ * and breathes: the stylesheet shows one or the other, the painting only over the painted landscape. What he
+ * wears behind him, the shield on his back, lies under the painting, and his other objects over it, painted
+ * where their painting exists and drawn otherwise; those on the head bow with the head of the elder and the
+ * sage, as on the drawn figure. The lantern's glow is laid over the painted lantern, lit at night.
+ */
+export function PaintedWalker({ avatar, painting }: { readonly avatar: AvatarView; readonly painting: WalkerPaintingView }) {
+	const look = STAGE_LOOKS[avatar.stage];
+	const objects = placedObjects(avatar.objects);
+	const layer = (name: WalkerLayer) => <WalkerObjects key={name} look={look} objects={objects} layer={name} paintings={painting.objects} />;
+	const bowed = look.stoop === true && objects.some((object) => WALKER_LAYER[object.spot] === 'head');
+	return (
+		<g className="dromos-walker-painted">
+			{layer('behind')}
+			<image className="dromos-walker-painting" href={painting.src} x={WALKER_FRAME.x} y={WALKER_FRAME.y} width={WALKER_FRAME.width} height={WALKER_FRAME.height} />
+			{OVER_PAINTING.map((name) =>
+				name === 'head' && bowed ? (
+					<g key={name} transform="translate(1.2 1.4)">
+						{layer(name)}
+					</g>
+				) : (
+					layer(name)
+				),
+			)}
+			<circle className="dromos-scene-lamp-glow" cx={LAMP.x} cy={n(LAMP.y + (look.stoop ? -4 : 0))} r="10" />
 		</g>
 	);
 }

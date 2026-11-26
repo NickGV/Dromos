@@ -51,6 +51,30 @@ const EXTENSIONS = ['webp', 'png', 'jpg', 'jpeg'] as const;
 /** The formats a video may have, in the same order of choice (scene-video S1). */
 const VIDEO_EXTENSIONS = ['webm', 'mp4'] as const;
 
+/** Finds a file of the art folder by its name without its extension, among the extensions given in their order. */
+export type ArtFileFinder = (name: string, extensions?: readonly string[]) => string | null;
+
+/**
+ * The one name matcher every painting is found with (own-art S4): `find(name)` is the URL of
+ * `<name>.<ext>` for the first extension in the order given (by default a painting's: webp, then
+ * png, then jpg or jpeg) that has a file, names in any case, and `null` without one. When two files
+ * differ only in case, the first listed wins.
+ */
+export function artFileFinder(files: readonly ArtFile[]): ArtFileFinder {
+	const byName = new Map<string, string>();
+	for (const file of files) {
+		const name = file.name.toLowerCase();
+		if (!byName.has(name)) byName.set(name, file.url);
+	}
+	return (name, extensions = EXTENSIONS) => {
+		for (const extension of extensions) {
+			const url = byName.get(`${name.toLowerCase()}.${extension}`);
+			if (url !== undefined) return url;
+		}
+		return null;
+	};
+}
+
 /**
  * The paintings found among the files of the art folder (own-art S4): `<scene>-light.<ext>` and
  * `<scene>-dark.<ext>`, with `<ext>` one of `webp`, `png`, `jpg` (or `jpeg`), names in any case.
@@ -61,18 +85,8 @@ const VIDEO_EXTENSIONS = ['webm', 'mp4'] as const;
  * with their videos, by the same rules (landscape-art S3, S4); no other scene has them.
  */
 export function sceneArtFrom(files: readonly ArtFile[]): SceneArt {
-	const byName = new Map<string, string>();
-	for (const file of files) {
-		const name = file.name.toLowerCase();
-		if (!byName.has(name)) byName.set(name, file.url);
-	}
-	const first = (scene: ArtScene, theme: 'light' | 'dark' | 'dawn' | 'dusk', extensions: readonly string[]): string | null => {
-		for (const extension of extensions) {
-			const url = byName.get(`${scene}-${theme}.${extension}`);
-			if (url !== undefined) return url;
-		}
-		return null;
-	};
+	const find = artFileFinder(files);
+	const first = (scene: ArtScene, theme: 'light' | 'dark' | 'dawn' | 'dusk', extensions: readonly string[]): string | null => find(`${scene}-${theme}`, extensions);
 	const sceneOf = (scene: ArtScene): ScenePainting => {
 		const light = first(scene, 'light', EXTENSIONS);
 		const dark = first(scene, 'dark', EXTENSIONS);
