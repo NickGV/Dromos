@@ -20,7 +20,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
-| T2 | S1-S4 (mockup with the user's paintings) | inline | waiting for the user's paintings | |
+| T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S5 (code) | inline | pending | |
 | T4 | S6 (docs), S3 (loops, measurement) | inline | pending | |
 | T5 | release | inline | pending, on the user's go-ahead | |
@@ -38,3 +38,9 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Files for the user:** `~/Downloads/dromos-paisaje/landscape-guide-light.png` and `landscape-guide-dark.png`.
   - **Order:** the mockup with the user's paintings comes before the code. It shows whether the generator keeps the road under the walker, which decides S2.
   - **Route:** inline, because no writer trigger applies.
+- **L3** (2026-11-26, user): sent the two Gemini paintings (3712 × 1152, 3.22:1) and said "aqui te los mando, no se, se ve genial, pero ahora que es una imagen quizas podamos hacerla aun mejor, agregarle otras cosas o por ejemplo que en la noche el pastor ya este en la casa y cosas asi que dices?"
+  - **Alignment:** the game's road path and landmarks were drawn over each painting, stretched to 3840 × 1200 (0.7 % off in ratio). The painted road follows the drawn road's edges along its whole length, and the gate's foot, the campfire's spot, the windmill, the shepherd and the lion all sit where the drawing has them. S2 holds without registration.
+  - **Mockup:** a scratch harness mounted the real `HomeScreen` (found character at level 5, the walker on the road, the gate's "Nivel 6", the campfire) and laid each painting into the scene's SVG in place of the drawn landscape. Shot at 1160, 2560 and 360 px, in both themes: the walker walks on the painted road and the gate stands at its end, with no page errors.
+  - **Framing:** at 1160 px the painted sun is half cut at the top, since the drawn sky moves down on wide panes and a painting cannot. At 2560 px the gate's plaque is cut at the scene's top with the drawing too, so this is pre-existing, not caused by the painting.
+  - **Files for the user:** `~/Downloads/dromos-paisaje/maqueta-escritorio.png`, `maqueta-telefono.png` and `camino-superpuesto.png`.
+  - **Open decision (S4):** the user proposes paintings that change with the time of day, such as the shepherd at home at night. Waiting for the user's answer before T3.
