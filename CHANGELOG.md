@@ -2,6 +2,14 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **The painted card language**: below the landscape, everything is a thing of the same painted world. Every card, list and panel is a sheet of papyrus with fibres, a deckled and frayed edge and a soft shadow, instead of a box with a hairline border; today's quests, the campaigns on Path and a campaign's phases are ledger sheets with ruled rows. Buttons are papyrus tags in the serif, the primary one in ochre; pills become small capitals, with a stamp only on what asks for attention (a mission, today, overdue, the next task, a new letter); every progress bar is one ochre bar in a groove; tabs and quest filters are words underlined in ochre; and the character's plaque hangs from a rod, its stats an ink star with larger labels. The stages card, the titles card and the Shop's purchase confirmation unroll as a scroll; the Library's alcoves, the archive's pigeonholes and the Shop's wares are papyrus tiles, and the Shop's tabs are words on its counter. Every text, button, state and behaviour stays, with keyboard focus visible on each.
+- **The app's ground**: under the landscape the view lies on the road's packed earth, in both themes and at every hour, and the painting's foot tears into it instead of ending on a line. It is drawn in CSS and costs nothing while the view scrolls.
+- **The wooden signpost**: its planks are painted boards shaped as arrows pointing away from the post, which has a pointed cap; the current screen's plank stays burnt in (charred by day, lamplit at night), and every plank clears 3:1 against the landscape behind it at every hour. The screens' names hang under the landscape as a wooden sign of the same wood, and the gate's "Level 7" is a small board too.
+
 ## [0.28.0] - 2026-11-26
 
 ### Added

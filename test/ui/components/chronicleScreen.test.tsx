@@ -32,7 +32,7 @@ describe('ChronicleScreen (M9 S2, S3)', () => {
 		expect(header?.props.back).toMatchObject({ label: 'Path', ariaLabel: 'Back to the path' });
 		expect(onBack).toHaveBeenCalledTimes(1);
 		expect(renderToStaticMarkup(<ChronicleScreen view={view()} onSelectWeek={noop} onBack={noop} />)).toMatch(
-			/^<div class="dromos-history"><header class="dromos-panel dromos-screen-header has-back"><button type="button" class="dromos-screen-back" aria-label="Back to the path"><span aria-hidden="true">←<\/span>Path<\/button><h2[^>]*data-screen-heading="true">Chronicle<\/h2><\/header>/,
+			/^<div class="dromos-history"><header class="dromos-sign dromos-screen-header has-back"><button type="button" class="dromos-screen-back" aria-label="Back to the path"><span aria-hidden="true">←<\/span>Path<\/button><h2[^>]*data-screen-heading="true">Chronicle<\/h2><\/header>/,
 		);
 	});
 

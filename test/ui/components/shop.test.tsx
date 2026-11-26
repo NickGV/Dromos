@@ -45,7 +45,7 @@ describe('ShopScreen: the stall (M10 S1, S4, S6)', () => {
 	it('opens with its header card, "Shop", and the gold on a coin plaque hung in the stall, named in words', () => {
 		const html = screen(READY);
 
-		expect(html).toMatch(/^<div class="dromos-shop"><header class="dromos-panel dromos-screen-header"><h2[^>]*data-screen-heading="true">Shop<\/h2><\/header>/);
+		expect(html).toMatch(/^<div class="dromos-shop"><header class="dromos-sign dromos-screen-header"><h2[^>]*data-screen-heading="true">Shop<\/h2><\/header>/);
 		expect(html).toMatch(/<p class="dromos-stall-plaque"><span class="dromos-visually-hidden">Your gold: 124 gold<\/span>/);
 		expect(html).toMatch(/<span class="dromos-stall-plaque-amount" aria-hidden="true">124<\/span>/);
 		expect(html).not.toContain('124.62');
