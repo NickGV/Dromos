@@ -1,13 +1,22 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import type { PaintedThemes } from '../presenters/landscapeArtView';
+import type { SceneVideoView } from '../presenters/sceneArtView';
 import { FAR_SCALE, GATE, GATE_SHAPE } from '../presenters/walkerView';
 import { ChimneySmoke, Flock, Ridge, Sheep, Windmill } from './landscape/FarLife';
 import { Butterflies, Fireflies, Flowers, Tufts } from './landscape/NearLife';
 import { Pasture } from './landscape/Pasture';
 import { watchSight } from './landscape/sight';
+import { SceneVideo } from './SceneVideo';
 
 export interface LandscapeProps {
 	/** Drawn last, over the road and in front of the gate: the campfire (game-ui S17) and the walker (S16). */
 	readonly children?: ReactNode;
+	/**
+	 * Which themes show the user's painting in place of the drawing (landscape-art S1, S3): with `none`
+	 * the landscape is drawn as always; with `one` the drawing stays in one group, which the stylesheet
+	 * hides in the painted theme; with `both` it is left out, and only the gate and what it is given are drawn.
+	 */
+	readonly painted?: PaintedThemes;
 }
 
 /**
@@ -22,20 +31,64 @@ export interface LandscapeProps {
  * butterflies by day and fireflies at night, and a shepherd with his sheep and a lion at peace
  * beside them (S7, S8), with slow loops the stylesheet holds still under reduced motion, offline,
  * and while the scene is out of sight (the `is-still` class).
+ *
+ * Under the user's painting (landscape-art S2) the gate, the walker and the campfire are still drawn,
+ * in the same 960 x 300 frame, so the walker keeps to the painted road.
  */
-export function Landscape({ children = null }: LandscapeProps) {
+export function Landscape({ children = null, painted = 'none' }: LandscapeProps) {
 	// Unique per view: two open Dromos tabs must not share one gradient, since Chromium stops
 	// painting a gradient whose element sits in a hidden tab.
 	const sky = `dromos-sky-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 	const { ref, still } = useStillOutOfSight();
 	return (
 		<svg ref={ref} className={still ? 'dromos-landscape is-still' : 'dromos-landscape'} viewBox="0 0 960 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
-			<defs>
-				<linearGradient id={sky} x1="0" y1="0" x2="0" y2="1">
-					<stop className="dromos-scene-sky-top" offset="0" />
-					<stop className="dromos-scene-sky-bottom" offset="1" />
-				</linearGradient>
-			</defs>
+			{painted === 'both' ? null : (
+				<defs>
+					<linearGradient id={sky} x1="0" y1="0" x2="0" y2="1">
+						<stop className="dromos-scene-sky-top" offset="0" />
+						<stop className="dromos-scene-sky-bottom" offset="1" />
+					</linearGradient>
+				</defs>
+			)}
+			{painted === 'none' ? <Drawing sky={sky} /> : null}
+			{painted === 'one' ? (
+				<g className="dromos-landscape-drawing">
+					<Drawing sky={sky} />
+				</g>
+			) : null}
+			{/* The gate at the far end of the road, in the walker's units so it walks under the lintel (game-ui S16). */}
+			<g className="dromos-scene-gate" transform={`translate(${GATE.x} ${GATE.y}) scale(${FAR_SCALE})`}>
+				<path className="dromos-scene-gate-post" d={post(-GATE_SHAPE.postOuter, -GATE_SHAPE.postInner)} />
+				<path className="dromos-scene-gate-post" d={post(GATE_SHAPE.postInner, GATE_SHAPE.postOuter)} />
+				<path className="dromos-scene-gate-lintel" d={lintel()} />
+			</g>
+			{children}
+		</svg>
+	);
+}
+
+/**
+ * The user's painting of the landscape (landscape-art S1-S3), behind the drawing and framed as it is:
+ * the stylesheet shows each theme's painting from the scene's custom properties, and a painting's loop
+ * plays over it (scene-video S1-S4). It is decoration: screen readers skip it.
+ */
+export function LandscapeArt({ videos }: { readonly videos: readonly SceneVideoView[] }) {
+	return (
+		<div className="dromos-landscape-art" aria-hidden="true">
+			{videos.map((video) => (
+				<SceneVideo key={video.theme} view={video} />
+			))}
+		</div>
+	);
+}
+
+/**
+ * The drawn landscape, from the sky to the roadside, filled with the sky's gradient `sky`: everything
+ * but the gate and what the scene draws over it, hidden or left out under a painting (landscape-art S3).
+ */
+function Drawing({ sky }: { readonly sky: string }) {
+	return (
+		<>
 			<rect width="960" height="300" fill={`url(#${sky})`} />
 			{/* The sky's figures, in one group the stylesheet lowers on very wide panes. */}
 			<g className="dromos-scene-sky">
@@ -110,14 +163,7 @@ export function Landscape({ children = null }: LandscapeProps) {
 			<Tufts />
 			<Butterflies />
 			<Fireflies />
-			{/* The gate at the far end of the road, in the walker's units so it walks under the lintel (game-ui S16). */}
-			<g className="dromos-scene-gate" transform={`translate(${GATE.x} ${GATE.y}) scale(${FAR_SCALE})`}>
-				<path className="dromos-scene-gate-post" d={post(-GATE_SHAPE.postOuter, -GATE_SHAPE.postInner)} />
-				<path className="dromos-scene-gate-post" d={post(GATE_SHAPE.postInner, GATE_SHAPE.postOuter)} />
-				<path className="dromos-scene-gate-lintel" d={lintel()} />
-			</g>
-			{children}
-		</svg>
+		</>
 	);
 }
 

@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { Campfire } from '../atoms/Campfire';
 import { GatePlaque } from '../atoms/GatePlaque';
-import { Landscape } from '../atoms/Landscape';
+import { Landscape, LandscapeArt } from '../atoms/Landscape';
 import { Walker } from '../atoms/Walker';
 import { Signpost, type DromosScreen } from '../molecules/Signpost';
 import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
 import type { DayPeriod } from '../presenters/dayPeriod';
+import type { LandscapeArtView } from '../presenters/landscapeArtView';
 
 export interface SceneProps {
 	readonly screen: DromosScreen;
@@ -25,6 +26,8 @@ export interface SceneProps {
 	readonly campfire?: boolean;
 	/** Who walks the road (M11 S1): the character's stage and the objects of its skills; the young runner by default. */
 	readonly avatar?: AvatarView;
+	/** The user's painting of the landscape for this time of day (landscape-art S1); absent or `null`, the landscape is drawn. */
+	readonly painting?: LandscapeArtView | null;
 }
 
 /**
@@ -33,13 +36,16 @@ export interface SceneProps {
  * the stage reached, with the objects of its skills, M11 S1) and the gate of the next level at its
  * end (S16), the signpost to the other screens planted in it and, at a level-up, the ribbon over it. The character's plaque follows it, in its corner on wide panes;
  * nothing overlaps its foot. The world reacts (S17): the sky follows the time of day, through
- * `data-period`, and a campfire burns on a complete day.
+ * `data-period`, and a campfire burns on a complete day. With the user's painting (landscape-art S1-S3)
+ * the painting takes the drawn landscape's place behind the gate, the walker and the campfire, in each
+ * theme that has one.
  */
-export function Scene({ screen, offline, onGo, onSettings, ribbon = null, walker = null, gateLabel = null, period = 'day', campfire = false, avatar = FIRST_AVATAR }: SceneProps) {
-	const classes = offline ? 'dromos-scene is-offline' : 'dromos-scene';
+export function Scene({ screen, offline, onGo, onSettings, ribbon = null, walker = null, gateLabel = null, period = 'day', campfire = false, avatar = FIRST_AVATAR, painting = null }: SceneProps) {
+	const classes = ['dromos-scene', offline ? 'is-offline' : null, painting?.className].filter(Boolean).join(' ');
 	return (
-		<div className={classes} data-period={period}>
-			<Landscape>
+		<div className={classes} data-period={period} style={painting?.style}>
+			{painting ? <LandscapeArt videos={painting.videos} /> : null}
+			<Landscape painted={painting?.painted ?? 'none'}>
 				{campfire ? <Campfire /> : null}
 				<Walker fraction={walker} avatar={avatar} />
 			</Landscape>

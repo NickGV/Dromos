@@ -522,7 +522,32 @@
 	transition: filter 0.8s;
 }
 
-.dromos-root .dromos-scene.is-offline .dromos-landscape { filter: saturate(0.62) sepia(0.14); }
+.dromos-root .dromos-scene.is-offline .dromos-landscape,
+.dromos-root .dromos-scene.is-offline .dromos-landscape-art { filter: saturate(0.62) sepia(0.14); }
+
+/* The user's painting of the landscape (landscape-art S1-S3), in the drawing's own box and sliced
+   from its bottom centre as the drawing's 960 x 300 view box is (xMidYMax slice): a 3.2:1 painting
+   lies exactly where the drawing would, so the walker keeps to the painted road and the gate stands at
+   its end. It replaces the drawing in each theme that has one; dark is the default, as for every
+   token, and the light theme undoes the dark painting and sets its own. Its loop is cropped as it is. */
+.dromos-root .dromos-landscape-art {
+	position: absolute;
+	inset: 0;
+	left: calc(-1 * var(--dromos-scene-shift));
+	width: calc(100% + var(--dromos-scene-shift));
+	height: 100%;
+	background-position: center bottom;
+	background-repeat: no-repeat;
+	background-size: cover;
+	transition: filter 0.8s;
+}
+.dromos-root .dromos-scene.has-art-dark > .dromos-landscape-art { background-image: var(--dromos-art-dark); }
+.dromos-root .dromos-scene.has-art-dark .dromos-landscape-drawing { display: none; }
+.theme-light .dromos-root .dromos-scene > .dromos-landscape-art { background-image: none; }
+.theme-light .dromos-root .dromos-scene.has-art-dark .dromos-landscape-drawing { display: inline; }
+.theme-light .dromos-root .dromos-scene.has-art-light > .dromos-landscape-art { background-image: var(--dromos-art-light); }
+.theme-light .dromos-root .dromos-scene.has-art-light .dromos-landscape-drawing { display: none; }
+.dromos-root .dromos-landscape-art .dromos-scene-video { object-position: center bottom; }
 
 .dromos-root .dromos-scene-sky-top { stop-color: var(--dromos-scene-sky-top); }
 .dromos-root .dromos-scene-sky-bottom { stop-color: var(--dromos-scene-sky-bottom); }
@@ -1015,6 +1040,7 @@
 	.dromos-root .dromos-spinner { animation: none; }
 	.dromos-root .dromos-scene,
 	.dromos-root .dromos-landscape,
+	.dromos-root .dromos-landscape-art,
 	.dromos-root .dromos-scene-ridge,
 	.dromos-root .dromos-gate-plaque { transition: none; }
 }

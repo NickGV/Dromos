@@ -28,6 +28,7 @@ import { briefingRequestMessage, briefingView } from '../presenters/briefingView
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
+import { landscapeArtView } from '../presenters/landscapeArtView';
 import { portraitPaintingView } from '../presenters/sceneArtView';
 import { historyView } from '../presenters/historyView';
 import { ceremonyView, gameNotices } from '../presenters/levelUpView';
@@ -202,7 +203,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
 	// The letter folds on every open of the view and stays as it was while the screen changes (S13).
 	const [letterOpen, setLetterOpen] = useState(false);
-	// The paintings, Esdras's portrait among them (letter-art S2): read when the view opens and again on every sync.
+	// The paintings, Esdras's portrait and the landscape among them (letter-art S2, landscape-art S1): read when the view opens and again on every sync.
 	const [art, setArt] = useState(() => deps.sceneArt.execute());
 	// Today's quests fold to 4 rows on every open of the view (missions S3, home-fit S3).
 	const [questsExpanded, setQuestsExpanded] = useState(false);
@@ -507,6 +508,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		}
 		card.show(<StageCard view={stageCardView(stages, avatar, owner, deps.clock.today(), deps.translator())} />);
 	}, [stages, avatar, owner, language, deps]);
+	// The time of day the scene shows, and with it the landscape's painting (landscape-art S4).
+	const period = dayPeriod(deps.clock.now());
 	return (
 		<I18nProvider t={t}>
 			{/* `lang` on the frame covers the signpost; the one on <main> stays for the content. */}
@@ -523,9 +526,10 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 						ribbon={showCeremony && ceremony.ribbon ? <LevelRibbon kicker={ceremony.ribbon.kicker} title={ceremony.ribbon.title} /> : null}
 						walker={walker.fraction}
 						gateLabel={walker.gateLevel === null ? null : t('character.level', { level: walker.gateLevel })}
-						period={dayPeriod(deps.clock.now())}
+						period={period}
 						campfire={questPanel.dayComplete}
 						avatar={avatar}
+						painting={landscapeArtView(art.landscape, period)}
 					/>
 					<CharacterPanel
 						state={panel}

@@ -16,6 +16,7 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 			archive: still(url('archive-light.webp'), null),
 			shop: still(null, null),
 			esdras: still(null, null),
+			landscape: { ...still(null, null), dawn: null, dusk: null, dawnVideo: null, duskVideo: null },
 		});
 	});
 
@@ -76,5 +77,55 @@ describe('sceneArtFrom: the paintings in the art folder (own-art S4)', () => {
 
 	it('ignores other video formats', () => {
 		expect(sceneArtFrom([file('wall-dark.webp'), file('wall-dark.mov'), file('wall-dark.gif')]).wall).toEqual(still(null, url('wall-dark.webp')));
+	});
+});
+
+describe('sceneArtFrom: the landscape\'s four paintings (landscape-art S1, S3, S4)', () => {
+	it('finds the day, night, dawn and dusk paintings by file name, whatever their case', () => {
+		const art = sceneArtFrom([file('landscape-light.webp'), file('Landscape-Dark.WEBP'), file('landscape-DAWN.png'), file('landscape-dusk.jpeg')]);
+		expect(art.landscape).toEqual({
+			light: url('landscape-light.webp'),
+			dark: url('Landscape-Dark.WEBP'),
+			lightVideo: null,
+			darkVideo: null,
+			dawn: url('landscape-DAWN.png'),
+			dusk: url('landscape-dusk.jpeg'),
+			dawnVideo: null,
+			duskVideo: null,
+		});
+	});
+
+	it('takes webp, then png, then jpg for dawn and dusk too', () => {
+		const art = sceneArtFrom([file('landscape-dawn.jpg'), file('landscape-dawn.png'), file('landscape-dawn.webp'), file('landscape-dusk.jpg'), file('landscape-dusk.png')]);
+		expect(art.landscape.dawn).toBe(url('landscape-dawn.webp'));
+		expect(art.landscape.dusk).toBe(url('landscape-dusk.png'));
+	});
+
+	it('finds each painting\'s loop beside it, dawn and dusk included, and ignores a loop whose painting is missing (S3)', () => {
+		const art = sceneArtFrom([
+			file('landscape-light.webp'),
+			file('landscape-light.webm'),
+			file('landscape-dark.mp4'),
+			file('landscape-dawn.webp'),
+			file('landscape-dawn.mp4'),
+			file('Landscape-Dawn.WEBM'),
+			file('landscape-dusk.webm'),
+		]);
+		expect(art.landscape).toEqual({
+			light: url('landscape-light.webp'),
+			dark: null,
+			lightVideo: url('landscape-light.webm'),
+			darkVideo: null,
+			dawn: url('landscape-dawn.webp'),
+			dusk: null,
+			dawnVideo: url('Landscape-Dawn.WEBM'),
+			duskVideo: null,
+		});
+	});
+
+	it('keeps every other scene as it was: no dawn or dusk of their own, and nothing from the landscape', () => {
+		const art = sceneArtFrom([file('landscape-light.webp'), file('landscape-dark.webp'), file('wall-dawn.webp'), file('shop-dusk.png'), file('wall-dark.webp')]);
+		expect({ ...art, landscape: NO_SCENE_ART.landscape }).toEqual({ ...NO_SCENE_ART, wall: still(null, url('wall-dark.webp')) });
+		expect(art.wall).not.toHaveProperty('dawn');
 	});
 });

@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **The painted landscape**: the landscape above every screen can be your own painting, in four paintings of the shepherd's day: `<folder>/Arte/landscape-dawn`, `landscape-light`, `landscape-dusk` and `landscape-dark` (WebP, PNG or JPG). The light theme shows the painting of the time of day, with the day painting standing in for a missing one, and the dark theme keeps its night with `landscape-dark` at every hour. Dromos still draws the gate with its level plaque, the walker on the road, the campfire, the signpost and your plaque over it, and under a painting it no longer draws the landscape or its animations. Each painting can have its own loop beside it (`landscape-<name>.webm`, or `.mp4`), which plays as in the Library. An offline scene still looks faded, and without the paintings every screen looks as before. [docs/own-art.md](docs/own-art.md#landscape-the-countryside-above-every-screen) has the layout guides and the prompts.
+
 ## [0.27.0] - 2026-11-26
 
 ### Changed
