@@ -7,7 +7,7 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
 
 - **S1** The character's plaque with the stats and the stages modal take the painted look (user, L1: "creo que hay que cambiar la card donde estan las stats y la modal donde aparecen los stages").
 - **S2** Every other card and view does too (user, L1: "ya hay que cambiar el resto de las cards, de las campains, las today{s quests, la vista de las skills la vista de las campainas, todo realmente").
-- **S3** The app gets a background of its own below the scene (user, L1: "no se que posibilidad de ponerle algun otro fondo como tal de la aplicacion, no el de arriba sino el de abajo"). Options are explored and shown before building.
+- **S3** The app gets a background of its own below the scene (user, L1: "no se que posibilidad de ponerle algun otro fondo como tal de la aplicacion, no el de arriba sino el de abajo"). The user chose option A, "Camino": the road's earth in CSS, whose ragged edge rises into the painting (L4).
 - **S4** The signpost, which is also the navigation, is restyled (user, L1: "y creo que el cartel que funciona tambien como navegacion").
 - **S5** One shared card language, mockup first (L1: the user agreed to "Un solo lenguaje de card ... Te lo muestro en maqueta antes de escribir código"). It builds on the papyrus pieces the user already liked: Esdras's letter and the "Leyendo ahora" scrolls.
 - **S6** (assumption, from the earlier features) Everything keeps working as today: every text, button, state and behaviour, keyboard and screen-reader use, both themes, every time of day, phones and offline. Text never sits straight on an image: it always sits on its plate.
@@ -18,8 +18,8 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
 | T1 | S1-S4 (audit: every screen, card and modal shot with the paintings, inventoried with its component) | delegated (context backstop) | done | L2 |
-| T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | done; waiting for the user's choice (L3) | |
-| T3 | S1-S7 (apply, screen by screen, starting with Home; split after T2) | pending | pending | |
+| T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | done; approved (L4) | L3 |
+| T3 | S1-S7 (apply the approved language and background A everywhere, fix the mockup's weak points, then the Library, archive and Shop pass) | delegated (context backstop, L4) | in progress | |
 | T4 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -78,4 +78,10 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
     - The empty states, the Shop's confirmation and the level-up card were not shot.
     - The Library alcoves, the archive pigeonholes and the Shop tabs need their own pass.
   - **Parent check:** the Home before/after at both widths and themes, and the backgrounds sheet.
+- **L4** (2026-11-26, user): I asked "¿Vamos con este lenguaje y el fondo A?" and the user answered "si dale".
+  - **T3, delegated to one writer by the context backstop:**
+    - **Source:** apply `proposed.css` and the `ScreenHeader` change from the mockup.
+    - **Weak points to fix:** the day grain, the sheet/ground separation on dim phones, the radar labels, and the states that were not shot.
+    - **Then:** the pass for the Library alcoves, the archive pigeonholes and the Shop tabs.
+    - **Return:** before/after sheets of every screen, and the performance measurement.
 
