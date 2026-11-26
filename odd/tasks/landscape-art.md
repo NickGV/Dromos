@@ -41,7 +41,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
-| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | sample in progress | |
+| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | samples done (L9), waiting for the user's verdict | |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variants mockup, then code) | delegated (context backstop, L8) | mockup in progress | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
@@ -111,3 +111,25 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **No painted sprite:** the walker has 12 stages (`STAGE_IDS`) plus the skills' objects, so a painted sprite per combination is not practical.
   - **Restyle instead:** the drawing is restyled. Each variant is tried as CSS or markup overrides in a scratch mockup.
   - **Cost limit:** the walker always breathes and its sash stirs, so a filter on it would repaint every frame. The light of the hour has to come from colour tokens per period instead.
+- **L9** (2026-11-26): the T4 samples are done. They are the night and day loops with motion: 1600 × 500, 15 fps, 10 s, VP8 WebM, 375 and 391 KB. Copies are at `~/Downloads/dromos-paisaje/muestra-noche.webm` and `muestra-dia.webm`.
+  - **Both:** the smoke rises and waves, the clouds sway and roll, the sails make a quarter turn per loop, and one gust of breeze crosses the meadow, the cypresses and the tree.
+  - **Night:** the stars twinkle, the painted fireflies pulse and 7 more drift, the windows and the doorway flicker, and the moon's halo breathes.
+  - **Day:** the sun's glow breathes, and two tiny birds circle out from behind a cloud.
+  - **Still:** the "what moves" map shows nothing moving on the road, the gate, the campfire's spot, the walker's way or the figures (0 pixels before encoding). The parent checked the night sheet.
+  - **Accuracy:**
+    - **Frame 0 against the painting:** mean 0.54 and max 18 levels.
+    - **Seam:** at the loop point the codec's noise resets, about 1 level in moving areas.
+    - **Colour bias:** ffmpeg's default conversion darkened the video by 1.1 levels, fixed with `accurate_rnd`.
+  - **Flaw:** in the middle of each quarter turn the sails cross-fade, because the four painted sails differ. At 2× this shows doubled edges; at screen size (a 45 px windmill) it is a slight softening. It can be switched off per preset.
+  - **CPU:** median of 3 runs, the video alone in the 1160 × 363 box.
+
+    | Video | CPU (% of one core) |
+    |---|---|
+    | 1280 × 400 @12 | 3.9 |
+    | 1600 × 500 @15 | 5.1 |
+    | night sample | 5.2 |
+    | day sample | 5.0 |
+
+    - **Against today:** today's landscape animations cost about 11.6 % (Home 11.8 % against 0.2 % under reduced motion, letter-art L3), so a painted Home with one loop should cost about half.
+    - **Still to do:** measure the real painted Home with its loop once the loops are final.
+  - **Tool:** scratch `landscape-art/motion/tools/motion.py`, with a preset per painting. Dawn and dusk copy the day preset. The Shop needs its own preset.
