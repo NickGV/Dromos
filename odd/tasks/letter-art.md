@@ -21,7 +21,7 @@ Branch: `feat/letter-art`. Delivery: merge into main, release on the user's go-a
 | T2 | S2, S3 (no video) | inline | done | 4a2c77c |
 | T3 | S3 (measurements) | inline | done | L3 |
 | T4 | S4 (prompts, docs) | inline | done | docs commit (L3) |
-| T5 | S4 (portraits in) | inline | waiting for the user's portraits | |
+| T5 | S4 (portraits in) | inline | done | in the vault (L4) |
 | T6 | release | inline | waiting for the user's go-ahead | |
 
 ## Log
@@ -53,3 +53,9 @@ Branch: `feat/letter-art`. Delivery: merge into main, release on the user's go-a
     - **The landscape plan:** today's animated landscape already costs about as much as one full-size loop. A painted landscape with one light loop at about 960 px and 12 fps should cost less than today, and a still painting costs nothing.
   - **T4:** the `esdras` prompts (dark, light), with a 4:5 box under the arch, export at 400×496 WebP, and no video. README and CHANGELOG `[Unreleased]` are updated.
   - **Next:** T5 waits for the user's two portraits.
+- **L4** (2026-11-26, user): sent the two Gemini portraits (1856×2304, 4:5) and said "mira las imagenes".
+  - **Labels:** neither image has painted labels or lettering, so no cleanup was needed. The dark one paints the oil lamp at its lower left corner, against the prompt; at the niche's size it reads as warm light, so it stays.
+  - **Crop:** three crops of the same images were rendered in the real `BriefingPanel` at 600 and 360 px, in both themes: the whole image, 78% of its width, and 60%. The whole image makes the face too small at 64×79 px, and 60% loses the reed pen. The 78% crop (x 167, y 184, 1448×1796 px) keeps the face readable and the pen in his hand.
+  - **Files:** the crop was exported with `cwebp -q 80` at 400×496: esdras-dark is 15 KB and esdras-light 16 KB. Both are in `Dromos/Arte/`.
+  - **Check:** a scratch harness mounted the real `HomeScreen` in Chrome with the two files. The dark theme shows only the dark portrait and the light theme only the light one, with no `<video>` and no page errors.
+  - **Next:** T6, the 0.27.0 release, waits for the user's go-ahead.
