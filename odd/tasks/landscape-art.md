@@ -53,7 +53,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
 | T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | done and verified (L18); stages 03-06 to be redone with the satchel | 4d98f0a |
 | T5 | release | inline | done | 0.28.0 (L19) |
-| T9 | S7 (the Library's eight loops remade with motion at the Shop's cheaper settings: 15 fps, exact ratio) | delegated (context backstop, L20) | in progress | |
+| T9 | S7 (the Library's eight loops remade with motion at the Shop's cheaper settings: 15 fps, exact ratio) | delegated (context backstop, L20) | done | in the vault (L21) |
 
 ## Log
 
@@ -279,4 +279,27 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 - **L20** (2026-11-26, user): I reported performance. The Library is now the most expensive screen, at 15.4 % of a core with its first loops at 1800 px and 24 fps. I asked "¿... y, en paralelo, aligero los videos de la Biblioteca?" and the user answered "si dale porfavor".
   - **T9:** the motion worker remakes the eight Library loops (wall, desk, shelf, archive × light, dark) with its tool, at 15 fps and each painting's exact ratio, with soft motion as in the landscape and the Shop. It measures old against new. The old loops are kept in scratch.
   - **No release:** vault files only.
+- **L21** (2026-11-26): T9 is done. The worker was resumed after the session ended.
+  - **The loops:** the Library's eight loops were remade at 15 fps, 10 s, each at its painting's exact ratio. Wall is 1456 × 720, desk and archive 1568 × 518, shelf 1280 × 1280. They range from 189 to 796 KB.
+  - **Motion:**
+    - **Wall:** a sunbeam with motes by day; at night the lamplight breathes.
+    - **Desk:** the window light and motes by day; at night the lamp's flame and its glow.
+    - **Archive:** drifting clouds, a swaying cypress and motes by day; at night stars, the moon's halo, a candle and the cypress.
+    - **Shelf:** the light in the niche with motes by day; at night the lamplight from below.
+  - **Under the text:** the text areas are calm at 15 %, and every text in the Library sits on opaque panels.
+  - **Checks:**
+    - **Frame 0 against the painting, in Chrome:** a mean of 0.61-1.03 levels.
+    - **Seams:** within each loop's own frame step.
+  - **CPU** (the real Library at 1160 px, median of 3 runs, % of one core):
+
+    | View | Old loops | New loops |
+    |---|---|---|
+    | Room | about 15 | 7.5-7.8 |
+    | Shelf | 28-32 | 13-17 |
+    | Archive | about 7 | 3.5 |
+
+    - **The shelf** is still the most expensive view, since its panels repaint over the video.
+    - **Options if needed:** a still shelf (0 %), 12 fps, or a smaller video.
+  - **Parent check:** on the desk-at-night sheet, the motion stays around the lamp and the scroll band is calm.
+  - **Vault:** all eight are in `Dromos/Arte/` and show at once in 0.28.0. The old ones are kept in scratch `landscape-art/motion/old-library/`.
 
