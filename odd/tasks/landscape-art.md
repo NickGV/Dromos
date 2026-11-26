@@ -42,8 +42,8 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | samples approved (L11); dawn, dusk and Shop loops in progress | |
-| T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | code in progress | |
-| T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | waiting for the user's painting (L12) | |
+| T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
+| T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -167,3 +167,20 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - `~/Downloads/dromos-paisaje/objetos-skills.png`: each object alone, on the plaque's bust and on the walker (pilgrim stage).
     - `~/Downloads/dromos-paisaje/caminante-guia.png`: the runner without objects, as the pose guide for the pilot.
   - **T7:** the painted walker pilot, waiting for the user's painting.
+- **L13** (2026-11-26):
+  - **T6 is done.**
+    - **Commits:** f84db45 fixes the five cut paths, with a test that every path of every stage and object has whole argument groups. dd735af adds variant C: `FigureShading` plus about 180 lines of CSS inside `@supports (color: color-mix(...))`. A plain fallback line would never apply, since each `color-mix()` holds a `var()`.
+    - **Checks:** 2658 tests pass (re-run by the parent), lint has 0 errors and the build passes.
+    - **S5:** 48 of 48 screenshots are byte-identical, and 16 of 16 for the drawn theme of a one-theme painting.
+    - **Painted shots:** they match the mockup's C within 3 levels.
+  - **T7 pilot:** the user painted the runner in Gemini from `caminante-guia.png` and the day painting ("este fue el resultado", 1696 × 2528 on green).
+    - **Prepared:** it was keyed out of the green with no halo (scratch `pilot/tools/key.py`). It was graded offline for dawn, dusk and night, with the lantern kept warm at night (`pilot/tools/tint.py`), so the page needs no filter.
+    - **Compared:** it was set in the walker's own box on the real `HomeScreen` at fded82c with the four paintings, beside today's walker and variant C, at the four hours, at 1160 and 360 px, at 2×.
+    - **Verdict:** at real size the painted walker belongs to the painting far more than C does. My earlier claim that the brushwork would not show at 45-70 px was wrong.
+    - **Tuning:** it sits a little smaller than the drawn one, because it is fitted inside the drawn walker's box.
+    - **File for the user:** `~/Downloads/dromos-paisaje/caminante-pintado-prueba.png`.
+  - **For the full set:**
+    - 12 stage paintings, from per-stage pose guides that I render.
+    - One painted sheet of the 14 objects, cut and placed at the existing anchors.
+    - The light of the hour graded without filters.
+    - Variant C stays for any stage without a painting, and for the gate and the campfire.
