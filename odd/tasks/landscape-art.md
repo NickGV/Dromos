@@ -33,7 +33,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 - **S9** The walker can be the user's painting (user, L12 and L15: "imagenes png de solo el caminante con sus variantes y sus etapas", "si dale armame todo y lo voy sacando"):
   - **Paintings:** one painting per stage, 12 in all.
   - **Objects:** the skills' 14 objects are painted on one sheet and placed at their spots on the figure.
-  - **Light:** the figure takes the light of the hour without filters.
+  - **Light:** the figure takes the light of the hour at no measurable cost: one colour-matrix filter per hour, measured at 2.1 % of a core with and without it (L17).
   - **Fallback:** a stage without its painting keeps variant C (S8).
   - **Still working:** every stage, the objects, the walk and the breathing work as before.
   - **Open, decided in T8's code:** where the paintings live and who keys them out.
@@ -51,7 +51,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | done | in the vault (L14) |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
-| T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | paintings in (L16); code in progress; stages 03-06 to be redone with the satchel | |
+| T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | code done (4d98f0a, L17); independent verifier running (item 3); stages 03-06 to be redone with the satchel | 4d98f0a |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -236,4 +236,30 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **No satchel:** stages 03-06 (pilgrim, apprentice, disciple, traveller) have no satchel and no strap, though their guides do. The `satchel` spot (lector) and the `strap` spot (escriba, labiolector) would float there, so these four are to be redone as edits adding the satchel.
     - **Elder:** he stands upright, although his guide stoops. This is accepted.
   - **Route:** T8's code and image preparation are delegated to one background writer, by the context backstop. The writer leaves the code uncommitted and its prepared files in scratch. The parent checks them, then copies them into the vault.
+- **L17** (2026-11-26): T8's code is done (4d98f0a). The files are in the vault.
+  - **Design:** `artFileFinder` is the shared matcher, now used by `sceneArtFrom` and by the new `walkerArtFrom`. `LoadSceneArt.walker(objectIds)` reads the walker files, and HomeScreen gets them through a new `walkerArt` dependency, read on open and on every Sync.
+    - **Painted walker:** `PaintedWalker` sits in `.dromos-walker-body`, with the `behind` objects under the stage image. `PaintedObject` falls back to the drawn object when its painting is missing. `Scene` passes the painted walker only over a painted landscape.
+    - **Light of the hour:** one `feColorMatrix` per hour, from the pure, tested `gradeMatrix`. It matches the pilot within a mean of 1.0-1.5 levels.
+  - **Frames:** `WALKER_FRAME` is {-20, -74, 52, 78} in walker units, exported at 320 × 480. `OBJECT_FRAME` is {-18, -18, 36, 36}, exported at 160 × 160.
+    - **Mapping:** feet on y 0, the staff on x 20, and the hook's top on the drawn staff's top.
+    - **Script:** the re-runnable scratch `walker-set/tools/prep.py`, which re-keys any raw image newer than its cut-out.
+  - **Checks:**
+    - **Suite:** 2681 tests pass (re-run by the parent), lint has 0 errors and the build passes.
+    - **S5:** byte-identical screenshots: 48 of 48 without paintings, 48 of 48 with walker files but no landscape painting, and 16 of 16 for each drawn-theme case.
+    - **CPU:** dark night at 1160 px.
+
+      | Home | CPU (% of one core) |
+      |---|---|
+      | drawn | 16.9 |
+      | painted, variant C walker | 2.5 |
+      | painted walker, filter on | 2.1 |
+      | painted walker, filter off | 2.1 |
+
+  - **Parent check:** the 1160 sheet shows the runner, the scholar and the sage at every hour, with the lantern lit at night.
+  - **Vault:** the 26 files (`walker-*` and `object-*`) are in `Dromos/Arte/`, 330 KB in all. The released 0.27.0 ignores them.
+  - **Open:**
+    - Stages 03-06 are still to be repainted with the satchel. Their new raw images go into `walker-set/in/`, and `prep.py` runs again.
+    - The elder is about 4 % larger than the others, and the student and mentor about 3-5 % smaller.
+    - The student's case of scrolls sits at his far hip.
+  - **Risk:** item 3, the shared art-file matcher. An independent verifier is running a differential against 9e96904.
 
