@@ -24,6 +24,12 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Seamless loop:** the loop is seamless, and its first frame is the painting.
   - **Shop files:** the Shop's new loops replace `shop-light.webm` and `shop-dark.webm`, so they need no code change.
   - **Cost:** a landscape loop must cost less than today's animated drawing (11.8 % of a core, letter-art L3), with a target of about 6 %, measured.
+- **S8** The drawn figures fit the painting (user, L8: "mejoremos al caminante para que quede mas acorde a lo que tenemos de fondo, porque ya queda un poco raro como esta hecho"):
+  - **Over a painting:** the walker reads as part of the painted world, and so do the gate and the campfire that share its style.
+  - **Still working:** every stage, the skills' objects, the walk and the breathing work as before.
+  - **Performance:** it adds no measurable cost; no filter repaints an animated figure every frame.
+  - **Without a painting:** the drawn landscape's figures stay as they are (S5).
+  - **Mockup first:** the user chooses between the variants.
 - **S6** `docs/own-art.md` gives the landscape prompts:
   - The day and night paintings come from the layout guides: the drawing itself without what Dromos draws over it, handed to the generator with the prompt, so the composition stays.
   - The dawn, dusk and new night paintings are edits of those two paintings that change only the light and the shepherd's day.
@@ -36,6 +42,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | sample in progress | |
+| T6 | S8 (walker, gate and campfire restyled over the painting: variants mockup, then code) | delegated (context backstop, L8) | mockup in progress | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -99,3 +106,8 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Painted check:** the real `HomeScreen` with the four vault files shows the right painting at each period, with no page errors.
   - **Review:** receipt-driven review is off (global). The assessment could not run with the untracked `.atl/`, and no high-risk item applies, so there is no independent verifier.
   - **Size:** about 590 changed lines in one unit of behaviour; most of the excess is the verbatim prompts and the tests.
+- **L8** (2026-11-26, user): "chat es posible que mejoremos al caminante para que quede mas acorde a lo que tenemos de fondo, porque ya queda un poco raro como esta hecho jajaj".
+  - **Why it looks pasted on:** the walker, the gate and the campfire are flat vector shapes with a hard dark outline (`--dromos-scene-marker-line`). They keep the same colours at dawn, dusk and night, so they ignore the painting's light.
+  - **No painted sprite:** the walker has 12 stages (`STAGE_IDS`) plus the skills' objects, so a painted sprite per combination is not practical.
+  - **Restyle instead:** the drawing is restyled. Each variant is tried as CSS or markup overrides in a scratch mockup.
+  - **Cost limit:** the walker always breathes and its sash stirs, so a filter on it would repaint every frame. The light of the hour has to come from colour tokens per period instead.
