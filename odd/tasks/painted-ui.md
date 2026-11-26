@@ -19,7 +19,7 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
 |----|-------|-------|--------|----------|
 | T1 | S1-S4 (audit: every screen, card and modal shot with the paintings, inventoried with its component) | delegated (context backstop) | done | L2 |
 | T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | done; approved (L4) | L3 |
-| T3 | S1-S7 (apply the approved language and background A everywhere, fix the mockup's weak points, then the Library, archive and Shop pass) | delegated (context backstop, L4) | in progress | |
+| T3 | S1-S7 (apply the approved language and background A everywhere, fix the mockup's weak points, then the Library, archive and Shop pass) | delegated (context backstop, L4) | done | ef4ec82 (L5) |
 | T4 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -84,4 +84,27 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
     - **Weak points to fix:** the day grain, the sheet/ground separation on dim phones, the radar labels, and the states that were not shot.
     - **Then:** the pass for the Library alcoves, the archive pigeonholes and the Shop tabs.
     - **Return:** before/after sheets of every screen, and the performance measurement.
+- **L5** (2026-11-26): T3 is done (ef4ec82).
+  - **Applied:** `proposed.css` was folded into `styles.css`, replacing the mapped sections, and the `ScreenHeader` became a wooden sign.
+  - **Departures from the mockup, with reasons:**
+    - The signpost's token was renamed to `--dromos-wood-rim`, because the mockup's `--dromos-wood-edge` recoloured the desk, archive and counter.
+    - The Library's duplicate papyrus tokens were removed.
+    - Mockup-only bugs were fixed: short sign titles off centre, the radar's outer ring, and the road's half-filled segment.
+    - States the mockup lost were restored: the warning stamps on missing tasks, and the sticky ware detail.
+    - The phone sizes were kept.
+    - Contrast fixes: full muted ink on the filter counts, and deep ochre for the tab underline by day.
+    - The quest filters gained a focus ring.
+  - **Weak points fixed:**
+    - **Grain:** finer and fainter.
+    - **Separation:** lighter sheets, a darker night ground and a frayed rim. Sheet on ground is now 1.41 by day and 1.47 at night.
+    - **Radar labels:** 15 px, so 10 px small caps and 14 px digits at 360 px.
+    - **States never shot:** the empty states, the level-up card and the purchase confirmation are now shot and follow the sheet rule. The confirmation unrolls as a scroll.
+    - **Library, archive and Shop:** the alcoves, archive door, pigeonholes and wares are papyrus tiles on a wooden ledge, and the Shop tabs are underlined words.
+  - **Checks:**
+    - 2693 tests pass (re-run by the parent), lint has 0 errors and the build passes.
+    - The new `paintedUi.test.tsx` failed 8 tests on the base stylesheet; the 8 class pins were updated first.
+  - **Contrast:** every text pair is at 4.5:1 or more and enforced by a test. On the textured pixels, the worst is day muted on the ground at 4.59. Keyboard focus is visible on 16 surfaces in both themes.
+  - **CPU:** idle 6.0 → 5.9 / 6.1 %, and scrolling within noise. Forcing `background-attachment: scroll` costs 172.5 %, so `local` stays.
+  - **Shots:** 92 before and 92 after. The user's sheets are `~/Downloads/dromos-ui/resultado-{claro,oscuro}.png`. The parent checked the light sheet.
+  - **Risk:** none. Every screen was in scope ("todo realmente"), and every screen and modal was shot before and after.
 
