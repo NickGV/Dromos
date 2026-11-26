@@ -18,7 +18,7 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
 | T1 | S1-S4 (audit: every screen, card and modal shot with the paintings, inventoried with its component) | delegated (context backstop) | done | L2 |
-| T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | in progress | |
+| T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | done; waiting for the user's choice (L3) | |
 | T3 | S1-S7 (apply, screen by screen, starting with Home; split after T2) | pending | pending | |
 | T4 | release | inline | pending, on the user's go-ahead | |
 
@@ -56,4 +56,26 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
   - **App root:** `DromosView.tsx:33` puts `dromos-root` on Obsidian's content element, which paints a flat `--dromos-paper` (#faf5ea by day, #1b1713 at night) with no image. The content column is 720 px wide, or 1100 px with two columns on Home. Below the scene's hard bottom edge, the cards sit on paper of almost the same tone. An S3 background belongs on `.dromos-root` or a layer under the content.
   - **Signpost:** a `<nav class="dromos-signpost">` absolutely placed in the scene, with up to six tilted planks, the current one burnt in. On phones the planks are 34 px tall.
   - **Route:** T2 is delegated to one design worker by the context backstop.
+- **L3** (2026-11-26): T2 is done. The mockup sits over the real components, in scratch `painted-ui-mock/` (`design.md`, `proposed.css`, `mock-src.css` and `shots/`). The user's copies are `~/Downloads/dromos-ui/maqueta-{home,campanas,skills,modales,fondos,cartel}.png`.
+  - **The language:** everything below the scene is an object of the same world.
+    - **Cards, lists and modals** are papyrus sheets, with fibres, a ragged edge and a soft shadow, and no umber border.
+    - **Ledgers:** Home's campaigns and the campaign's phases become ledger sheets with ruled rows.
+    - **Wood:** the signpost, the gate plaque and the screen title, which becomes a wooden sign hung by two cords from the scene's foot. This is the only markup change: `ScreenHeader.tsx:26`, `dromos-panel` → `dromos-sign`. Four tests pin that class.
+    - **Ink:** one ochre bar for all progress. The tabs become words with an ochre underline, and the pills become small caps, with a stamp only on the attention-seeking ones.
+    - **Modals:** the stage and titles modals become an unrolled scroll on rods.
+    - **The character plaque:** a papyrus leaf hung from a rod, with the radar as an ink star.
+    - **Tokens:** radii and shadows become tokens.
+  - **Background options:**
+    - **A, "Camino":** the road's packed earth, in CSS only, with a ragged edge rising into the painting. Recommended.
+    - **B, "Lino":** CSS only. It keeps the hard edge.
+    - **C, "Tierra pintada":** the landscape continued downward. It needs the user's painting, and the tabs would sit on it.
+  - **Signpost:** arrow-shaped plank boards on a post with a pointed cap, in CSS only. The current plank flips: charred by day, lamplit at night. It clears 3:1 against the paintings at every hour, where the old one reached 2.81 and 2.37. Its letters are at least 8.6:1, and phone targets are 44 px.
+  - **Performance:** idle within noise, scrolling +1.5 points. `background-attachment: local` is mandatory on `.dromos-root`, the scroll container: without it, scrolling cost about 145 %.
+  - **Weak points:**
+    - The day ground's grain looks a little like sandpaper.
+    - The sheets separate from the ground only by shadow and edge (1.32:1 tone contrast).
+    - The radar labels are about 8.5 px.
+    - The empty states, the Shop's confirmation and the level-up card were not shot.
+    - The Library alcoves, the archive pigeonholes and the Shop tabs need their own pass.
+  - **Parent check:** the Home before/after at both widths and themes, and the backgrounds sheet.
 
