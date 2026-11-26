@@ -22,7 +22,7 @@ Branch: `feat/letter-art`. Delivery: merge into main, release on the user's go-a
 | T3 | S3 (measurements) | inline | done | L3 |
 | T4 | S4 (prompts, docs) | inline | done | docs commit (L3) |
 | T5 | S4 (portraits in) | inline | done | in the vault (L4) |
-| T6 | release | inline | waiting for the user's go-ahead | |
+| T6 | release | inline | done | 0.27.0 (L5) |
 
 ## Log
 
@@ -59,3 +59,8 @@ Branch: `feat/letter-art`. Delivery: merge into main, release on the user's go-a
   - **Files:** the crop was exported with `cwebp -q 80` at 400×496: esdras-dark is 15 KB and esdras-light 16 KB. Both are in `Dromos/Arte/`.
   - **Check:** a scratch harness mounted the real `HomeScreen` in Chrome with the two files. The dark theme shows only the dark portrait and the light theme only the light one, with no `<video>` and no page errors.
   - **Next:** T6, the 0.27.0 release, waits for the user's go-ahead.
+- **L5** (2026-11-26, user): "si dale porfavor y dime con cual continuamos", the go-ahead for 0.27.0.
+  - **Merge and release:** feat/letter-art was merged into main (500d0c0). release/0.27.0 holds the changelog (8a1149d) and `npm version minor` (cfc2dc0, tag 0.27.0), and was merged back (55db67c).
+  - **Checks:** 2630 tests pass, lint 0 errors (4 old warnings), build OK.
+  - **Release:** main and the tag were pushed as NickGV. release.yml run 45826356150 finished with success, and release 0.27.0 has main.js, manifest.json and styles.css.
+  - **Next:** the landscape, as the user asked in L1.
