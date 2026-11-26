@@ -51,7 +51,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | done | in the vault (L14) |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
-| T8 | S9 (painted walker: kit, then cut-outs and code) | inline | kit done (L15); waiting for the user's paintings | |
+| T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | paintings in (L16); code in progress; stages 03-06 to be redone with the satchel | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -226,3 +226,14 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Prompts:** `prompts.md`, one prompt per stage from 02 to 12, and one for the object sheet.
     - **Stage prompts:** each repeats the runner's identity, the pose of its guide, the stage's age, hair, beard and clothes from `STAGE_LOOKS`, and a flat green background.
     - **Object sheet:** it gets a magenta background, because the olive wreath is green.
+- **L16** (2026-11-26, user): sent 12 stage paintings and the object sheet. The user wrote "estan enumerados por  etapa, pero creo que me salte el 7 jaja, entonces desde el 8 hacia arriba hay que restarle 1".
+  - **Mapping:** 1-6 are the runner through the traveller, and 8-13 are the student through the sage. The object sheet is `Gemini_Generated_Image_2dp5le2dp5le2dp5.jpeg`.
+  - **Cut-outs:**
+    - **Stages:** all 12 key out cleanly from the green (scratch `walker-set/cut/`).
+    - **Objects:** the 14 were cut cell by cell in the guide's order, keyed from the magenta by min(r,b) - g with the spill capped (`walker-set/tools/objects.py`, output in `cut/objects/`).
+    - **Lineup:** `~/Downloads/dromos-caminante/recortados.png`.
+  - **Flaws:**
+    - **No satchel:** stages 03-06 (pilgrim, apprentice, disciple, traveller) have no satchel and no strap, though their guides do. The `satchel` spot (lector) and the `strap` spot (escriba, labiolector) would float there, so these four are to be redone as edits adding the satchel.
+    - **Elder:** he stands upright, although his guide stoops. This is accepted.
+  - **Route:** T8's code and image preparation are delegated to one background writer, by the context backstop. The writer leaves the code uncommitted and its prepared files in scratch. The parent checks them, then copies them into the vault.
+
