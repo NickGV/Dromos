@@ -5,15 +5,22 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 
 ## Specs
 
-- **S1** The landscape shows the user's painting from `Dromos/Arte/`: `landscape-light.<ext>` in the light theme and `landscape-dark.<ext>` in the dark theme, with the own-art S4 naming rules. The painting replaces the drawn landscape in its theme, and a theme without its painting keeps the drawing. The paintings are read when the view opens and on each Sync.
+- **S1** The landscape shows the user's painting from `Dromos/Arte/`: `landscape-light.<ext>` in the light theme and `landscape-dark.<ext>` in the dark theme, and `landscape-dawn.<ext>` and `landscape-dusk.<ext>` for the light theme's dawn and dusk (S4), with the own-art S4 naming rules. The painting replaces the drawn landscape in its theme, and a theme without its painting keeps the drawing. The paintings are read when the view opens and on each Sync.
 - **S2** Over the painting, Dromos keeps drawing what carries meaning: the walker at its place on the road, the gate at the road's end with its level plaque, the campfire of a complete day, the signpost, the character's plaque and the level-up ribbon. The painting follows the drawing's 960 × 300 layout, sliced and framed as the drawing is, so the walker walks on the painted road and passes under the gate.
 - **S3** Performance (user, letter-art L1: "tambien deberiamos tener en cuenta la cuestion del rendimiento"):
   - With a painting, the drawn landscape and its loops are not drawn.
   - A loop beside the painting, `landscape-<theme>.webm` (or `.mp4`), plays over it under scene-video S1-S4.
   - The painted Home is measured against today's, with the method of letter-art L3.
-- **S4** Time of day (assumption, to confirm on the mockup with the user's paintings): the dark theme shows its night painting at every hour, as the drawing keeps its night. The light theme shows the day painting by day, the same painting warmed at dawn and dusk, and the night painting at night when there is one. An offline scene still fades.
+- **S4** Time of day (user, L3-L4: "que en la noche el pastor ya este en la casa"): the landscape tells the shepherd's day in four paintings.
+  - The paintings: dawn `landscape-dawn` (he sets out with the sheep), day `landscape-light`, dusk `landscape-dusk` (he heads home), night `landscape-dark` (he is at home, the sheep in their fold).
+  - The light theme shows the painting of the current period.
+  - The dark theme shows the night painting at every hour, as the drawing keeps its night.
+  - Assumption: in the light theme, a missing dawn, dusk or night painting falls back to the day painting.
+  - An offline scene still fades.
 - **S5** Without the landscape's paintings, every screen looks exactly as before: same pixels, in both themes, at every time of day.
-- **S6** `docs/own-art.md` gives the two landscape prompts and says how to make them from the layout guides: the drawing itself without what Dromos draws over it, handed to the generator with the prompt, so the composition stays.
+- **S6** `docs/own-art.md` gives the landscape prompts:
+  - The day and night paintings come from the layout guides: the drawing itself without what Dromos draws over it, handed to the generator with the prompt, so the composition stays.
+  - The dawn, dusk and new night paintings are edits of those two paintings that change only the light and the shepherd's day.
 
 ## Tasks
 
@@ -44,3 +51,9 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Framing:** at 1160 px the painted sun is half cut at the top, since the drawn sky moves down on wide panes and a painting cannot. At 2560 px the gate's plaque is cut at the scene's top with the drawing too, so this is pre-existing, not caused by the painting.
   - **Files for the user:** `~/Downloads/dromos-paisaje/maqueta-escritorio.png`, `maqueta-telefono.png` and `camino-superpuesto.png`.
   - **Open decision (S4):** the user proposes paintings that change with the time of day, such as the shepherd at home at night. Waiting for the user's answer before T3.
+- **L4** (2026-11-26, user): I proposed four paintings of the shepherd's day: dawn, day, dusk, and night with the shepherd at home. Changing the shown image costs nothing; animating is what costs. I asked "¿Vamos con las cuatro pinturas del día?". The user answered "si dale dame los prompts para yo tirarlo, para dejarlo todo lo mejor posible porfavor".
+  - **Prompts:** three Gemini edits, each on the original painting in a new chat, with no hex codes or percentages so that no label is painted.
+    - Dawn and dusk are edits of the day painting.
+    - The new night is an edit of the dark painting.
+  - **Unchanged:** the day painting stays as it is.
+  - **Next:** check each painting with the road overlay and the Home mockup, then T3.
