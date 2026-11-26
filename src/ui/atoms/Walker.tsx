@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
+import type { WalkerPaintingView } from '../presenters/walkerArtView';
 import { WALK_MS, walkerPlacement, walkerTransform } from '../presenters/walkerView';
-import { WalkerFigure } from './avatar/WalkerFigure';
+import { PaintedWalker, WalkerFigure } from './avatar/WalkerFigure';
 
 export interface WalkerProps {
 	/** The share of the level done, 0..1, the place on the road it walks to; `null` stands it at the start. */
 	readonly fraction: number | null;
 	/** Who walks (M11 S1): the character's stage and the objects of its skills; the young runner by default. */
 	readonly avatar?: AvatarView;
+	/** The user's painting of this stage (landscape-art S9), drawn beside the figure for the stylesheet to choose; absent or `null`, only the figure. */
+	readonly painting?: WalkerPaintingView | null;
 }
 
 /**
@@ -17,15 +20,18 @@ export interface WalkerProps {
  * his hooded mantle and his staff with a lantern lit at night, to the sage. Its group names the stage.
  * When the share grows it walks there in about 1.2 s, slowing as it arrives, with a two-step bob; a
  * smaller share, the first one it is given and reduced motion move it at once. Drawn inside the
- * landscape, which screen readers skip.
+ * landscape, which screen readers skip. With the user's painting of its stage (landscape-art S9) the
+ * painted walker stands beside the drawn one in the same body, so it walks, bobs and breathes as the
+ * drawn one does, and keeps its cast shadow.
  */
-export function Walker({ fraction, avatar = FIRST_AVATAR }: WalkerProps) {
+export function Walker({ fraction, avatar = FIRST_AVATAR, painting = null }: WalkerProps) {
 	const { shown, walking } = useWalk(fraction);
 	return (
-		<g className={`dromos-walker is-${avatar.stage}${walking ? ' is-walking' : ''}`} transform={walkerTransform(walkerPlacement(shown))}>
+		<g className={`dromos-walker is-${avatar.stage}${painting ? ' is-painted' : ''}${walking ? ' is-walking' : ''}`} transform={walkerTransform(walkerPlacement(shown))}>
 			<ellipse className="dromos-scene-shadow" cx="2" cy="2" rx="16" ry="3.5" />
 			<g className="dromos-walker-body">
 				<WalkerFigure avatar={avatar} />
+				{painting ? <PaintedWalker avatar={avatar} painting={painting} /> : null}
 			</g>
 		</g>
 	);

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import type { StageId } from '../../../domain/character/Stage';
 import type { AvatarView } from '../../presenters/avatar';
+import type { WalkerPaintingView } from '../../presenters/walkerArtView';
 import { WALKER_LAYER, walkerAnchor, type WalkerLayer } from './anchors';
 import { isOpenMantle, n, STAGE_LOOKS, type Beard, type Garment, type Hair, type StageLook } from './looks';
-import { placedObjects, SkillObject, type PlacedObject } from './SkillObject';
+import { PaintedObject, placedObjects, SkillObject, type PlacedObject } from './SkillObject';
 
 /** Where the lantern's light hangs from the hook of the staff while he walks upright. */
 const LAMP = { x: 25.6, y: -58.4 } as const;
@@ -27,16 +28,16 @@ const WALKER_HAIR: Readonly<Record<Hair, ReactNode>> = {
 	temples: (
 		<>
 			<path className="dromos-scene-hair" d="M-5.9 -55.4C-7.4 -61-4.4 -65 0.6 -64.8 4.4 -64.6 6.6 -62.8 6.8 -60.4 4.8 -61.2 2.6 -61.2 0.6 -60.4-0.8 -59.2-1.8 -57.4-2.6 -55-3.8 -53.6-5 -54-5.9 -55.4z" />
-			<path className="dromos-scene-grey" d="M-5.9 -55.4C-6.6 -57.6-6.4 -59.6-5.6 -61.2-3.8 -59.8-2.6 -57.8-2 -56.2-2.6 -55-3.8 -53.6-5 -54-5.9 -55.4z" />
+			<path className="dromos-scene-grey" d="M-5.9 -55.4C-6.6 -57.6-6.4 -59.6-5.6 -61.2-3.8 -59.8-2.6 -57.8-2 -56.2-2.6 -55-3.8 -53.6-5 -54-5.5 -54.2-5.7 -54.9-5.9 -55.4z" />
 		</>
 	),
 	thinning: (
 		<>
-			<path className="dromos-scene-grey" d="M-5.9 -55.2C-7 -58.6-6.2 -61.8-3.8 -63.4-2.4 -61.8-1.6 -59.6-1.4 -57.4-1.8 -55.2-3.2 -53.4-4.4 -53.6-5.4 -54.2-5.9 -55.2z" />
+			<path className="dromos-scene-grey" d="M-5.9 -55.2C-7 -58.6-6.2 -61.8-3.8 -63.4-2.4 -61.8-1.6 -59.6-1.4 -57.4-1.8 -55.2-3.2 -53.4-4.4 -53.6-4.8 -53.7-5.4 -54.2-5.9 -55.2z" />
 			<path className="dromos-scene-grey" d="M-1.6 -63.8C0 -65.2 2.6 -65.2 3.8 -64.2 2 -63.8 0.6 -63.4-0.2 -62.6z" />
 		</>
 	),
-	sage: <path className="dromos-scene-white" d="M-5.9 -55.2C-6.8 -57.6-6.4 -60.2-5 -61.8-3.6 -60.4-2.6 -58.2-2.2 -56-2.4 -54.2-3.6 -53.4-4.8 -53.8-5.9 -55.2z" />,
+	sage: <path className="dromos-scene-white" d="M-5.9 -55.2C-6.8 -57.6-6.4 -60.2-5 -61.8-3.6 -60.4-2.6 -58.2-2.2 -56-2.4 -54.2-3.6 -53.4-4.8 -53.8-5.3 -54-5.7 -54.6-5.9 -55.2z" />,
 };
 
 /** The walker's beard, along the jaw from below the ear to the chin, longer and greyer with the years. */
@@ -59,13 +60,13 @@ const WALKER_BEARD: Readonly<Record<Beard, ReactNode>> = {
 	),
 	grey: (
 		<>
-			<path className="dromos-scene-grey" d="M-0.2 -55.8C-1 -51-0.2 -46 2.6 -43 4.6 -40.8 6.8 -40.4 8 -42.4 9 -44.8 9.2 -49 8.8 -52.4 8.6 -53.2 8.4 -53.6 7.4 -53.4 6.7 -53.6 6.2 -54 4.8 -53 2.6 -53.2 1.2 -55.8z" />
+			<path className="dromos-scene-grey" d="M-0.2 -55.8C-1 -51-0.2 -46 2.6 -43 4.6 -40.8 6.8 -40.4 8 -42.4 9 -44.8 9.2 -49 8.8 -52.4 8.6 -53.2 8.4 -53.6 7.4 -53.4 6.7 -53.6 6.2 -54 4.8 -53 4 -52.4 2.6 -53.2 1.2 -55.8z" />
 			<path className="dromos-scene-fold" d="M2.6 -50.6C3.4 -47.8 4.6 -45.4 6.2 -43.4" />
 		</>
 	),
 	white: (
 		<>
-			<path className="dromos-scene-white" d="M-0.2 -55.8C-1.2 -50.4-0.4 -44.4 2.4 -40.4 4.4 -37.8 6.8 -37 8 -39.2 9.2 -42 9.4 -47.8 8.8 -52.4 8.6 -53.2 8.4 -53.6 7.4 -53.4 6.7 -53.6 6.2 -54 4.8 -53 2.6 -53.2 1.2 -55.8z" />
+			<path className="dromos-scene-white" d="M-0.2 -55.8C-1.2 -50.4-0.4 -44.4 2.4 -40.4 4.4 -37.8 6.8 -37 8 -39.2 9.2 -42 9.4 -47.8 8.8 -52.4 8.6 -53.2 8.4 -53.6 7.4 -53.4 6.7 -53.6 6.2 -54 4.8 -53 4 -52.4 2.6 -53.2 1.2 -55.8z" />
 			<path className="dromos-scene-fold" d="M2.6 -50.4C3.4 -46.6 4.6 -43 6.4 -40.4M5.6 -51.6C6.2 -48.4 6.8 -45.4 7.6 -42.6" />
 		</>
 	),
@@ -210,15 +211,18 @@ const CAPSA = (
 	</>
 );
 
-/** The objects of one layer of the walker, each at its spot. */
-function WalkerObjects({ look, objects, layer }: { readonly look: StageLook; readonly objects: readonly PlacedObject[]; readonly layer: WalkerLayer }) {
+/** The objects of one layer of the walker, each at its spot: painted where `paintings` has its painting, drawn otherwise. */
+function WalkerObjects({ look, objects, layer, paintings = {} }: { readonly look: StageLook; readonly objects: readonly PlacedObject[]; readonly layer: WalkerLayer; readonly paintings?: Readonly<Record<string, string>> }) {
 	return objects
 		.filter((object) => WALKER_LAYER[object.spot] === layer)
-		.map(({ id, spot }) => (
-			<g key={id} transform={walkerAnchor(look, spot)}>
-				<SkillObject id={id} />
-			</g>
-		));
+		.map(({ id, spot }) => {
+			const painting = paintings[id];
+			return (
+				<g key={id} transform={walkerAnchor(look, spot)}>
+					{painting === undefined ? <SkillObject id={id} /> : <PaintedObject id={id} src={painting} />}
+				</g>
+			);
+		});
 }
 
 /**
@@ -291,6 +295,47 @@ export function WalkerFigure({ avatar }: { readonly avatar: AvatarView }) {
 			{/* The lantern on its ring: its glass, unlit by day, takes the lamp's light at night. */}
 			<path className="dromos-scene-lantern" d={`M23.8 ${n(lampY - 3)}H27.4L27.8 ${n(lampY + 2.8)}H23.4zM23.4 ${n(lampY - 3)}L25.6 ${n(lampY - 5.2)} 27.8 ${n(lampY - 3)}z`} />
 			<circle className="dromos-scene-lamp" cx={LAMP.x} cy={lampY} r="1.6" />
+		</g>
+	);
+}
+
+/**
+ * The frame every stage's painting is drawn in, in the walker's units with his feet at the origin, the same
+ * for all twelve (landscape-art S9): the preparation lays each painting in it with its feet on the origin and
+ * its staff on the drawn staff, scaled to the drawn staff's height, so the painted walker stands where the
+ * drawn one does and his objects' spots fall on him without numbers per painting.
+ */
+export const WALKER_FRAME = { x: -20, y: -74, width: 52, height: 78 } as const;
+
+/** The layers whose objects are laid over the painting, in the drawn figure's order; the `behind` layer goes under it. */
+const OVER_PAINTING: readonly WalkerLayer[] = ['staff', 'body', 'satchel', 'arm', 'head', 'front'];
+
+/**
+ * The walker as the user painted him (landscape-art S9), drawn beside the drawn figure in the body that walks
+ * and breathes: the stylesheet shows one or the other, the painting only over the painted landscape. What he
+ * wears behind him, the shield on his back, lies under the painting, and his other objects over it, painted
+ * where their painting exists and drawn otherwise; those on the head bow with the head of the elder and the
+ * sage, as on the drawn figure. The lantern's glow is laid over the painted lantern, lit at night.
+ */
+export function PaintedWalker({ avatar, painting }: { readonly avatar: AvatarView; readonly painting: WalkerPaintingView }) {
+	const look = STAGE_LOOKS[avatar.stage];
+	const objects = placedObjects(avatar.objects);
+	const layer = (name: WalkerLayer) => <WalkerObjects key={name} look={look} objects={objects} layer={name} paintings={painting.objects} />;
+	const bowed = look.stoop === true && objects.some((object) => WALKER_LAYER[object.spot] === 'head');
+	return (
+		<g className="dromos-walker-painted">
+			{layer('behind')}
+			<image className="dromos-walker-painting" href={painting.src} x={WALKER_FRAME.x} y={WALKER_FRAME.y} width={WALKER_FRAME.width} height={WALKER_FRAME.height} />
+			{OVER_PAINTING.map((name) =>
+				name === 'head' && bowed ? (
+					<g key={name} transform="translate(1.2 1.4)">
+						{layer(name)}
+					</g>
+				) : (
+					layer(name)
+				),
+			)}
+			<circle className="dromos-scene-lamp-glow" cx={LAMP.x} cy={n(LAMP.y + (look.stoop ? -4 : 0))} r="10" />
 		</g>
 	);
 }

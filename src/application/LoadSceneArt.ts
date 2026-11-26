@@ -1,4 +1,4 @@
-import { NO_SCENE_ART, sceneArtFrom, type SceneArt } from '../domain';
+import { NO_SCENE_ART, NO_WALKER_ART, sceneArtFrom, walkerArtFrom, type SceneArt, type WalkerArt } from '../domain';
 import type { PaintingSource } from '../ports';
 
 export interface LoadSceneArtDeps {
@@ -18,6 +18,19 @@ export class LoadSceneArt {
 			return sceneArtFrom(this.deps.source.list());
 		} catch {
 			return NO_SCENE_ART;
+		}
+	}
+
+	/**
+	 * The painted walker (landscape-art S9), from the same folder and at the same moments: each stage's
+	 * painting and the paintings of the objects of `objectIds`. A folder that cannot be read gives none,
+	 * so the walker is drawn. Never throws.
+	 */
+	walker(objectIds: readonly string[]): WalkerArt {
+		try {
+			return walkerArtFrom(this.deps.source.list(), objectIds);
+		} catch {
+			return NO_WALKER_ART;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 export * from './area';
 export * from './art/SceneArt';
+export * from './art/WalkerArt';
 export * from './briefing/Briefing';
 export * from './campaign';
 export * from './character/Character';

@@ -21,7 +21,10 @@ export interface SceneVideoView {
 	readonly poster: string;
 }
 
-/** Each scene's view, `null` for a scene without paintings. */
+/**
+ * Each scene's view, `null` for a scene without paintings. The landscape's here leaves out its dawn and
+ * dusk: the scene above every screen takes `landscapeArtView`, which chooses by the time of day.
+ */
 export type SceneArtView = Readonly<Record<ArtScene, ScenePaintingView | null>>;
 
 /** A CSS `url("…")` for `url`, with what would end the string escaped and line breaks dropped. */
@@ -54,6 +57,7 @@ export function sceneArtView(art: SceneArt): SceneArtView {
 		archive: scenePaintingView(art.archive),
 		shop: scenePaintingView(art.shop),
 		esdras: scenePaintingView(art.esdras),
+		landscape: scenePaintingView(art.landscape),
 	};
 }
 
