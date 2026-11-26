@@ -1,16 +1,47 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { STAGE_IDS } from '../../../src/domain/character/Stage';
 import { Landscape } from '../../../src/ui/atoms/Landscape';
 import { LevelRibbon } from '../../../src/ui/atoms/LevelRibbon';
 import { Walker } from '../../../src/ui/atoms/Walker';
 import { HomeScreen } from '../../../src/ui/containers/HomeScreen';
 import { Scene } from '../../../src/ui/organisms/Scene';
-import type { AvatarView } from '../../../src/ui/presenters/avatar';
+import { SKILL_OBJECT_SPOTS, type AvatarView } from '../../../src/ui/presenters/avatar';
 import { GATE, GATE_TOP, walkerPlacement, walkerTransform } from '../../../src/ui/presenters/walkerView';
 import { homeDeps, noop } from './homeDeps';
 
 /** The transform of the walker's group. */
 const walkerAt = (html: string): string | undefined => /<g class="dromos-walker[^"]*" transform="([^"]+)"/.exec(html)?.[1];
+
+/** How many numbers each path command takes, in the SVG path grammar; a command may repeat its group. */
+const PATH_ARITY: Readonly<Record<string, number>> = { m: 2, l: 2, t: 2, h: 1, v: 1, c: 6, s: 4, q: 4, a: 7, z: 0 };
+const PATH_NUMBER = /^[\s,]*[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/;
+/** An arc's two flags are one digit each, and may be written with no separator. */
+const PATH_FLAG = /^[\s,]*[01]/;
+
+/**
+ * Each command of path data `d` whose numbers do not come in whole groups, such as "C with 20 numbers":
+ * a browser drops such a segment and logs "Expected number".
+ */
+function brokenCommands(d: string): string[] {
+	const broken: string[] = [];
+	for (const [, command = '', args = ''] of d.matchAll(/([MmLlHhVvCcSsQqTtAaZz])([^MmLlHhVvCcSsQqTtAaZz]*)/g)) {
+		const letter = command.toLowerCase();
+		const arity = PATH_ARITY[letter] ?? 0;
+		let rest = args;
+		let count = 0;
+		for (;;) {
+			const flag = letter === 'a' && (count % 7 === 3 || count % 7 === 4);
+			const match = (flag ? PATH_FLAG : PATH_NUMBER).exec(rest);
+			if (!match) break;
+			rest = rest.slice(match[0].length);
+			count += 1;
+		}
+		const whole = arity === 0 ? count === 0 : count > 0 && count % arity === 0;
+		if (!whole || rest.trim() !== '') broken.push(`${command} with ${count} numbers`);
+	}
+	return broken;
+}
 
 // game-ui S16: the walker on the road and the gate at its end.
 describe('Landscape draws the gate at the far end of the road', () => {
@@ -146,6 +177,27 @@ describe('Walker grows with the character (M11 S1)', () => {
 
 	it('draws nothing for a skill without an object', () => {
 		expect(walker({ stage: 'runner', objects: ['juggler'] })).toBe(walker());
+	});
+
+	// landscape-art T6: the temples, thinning and sage hair and the grey and white beards ended with a cut curve.
+	it('draws every path whole at every stage, with every object, so no browser drops a segment', () => {
+		const objects = Object.keys(SKILL_OBJECT_SPOTS);
+		for (const stage of STAGE_IDS) {
+			for (const avatar of [{ stage, objects: [] }, { stage, objects }]) {
+				const paths = [...walker(avatar).matchAll(/ d="([^"]*)"/g)].map(([, d = '']) => d);
+				expect(paths.length, stage).toBeGreaterThan(10);
+				expect(
+					paths.flatMap((d) => brokenCommands(d).map((command) => `${command} in ${d}`)),
+					`${stage} with ${avatar.objects.length} objects`,
+				).toEqual([]);
+			}
+		}
+	});
+
+	it('finds a cut curve, and takes whole ones in any of the grammar\'s spellings', () => {
+		expect(brokenCommands('M0 0C1 1 2 2 3 3 4 4z')).toEqual(['C with 8 numbers']);
+		expect(brokenCommands('M0 0L1')).toEqual(['L with 1 numbers']);
+		expect(brokenCommands('M-5.9-55.4C-6.6 -57.6-6.4-59.6-5.6-61.2.5.5 1e1 2E-1 3 4zM1 1h2v3H0V1a2 2 0 011 1 1 1 0 1 0-1-1Q1 1 2 2T3 3S4 4 5 5Z')).toEqual([]);
 	});
 });
 
