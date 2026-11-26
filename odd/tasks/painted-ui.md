@@ -20,7 +20,7 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
 | T1 | S1-S4 (audit: every screen, card and modal shot with the paintings, inventoried with its component) | delegated (context backstop) | done | L2 |
 | T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | done; approved (L4) | L3 |
 | T3 | S1-S7 (apply the approved language and background A everywhere, fix the mockup's weak points, then the Library, archive and Shop pass) | delegated (context backstop, L4) | done | ef4ec82 (L5) |
-| T4 | release | inline | pending, on the user's go-ahead | |
+| T4 | release | inline | done | 0.29.0 (L6) |
 
 ## Log
 
@@ -107,4 +107,8 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
   - **CPU:** idle 6.0 → 5.9 / 6.1 %, and scrolling within noise. Forcing `background-attachment: scroll` costs 172.5 %, so `local` stays.
   - **Shots:** 92 before and 92 after. The user's sheets are `~/Downloads/dromos-ui/resultado-{claro,oscuro}.png`. The parent checked the light sheet.
   - **Risk:** none. Every screen was in scope ("todo realmente"), and every screen and modal was shot before and after.
+- **L6** (2026-11-26, user): I asked "¿Lo publico como 0.29.0?" and the user answered "si dale".
+  - **Merge and release:** feat/painted-ui was merged into main (46680ed). release/0.29.0 holds the changelog (d131347) and `npm version minor` (84f802f, tag 0.29.0), and was merged back (89e705f).
+  - **Checks:** 2693 tests pass, lint has 0 errors (the 4 old warnings), and the build passes.
+  - **Release:** main and the tag were pushed as NickGV. Run 45897004676 succeeded, and release 0.29.0 has main.js, manifest.json and styles.css. The main build, run 45897004229, also succeeded.
 
