@@ -9,7 +9,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 - **S2** Over the painting, Dromos keeps drawing what carries meaning: the walker at its place on the road, the gate at the road's end with its level plaque, the campfire of a complete day, the signpost, the character's plaque and the level-up ribbon. The painting follows the drawing's 960 × 300 layout, sliced and framed as the drawing is, so the walker walks on the painted road and passes under the gate.
 - **S3** Performance (user, letter-art L1: "tambien deberiamos tener en cuenta la cuestion del rendimiento"):
   - With a painting, the drawn landscape and its loops are not drawn.
-  - A loop beside the painting, `landscape-<theme>.webm` (or `.mp4`), plays over it under scene-video S1-S4.
+  - A loop beside each painting, `landscape-<name>.webm` (or `.mp4`) for light, dark, dawn and dusk, plays over it under scene-video S1-S4 (L6).
   - The painted Home is measured against today's, with the method of letter-art L3.
 - **S4** Time of day (user, L3-L4: "que en la noche el pastor ya este en la casa"): the landscape tells the shepherd's day in four paintings.
   - The paintings: dawn `landscape-dawn` (he sets out with the sheep), day `landscape-light`, dusk `landscape-dusk` (he heads home), night `landscape-dark` (he is at home, the sheep in their fold).
@@ -18,6 +18,12 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - Assumption: in the light theme, a missing dawn, dusk or night painting falls back to the day painting.
   - An offline scene still fades.
 - **S5** Without the landscape's paintings, every screen looks exactly as before: same pixels, in both themes, at every time of day.
+- **S7** Loops with motion (user, L6: "un video asi con movimiento suave pero bonito, para que tenga mas impacto y se vea mas cool", and the Shop's too "si se puede y no tiene mucho impacto en rendimiento"):
+  - **What moves:** each landscape painting and the Shop's two paintings get a loop where parts of the painting move softly, such as smoke, clouds, sails, grass, fireflies, stars and lamplight, and not only the light.
+  - **What stays still:** the road, the gate's foot, the campfire's spot and the walker's way.
+  - **Seamless loop:** the loop is seamless, and its first frame is the painting.
+  - **Shop files:** the Shop's new loops replace `shop-light.webm` and `shop-dark.webm`, so they need no code change.
+  - **Cost:** a landscape loop must cost less than today's animated drawing (11.8 % of a core, letter-art L3), with a target of about 6 %, measured.
 - **S6** `docs/own-art.md` gives the landscape prompts:
   - The day and night paintings come from the layout guides: the drawing itself without what Dromos draws over it, handed to the generator with the prompt, so the composition stays.
   - The dawn, dusk and new night paintings are edits of those two paintings that change only the light and the shepherd's day.
@@ -29,7 +35,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | in progress | |
-| T4 | S3 (measurement; loops only if the user wants them) | inline | pending | |
+| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | sample in progress | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -71,3 +77,11 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **Superseded:** the first dark painting, with the shepherd on the hill.
   - **Prompts:** the five prompts are kept verbatim for the docs: two from the layout guides and three edits.
   - **T3 route:** delegated as one unit with its docs, by the long-session context backstop: this session carries many painting images.
+- **L6** (2026-11-26, user): "te pregunto de estas tambien podrias crear un video asi con movimiento suave pero bonito, para que tenga mas impacto y se vea mas cool? Tambien creo que en el de tienda no lo hiciste y estaria bien tambien si se puede y no tiene mucho impacto en rendimiento".
+  - **Checked:** the Shop's loops exist. `shop-dark.webm` (251 KB) and `shop-light.webm` (787 KB) have been in `Dromos/Arte/` since 2026-11-25 (shop-art L4). They only breathe the light: the flames at strength 0.18, and the sun dims by 8 % over 8 s. That is too subtle to notice.
+  - **Plan:**
+    - **Sample first:** a sample with motion of the night and the day, so the user can judge the motion.
+    - **Measure:** its CPU cost, against today's 11.8 %.
+    - **Then the rest:** the rest of the landscape's loops and the Shop's two.
+    - **Code:** the dawn and dusk videos were added to S3, so the writer of T3 was told to extend the video to every painting.
+  - **Route:** T4 is delegated to one background worker in scratch, by the context backstop.
