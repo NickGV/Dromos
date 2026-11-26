@@ -42,7 +42,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | samples done (L9), waiting for the user's verdict | |
-| T6 | S8 (walker, gate and campfire restyled over the painting: variants mockup, then code) | delegated (context backstop, L8) | mockup in progress | |
+| T6 | S8 (walker, gate and campfire restyled over the painting: variants mockup, then code) | delegated (context backstop, L8) | mockup done (L10), waiting for the user's choice | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -133,3 +133,21 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **Against today:** today's landscape animations cost about 11.6 % (Home 11.8 % against 0.2 % under reduced motion, letter-art L3), so a painted Home with one loop should cost about half.
     - **Still to do:** measure the real painted Home with its loop once the loops are final.
   - **Tool:** scratch `landscape-art/motion/tools/motion.py`, with a preset per painting. Dawn and dusk copy the day preset. The Shop needs its own preset.
+- **L10** (2026-11-26): the T6 mockup is done. Three variants were rendered on the real `HomeScreen` with the four paintings. All three apply only over a painting: they take the light of the hour, the lantern is lit at night, and the staff becomes wood.
+  - **A, fine line:** CSS only. The outline becomes a 0.7 line in a darker shade of each part's colour, the fills stay flat, and the shadow is softer and falls to the right.
+  - **B, painted light:** CSS plus gradients from a new `FigureShading`. There is no outline. The figures are lit on the left and shaded on the right, and at night the lantern warms them. It blends best, but at 360 px the walker blurs into the road.
+  - **C, ink and wash:** B with a 0.55 line. The worker recommends it: it blends almost as well as B and still reads at 360 px.
+  - **Checks:**
+    - **Stages:** all 12 render with three objects each.
+    - **Motion:** the animations keep running, and reduced motion stops them as today. No figure carries a filter.
+    - **CPU:** current and C both average 2.9 % at dusk on the painted Home.
+    - **Without a painting:** the computed styles are identical in 42 of 42 cases. Screenshots were unreliable because of animation timing.
+  - **Weak points:**
+    - The shading is subtle at real size; the colour of the hour does most of the work.
+    - At night the walker contrasts less with the gate.
+    - The walker is about twice the painted shepherd's size.
+    - `color-mix` is new to `styles.css` and needs Chromium 111+.
+  - **Pre-existing bug, found on the way and confirmed by the parent:** five hair and beard paths in `src/ui/atoms/avatar/WalkerFigure.tsx` end with an incomplete cubic (`temples` ends with 2 numbers instead of 6), so Chrome logs "Expected number" and drops the segment. They are the `temples`, `thinning` and `sage` hair and the `grey` and `white` beards. Proposed: fix them in T6's code.
+  - **Files:**
+    - The combined image for the user is `~/Downloads/dromos-paisaje/caminante-variantes.png`.
+    - The mockup page, sheets and patches are in scratch `walker-style/`, with one `patch-<variant>.md` each.
