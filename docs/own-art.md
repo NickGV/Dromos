@@ -216,7 +216,10 @@ what carries meaning: the gate at the road's end with its level plaque, the walk
 campfire of a complete day beside it, the signpost, the character's plaque and the level-up ribbon.
 The painting must keep the road exactly where the drawing has it, so the walker walks on it and
 passes under the gate, and it must paint no gate, walker or fire of its own. Under a painting the
-drawn landscape and its animations are not drawn at all.
+drawn landscape and its animations are not drawn at all. The drawn figures take the painting's light
+of the hour: the walker, the gate and the campfire are lit on the left and shaded on the right in the
+light of dawn, day, dusk or night (the dark theme's is always night), under a fine line in a darker
+shade of their own colours, and the walker's lantern is lit at night.
 
 Four paintings tell the shepherd's day:
 

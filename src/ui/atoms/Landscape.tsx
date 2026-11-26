@@ -3,6 +3,7 @@ import type { PaintedThemes } from '../presenters/landscapeArtView';
 import type { SceneVideoView } from '../presenters/sceneArtView';
 import { FAR_SCALE, GATE, GATE_SHAPE } from '../presenters/walkerView';
 import { ChimneySmoke, Flock, Ridge, Sheep, Windmill } from './landscape/FarLife';
+import { FigureShading, shadingStyle } from './landscape/FigureShading';
 import { Butterflies, Fireflies, Flowers, Tufts } from './landscape/NearLife';
 import { Pasture } from './landscape/Pasture';
 import { watchSight } from './landscape/sight';
@@ -33,21 +34,29 @@ export interface LandscapeProps {
  * and while the scene is out of sight (the `is-still` class).
  *
  * Under the user's painting (landscape-art S2) the gate, the walker and the campfire are still drawn,
- * in the same 960 x 300 frame, so the walker keeps to the painted road.
+ * in the same 960 x 300 frame, so the walker keeps to the painted road, and shaded in the painting's
+ * light of the hour (S8) with gradients whose urls the `<svg>` hands the stylesheet.
  */
 export function Landscape({ children = null, painted = 'none' }: LandscapeProps) {
 	// Unique per view: two open Dromos tabs must not share one gradient, since Chromium stops
 	// painting a gradient whose element sits in a hidden tab.
-	const sky = `dromos-sky-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+	const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+	const sky = `dromos-sky-${id}`;
+	const shade = `dromos-shade-${id}`;
 	const { ref, still } = useStillOutOfSight();
 	return (
-		<svg ref={ref} className={still ? 'dromos-landscape is-still' : 'dromos-landscape'} viewBox="0 0 960 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+		<svg ref={ref} className={still ? 'dromos-landscape is-still' : 'dromos-landscape'} viewBox="0 0 960 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false" style={painted === 'none' ? undefined : shadingStyle(shade)}>
 			{painted === 'both' ? null : (
 				<defs>
 					<linearGradient id={sky} x1="0" y1="0" x2="0" y2="1">
 						<stop className="dromos-scene-sky-top" offset="0" />
 						<stop className="dromos-scene-sky-bottom" offset="1" />
 					</linearGradient>
+				</defs>
+			)}
+			{painted === 'none' ? null : (
+				<defs>
+					<FigureShading id={shade} />
 				</defs>
 			)}
 			{painted === 'none' ? <Drawing sky={sky} /> : null}

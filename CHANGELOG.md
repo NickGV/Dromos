@@ -7,6 +7,11 @@ All notable changes to Dromos are documented here. The format follows [Keep a Ch
 ### Added
 
 - **The painted landscape**: the landscape above every screen can be your own painting, in four paintings of the shepherd's day: `<folder>/Arte/landscape-dawn`, `landscape-light`, `landscape-dusk` and `landscape-dark` (WebP, PNG or JPG). The light theme shows the painting of the time of day, with the day painting standing in for a missing one, and the dark theme keeps its night with `landscape-dark` at every hour. Dromos still draws the gate with its level plaque, the walker on the road, the campfire, the signpost and your plaque over it, and under a painting it no longer draws the landscape or its animations. Each painting can have its own loop beside it (`landscape-<name>.webm`, or `.mp4`), which plays as in the Library. An offline scene still looks faded, and without the paintings every screen looks as before. [docs/own-art.md](docs/own-art.md#landscape-the-countryside-above-every-screen) has the layout guides and the prompts.
+- **Figures in the painting's light**: over the painted landscape, the walker, the gate and the campfire take the painting's light of the hour, at dawn, by day, at dusk and at night (always night in the dark theme): lit on the left and shaded on the right, with a fine line in a darker shade of their own colours instead of the dark outline, a softer shadow falling to the right, a wooden staff, and the lantern lit at night. Every stage, the skills' objects, the walk and the breathing work as before, and without the paintings the figures look as before.
+
+### Fixed
+
+- **The walker's hair and beard**: the counsellor's grey temples, the elder's thinning hair and grey beard, and the sage's white hair and beard are drawn whole. The last curve of each was cut short, so the browser dropped it and logged an error.
 
 ## [0.27.0] - 2026-11-26
 

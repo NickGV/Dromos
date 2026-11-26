@@ -549,6 +549,188 @@
 .theme-light .dromos-root .dromos-scene.has-art-light .dromos-landscape-drawing { display: none; }
 .dromos-root .dromos-landscape-art .dromos-scene-video { object-position: center bottom; }
 
+/* The drawn figures over a painting (landscape-art S8), in ink and wash: only where the scene shows its
+   theme's painting (has-art-light in the light theme, has-art-dark in the dark theme), the walker, the gate
+   and the campfire leave the theme's palette for the painting's, and the hour's light tints it. Each material
+   is shaded across its own shape by a gradient (Landscape's FigureShading, its url in --dromos-shade-<name>
+   on the <svg>), lit on the left where the paintings' light comes from and shaded on the right, under a thin
+   line in a darker shade of its own colour. Only custom properties on the landscape's <svg>, and no filter,
+   which would repaint the breathing walker every frame. The drawn landscape, and the drawn theme of a
+   one-theme painting, never match (S5). Engines without color-mix() skip the block and keep the drawn figures. */
+@supports (color: color-mix(in oklab, #000, #fff)) {
+	/* The figures' own palette over a painting: the light theme's, a little less white and less saturated, so
+	   the cream of the robe is not brighter than the painting's brightest cream, and a tanned skin like the
+	   painted shepherd's. The hour's light (day): the ambient the figures sink into, the sunlight on their lit
+	   side, their shade, the ink of their line. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-landscape {
+		--dromos-fig-ambient: #b8b28d;
+		--dromos-fig-ambient-k: 14%;
+		--dromos-fig-light: #fff3d8;
+		--dromos-fig-rim-k: 55%;
+		--dromos-fig-lit-k: 30%;
+		--dromos-fig-shade: #3d4632;
+		--dromos-fig-shade-k: 38%;
+		--dromos-fig-soft-k: 16%;
+		--dromos-fig-front: #3d4632;
+		--dromos-fig-front-k: 44%;
+		--dromos-fig-ink: #3b2c22;
+		--dromos-fig-cast: #3a3a22;
+		--dromos-fig-cast-a: 0.42;
+		--dromos-fig-wood: #6b4a32;
+		--dromos-fig-line-k: 46%;
+		--dromos-fig-line-w: 0.55;
+
+		--dromos-scene-robe: color-mix(in oklab, #eee4cf, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-skin: color-mix(in oklab, #dcb48c, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-hair: color-mix(in oklab, #3e2f26, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-mantle: color-mix(in oklab, #a55c3b, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-satchel: color-mix(in oklab, #7a5033, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-belt: color-mix(in oklab, #c9962b, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-felt: color-mix(in oklab, #d2b274, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-grey: color-mix(in oklab, #aaa294, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-white: color-mix(in oklab, #f2ede2, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-clavus: color-mix(in oklab, #b5593c, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-patch: color-mix(in oklab, #c98a64, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-house: color-mix(in oklab, #8a7a66, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-gate: color-mix(in oklab, #5c4433, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-stone: color-mix(in oklab, #cdc2b0, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-log: color-mix(in oklab, #6e4a30, var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+		--dromos-scene-fire: #c9582f;
+		--dromos-scene-flame: #f4c453;
+		--dromos-scene-lamp: #f6c66a;
+		--dromos-fig-staff: color-mix(in oklab, var(--dromos-fig-wood), var(--dromos-fig-ambient) var(--dromos-fig-ambient-k));
+	}
+
+	/* Dawn: a pink, cool light; the shade goes violet. The hour is the scene's data-period, so a missing dawn
+	   painting's stand-in, the day's (S4), takes the dawn light too. */
+	.theme-light .dromos-root .dromos-scene.has-art-light[data-period='dawn'] .dromos-landscape {
+		--dromos-fig-ambient: #c4aeb8;
+		--dromos-fig-ambient-k: 20%;
+		--dromos-fig-light: #ffd9d2;
+		--dromos-fig-rim-k: 60%;
+		--dromos-fig-lit-k: 34%;
+		--dromos-fig-shade: #4d4a74;
+		--dromos-fig-shade-k: 40%;
+		--dromos-fig-soft-k: 18%;
+		--dromos-fig-front: #4d4a74;
+		--dromos-fig-front-k: 46%;
+		--dromos-fig-ink: #3b2c3a;
+		--dromos-fig-cast: #3c3552;
+	}
+
+	/* Dusk: warm gold on the lit side, plum in the shade. */
+	.theme-light .dromos-root .dromos-scene.has-art-light[data-period='dusk'] .dromos-landscape {
+		--dromos-fig-ambient: #c98a6a;
+		--dromos-fig-ambient-k: 22%;
+		--dromos-fig-light: #ffbf6a;
+		--dromos-fig-rim-k: 70%;
+		--dromos-fig-lit-k: 42%;
+		--dromos-fig-shade: #55304e;
+		--dromos-fig-shade-k: 42%;
+		--dromos-fig-soft-k: 18%;
+		--dromos-fig-front: #55304e;
+		--dromos-fig-front-k: 48%;
+		--dromos-fig-ink: #3e2228;
+		--dromos-fig-cast: #4a2a35;
+	}
+
+	/* Night, in the light theme's night and always in the dark theme: dim and blue, moonlight from the upper
+	   left and the lantern's warm light on his front. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light[data-period='night'], body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-landscape {
+		--dromos-fig-ambient: #2b3a5e;
+		--dromos-fig-ambient-k: 34%;
+		--dromos-fig-light: #c0d0f8;
+		--dromos-fig-rim-k: 50%;
+		--dromos-fig-lit-k: 30%;
+		--dromos-fig-shade: #080c24;
+		--dromos-fig-shade-k: 42%;
+		--dromos-fig-soft-k: 14%;
+		--dromos-fig-front: #ffb45c;
+		--dromos-fig-front-k: 50%;
+		--dromos-fig-ink: #0d1128;
+		--dromos-fig-cast: #05081a;
+		--dromos-fig-cast-a: 0.55;
+		--dromos-scene-fire: #ef8a4c;
+		--dromos-scene-gate: color-mix(in oklab, #8c8478, var(--dromos-fig-ambient) 40%);
+	}
+
+	/* The lantern is lit at night over the night painting in the light theme too, as in the dark theme. */
+	.theme-light .dromos-root .dromos-scene.has-art-light[data-period='night'] :is(.dromos-scene-lamp, .dromos-scene-lamp-glow) { display: inline; }
+
+	/* The gradients' stops: the material (--dromos-shade-m, set on each gradient) mixed with the hour's light
+	   and shade. Soft ones, the face's, are shaded less. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade .is-rim { stop-color: color-mix(in oklab, var(--dromos-shade-m), var(--dromos-fig-light) var(--dromos-fig-rim-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade .is-lit { stop-color: color-mix(in oklab, var(--dromos-shade-m), var(--dromos-fig-light) var(--dromos-fig-lit-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade .is-base { stop-color: var(--dromos-shade-m); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade .is-shade { stop-color: color-mix(in oklab, var(--dromos-shade-m), var(--dromos-fig-shade) var(--dromos-fig-shade-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade.is-soft .is-shade { stop-color: color-mix(in oklab, var(--dromos-shade-m), var(--dromos-fig-shade) var(--dromos-fig-soft-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade .is-front { stop-color: color-mix(in oklab, var(--dromos-shade-m), var(--dromos-fig-front) var(--dromos-fig-front-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-cast stop { stop-color: var(--dromos-fig-cast); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-cast .is-core { stop-opacity: var(--dromos-fig-cast-a); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-cast .is-mid { stop-opacity: calc(var(--dromos-fig-cast-a) * 0.55); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-cast .is-edge { stop-opacity: 0; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-glow stop { stop-color: var(--dromos-scene-flame); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-glow .is-core { stop-opacity: 0.5; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-glow .is-mid { stop-opacity: 0.2; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-glow .is-edge { stop-opacity: 0; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-lamp stop { stop-color: var(--dromos-scene-lamp); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-lamp .is-core { stop-opacity: 0.7; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-lamp .is-mid { stop-opacity: 0.22; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-lamp .is-edge { stop-opacity: 0; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-flame .is-base { stop-color: color-mix(in oklab, var(--dromos-scene-flame), var(--dromos-scene-fire) 35%); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-shade-flame .is-tip { stop-color: var(--dromos-scene-fire); }
+
+	/* The walker's line: thin, the hour's ink where a part has no colour of its own. Each part is shaded and
+	   lined in a darker shade of its own colour; the patch is faint. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-figure { stroke: color-mix(in oklab, var(--dromos-fig-ink) 70%, transparent); stroke-width: var(--dromos-fig-line-w); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-robe { fill: var(--dromos-shade-robe) var(--dromos-scene-robe); stroke: color-mix(in oklab, var(--dromos-scene-robe), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-mantle { fill: var(--dromos-shade-mantle) var(--dromos-scene-mantle); stroke: color-mix(in oklab, var(--dromos-scene-mantle), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-patch { fill: var(--dromos-shade-patch) var(--dromos-scene-patch); stroke: color-mix(in oklab, var(--dromos-scene-mantle), var(--dromos-fig-ink) var(--dromos-fig-line-k)); opacity: 0.55; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker :is(.dromos-scene-skin, .dromos-scene-head) { fill: var(--dromos-shade-skin) var(--dromos-scene-skin); stroke: color-mix(in oklab, var(--dromos-scene-skin), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-hair { stroke: color-mix(in oklab, var(--dromos-scene-hair), var(--dromos-fig-ink) 30%); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker :is(.dromos-scene-satchel, .dromos-scene-capsa-lid) { fill: var(--dromos-shade-satchel) var(--dromos-scene-satchel); stroke: color-mix(in oklab, var(--dromos-scene-satchel), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-felt { fill: var(--dromos-shade-felt) var(--dromos-scene-felt); stroke: color-mix(in oklab, var(--dromos-scene-felt), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-grey { fill: var(--dromos-shade-grey) var(--dromos-scene-grey); stroke: color-mix(in oklab, var(--dromos-scene-grey), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-white { fill: var(--dromos-shade-white) var(--dromos-scene-white); stroke: color-mix(in oklab, var(--dromos-scene-white), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-lantern { fill: var(--dromos-shade-house) var(--dromos-scene-house); stroke: color-mix(in oklab, var(--dromos-scene-house), var(--dromos-fig-ink) 50%); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-sash { stroke: color-mix(in oklab, var(--dromos-scene-belt), var(--dromos-fig-ink) var(--dromos-fig-line-k)); }
+	/* Folds and the face's line: the same ink, faint, the paint's own creases. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-fold { stroke: color-mix(in oklab, var(--dromos-fig-ink) 40%, transparent); stroke-width: 0.6; }
+	/* The staff is wood, not the line's ink. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-staff { stroke: var(--dromos-fig-staff); stroke-width: 1.4; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-staff.is-sturdy { stroke-width: 2.1; }
+	/* The skills' objects are small: they keep a line of the hour's ink, a little finer, so they still read. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-avatar-thing { stroke: color-mix(in oklab, var(--dromos-fig-ink) 55%, transparent); --dromos-avatar-k: 1.6; }
+
+	/* The cast shadow: a soft radial falloff, falling right of the feet, away from the light. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-shadow { fill: var(--dromos-shade-cast) var(--dromos-fig-cast); opacity: 1; cx: 8px; cy: 1.2px; rx: 22px; ry: 4.2px; }
+
+	/* The lantern's glow: soft, a little wider. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-walker .dromos-scene-lamp-glow { fill: var(--dromos-shade-lamp) var(--dromos-scene-lamp); opacity: 1; r: 15px; }
+
+	/* The gate: its wood shaded, under the same thin line in a darker shade of it. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-scene-gate { stroke: color-mix(in oklab, var(--dromos-scene-gate), var(--dromos-fig-ink) 45%); stroke-width: 1; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-scene-gate path { fill: var(--dromos-shade-gate) var(--dromos-scene-gate); }
+
+	/* The campfire: no outline but its stones' own shade, shaded stones, a flame warmer at its foot, and a glow
+	   that falls off softly and breathes a little more. */
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire { stroke: none; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-stones { fill: var(--dromos-shade-stone) var(--dromos-scene-stone); stroke: color-mix(in oklab, var(--dromos-scene-stone), var(--dromos-fig-ink) 50%); stroke-width: 0.6; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-tongue.is-outer { fill: var(--dromos-shade-flame) var(--dromos-scene-fire); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-glow { opacity: 0.9; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-glow ellipse { fill: var(--dromos-shade-glow) var(--dromos-scene-flame); }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-glow ellipse + ellipse { display: none; }
+	:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-glow ellipse:first-child { rx: 30px; ry: 19px; }
+	@media (prefers-reduced-motion: no-preference) {
+		:is(.theme-light .dromos-root .dromos-scene.has-art-light, body:not(.theme-light) .dromos-root .dromos-scene.has-art-dark) .dromos-campfire-glow { animation-name: dromos-glow-painted; }
+	}
+
+	@keyframes dromos-glow-painted {
+		from { opacity: 0.78; }
+		to { opacity: 1; }
+	}
+}
+
 .dromos-root .dromos-scene-sky-top { stop-color: var(--dromos-scene-sky-top); }
 .dromos-root .dromos-scene-sky-bottom { stop-color: var(--dromos-scene-sky-bottom); }
 .dromos-root .dromos-scene-sun { fill: var(--dromos-scene-sun); stroke: var(--dromos-scene-line); stroke-width: 1; }
