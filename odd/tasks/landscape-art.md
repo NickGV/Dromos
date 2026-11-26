@@ -53,6 +53,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
 | T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | done and verified (L18); stages 03-06 to be redone with the satchel | 4d98f0a |
 | T5 | release | inline | done | 0.28.0 (L19) |
+| T9 | S7 (the Library's eight loops remade with motion at the Shop's cheaper settings: 15 fps, exact ratio) | delegated (context backstop, L20) | in progress | |
 
 ## Log
 
@@ -275,4 +276,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Checks:** 2681 tests pass, lint has 0 errors (the 4 old warnings), and the build passes.
   - **Release:** main and the tag were pushed as NickGV. release.yml run 45874707748 finished with success, and release 0.28.0 has main.js, manifest.json and styles.css. The main build run 45874707176 finished with success.
   - **Still open, no release needed:** stages 03-06 repainted with the satchel. The files are replaced in the vault after `prep.py` (scratch `walker-set/`).
+- **L20** (2026-11-26, user): I reported performance. The Library is now the most expensive screen, at 15.4 % of a core with its first loops at 1800 px and 24 fps. I asked "¿... y, en paralelo, aligero los videos de la Biblioteca?" and the user answered "si dale porfavor".
+  - **T9:** the motion worker remakes the eight Library loops (wall, desk, shelf, archive × light, dark) with its tool, at 15 fps and each painting's exact ratio, with soft motion as in the landscape and the Shop. It measures old against new. The old loops are kept in scratch.
+  - **No release:** vault files only.
 
