@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import type { BriefingState, CharacterState, ChooseTitle, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, LoadTitles, LoadWeekReport, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests, TitlesReading } from '../../application';
+import type { BriefingState, CharacterState, ChooseTitle, GameEvent, GameSnapshot, HomeSnapshot, LoadAvatar, LoadHome, LoadSceneArt, LoadTitles, LoadWeekReport, QuestSnapshot, RequestBriefing, StageStanding, SyncGame, SyncQuests, TitlesReading } from '../../application';
 import type { WeekReport } from '../../domain';
 import type { Language, Translator } from '../../i18n';
 import type { Clock, DeviceStore } from '../../ports';
@@ -28,6 +28,7 @@ import { briefingRequestMessage, briefingView } from '../presenters/briefingView
 import { characterCardView } from '../presenters/characterCardView';
 import { chronicleView } from '../presenters/chronicleView';
 import { dayPeriod } from '../presenters/dayPeriod';
+import { portraitPaintingView } from '../presenters/sceneArtView';
 import { historyView } from '../presenters/historyView';
 import { ceremonyView, gameNotices } from '../presenters/levelUpView';
 import { FIRST_AVATAR, type AvatarView } from '../presenters/avatar';
@@ -86,6 +87,8 @@ export interface HomeScreenDeps {
 	readonly notify: (message: string) => void;
 	/** Renders the text of the briefing as a note. */
 	readonly renderMarkdown: MarkdownRender;
+	/** The user's paintings from the vault, Esdras's portrait among them (letter-art S2), read on open and on every sync. Never throws. */
+	readonly sceneArt: Pick<LoadSceneArt, 'execute'>;
 	/** Draws a line icon of the host app. */
 	readonly renderIcon: IconRender;
 	/** Copies the command of the job; `null` where it cannot be run, and the button does not show. */
@@ -199,6 +202,8 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 	const [place, setPlace] = useState<Place>({ screen: initialScreen, campaign: null });
 	// The letter folds on every open of the view and stays as it was while the screen changes (S13).
 	const [letterOpen, setLetterOpen] = useState(false);
+	// The paintings, Esdras's portrait among them (letter-art S2): read when the view opens and again on every sync.
+	const [art, setArt] = useState(() => deps.sceneArt.execute());
 	// Today's quests fold to 4 rows on every open of the view (missions S3, home-fit S3).
 	const [questsExpanded, setQuestsExpanded] = useState(false);
 	// The chronicle folds to its three newest deeds on every open of the view (home-fit S2).
@@ -340,6 +345,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 		if (!mounted.current) return;
 		setCharacter(home.character);
 		setBriefing(home.briefing);
+		setArt(deps.sceneArt.execute());
 		setArrival(null);
 		void readAvatar();
 		void readWeek();
@@ -558,6 +564,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 								letterId={letterId}
 								onToggle={toggleLetter}
 								onFold={foldLetter}
+								portrait={portraitPaintingView(art.esdras)}
 							/>
 						) : null}
 						{home ? (

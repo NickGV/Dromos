@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createTranslator } from '../../../src/i18n';
 import { BriefingPanel } from '../../../src/ui/organisms/BriefingPanel';
 import { briefingView, letterMarkOf, type BriefingView } from '../../../src/ui/presenters/briefingView';
+import type { PortraitPaintingView } from '../../../src/ui/presenters/sceneArtView';
 import type { SkillCardView } from '../../../src/ui/presenters/skillsView';
 import { aBriefing } from '../../fakes/InMemoryBriefingRepository';
 import { elementsOf } from './elements';
@@ -33,8 +34,20 @@ const old = briefingView({ kind: 'found', briefing: aBriefing({ created: '2026-1
 const missing = briefingView({ kind: 'missing' }, TODAY, [], en);
 const LETTER_ID = 'dromos-letter-7';
 
-function panel(view: BriefingView, options: { readonly open?: boolean; readonly onRequest?: (() => void) | null } = {}) {
-	return <BriefingPanel view={view} renderMarkdown={renderNothing} onRequest={options.onRequest === undefined ? noop : options.onRequest} renderIcon={noop} open={options.open ?? false} letterId={LETTER_ID} onToggle={noop} onFold={noop} />;
+function panel(view: BriefingView, options: { readonly open?: boolean; readonly onRequest?: (() => void) | null; readonly portrait?: PortraitPaintingView | null } = {}) {
+	return (
+		<BriefingPanel
+			view={view}
+			renderMarkdown={renderNothing}
+			onRequest={options.onRequest === undefined ? noop : options.onRequest}
+			renderIcon={noop}
+			open={options.open ?? false}
+			letterId={LETTER_ID}
+			onToggle={noop}
+			onFold={noop}
+			portrait={options.portrait}
+		/>
+	);
 }
 const render = (view: BriefingView = today, options: { readonly open?: boolean; readonly onRequest?: (() => void) | null } = {}) => renderToStaticMarkup(panel(view, options));
 
@@ -69,6 +82,31 @@ describe('BriefingPanel as a scroll (game-ui S5)', () => {
 		expect(html).toMatch(/<span class="dromos-briefing-seal" aria-hidden="true"><svg class="dromos-portrait-art is-niche is-scribe" viewBox="0 0 100 124" aria-hidden="true" focusable="false">/);
 		expect(html).not.toContain('is-sage');
 		expect(html).not.toContain('📜');
+	});
+
+	it("lays the user's painted portrait in the niche, over the drawn scribe, one per theme (letter-art S2)", () => {
+		const unread = briefingView({ kind: 'found', briefing: todayBriefing }, TODAY, [caregiver], en, null);
+		const html = renderToStaticMarkup(panel(unread, { portrait: { light: 'app://v/esdras-light.webp', dark: 'app://v/esdras-dark.webp' } }));
+		const art = /<svg class="dromos-portrait-art is-niche is-scribe"[\s\S]*?<\/svg>/.exec(html)?.[0] ?? '';
+
+		expect(art).toMatch(
+			/<g clip-path="url\(#[^)]+\)"><g transform="translate\(-5 17\) scale\(1.1\)">.*?<\/g><image class="dromos-portrait-painting is-light" href="app:\/\/v\/esdras-light.webp" width="100" height="124" preserveAspectRatio="xMidYMid slice"><\/image><image class="dromos-portrait-painting is-dark" href="app:\/\/v\/esdras-dark.webp" width="100" height="124" preserveAspectRatio="xMidYMid slice"><\/image><\/g><path class="dromos-portrait-molding"/,
+		);
+		expect(html).toContain('<svg class="dromos-portrait-seal"');
+	});
+
+	it('paints only the theme that has a portrait, and plays nothing (letter-art S2, S3)', () => {
+		const html = renderToStaticMarkup(panel(today, { portrait: { light: null, dark: 'app://v/esdras-dark.webp' } }));
+
+		expect(html).toContain('<image class="dromos-portrait-painting is-dark"');
+		expect(html).not.toContain('is-light');
+		expect(html).not.toContain('<video');
+	});
+
+	it('keeps the drawn scribe as it was without a portrait (letter-art S2)', () => {
+		const plain = render(today);
+		expect(plain).not.toContain('<image');
+		expect(renderToStaticMarkup(panel(today, { portrait: null }))).toBe(plain);
 	});
 
 	it('gives every portrait its own arch, so two letters in one window never share a clip', () => {
