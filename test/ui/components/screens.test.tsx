@@ -150,7 +150,7 @@ describe('Landscape', () => {
 describe('ScreenHeader', () => {
 	it('names the screen and draws no character line, which the plaque holds now (S2)', () => {
 		const html = renderToStaticMarkup(<ScreenHeader title="Campaigns" />);
-		expect(html).toBe('<header class="dromos-panel dromos-screen-header"><h2 class="dromos-screen-title" tabindex="-1" data-screen-heading="true">Campaigns</h2></header>');
+		expect(html).toBe('<header class="dromos-sign dromos-screen-header"><h2 class="dromos-screen-title" tabindex="-1" data-screen-heading="true">Campaigns</h2></header>');
 		expect(html).not.toContain('dromos-screen-character');
 	});
 
@@ -165,6 +165,15 @@ describe('ScreenHeader', () => {
 		const html = renderToStaticMarkup(<ScreenHeader title="Skills" />);
 		expect(html).toMatch(/<h2[^>]*tabindex="-1"[^>]*data-screen-heading="true"/);
 	});
+
+	it('hangs as a wooden sign, not a papyrus sheet, and keeps its way back, its heading and its aside in order (painted-ui S4, S6)', () => {
+		const html = renderToStaticMarkup(
+			<ScreenHeader title="Shop" back={{ label: 'Path', ariaLabel: 'Back to the path', onBack: noop }} aside={<p className="dromos-gold">245</p>} />,
+		);
+
+		expect(html).toMatch(/^<header class="dromos-sign dromos-screen-header has-back has-aside"><button type="button" class="dromos-screen-back" aria-label="Back to the path">.*<\/button><h2 class="dromos-screen-title" tabindex="-1" data-screen-heading="true">Shop<\/h2><p class="dromos-gold">245<\/p><\/header>$/);
+		expect(html).not.toContain('dromos-panel');
+	});
 });
 
 /** The character's plaque: the section labelled "Character". */
@@ -176,7 +185,7 @@ describe('HomeScreen screens', () => {
 	it('opens the other screens with the header card, which no longer names the character', () => {
 		const campaigns = firstInMain(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="campaigns" />));
 		const skills = firstInMain(renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="skills" />));
-		expect(campaigns).toMatch(/^<header[^>]*class="dromos-panel dromos-screen-header"/);
+		expect(campaigns).toMatch(/^<header[^>]*class="dromos-sign dromos-screen-header"/);
 		expect(campaigns).toMatch(/^<header[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Campaigns<\/h2><\/header>/);
 		expect(skills).toMatch(/^<header[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Skills<\/h2><\/header>/);
 	});
@@ -225,7 +234,7 @@ describe('HomeScreen screens', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="library" />);
 
 		expect(currentPlank(html)).toEqual(['Library']);
-		expect(firstInMain(html)).toMatch(/^<header[^>]*class="dromos-panel dromos-screen-header"[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Library<\/h2><\/header>/);
+		expect(firstInMain(html)).toMatch(/^<header[^>]*class="dromos-sign dromos-screen-header"[^>]*>(?:(?!<\/header>).)*<h2[^>]*>Library<\/h2><\/header>/);
 		expect(html).toContain('Opening the library…');
 		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-skills', 'dromos-chronicle']) expect(html).not.toContain(section);
 		expect(renderToStaticMarkup(<HomeScreen deps={homeDeps({ language: 'es' })} initialScreen="library" />)).toMatch(/<h2[^>]*>Biblioteca<\/h2>/);
@@ -270,7 +279,7 @@ describe('HomeScreen home layout (S1)', () => {
 			expect(html.match(/<div class="dromos-home-column is-(start|end)">/g)).toEqual(['<div class="dromos-home-column is-start">', '<div class="dromos-home-column is-end">']);
 		}
 		const campaigns = renderToStaticMarkup(<HomeScreen deps={homeDeps()} initialScreen="campaigns" />);
-		expect(campaigns).toMatch(/<div class="dromos-home-column is-end"><header class="dromos-panel dromos-screen-header"><h2[^>]*>Campaigns<\/h2><\/header><div class="dromos-campaign-screen/);
+		expect(campaigns).toMatch(/<div class="dromos-home-column is-end"><header class="dromos-sign dromos-screen-header"><h2[^>]*>Campaigns<\/h2><\/header><div class="dromos-campaign-screen/);
 	});
 
 	it('leaves the reading desk out while the library loads, and the library to its own screen', () => {

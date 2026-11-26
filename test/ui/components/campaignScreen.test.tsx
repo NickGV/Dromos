@@ -236,7 +236,7 @@ describe('HomeScreen on the campaigns screen (game-ui S8)', () => {
 		const html = renderToStaticMarkup(<HomeScreen deps={homeDeps({ campaigns: snapshot })} initialScreen="campaigns" />);
 
 		// The columns of home stay on every screen (home-header S1): the panel keeps its place in the second.
-		expect(html).toMatch(/<main[^>]*><div class="dromos-home-column is-start"><\/div><div class="dromos-home-column is-end"><header class="dromos-panel dromos-screen-header"><h2[^>]*>Campaigns · Kairos<\/h2>/);
+		expect(html).toMatch(/<main[^>]*><div class="dromos-home-column is-start"><\/div><div class="dromos-home-column is-end"><header class="dromos-sign dromos-screen-header"><h2[^>]*>Campaigns · Kairos<\/h2>/);
 		// The signpost names the screen on its burnt-in plank (game-ui S14); no title repeats it.
 		expect(html.match(/>Campaigns</g)).toEqual(['>Campaigns<']);
 		expect(html).toMatch(/<button[^>]*class="dromos-plank is-current"[^>]*>Campaigns<\/button>/);

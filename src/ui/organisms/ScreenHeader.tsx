@@ -21,9 +21,10 @@ export interface ScreenHeaderProps {
  * the focus when the screen opens. Inside a screen (a shelf of the library) a back link sits above
  * the title. The character is on the plaque under the scene now (S2), so the card no longer names it.
  * A screen may hang something at the card's other end, as the Shop hangs its gold (M10 S4).
+ * It is drawn as a wooden sign, of the signpost's wood, not as a papyrus sheet (painted-ui S4).
  */
 export function ScreenHeader({ title, back, aside }: ScreenHeaderProps) {
-	const classes = ['dromos-panel dromos-screen-header', back ? 'has-back' : null, aside ? 'has-aside' : null].filter(Boolean).join(' ');
+	const classes = ['dromos-sign dromos-screen-header', back ? 'has-back' : null, aside ? 'has-aside' : null].filter(Boolean).join(' ');
 	return (
 		<header className={classes}>
 			{back ? (

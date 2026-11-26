@@ -61,7 +61,7 @@ describe('HomeScreen: the Chronicle screen (M9 S3)', () => {
 
 		expect(planks(html)).toEqual(['Path', 'Campaigns', 'Skills', 'Library', 'Shop', 'Settings']);
 		expect(currentPlank(html)).toEqual(['Path']);
-		expect(main).toMatch(/<header class="dromos-panel dromos-screen-header has-back">.*<h2[^>]*>Chronicle<\/h2><\/header>/);
+		expect(main).toMatch(/<header class="dromos-sign dromos-screen-header has-back">.*<h2[^>]*>Chronicle<\/h2><\/header>/);
 		expect(main).toContain('dromos-weeks');
 		for (const section of ['dromos-quests', 'dromos-campaigns', 'dromos-chronicle', 'dromos-skills', 'dromos-library']) expect(main).not.toContain(section);
 	});
