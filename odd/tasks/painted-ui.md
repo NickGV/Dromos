@@ -17,8 +17,8 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
 
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
-| T1 | S1-S4 (audit: every screen, card and modal shot with the paintings, inventoried with its component) | delegated (context backstop) | in progress | |
-| T2 | S5 (one card language, app background options, signpost: mockup) | inline | pending | |
+| T1 | S1-S4 (audit: every screen, card and modal shot with the paintings, inventoried with its component) | delegated (context backstop) | done | L2 |
+| T2 | S5 (one card language, app background options, signpost: mockup) | delegated (context backstop, L2) | in progress | |
 | T3 | S1-S7 (apply, screen by screen, starting with Home; split after T2) | pending | pending | |
 | T4 | release | inline | pending, on the user's go-ahead | |
 
@@ -29,3 +29,31 @@ Branch: `feat/painted-ui`. Delivery: merge into main, release on the user's go-a
   - **My proposal:** an audit of every screen, one shared card language based on the papyrus with a mockup first, then applying it screen by screen starting with Home. In parallel, the Library's loops made lighter. I asked "¿Arranco con la auditoría de las cards y, en paralelo, aligero los videos de la Biblioteca?".
   - **The user's answer:** "si dale porfavor, creo que hay que cambiar la card donde estan las stats y la modal donde aparecen los stages" and "ya hay que cambiar el resto de las cards, de las campains, las today{s quests, la vista de las skills la vista de las campainas, todo realmente, y no se que posibilidad de ponerle algun otro fondo como tal de la aplicacion, no el de arriba sino el de abajo y creo que el cartel que funciona tambien como navegacion."
   - **Route:** T1 is delegated to one read-only worker by the context backstop: this session is long and carries many images. The Library's loops are tracked in `landscape-art` T9.
+- **L2** (2026-11-26): T1, the audit, is done. It resumed after the previous session ended.
+  - **Shots:** 60 screenshots (every screen and modal, light by day and dark at night, 1160 and 360 px), plus two contact sheets in `~/Downloads/dromos-ui/`. The inventory is in scratch `ui-audit/inventory.md`.
+  - **Families:**
+    - 20 parchment panels and cards, all drawn by one rule at `styles.css:1249`.
+    - 12 list rows, with only a line between rows.
+    - 1 button recipe with about 15 uses (`styles.css:1289`).
+    - 8 pills, badges and chips.
+    - 8 progress bars and charts in five styles and two colours for one meaning.
+    - 7 different idioms for tabs and navigation.
+    - 1 modal shell with 4 contents.
+    - 6 empty and notice states.
+  - **Worst clashes:**
+    1. The character plaque with the radar (`CharacterCard.tsx:61`, `styles.css:2062`).
+    2. The stage and titles modals (`StageCard.tsx:21`, `TitlesCard.tsx:22`, `styles.css:5285`).
+    3. The signpost planks (`Signpost.tsx:46`, `styles.css:1116`).
+    4. The shared panel rule.
+    5. The screen header band (`ScreenHeader.tsx:26`).
+    6. The rounded pills and chips.
+    7. The web buttons.
+    8. The app background.
+  - **Tokens:**
+    - `--dromos-paper` (19 uses), `--dromos-panel` (28) and `--dromos-umber` (108), the grain, shadow and line tokens, and `--dromos-font-display` (61).
+    - The papyrus `--dromos-sheet-*` tokens live only in the Library's section.
+    - Radii and shadows are literals, so tokens alone cannot reshape the cards.
+  - **App root:** `DromosView.tsx:33` puts `dromos-root` on Obsidian's content element, which paints a flat `--dromos-paper` (#faf5ea by day, #1b1713 at night) with no image. The content column is 720 px wide, or 1100 px with two columns on Home. Below the scene's hard bottom edge, the cards sit on paper of almost the same tone. An S3 background belongs on `.dromos-root` or a layer under the content.
+  - **Signpost:** a `<nav class="dromos-signpost">` absolutely placed in the scene, with up to six tilted planks, the current one burnt in. On phones the planks are 34 px tall.
+  - **Route:** T2 is delegated to one design worker by the context backstop.
+
