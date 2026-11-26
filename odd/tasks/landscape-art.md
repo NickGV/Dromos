@@ -43,6 +43,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | samples approved (L11); dawn, dusk and Shop loops in progress | |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | code in progress | |
+| T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | waiting for the user's painting (L12) | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -155,3 +156,14 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **T6:** variant C goes into the code, with the five malformed paths fixed.
   - **T4:** the dawn, dusk and Shop loops are made with the same motion. The night and day samples are final. The Shop's new loops replace its light-only loops in the vault, after the parent checks them.
   - **Route:** two parallel units with disjoint surfaces, launched together. T6 is a repo writer; T4 is a scratch worker that writes nothing into the repo or the vault.
+- **L12** (2026-11-26, user): "que tanta posibilidad o que dices si mejor no hacemos las variantes con codigo sino que lo hacemos imagens png de solo el caminante con sus variantes y sus etapas? O seria muy dificil?"
+  - **My answer:**
+    - A painted walker means 12 consistent stages and 14 objects at 10 spots, up to 3 at once. Gemini also gives no transparency, and an image cannot take the light of the hour without four versions or a filter.
+    - At 45-70 px on screen, most of the gain is what variant C already fixes.
+    - Proposal: let C finish, then a pilot with a single painted stage, set beside C at real size, before deciding on the full set.
+  - **User:** "chat podriams mostrame los 14 objetos de la skill porfavor" and "si dame el prompt a ver que tal".
+  - **The user's stage:** the runner, at level 3 with game_start 2026-11-01. The wayfarer asks for level 3 and 30 days.
+  - **Images made** from the committed fded82c snapshot (scratch `objects/`):
+    - `~/Downloads/dromos-paisaje/objetos-skills.png`: each object alone, on the plaque's bust and on the walker (pilgrim stage).
+    - `~/Downloads/dromos-paisaje/caminante-guia.png`: the runner without objects, as the pose guide for the pilot.
+  - **T7:** the painted walker pilot, waiting for the user's painting.
