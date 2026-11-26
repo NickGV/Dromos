@@ -27,7 +27,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 - **S8** The drawn figures fit the painting (user, L8: "mejoremos al caminante para que quede mas acorde a lo que tenemos de fondo, porque ya queda un poco raro como esta hecho"):
   - **Over a painting:** the walker reads as part of the painted world, and so do the gate and the campfire that share its style.
   - **Still working:** every stage, the skills' objects, the walk and the breathing work as before.
-  - **Performance:** it adds no measurable cost; no filter repaints an animated figure every frame.
+  - **Performance:** it adds no measurable cost. A filter on an animated figure is allowed only where it is measured at no cost (L18).
   - **Without a painting:** the drawn landscape's figures stay as they are (S5).
   - **Mockup first:** the user chooses between the variants.
 - **S9** The walker can be the user's painting (user, L12 and L15: "imagenes png de solo el caminante con sus variantes y sus etapas", "si dale armame todo y lo voy sacando"):
@@ -51,7 +51,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | done | in the vault (L14) |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
-| T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | code done (4d98f0a, L17); independent verifier running (item 3); stages 03-06 to be redone with the satchel | 4d98f0a |
+| T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | done and verified (L18); stages 03-06 to be redone with the satchel | 4d98f0a |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -262,4 +262,12 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - The elder is about 4 % larger than the others, and the student and mentor about 3-5 % smaller.
     - The student's case of scrolls sits at his far hip.
   - **Risk:** item 3, the shared art-file matcher. An independent verifier is running a differential against 9e96904.
+- **L18** (2026-11-26): the independent verifier for item 3 checked 4d98f0a against 9e96904.
+  - **Differential:** 14,664 generated inputs went through `sceneArtFrom`, before and after. They covered every scene, theme and extension, mixed case, duplicates, collisions, videos, odd names, an empty list and 600 random lists. There were 0 differences, and no new keys.
+  - **LoadSceneArt:** before and after give the same result, and neither throws on any listing error.
+  - **walkerArtFrom:** it uses the same extension and case rules, and nothing leaks between scenes and walker.
+  - **Checks in the commit's copy:** 2681 tests pass, the build passes, and lint has 0 errors.
+  - **Verdict:** no blocker.
+  - **Wording:** the verifier flagged that S8 ("no filter repaints an animated figure every frame") and S9 ("without filters") ruled out the walker's hour filter. Both clauses were my own means for performance, not the user's words. The user's requirement is performance (L1: "tambien deberiamos tener en cuenta la cuestion del rendimiento"; L6: "si se puede y no tiene mucho impacto en rendimiento"), and the filter measured no cost (L17). So S8's clause now says what matters, matching S9.
+  - **Scratch:** the verifier's `/tmp/tmp.hSh4NsD7DA` was removed.
 
