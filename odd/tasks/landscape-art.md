@@ -30,6 +30,13 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Performance:** it adds no measurable cost; no filter repaints an animated figure every frame.
   - **Without a painting:** the drawn landscape's figures stay as they are (S5).
   - **Mockup first:** the user chooses between the variants.
+- **S9** The walker can be the user's painting (user, L12 and L15: "imagenes png de solo el caminante con sus variantes y sus etapas", "si dale armame todo y lo voy sacando"):
+  - **Paintings:** one painting per stage, 12 in all.
+  - **Objects:** the skills' 14 objects are painted on one sheet and placed at their spots on the figure.
+  - **Light:** the figure takes the light of the hour without filters.
+  - **Fallback:** a stage without its painting keeps variant C (S8).
+  - **Still working:** every stage, the objects, the walk and the breathing work as before.
+  - **Open, decided in T8's code:** where the paintings live and who keys them out.
 - **S6** `docs/own-art.md` gives the landscape prompts:
   - The day and night paintings come from the layout guides: the drawing itself without what Dromos draws over it, handed to the generator with the prompt, so the composition stays.
   - The dawn, dusk and new night paintings are edits of those two paintings that change only the light and the shepherd's day.
@@ -44,6 +51,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | done | in the vault (L14) |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
+| T8 | S9 (painted walker: kit, then cut-outs and code) | inline | kit done (L15); waiting for the user's paintings | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -211,3 +219,10 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **The harness:** a production bundle with 62 running CSS animations, so the drawn Home reads higher than letter-art L3's 11.8 %. Both arms of each comparison were measured the same way.
     - **Result:** the painted Home with its loop costs less than half of today's.
   - **Vault:** all six loops are in `Dromos/Arte/`. The Shop's new loops replace the old ones and show at once in 0.27.0. The old ones are kept in scratch `landscape-art/motion/old-shop/`. The landscape loops wait for this branch's release.
+- **L15** (2026-11-26, user): to "¿vamos con el set completo pintado?" the user answered "si dale armame todo y lo voy sacando, dime el paso a paso para generarlas con gemini". The kit is in `~/Downloads/dromos-caminante/`:
+  - **Guides:** `guias/01-corredor.png` … `12-sabio.png`, the walker of each stage without objects. They were rendered from a HEAD snapshot (68b7c68) at 1000 × 1500 (2:3) in a scratch harness (`walker-set/`).
+  - **Objects guide:** `objetos-guia.png`, the 14 objects in a 5 × 3 grid on mid grey, so the cream scrolls show. The order is in scratch `walker-set/objects-order.json`.
+  - **Reference:** `referencia-corredor.jpeg`, the painted runner, used as the identity and style reference for every stage.
+  - **Prompts:** `prompts.md`, one prompt per stage from 02 to 12, and one for the object sheet.
+    - **Stage prompts:** each repeats the runner's identity, the pose of its guide, the stage's age, hair, beard and clothes from `STAGE_LOOKS`, and a flat green background.
+    - **Object sheet:** it gets a magenta background, because the olive wreath is green.
