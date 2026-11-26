@@ -41,7 +41,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
-| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | samples approved (L11); dawn, dusk and Shop loops in progress | |
+| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | done | in the vault (L14) |
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
 | T5 | release | inline | pending, on the user's go-ahead | |
@@ -184,3 +184,30 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - One painted sheet of the 14 objects, cut and placed at the existing anchors.
     - The light of the hour graded without filters.
     - Variant C stays for any stage without a painting, and for the gate and the campfire.
+- **L14** (2026-11-26): T4 is done. The four new loops were made with the same tool and settings as the approved samples.
+  - **Dawn** (1600 × 500, 15 fps, 10 s, 393 KB): new drifting mist over the painted mist, four windows glowing, smoke, clouds, sails, breeze, and the sun's glow. Birds were dropped.
+  - **Dusk** (410 KB): eight lights flickering, heavy smoke, clouds, sails, breeze, and the sun's glow. Fireflies were dropped.
+  - **Shop by day** (1476 × 408, the painting's exact ratio, 371 KB): the awning's hem, the cloud, the palm and the cloth sway, and dust motes glint in the shade.
+  - **Shop by night** (577 KB): the flames lick, the lamp halos breathe, motes drift, 12 stars twinkle, and the hem, palm and cloth sway.
+  - **What stays still:** the merchant, the temple, the counter, the scale and the coins. Nothing moves under the wide-pane plaque; the phone's plaque area moves at 35 %.
+  - **Checks:**
+    - **Still areas:** 0 moving pixels before encoding, in all four loops.
+    - **Frame 0 against the painting:** a mean of 0.66-0.90 levels.
+    - **Seams:** within each loop's largest ordinary frame step.
+    - **Windmill:** the sails now settle onto the painting in the first and last 6 % of the loop.
+  - **Parent check:** the Shop-by-night sheet. The merchant and temple stay still; the lamps, hem and motes move.
+  - **S3 measurement:** median of 3 runs, the real `HomeScreen` at 395cefc, dark theme at night.
+
+    | Case | CPU (% of one core) |
+    |---|---|
+    | Home, drawn | 18.4 |
+    | Home, painted, no loop | 4.2 |
+    | Home, painted, with its loop | 7.7 |
+    | Shop by day, old loop | 8.0 |
+    | Shop by day, new loop | 4.6 |
+    | Shop by night, old loop | 7.1 |
+    | Shop by night, new loop | 4.8 |
+
+    - **The harness:** a production bundle with 62 running CSS animations, so the drawn Home reads higher than letter-art L3's 11.8 %. Both arms of each comparison were measured the same way.
+    - **Result:** the painted Home with its loop costs less than half of today's.
+  - **Vault:** all six loops are in `Dromos/Arte/`. The Shop's new loops replace the old ones and show at once in 0.27.0. The old ones are kept in scratch `landscape-art/motion/old-shop/`. The landscape loops wait for this branch's release.
