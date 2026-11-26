@@ -28,8 +28,8 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 |----|-------|-------|--------|----------|
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
-| T3 | S1-S5 (code) | inline | pending | |
-| T4 | S6 (docs), S3 (loops, measurement) | inline | pending | |
+| T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | in progress | |
+| T4 | S3 (measurement; loops only if the user wants them) | inline | pending | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -57,3 +57,17 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - The new night is an edit of the dark painting.
   - **Unchanged:** the day painting stays as it is.
   - **Next:** check each painting with the road overlay and the Home mockup, then T3.
+- **L5** (2026-11-26, user): sent the dawn, dusk and night paintings (3712 × 1152) and said "estas son las imagenes que salieron, que te parecen?".
+  - **Alignment:** with the game's road drawn over each of the three, the painted road stays under it, and the gate's foot and the campfire's spot stay plain.
+  - **Content:**
+    - **Dawn:** mist, a pink sky and the shepherd setting out.
+    - **Dusk:** the golden hour, birds, and the shepherd heading toward the village.
+    - **Night:** the shepherd's door ajar with his crook beside it, the sheep in a stone fold, and the lion asleep against the lamb.
+  - **Cleanup:** the night edit painted a small iron gate at the far path's start, at x 2024-2075, y 634-665 of 3712 × 1152. Next to Dromos's gate it would read as a second gate, so each of its rows was redrawn from the pixels on either side (scratch `tools/ungate.py`).
+  - **Mockup:** the real `HomeScreen` was rendered with each painting at its period: light at dawn, day, dusk and night, and dark, at 1160 and 360 px. All fit, with no page errors. In the light theme at night the drawn gate turns light and reads well on the night painting.
+  - **Files:**
+    - **Export:** 3712 × 1160, exactly 3.2:1, with `cwebp -q 80`. Sizes: landscape-light 52 KB, landscape-dark 47 KB (the shepherd at home), landscape-dawn 62 KB, landscape-dusk 72 KB.
+    - **Placement:** all four are in `Dromos/Arte/`. The released 0.27.0 ignores them.
+    - **Superseded:** the first dark painting, with the shepherd on the hill.
+  - **Prompts:** the five prompts are kept verbatim for the docs: two from the layout guides and three edits.
+  - **T3 route:** delegated as one unit with its docs, by the long-session context backstop: this session carries many painting images.
