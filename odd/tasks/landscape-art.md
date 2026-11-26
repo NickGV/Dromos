@@ -52,7 +52,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | done | f84db45, dd735af (L13) |
 | T7 | S8 (pilot: one painted stage of the walker beside variant C, at real size) | inline | done: the painted walker wins (L13); the full set waits for the user's decision | |
 | T8 | S9 (painted walker: kit, then cut-outs and code) | delegated (context backstop, L16) | done and verified (L18); stages 03-06 to be redone with the satchel | 4d98f0a |
-| T5 | release | inline | pending, on the user's go-ahead | |
+| T5 | release | inline | done | 0.28.0 (L19) |
 
 ## Log
 
@@ -270,4 +270,9 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Verdict:** no blocker.
   - **Wording:** the verifier flagged that S8 ("no filter repaints an animated figure every frame") and S9 ("without filters") ruled out the walker's hour filter. Both clauses were my own means for performance, not the user's words. The user's requirement is performance (L1: "tambien deberiamos tener en cuenta la cuestion del rendimiento"; L6: "si se puede y no tiene mucho impacto en rendimiento"), and the filter measured no cost (L17). So S8's clause now says what matters, matching S9.
   - **Scratch:** the verifier's `/tmp/tmp.hSh4NsD7DA` was removed.
+- **L19** (2026-11-26, user): I asked "¿Publico la 0.28.0?" and the user answered "si dale".
+  - **Merge and release:** feat/landscape-art was merged into main (3211fbe). release/0.28.0 holds the changelog (aeabb5e) and `npm version minor` (252e835, tag 0.28.0), and was merged back (5b1fc5c).
+  - **Checks:** 2681 tests pass, lint has 0 errors (the 4 old warnings), and the build passes.
+  - **Release:** main and the tag were pushed as NickGV. release.yml run 45874707748 finished with success, and release 0.28.0 has main.js, manifest.json and styles.css. The main build run 45874707176 finished with success.
+  - **Still open, no release needed:** stages 03-06 repainted with the satchel. The files are replaced in the vault after `prep.py` (scratch `walker-set/`).
 
