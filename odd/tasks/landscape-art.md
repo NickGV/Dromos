@@ -34,7 +34,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 |----|-------|-------|--------|----------|
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
-| T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | in progress | |
+| T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
 | T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | sample in progress | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
@@ -85,3 +85,17 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **Then the rest:** the rest of the landscape's loops and the Shop's two.
     - **Code:** the dawn and dusk videos were added to S3, so the writer of T3 was told to extend the video to every painting.
   - **Route:** T4 is delegated to one background worker in scratch, by the context backstop.
+- **L7** (2026-11-26): T3 is done (aee89ba). Its writer covered S1-S6 and the S3 change of L6.
+  - **Design:**
+    - **The painting:** an HTML layer `.dromos-landscape-art` sits in the drawing's own box, with `cover` and `center bottom`. It holds `SceneVideo`s, and the scene's `has-art-*` classes and `--dromos-art-*` properties come from `scenePaintingView`.
+    - **Over the painting:** the gate, the walker and the campfire stay in the SVG.
+    - **The drawing:** with both themes painted it is left out. With one theme painted it sits in `.dromos-landscape-drawing`, which the stylesheet hides in the painted theme.
+    - **Choosing by period:** `landscapeArtView(art.landscape, period)` picks the light theme's painting and its own loop for the period.
+    - **Why not an SVG `<image>`:** it cannot hold a `<video>`.
+  - **Alignment:** the layer and the mockup's SVG `<image>` are pixel-identical at 1160, 840 and 360 px in both themes. At 2560 px the largest difference is 4 of 255, from rounding.
+  - **RED:** 19 failing tests first, then 5 for the loop change.
+  - **GREEN:** 2651 tests pass (re-run by the parent as its spot check), lint has 0 errors (the 4 old warnings), and the build passes.
+  - **S5 differential:** against f09ae6b, 48 of 48 screenshots are byte-identical. The markup differs only in React's generated id for the sky gradient (R1 became R2).
+  - **Painted check:** the real `HomeScreen` with the four vault files shows the right painting at each period, with no page errors.
+  - **Review:** receipt-driven review is off (global). The assessment could not run with the untracked `.atl/`, and no high-risk item applies, so there is no independent verifier.
+  - **Size:** about 590 changed lines in one unit of behaviour; most of the excess is the verbatim prompts and the tests.
