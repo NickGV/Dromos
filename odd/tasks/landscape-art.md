@@ -41,8 +41,8 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
 | T1 | S6 (guides, prompts to the user) | inline | done | L2 |
 | T2 | S1-S4 (mockup with the user's paintings) | inline | done | L3 |
 | T3 | S1-S6 (code, tests, docs) | delegated (context backstop, L5) | done | aee89ba (L7) |
-| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (context backstop, L6) | samples done (L9), waiting for the user's verdict | |
-| T6 | S8 (walker, gate and campfire restyled over the painting: variants mockup, then code) | delegated (context backstop, L8) | mockup done (L10), waiting for the user's choice | |
+| T4 | S3, S7 (loops with motion: a sample first, then the landscape's four and the Shop's two; measurement) | delegated (parallel units with T6, L11) | samples approved (L11); dawn, dusk and Shop loops in progress | |
+| T6 | S8 (walker, gate and campfire restyled over the painting: variant C, chosen in L11; the walker's malformed paths fixed) | delegated (parallel units with T4, L11) | code in progress | |
 | T5 | release | inline | pending, on the user's go-ahead | |
 
 ## Log
@@ -151,3 +151,7 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Files:**
     - The combined image for the user is `~/Downloads/dromos-paisaje/caminante-variantes.png`.
     - The mockup page, sheets and patches are in scratch `walker-style/`, with one `patch-<variant>.md` each.
+- **L11** (2026-11-26, user): I asked "¿Avanzo con la variante C para el caminante y con el movimiento de las muestras para hacer el resto de los videos?" and the user answered "si dale".
+  - **T6:** variant C goes into the code, with the five malformed paths fixed.
+  - **T4:** the dawn, dusk and Shop loops are made with the same motion. The night and day samples are final. The Shop's new loops replace its light-only loops in the vault, after the parent checks them.
+  - **Route:** two parallel units with disjoint surfaces, launched together. T6 is a repo writer; T4 is a scratch worker that writes nothing into the repo or the vault.
