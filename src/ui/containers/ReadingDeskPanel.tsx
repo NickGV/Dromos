@@ -11,6 +11,8 @@ export interface ReadingDeskPanelProps {
 	readonly deps: LibraryDeps;
 	/** The interface language, for the card, which opens outside the view. */
 	readonly language: Language;
+	/** The time of day, so a card opened from here keeps to the night as the Library's do (night-illustrations S2). */
+	readonly period?: string;
 }
 
 /**
@@ -20,10 +22,10 @@ export interface ReadingDeskPanelProps {
  * read, and while no book is being read, it draws nothing. The card lies on the desk's paintings,
  * read when home opens (own-art L14).
  */
-export function ReadingDeskPanel({ deps, language }: ReadingDeskPanelProps) {
+export function ReadingDeskPanel({ deps, language, period }: ReadingDeskPanelProps) {
 	const t = useT();
 	const [art] = useState(() => deps.sceneArt.execute());
-	const { library, openBook, idPrefix } = useLibraryCards(deps, language, sceneArtView(art).desk);
+	const { library, openBook, idPrefix } = useLibraryCards(deps, language, sceneArtView(art).desk, period);
 	const view = homeDeskView(library, deps.clock.today(), t);
 	return view ? <ReadingDesk view={view} onOpenCard={openBook} idPrefix={idPrefix} /> : null;
 }

@@ -47,7 +47,7 @@ export interface LibraryCards {
  * followed in that text, closes the card and opens the note. Leaving the screen closes the card.
  * The open card lies on `desk`, the reading desk's paintings, when given (own-art L13).
  */
-export function useLibraryCards(deps: LibraryDeps, language: Language, desk: ScenePaintingView | null = null): LibraryCards {
+export function useLibraryCards(deps: LibraryDeps, language: Language, desk: ScenePaintingView | null = null, period?: string): LibraryCards {
 	const t = useT();
 	const [library, setLibrary] = useState<LibraryState | null>(null);
 	const [card, setCard] = useState<OpenCard | null>(null);
@@ -139,6 +139,7 @@ export function useLibraryCards(deps: LibraryDeps, language: Language, desk: Sce
 						onOpenLink={closeForWebViewer(deps.linksOpenInObsidian, () => modal.current?.close())}
 						focusNote={focusNote.current}
 						painting={desk}
+						period={period}
 					/>
 				),
 			};
@@ -161,6 +162,7 @@ export function useLibraryCards(deps: LibraryDeps, language: Language, desk: Sce
 					focusNote={focusNote.current}
 					idPrefix={idPrefix}
 					painting={desk}
+					period={period}
 				/>
 			),
 		};

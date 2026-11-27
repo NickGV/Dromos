@@ -105,7 +105,7 @@ export function LibraryPanel({ deps, language, period, syncKey }: LibraryPanelPr
 	// The paintings, read when the screen opens and again on each Sync (own-art S4); the cards lie on the desk's.
 	const [art, setArt] = useState(() => deps.sceneArt.execute());
 	const paintings = sceneArtView(art);
-	const { library, openBook, openResource, idPrefix } = useLibraryCards(deps, language, paintings.desk);
+	const { library, openBook, openResource, idPrefix } = useLibraryCards(deps, language, paintings.desk, period);
 	const [shelf, setShelf] = useState<string | null>(null);
 	// The archive (M8 S2) is on show in place of the room, with its pigeonhole and its unfolded processed ones.
 	const [inArchive, setInArchive] = useState(false);

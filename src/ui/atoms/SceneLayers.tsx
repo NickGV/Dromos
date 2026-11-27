@@ -6,7 +6,7 @@ export interface SceneLayersProps {
 	/** Names the scene for the stylesheet and for the art: `wall`, `desk`, `shelf`, `card`, `archive`, `shop`. */
 	readonly scene: string;
 	readonly className?: string;
-	/** The time of day the drawing shows, for the stylesheet (the Shop's stall, M10 S6); a painting keeps to its theme. */
+	/** The time of day, for the stylesheet: the Shop's stall draws it (M10 S6), and at night in the light theme a painting turns to its dark one (night-illustrations S3). */
 	readonly period?: string;
 	/** The line drawing of the scene, behind its panels; screen readers skip it. */
 	readonly drawing: ReactNode;

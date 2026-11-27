@@ -25,6 +25,8 @@ export interface ResourceCardProps {
 	readonly focusNote?: boolean;
 	/** The reading desk's paintings, behind the sheet: an open scroll lies on the desk (own-art L13); absent or `null`, the plain panel. */
 	readonly painting?: ScenePaintingView | null;
+	/** The time of day the card opened at, so its scene keeps to the night as the Library does (night-illustrations S2). */
+	readonly period?: string;
 }
 
 /**
@@ -37,12 +39,13 @@ export interface ResourceCardProps {
  * scrolls and the buttons stay at the foot, as in the book card. A busy button keeps its focus
  * (aria-disabled) and says what it is doing.
  */
-export function ResourceCard({ view, busy, onMark, onOpenNote, renderMarkdown, onFollowLink, onOpenLink, focusNote = false, painting = null }: ResourceCardProps) {
+export function ResourceCard({ view, busy, onMark, onOpenNote, renderMarkdown, onFollowLink, onOpenLink, focusNote = false, painting = null, period }: ResourceCardProps) {
 	const { openLink, mark, openNote } = view.actions;
 	return (
 		<div className={`dromos-book-card dromos-resource-card is-${view.state}`}>
 			<SceneLayers
 				scene="card"
+				period={period}
 				painting={painting}
 				drawing={
 					<>
