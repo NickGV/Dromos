@@ -1,0 +1,258 @@
+{
+ "src": "desk-light.webp",
+ "out": "desk-light.webm",
+ "width": 1568,
+ "fps": 15,
+ "seconds": 10,
+ "seed": 80,
+ "encode": {
+  "bitrate": "1000k",
+  "crf": 8,
+  "qmax": 32
+ },
+ "keepout": [
+  {
+   "note": "under the 'Leyendo ahora' scrolls at 1160, 820 and 400 px: motion kept low",
+   "margin": 2,
+   "feather": 6,
+   "strength": 0.85,
+   "shapes": [
+    {
+     "rect": [
+      10,
+      110,
+      950,
+      252
+     ]
+    },
+    {
+     "rect": [
+      275,
+      45,
+      685,
+      295
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "type": "glow",
+   "note": "the light through the window breathes",
+   "mask": "lum",
+   "blur": 20,
+   "lo": 20,
+   "hi": 99,
+   "amp": 0.07,
+   "ref": [
+    150,
+    112,
+    76
+   ],
+   "freqs": [
+    [
+     1,
+     1.0
+    ],
+    [
+     2,
+     0.3
+    ]
+   ],
+   "phases": [
+    0.0,
+    2.0
+   ],
+   "calm": false
+  },
+  {
+   "type": "fireflies",
+   "note": "dust motes glinting in the light",
+   "color": [
+    255,
+    248,
+    228
+   ],
+   "core": 0.5,
+   "halo": 1.6,
+   "strength": 0.6,
+   "items": [
+    {
+     "c": [
+      90,
+      60
+     ],
+     "a": [
+      8,
+      6
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      0.3,
+      1.0
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      170,
+      28
+     ],
+     "a": [
+      8,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      1.0,
+      2.3
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      560,
+      22
+     ],
+     "a": [
+      8,
+      5
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      1.7,
+      3.6
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      700,
+      55
+     ],
+     "a": [
+      8,
+      6
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      2.4,
+      4.9
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      820,
+      85
+     ],
+     "a": [
+      8,
+      6
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      3.1,
+      6.2
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      905,
+      40
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      3.8,
+      7.5
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      420,
+      30
+     ],
+     "a": [
+      8,
+      5
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      4.5,
+      8.8
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      40,
+      95
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      5.2,
+      10.1
+     ],
+     "blink": 2
+    }
+   ]
+  }
+ ],
+ "sheet": {
+  "crops": {
+   "lamp": [
+    140,
+    0,
+    300,
+    90
+   ],
+   "inkpot": [
+    760,
+    0,
+    920,
+    90
+   ],
+   "middle": [
+    400,
+    120,
+    560,
+    210
+   ]
+  }
+ }
+}

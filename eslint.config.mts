@@ -13,6 +13,8 @@ export default defineConfig(
 		'vitest.config.ts',
 		'scripts',
 		'docs',
+		// Art tools for preparing the user's paintings and loops, outside the plugin (tools/art/README.md).
+		'tools/art',
 		'package.json',
 		'package-lock.json',
 		'tsconfig.json',

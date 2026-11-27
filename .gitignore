@@ -23,3 +23,8 @@ data.json
 
 # test coverage
 coverage
+
+# tools/art: a local venv, Python caches and an optional work folder; the tools write their outputs where you point them
+tools/art/.venv/
+tools/art/**/__pycache__/
+tools/art/work/

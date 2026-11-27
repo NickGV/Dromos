@@ -1,0 +1,227 @@
+{
+ "src": "wall-dark.webp",
+ "out": "wall-dark.webm",
+ "width": 1456,
+ "fps": 15,
+ "seconds": 10,
+ "seed": 84,
+ "encode": {
+  "bitrate": "1000k",
+  "crf": 8,
+  "qmax": 32
+ },
+ "keepout": [
+  {
+   "note": "under the alcoves' names and counts and the archive door's name, at 1160, 820 and 400 px: motion kept low",
+   "margin": 2,
+   "feather": 6,
+   "strength": 0.85,
+   "shapes": [
+    {
+     "rect": [
+      0,
+      212,
+      960,
+      256
+     ]
+    },
+    {
+     "rect": [
+      80,
+      292,
+      175,
+      331
+     ]
+    },
+    {
+     "rect": [
+      0,
+      208,
+      960,
+      258
+     ]
+    },
+    {
+     "rect": [
+      116,
+      314,
+      244,
+      367
+     ]
+    },
+    {
+     "rect": [
+      400,
+      58,
+      590,
+      116
+     ]
+    },
+    {
+     "rect": [
+      400,
+      213,
+      525,
+      272
+     ]
+    },
+    {
+     "rect": [
+      340,
+      363,
+      488,
+      425
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "type": "glow",
+   "note": "the lamplight on the wall breathes and flickers",
+   "c": [
+    744,
+    474
+   ],
+   "r": 150,
+   "amp": 0.34,
+   "ref": [
+    24,
+    19,
+    16
+   ],
+   "freqs": [
+    [
+     1,
+     0.5
+    ],
+    [
+     2,
+     0.35
+    ],
+    [
+     3,
+     0.25
+    ],
+    [
+     5,
+     0.12
+    ]
+   ],
+   "phases": [
+    0.4,
+    2.0,
+    3.9,
+    5.1
+   ],
+   "calm": false
+  },
+  {
+   "type": "fireflies",
+   "note": "dust motes glinting in the light",
+   "color": [
+    255,
+    200,
+    130
+   ],
+   "core": 0.45,
+   "halo": 1.5,
+   "strength": 0.55,
+   "items": [
+    {
+     "c": [
+      700,
+      430
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      0.3,
+      1.0
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      780,
+      400
+     ],
+     "a": [
+      8,
+      6
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      1.0,
+      2.3
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      640,
+      455
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      1.7,
+      3.6
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      830,
+      445
+     ],
+     "a": [
+      6,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      2.4,
+      4.9
+     ],
+     "blink": 2
+    }
+   ]
+  }
+ ],
+ "sheet": {
+  "crops": {
+   "glow": [
+    600,
+    330,
+    900,
+    475
+   ],
+   "middle": [
+    300,
+    150,
+    540,
+    270
+   ]
+  }
+ }
+}

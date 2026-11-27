@@ -1,0 +1,322 @@
+{
+ "src": "archive-light.webp",
+ "out": "archive-light.webm",
+ "width": 1568,
+ "fps": 15,
+ "seconds": 10,
+ "seed": 8,
+ "encode": {
+  "bitrate": "1000k",
+  "crf": 8,
+  "qmax": 32
+ },
+ "keepout": [
+  {
+   "note": "under the pigeonholes' labels at 1160, 820 and 400 px: motion kept low",
+   "margin": 2,
+   "feather": 6,
+   "strength": 0.85,
+   "shapes": [
+    {
+     "rect": [
+      155,
+      120,
+      960,
+      186
+     ]
+    },
+    {
+     "rect": [
+      218,
+      40,
+      960,
+      130
+     ]
+    },
+    {
+     "rect": [
+      175,
+      136,
+      785,
+      224
+     ]
+    }
+   ]
+  },
+  {
+   "note": "the window's frame and mullion stay still",
+   "margin": 0.5,
+   "feather": 1.5,
+   "shapes": [
+    {
+     "rect": [
+      119.5,
+      38,
+      124.5,
+      214
+     ]
+    },
+    {
+     "rect": [
+      176.5,
+      38,
+      200,
+      214
+     ]
+    },
+    {
+     "rect": [
+      40,
+      38,
+      67.5,
+      214
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "type": "clouds",
+   "note": "the clouds outside drift",
+   "margin": 4,
+   "drift": 2.6,
+   "billow": 0.6,
+   "billow_wave": 20,
+   "items": [
+    {
+     "c": [
+      156,
+      84
+     ],
+     "r": [
+      21,
+      13
+     ],
+     "phase": 0.0,
+     "drift": 1.8
+    },
+    {
+     "c": [
+      86,
+      104
+     ],
+     "r": [
+      18,
+      12
+     ],
+     "phase": 2.3
+    }
+   ]
+  },
+  {
+   "type": "sway",
+   "note": "the cypress outside sways",
+   "idle": 0.5,
+   "items": [
+    {
+     "base": [
+      162.5,
+      181
+     ],
+     "top": [
+      162.5,
+      131
+     ],
+     "width": 4.5,
+     "margin": 3,
+     "amp": 0,
+     "idle": 0.55,
+     "phase": 0.6,
+     "power": 1.4
+    }
+   ]
+  },
+  {
+   "type": "glow",
+   "note": "the sunbeam from the window breathes",
+   "mask": "lum",
+   "box": [
+    195,
+    60,
+    720,
+    270
+   ],
+   "feather": 24,
+   "blur": 6,
+   "lo": 45,
+   "hi": 99,
+   "amp": 0.16,
+   "ref": [
+    205,
+    182,
+    150
+   ],
+   "freqs": [
+    [
+     1,
+     1.0
+    ],
+    [
+     2,
+     0.35
+    ]
+   ],
+   "phases": [
+    0.0,
+    1.2
+   ],
+   "calm": false
+  },
+  {
+   "type": "fireflies",
+   "note": "dust motes glinting in the light",
+   "color": [
+    255,
+    248,
+    226
+   ],
+   "core": 0.45,
+   "halo": 1.5,
+   "strength": 0.65,
+   "items": [
+    {
+     "c": [
+      230,
+      110
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      0.3,
+      1.0
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      280,
+      150
+     ],
+     "a": [
+      8,
+      6
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      1.0,
+      2.3
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      330,
+      195
+     ],
+     "a": [
+      8,
+      6
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      1.7,
+      3.6
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      255,
+      230
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      2.4,
+      4.9
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      390,
+      235
+     ],
+     "a": [
+      8,
+      5
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      3.1,
+      6.2
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      300,
+      95
+     ],
+     "a": [
+      7,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      3.8,
+      7.5
+     ],
+     "blink": 2
+    }
+   ]
+  }
+ ],
+ "sheet": {
+  "crops": {
+   "window": [
+    60,
+    60,
+    200,
+    215
+   ],
+   "beam": [
+    190,
+    90,
+    330,
+    215
+   ],
+   "table": [
+    400,
+    230,
+    540,
+    317
+   ]
+  }
+ }
+}

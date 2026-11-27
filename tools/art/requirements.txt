@@ -1,0 +1,5 @@
+# Python packages of tools/art (see tools/art/README.md). Keying, the walker and the road check need only Pillow;
+# the motion loops (motion/*.py) also need numpy and OpenCV.
+Pillow>=10
+numpy>=1.26
+opencv-python-headless>=4.8
