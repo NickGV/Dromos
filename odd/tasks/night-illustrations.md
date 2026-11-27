@@ -21,7 +21,8 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
 | T0b | old S1-S4 | Mockups of night colors for the drawn Library | delegated; scratch only | done, superseded by 0.24.0-0.29.0 (L8) | |
 | T1 | S1-S5 | Night rules for the paintings and loops of the Library scenes and the Shop; the time of day passed to the book and resource cards; tests first; docs | inline | done (L9) | see L9 |
 | V1 | S1-S5 | Independent verifier: Risk item 6 (a visual change no test would catch), with the user's real paintings | delegated verifier | done: S1-S5 PASS after one correction (L10, L11) | `8a6de5c` |
-| M1 | S1-S5 | The user's look at night | the user | pending | |
+| M1 | S1-S5 | The user's look at night | the user | done (L12) | |
+| R1 | S1-S5 | Merge and release 0.30.0 (minor: something new to see) | inline, with the user's go-ahead | in progress (L12) | |
 
 ## Log
 
@@ -94,3 +95,4 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
   - 260 other focus clips (rings on parchment and plates, every other period, theme and painting set) are pixel-identical to `d8948a5`, and to `76ff934` outside the night case.
   - `npx vitest run` 2701 passed, tsc and eslint clean.
   - The branch build was installed into the vault for M1 with `DROMOS_VAULT=/home/nickgv/Documents/logos`.
+- **L12** (2026-11-26, user): "bien me parece bien me gusta", after seeing it installed at night, answering "Cuando lo veas, contame si te convence. Si te gusta, lo publico como 0.30.0". M1 is done and R1 has the go-ahead.
