@@ -29,6 +29,8 @@ export interface BookCardProps {
 	readonly idPrefix?: string;
 	/** The reading desk's paintings, behind the sheet: an open scroll lies on the desk (own-art L13); absent or `null`, the plain panel. */
 	readonly painting?: ScenePaintingView | null;
+	/** The time of day the card opened at, so its scene keeps to the night as the Library does (night-illustrations S2). */
+	readonly period?: string;
 }
 
 /**
@@ -39,7 +41,7 @@ export interface BookCardProps {
  * buttons its state allows. The modal's own close button and Escape close it: the card adds no
  * second one. A busy button keeps its focus (aria-disabled) and says what it is doing.
  */
-export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMarkdown, onFollowLink, focusNote = false, idPrefix = 'dromos-library', painting = null }: BookCardProps) {
+export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMarkdown, onFollowLink, focusNote = false, idPrefix = 'dromos-library', painting = null, period }: BookCardProps) {
 	const { start, finish, openNote } = view.actions;
 	const hintId = `${idPrefix}-start-hint`;
 	const idle = busy === null;
@@ -48,6 +50,7 @@ export function BookCard({ view, busy, onStart, onFinish, onOpenNote, renderMark
 		<div className={`dromos-book-card is-${view.state}`}>
 			<SceneLayers
 				scene="card"
+				period={period}
 				painting={painting}
 				drawing={
 					<>

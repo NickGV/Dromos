@@ -8,6 +8,7 @@ The first scenes are the Library's **wall** (behind the alcoves) and **desk** (b
 
 - In your Dromos folder (the plugin's vault folder setting, `Dromos` by default), in `Arte/`: `Dromos/Arte/<scene>-light.<ext>` and `Dromos/Arte/<scene>-dark.<ext>`, with `<scene>` one of `wall`, `desk`, `shelf`, `archive`, `shop`, `esdras`, `landscape`, and `<ext>` one of `webp`, `png`, `jpg` (`jpeg` works too). The case of the name does not matter. If one painting has several files, WebP wins, then PNG, then JPG.
 - A theme without its file draws the scene as always, even when the other theme has one.
+- At night, from 21:00 to 05:00, the light theme shows the dark painting and its loop of the Library's scenes (wall, desk, shelf, archive, and a book's or resource's card over the desk) and of the Shop's stall, as the landscape shows its night. The cards, plates, text and buttons keep the light theme. A scene with only a light painting keeps it at night. Esdras's portrait keeps to its theme.
 - The landscape also takes `Dromos/Arte/landscape-dawn.<ext>` and `Dromos/Arte/landscape-dusk.<ext>`, for the light theme's dawn and dusk ([landscape](#landscape-the-countryside-above-every-screen)).
 - The walker on the road takes `Dromos/Arte/walker-<stage>.<ext>`, one per stage of life, and `Dromos/Arte/object-<skill>.<ext>`, one per skill's object, by the same rules and with no theme in the name ([walker](#walker-the-painted-walker-on-the-road)).
 - While a painting is there, it replaces the scene's drawing: the lamp, the ink pot, and the archive's window and worktable come from the painting, which is why the prompts ask for them. Text and buttons stay on their parchment panels.
@@ -150,8 +151,8 @@ phone (2.1:1). Nothing covers it but the gold plaque, which Dromos hangs at the 
 x 87-99%, y 25-45% on wide panes, so keep that corner plain shade; on a phone it covers x 64-77% at
 the same height, over the right lamp, which the left one makes up for. Dromos anchors the painting to the
 bottom, as the drawing is, so the counter always shows: wide panes lose the top 7%, and phones keep
-only the central strip (x 21-79%), where the merchant stands. The time of day does not change a
-painting: the light one shows in the light theme and the dark one in the dark theme.
+only the central strip (x 21-79%), where the merchant stands. The light painting shows in the light theme
+by day, and the dark one in the dark theme and at night (21:00 to 05:00) in the light theme.
 
 This scene has one person, the merchant, and it is the only exception to the style block's "No
 people": he is part of the stall, as in the drawing.

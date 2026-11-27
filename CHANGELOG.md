@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Paintings at night**: in the light theme, from 21:00 to 05:00, the Library's wall, desk, shelves and archive, a book's or resource's card over the desk, and the Shop's stall show your dark painting and its loop, as the landscape already turns to its night. The cards, plates, text and buttons keep the light theme, and by day and in the dark theme nothing changes. A scene with only a light painting keeps it at night, and under reduced motion no loop plays.
+
 ## [0.29.0] - 2026-11-26
 
 ### Changed

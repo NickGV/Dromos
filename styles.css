@@ -4238,6 +4238,16 @@
 	.dromos-root .dromos-scene-video.is-dark,
 	.theme-light .dromos-root .dromos-scene-video.is-light { display: none; }
 }
+/* Night in the light theme (night-illustrations S1-S4): from 21:00 to 05:00 a painted scene of the Library,
+   a card over the desk and the Shop's stall turn to their dark painting and its loop, as the landscape
+   turns to its night; the plates, cards, text and buttons keep the light theme. A scene with only a light
+   painting keeps it, and a card keeps its rods. The dark loop plays only where motion is allowed. */
+.theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark > .is-background { background-image: var(--dromos-art-dark); }
+.theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark:not(.is-card) > .is-drawing { display: none; }
+.theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark .dromos-scene-video.is-light { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+	.theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark .dromos-scene-video.is-dark { display: block; }
+}
 
 .dromos-root .dromos-library { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .dromos-root .dromos-library-note { margin: 0; padding: 16px; color: var(--dromos-ink-muted); }
