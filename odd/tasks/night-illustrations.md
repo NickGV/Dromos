@@ -22,7 +22,7 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
 | T1 | S1-S5 | Night rules for the paintings and loops of the Library scenes and the Shop; the time of day passed to the book and resource cards; tests first; docs | inline | done (L9) | see L9 |
 | V1 | S1-S5 | Independent verifier: Risk item 6 (a visual change no test would catch), with the user's real paintings | delegated verifier | done: S1-S5 PASS after one correction (L10, L11) | `8a6de5c` |
 | M1 | S1-S5 | The user's look at night | the user | done (L12) | |
-| R1 | S1-S5 | Merge and release 0.30.0 (minor: something new to see) | inline, with the user's go-ahead | in progress (L12) | |
+| R1 | S1-S5 | Merge and release 0.30.0 (minor: something new to see) | inline, with the user's go-ahead | released (L13); the check on the devices is not recorded | merge `acca5ef`, tag `0.30.0` on `ed95622`, release merge `507a258` |
 
 ## Log
 
@@ -96,3 +96,4 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
   - `npx vitest run` 2701 passed, tsc and eslint clean.
   - The branch build was installed into the vault for M1 with `DROMOS_VAULT=/home/nickgv/Documents/logos`.
 - **L12** (2026-11-26, user): "bien me parece bien me gusta", after seeing it installed at night, answering "Cuando lo veas, contame si te convence. Si te gusta, lo publico como 0.30.0". M1 is done and R1 has the go-ahead.
+- **L13** (2026-11-26): R1. A fetch first found nothing new on `origin/main`. `feat/night-illustrations` was merged into `main` with `--no-ff` (`acca5ef`). On `release/0.30.0`, the CHANGELOG's Unreleased became "0.30.0 - 2026-11-26" (`2ab51ff`), and `npm version minor` tagged `0.30.0` (`ed95622`); it was merged into `main` (`507a258`). On `main` before pushing: 2701 tests passed, lint 0 errors (4 old warnings), build passed. GitHub: the "Release Obsidian plugin" run for `0.30.0` and the "Node.js build" run on `main` both succeeded; release 0.30.0 is published and Latest, with `main.js`, `manifest.json` and `styles.css`. Not recorded: BRAT updating the devices.
