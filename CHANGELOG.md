@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Headings**: the character's name on the plaque, the level-up title, the campaign and week report card titles on Home, and a book's or resource's card title took your theme's heading color, as the Library headings did before 0.30.1. They are now in Dromos's ink too, so every Dromos heading reads the same in any theme.
+
 ## [0.30.1] - 2026-11-27
 
 ### Fixed

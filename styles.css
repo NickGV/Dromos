@@ -1781,6 +1781,7 @@
 .dromos-root .dromos-character-names { flex: 1 1 auto; min-width: 0; }
 
 .dromos-root .dromos-character-name {
+	color: var(--dromos-ink);
 	margin: 0;
 	font-family: var(--dromos-font-display);
 	font-size: 30px;
@@ -2290,6 +2291,7 @@
 .dromos-root .dromos-ceremony-news { align-self: stretch; }
 
 .dromos-root .dromos-ceremony-title {
+	color: var(--dromos-ink);
 	margin: 0;
 	font-family: var(--dromos-font-display);
 	font-size: 30px;
@@ -3089,6 +3091,7 @@
 .dromos-root .dromos-campaign-cards > .dromos-campaign-card::after { content: none; }
 
 .dromos-root .dromos-campaign-card-title {
+	color: var(--dromos-ink);
 	margin: 0;
 	font-size: 1em;
 	font-weight: inherit;
@@ -4771,6 +4774,7 @@
 }
 .dromos-root .dromos-book-sheet::before { inset: 0; }
 .dromos-root .dromos-book-card-title {
+	color: var(--dromos-ink);
 	margin: 0;
 	padding-right: 8px;
 	font-family: var(--dromos-font-display);

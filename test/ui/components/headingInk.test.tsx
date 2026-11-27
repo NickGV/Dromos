@@ -27,3 +27,16 @@ describe('the Library headings are in Dromos ink, not the theme heading color', 
 		expect(ruleOf('.dromos-root .dromos-book-section-heading')).toContain('color: var(--dromos-ink)');
 	});
 });
+
+// The rest of Dromos's headings had no color either and took the theme's `--h2-color` or `--h3-color`
+// (the character's name showed in Material Gruvbox's orange): every one is in Dromos ink too.
+describe('every other Dromos heading is in Dromos ink, not the theme heading color', () => {
+	it.each([
+		['the character name on the plaque', '.dromos-root .dromos-character-name'],
+		['the level-up title', '.dromos-root .dromos-ceremony-title'],
+		['the campaign and week report card titles on Home', '.dromos-root .dromos-campaign-card-title'],
+		["the book's and resource's card title", '.dromos-root .dromos-book-card-title'],
+	])('colors %s in ink', (_name, selector) => {
+		expect(ruleOf(selector)).toContain('color: var(--dromos-ink)');
+	});
+});
