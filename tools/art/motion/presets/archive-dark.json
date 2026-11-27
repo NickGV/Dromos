@@ -1,0 +1,342 @@
+{
+ "src": "archive-dark.webp",
+ "out": "archive-dark.webm",
+ "width": 1568,
+ "fps": 15,
+ "seconds": 10,
+ "seed": 86,
+ "encode": {
+  "bitrate": "1000k",
+  "crf": 8,
+  "qmax": 32
+ },
+ "keepout": [
+  {
+   "note": "under the pigeonholes' labels at 1160, 820 and 400 px: motion kept low",
+   "margin": 2,
+   "feather": 6,
+   "strength": 0.85,
+   "shapes": [
+    {
+     "rect": [
+      155,
+      120,
+      960,
+      186
+     ]
+    },
+    {
+     "rect": [
+      218,
+      40,
+      960,
+      130
+     ]
+    },
+    {
+     "rect": [
+      175,
+      136,
+      785,
+      224
+     ]
+    }
+   ]
+  },
+  {
+   "note": "the window's frame and mullion stay still",
+   "margin": 0.5,
+   "feather": 1.5,
+   "shapes": [
+    {
+     "rect": [
+      119.5,
+      38,
+      124.5,
+      214
+     ]
+    },
+    {
+     "rect": [
+      176.5,
+      38,
+      200,
+      214
+     ]
+    },
+    {
+     "rect": [
+      40,
+      38,
+      67.5,
+      214
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "type": "glint",
+   "note": "the stars in the window twinkle",
+   "points": [
+    [
+     108.1,
+     58.4
+    ],
+    [
+     154.2,
+     63.3
+    ],
+    [
+     158.6,
+     81.6
+    ],
+    [
+     146.9,
+     112.0
+    ],
+    [
+     76.0,
+     111.0
+    ],
+    [
+     174.1,
+     115.4
+    ]
+   ],
+   "snap": 0.8,
+   "radius": 1.3,
+   "halo": 2.4,
+   "amp": 0.55,
+   "halo_strength": 0.3,
+   "cycles": [
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "type": "glow",
+   "note": "the moon's halo",
+   "c": [
+    98.8,
+    84.0
+   ],
+   "r": 7,
+   "amp": 0.08,
+   "color": [
+    225,
+    230,
+    240
+   ],
+   "cycles": 1
+  },
+  {
+   "type": "sway",
+   "note": "the candle's flame licks upward; the cypress outside sways",
+   "items": [
+    {
+     "base": [
+      837.6,
+      250.6
+     ],
+     "top": [
+      837.6,
+      237.2
+     ],
+     "width": 2.3,
+     "margin": 1.6,
+     "amp": 0,
+     "idle": 0.6,
+     "idle_cycles": 7,
+     "idle_cycles2": 13,
+     "phase": 0.0,
+     "power": 1.3
+    },
+    {
+     "base": [
+      162.5,
+      181
+     ],
+     "top": [
+      162.5,
+      131
+     ],
+     "width": 4.5,
+     "margin": 3,
+     "amp": 0,
+     "idle": 0.45,
+     "idle_cycles": 2,
+     "phase": 0.6,
+     "power": 1.4
+    }
+   ]
+  },
+  {
+   "type": "flicker",
+   "note": "the candle brightens and dims",
+   "amp": 0.2,
+   "halo": 0.0,
+   "warm_min": 10,
+   "freqs": [
+    [
+     3,
+     0.5
+    ],
+    [
+     7,
+     0.35
+    ],
+    [
+     11,
+     0.25
+    ],
+    [
+     17,
+     0.15
+    ]
+   ],
+   "items": [
+    {
+     "c": [
+      837.6,
+      244
+     ],
+     "r": [
+      2.5,
+      6
+     ],
+     "group": 0
+    }
+   ]
+  },
+  {
+   "type": "glow",
+   "note": "the candle's glow breathes with the flame",
+   "c": [
+    837.5,
+    242
+   ],
+   "r": 22,
+   "amp": 0.42,
+   "ref": [
+    27,
+    20,
+    16
+   ],
+   "freqs": [
+    [
+     3,
+     0.5
+    ],
+    [
+     7,
+     0.35
+    ],
+    [
+     11,
+     0.25
+    ]
+   ],
+   "phases": [
+    0.5,
+    2.4,
+    4.8
+   ]
+  },
+  {
+   "type": "fireflies",
+   "note": "dust motes glinting in the light",
+   "color": [
+    255,
+    214,
+    150
+   ],
+   "core": 0.4,
+   "halo": 1.3,
+   "strength": 0.55,
+   "items": [
+    {
+     "c": [
+      825,
+      225
+     ],
+     "a": [
+      5,
+      4
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      0.3,
+      1.0
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      852,
+      220
+     ],
+     "a": [
+      5,
+      4
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      1.0,
+      2.3
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      840,
+      205
+     ],
+     "a": [
+      5,
+      4
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      1.7,
+      3.6
+     ],
+     "blink": 1
+    }
+   ]
+  }
+ ],
+ "sheet": {
+  "crops": {
+   "window": [
+    60,
+    40,
+    200,
+    215
+   ],
+   "candle": [
+    780,
+    190,
+    900,
+    290
+   ],
+   "table": [
+    400,
+    230,
+    540,
+    317
+   ]
+  }
+ }
+}

@@ -20,6 +20,8 @@ Paste the shared style block first, then one scene prompt. Percentages are of th
 
 If the generator cannot make the exact ratio, make the closest one it offers, extend the sides by outpainting, and resize to the given size. Export as WebP at about quality 80 and keep each file under about 600 KB: the files sync to your phone with the vault. A generator's JPEG converts with `cwebp -q 80 wall-dark.jpeg -o wall-dark.webp`; the first paintings went from about 2 MB to about 50 KB each with no visible loss.
 
+The scripts that made the files below (the layout guides, the walker's cut-outs, the road check, the loops with motion and their CPU cost) are in the repository's [tools/art](../tools/art/README.md), which says how to run each one.
+
 ### Shared style block
 
 ```text

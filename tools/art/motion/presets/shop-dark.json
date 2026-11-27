@@ -1,0 +1,568 @@
+{
+ "src": "shop-dark.webp",
+ "out": "shop-dark.webm",
+ "width": 1476,
+ "fps": 15,
+ "seconds": 10,
+ "seed": 22,
+ "encode": {
+  "bitrate": "1000k",
+  "crf": 8,
+  "qmax": 32
+ },
+ "keepout": [
+  {
+   "note": "the merchant and the temple stay still (the palm's fronds overlap the temple's corner)",
+   "margin": 3,
+   "feather": 6,
+   "shapes": [
+    {
+     "poly": [
+      [
+       466,
+       82
+      ],
+      [
+       532,
+       82
+      ],
+      [
+       534,
+       127
+      ],
+      [
+       586,
+       149
+      ],
+      [
+       591,
+       227
+      ],
+      [
+       435,
+       227
+      ],
+      [
+       439,
+       149
+      ],
+      [
+       464,
+       127
+      ]
+     ]
+    },
+    {
+     "poly": [
+      [
+       583,
+       140
+      ],
+      [
+       611,
+       124
+      ],
+      [
+       641,
+       140
+      ],
+      [
+       645,
+       170
+      ],
+      [
+       583,
+       170
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "note": "under the plaque on wide panes (image x 87-99 %, y 25-45 %): nothing moves",
+   "margin": 2,
+   "feather": 6,
+   "shapes": [
+    {
+     "rect": [
+      835,
+      66,
+      951,
+      120
+     ]
+    }
+   ]
+  },
+  {
+   "note": "under the plaque on a phone (image x 64-77 %, y 25-45 %): motion kept minimal",
+   "margin": 2,
+   "feather": 8,
+   "strength": 0.65,
+   "shapes": [
+    {
+     "rect": [
+      614,
+      66,
+      740,
+      120
+     ]
+    }
+   ]
+  }
+ ],
+ "effects": [
+  {
+   "type": "glint",
+   "note": "stars twinkle (picked by hand: the awning's edge and the lamps fool the detector)",
+   "radius": 1.4,
+   "halo": 2.6,
+   "amp": 0.55,
+   "halo_strength": 0.3,
+   "cycles": [
+    2,
+    3,
+    4
+   ],
+   "points": [
+    [
+     525.9,
+     60.0
+    ],
+    [
+     377.4,
+     60.5
+    ],
+    [
+     446.7,
+     60.5
+    ],
+    [
+     487.0,
+     66.5
+    ],
+    [
+     415.9,
+     66.8
+    ],
+    [
+     544.8,
+     76.0
+    ],
+    [
+     698.0,
+     77.3
+    ],
+    [
+     598.9,
+     89.1
+    ],
+    [
+     559.6,
+     90.1
+    ],
+    [
+     377.6,
+     92.7
+    ],
+    [
+     425.2,
+     101.3
+    ],
+    [
+     611.8,
+     104.8
+    ]
+   ],
+   "snap": 0.8
+  },
+  {
+   "type": "wave",
+   "note": "the awning's scalloped hem sways, more at its free edge",
+   "box": [
+    0,
+    16,
+    960,
+    54
+   ],
+   "grow": [
+    22,
+    49
+   ],
+   "amp": [
+    0.35,
+    1.5
+   ],
+   "wave": 80,
+   "cycles": [
+    [
+     1,
+     1.0
+    ],
+    [
+     2,
+     0.35
+    ]
+   ],
+   "feather": 4,
+   "power": 1.5
+  },
+  {
+   "type": "sway",
+   "note": "the palm's fronds and the cloth over the shelf sway; the cypresses sit under the phone plaque and stay",
+   "idle": 0.6,
+   "idle_cycles": 2,
+   "items": [
+    {
+     "base": [
+      577,
+      150
+     ],
+     "top": [
+      570,
+      103
+     ],
+     "width": 24,
+     "amp": 0,
+     "idle": 0.9,
+     "phase": 0.4,
+     "power": 1.2
+    },
+    {
+     "base": [
+      73,
+      189
+     ],
+     "top": [
+      73,
+      219
+     ],
+     "width": 27,
+     "amp": 0,
+     "idle": 0.7,
+     "phase": 2.1,
+     "power": 1.4,
+     "margin": 3
+    }
+   ]
+  },
+  {
+   "type": "sway",
+   "note": "the flames lick upward from the wick",
+   "idle": 0.45,
+   "items": [
+    {
+     "base": [
+      355.1,
+      73.6
+     ],
+     "top": [
+      355.4,
+      63.6
+     ],
+     "width": 2.0,
+     "margin": 1.6,
+     "amp": 0,
+     "idle": 0.55,
+     "idle_cycles": 7,
+     "idle_cycles2": 13,
+     "phase": 0.0,
+     "power": 1.3
+    },
+    {
+     "base": [
+      628.2,
+      73.3
+     ],
+     "top": [
+      628.4,
+      63.6
+     ],
+     "width": 2.2,
+     "margin": 1.6,
+     "amp": 0,
+     "idle": 0.55,
+     "idle_cycles": 6,
+     "idle_cycles2": 11,
+     "phase": 2.2,
+     "power": 1.3
+    }
+   ]
+  },
+  {
+   "type": "flicker",
+   "note": "the flames brighten and dim",
+   "amp": 0.22,
+   "halo": 0.0,
+   "warm_min": 20,
+   "freqs": [
+    [
+     3,
+     0.5
+    ],
+    [
+     7,
+     0.35
+    ],
+    [
+     11,
+     0.25
+    ],
+    [
+     17,
+     0.15
+    ]
+   ],
+   "items": [
+    {
+     "c": [
+      355.2,
+      69.5
+     ],
+     "r": [
+      2.2,
+      4.5
+     ],
+     "group": 0
+    },
+    {
+     "c": [
+      628.3,
+      69.5
+     ],
+     "r": [
+      2.2,
+      4.5
+     ],
+     "group": 1
+    }
+   ]
+  },
+  {
+   "type": "glow",
+   "note": "left lamp's glow breathes with its flame",
+   "c": [
+    343,
+    72
+   ],
+   "r": 19,
+   "amp": 0.42,
+   "freqs": [
+    [
+     3,
+     0.5
+    ],
+    [
+     7,
+     0.35
+    ],
+    [
+     11,
+     0.25
+    ]
+   ],
+   "phases": [
+    0.3,
+    1.9,
+    4.1
+   ],
+   "ref": [
+    22,
+    26,
+    40
+   ]
+  },
+  {
+   "type": "glow",
+   "note": "right lamp's glow, calmer under the phone plaque",
+   "c": [
+    640,
+    72
+   ],
+   "r": 19,
+   "amp": 0.42,
+   "freqs": [
+    [
+     3,
+     0.5
+    ],
+    [
+     7,
+     0.35
+    ],
+    [
+     11,
+     0.25
+    ]
+   ],
+   "phases": [
+    2.5,
+    0.7,
+    5.2
+   ],
+   "ref": [
+    22,
+    26,
+    40
+   ]
+  },
+  {
+   "type": "glow",
+   "note": "the moon's halo",
+   "c": [
+    575.8,
+    62.4
+   ],
+   "r": 9,
+   "amp": 0.08,
+   "color": [
+    235,
+    232,
+    210
+   ],
+   "cycles": 1
+  },
+  {
+   "type": "fireflies",
+   "note": "motes glinting in the lamps' light",
+   "color": [
+    255,
+    214,
+    150
+   ],
+   "core": 0.3,
+   "halo": 1.1,
+   "strength": 0.6,
+   "items": [
+    {
+     "c": [
+      334,
+      80
+     ],
+     "a": [
+      5,
+      4
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      0.3,
+      1.0
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      350,
+      62
+     ],
+     "a": [
+      4,
+      5
+     ],
+     "n": [
+      1,
+      2
+     ],
+     "phase": [
+      2.2,
+      0.4
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      330,
+      64
+     ],
+     "a": [
+      5,
+      3
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      4.0,
+      2.6
+     ],
+     "blink": 2
+    },
+    {
+     "c": [
+      348,
+      86
+     ],
+     "a": [
+      6,
+      3
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      1.4,
+      5.0
+     ],
+     "blink": 1
+    },
+    {
+     "c": [
+      646,
+      84
+     ],
+     "a": [
+      5,
+      3
+     ],
+     "n": [
+      1,
+      1
+     ],
+     "phase": [
+      3.3,
+      0.9
+     ],
+     "blink": 1
+    }
+   ]
+  }
+ ],
+ "sheet": {
+  "crops": {
+   "left lamp": [
+    300,
+    30,
+    420,
+    115
+   ],
+   "right lamp": [
+    580,
+    30,
+    700,
+    115
+   ],
+   "palm and moon": [
+    510,
+    40,
+    630,
+    140
+   ],
+   "awning": [
+    150,
+    0,
+    270,
+    85
+   ],
+   "cloth": [
+    0,
+    150,
+    120,
+    232
+   ]
+  }
+ }
+}
