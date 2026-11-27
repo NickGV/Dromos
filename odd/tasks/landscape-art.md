@@ -311,4 +311,10 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **Iterations:** the first band also copied a cream patch of the runner's tunic, and the second a dark fold. The third, fitted band leaves neither.
   - **Prepared:** `prep.py` re-keyed and placed the four. The residuals are like the others: left -0.14 to 2.44 units, tip -0.4 to -2.18.
   - **Vault:** the four are in `Dromos/Arte/` (24-26 KB each). At the user's request ("borra las otras, no las respaldes"), the replaced files and the earlier raws were deleted, not kept. With this, stages 1-6 all carry the satchel.
+- **L23** (2026-11-27, user): "si dale" to publishing the heading fix and this log as 0.30.2.
+  - **Merges into main:** `fix/heading-ink` (77fb320, merge 02a4f8d) and `docs/walker-satchel` (merge 5dd5f80).
+  - **The heading fix:** the character name, the level-up title, the campaign and week report card titles, and the book and resource card titles take Dromos's ink instead of the theme's heading color. Tests: `headingInk.test.tsx`, 4 RED, then GREEN.
+  - **Release branch:** release/0.30.2 holds the changelog and `npm version patch` (tag 0.30.2). It was merged back as 07f91fc.
+  - **Checks:** 2708 tests pass, lint 0 errors (4 old warnings), build passes.
+  - **Release:** run 46033155677 succeeded, and release 0.30.2 has main.js, manifest.json and styles.css. The main build, run 46033154015, succeeded too.
 
