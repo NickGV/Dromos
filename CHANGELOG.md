@@ -2,6 +2,12 @@
 
 All notable changes to Dromos are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Library headings**: the titles of a shelf's rows and the section headings of a book's or resource's card took your theme's heading color, which with some themes fell under the AA contrast on parchment. They are now in Dromos's ink, like every other title, at about 11:1 in the light theme and 14:1 in the dark one.
+
 ## [0.30.0] - 2026-11-26
 
 ### Changed
