@@ -4659,6 +4659,7 @@
 	font-variant: small-caps;
 	letter-spacing: 0.08em;
 	line-height: 1.2;
+	color: var(--dromos-ink);
 }
 .dromos-root .dromos-shelf-scrolls { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0 0 10px; list-style: none; }
 .dromos-root .dromos-shelf-scrolls > li { display: flex; flex: 0 1 196px; min-width: 0; }
@@ -4792,6 +4793,7 @@
 	font-variant: small-caps;
 	letter-spacing: 0.08em;
 	line-height: 1.2;
+	color: var(--dromos-ink);
 }
 .dromos-root .dromos-book-section-status { margin: 4px 0 0; color: var(--dromos-ink-muted); font-size: 14px; }
 .dromos-root .dromos-book-section-status.is-written { color: var(--dromos-ink); font-weight: 600; }
