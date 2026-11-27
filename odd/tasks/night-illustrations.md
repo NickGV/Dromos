@@ -20,7 +20,7 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
 | T0 | old S1-S6 | Mockups of the whole view dark at night | delegated; scratch only | done, superseded (L4, L5) | |
 | T0b | old S1-S4 | Mockups of night colors for the drawn Library | delegated; scratch only | done, superseded by 0.24.0-0.29.0 (L8) | |
 | T1 | S1-S5 | Night rules for the paintings and loops of the Library scenes and the Shop; the time of day passed to the book and resource cards; tests first; docs | inline | done (L9) | see L9 |
-| V1 | S1-S5 | Independent verifier: Risk item 6 (a visual change no test would catch), with the user's real paintings | delegated verifier | pending | |
+| V1 | S1-S5 | Independent verifier: Risk item 6 (a visual change no test would catch), with the user's real paintings | delegated verifier | S1, S3-S5 PASS; blocker B1 and advisory A1 corrected, recheck pending (L10) | see L10 |
 | M1 | S1-S5 | The user's look at night | the user | pending | |
 
 ## Log
@@ -74,3 +74,13 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
   - Docs: `docs/own-art.md` (the rule, and the Shop's line about the hour), CHANGELOG Unreleased "Changed".
   - Checks: `npm test` 195 files, 2700 passed; lint 0 errors (4 old warnings); build passed.
   - Risk: item 6 (a visual change no unit test fully sees), so V1 runs in a real browser with the user's paintings.
+- **L10** (2026-11-26): V1, in headless Chromium with the user's 20 paintings and loops, on `d8948a5` against `76ff934`. The repository and the vault were not modified.
+  - Pixel diff: of 480 page pairs, 432 are identical. The 48 that differ are exactly the planned ones: light theme, night, scenes with a dark painting.
+  - Text contrast is unchanged (every pairing within 0.05).
+  - Live video run: at night in the light theme the dark loop plays and the light one pauses, and under reduced motion nothing plays.
+  - The cascade's specificity was checked.
+  - **B1, blocker, S2:** a book card opened from Home's reading desk (`ReadingDeskPanel.tsx:26`) called `useLibraryCards` without `period`, so it kept `desk-light` at night. **A1, strong advisory:** focus rings drawn outside their buttons fell on the dark paintings, for example the desk scroll from 3.05 to 2.18:1 and the archive door on a phone from 3.74 to 1.88:1. Minor advisories: Material Gruvbox's `--h3-color` under AA on parchment, already at the baseline, by day too; and `ruleOf` depending on the exact selector text.
+  - One correction batch:
+    - B1: `ReadingDeskPanel` takes `period`, and `HomeScreen` passes the one it computes (`HomeScreen.tsx:518`). This is hook plumbing with no runnable unit test (no DOM in Vitest), so it is left to the recheck.
+    - A1: the five buttons whose ring lies outside them (alcove, desk scroll, shelf scroll, archive door, pigeonhole) take `outline-color: #e8c98a`, the dark theme's focus, at night on a dark painting. Rings on parchment keep theirs.
+  - RED: 1 new test failed for A1. GREEN: 8 passed; `npm test` 195 files, 2701 passed; lint 0 errors; build passed. Next: a recheck limited to B1 and A1.

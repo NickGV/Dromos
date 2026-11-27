@@ -63,6 +63,11 @@ describe('the paintings follow the night in the light theme (night-illustrations
 		expect(ruleOf(`${NIGHT}.has-art-dark .dromos-scene-video.is-dark`)).toBe('');
 	});
 
+	it('draws the focus ring that falls on a dark painting in the dark theme\'s focus color (V1 advisory)', () => {
+		const rings = ':is(button.dromos-alcove, button.dromos-desk-scroll, button.dromos-shelf-scroll, button.dromos-archive-door, button.dromos-pigeonhole):focus-visible';
+		expect(ruleOf(`${NIGHT}.has-art-dark ${rings}`)).toContain('outline-color: #e8c98a');
+	});
+
 	it('leaves a scene with only a light painting, and every rule of the day, as they were', () => {
 		expect(css).not.toContain(`${NIGHT}.has-art-light`);
 		expect(ruleOf('.theme-light .dromos-root .dromos-library-scene.has-art-light > .is-background')).toContain('background-image: var(--dromos-art-light)');

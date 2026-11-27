@@ -591,7 +591,7 @@ export function HomeScreen({ deps, initialScreen = 'home' }: { readonly deps: Ho
 							home={home ? { open: openCampaigns, onToggle: toggleCampaignCard, onOpen: (path) => setPlace({ screen: 'campaigns', campaign: path }) } : undefined}
 							screen={screen === 'campaigns' ? { selected: place.campaign, onSelect: selectCampaign } : undefined}
 						/>
-						{home ? <ReadingDeskPanel deps={deps.library} language={language} /> : null}
+						{home ? <ReadingDeskPanel deps={deps.library} language={language} period={period} /> : null}
 						{weekCard ? <WeekReportCard view={weekCard} open={weekOpen} bodyId={weekId} onToggle={toggleWeekCard} renderIcon={deps.renderIcon} /> : null}
 						{chronicle ? <Chronicle view={chronicle} listId={chronicleId} onToggleMore={() => setChronicleExpanded((current) => !current)} onOpenHistory={openHistory} /> : null}
 					</div>

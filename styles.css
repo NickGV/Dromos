@@ -4245,6 +4245,9 @@
 .theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark > .is-background { background-image: var(--dromos-art-dark); }
 .theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark:not(.is-card) > .is-drawing { display: none; }
 .theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark .dromos-scene-video.is-light { display: none; }
+/* A focus ring drawn outside its button lies on the night painting: it takes the dark theme's focus color, which
+   keeps it clear there (the day's umber falls under 3:1 on dark wood and stone). Rings on parchment keep theirs. */
+.theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark :is(button.dromos-alcove, button.dromos-desk-scroll, button.dromos-shelf-scroll, button.dromos-archive-door, button.dromos-pigeonhole):focus-visible { outline-color: #e8c98a; }
 @media (prefers-reduced-motion: no-preference) {
 	.theme-light .dromos-root :is(.dromos-library[data-period='night'] .dromos-library-scene, .dromos-library-scene[data-period='night']).has-art-dark .dromos-scene-video.is-dark { display: block; }
 }
