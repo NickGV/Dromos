@@ -310,5 +310,5 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **Bases:** the new paintings for the pilgrim, disciple and traveller. For the apprentice, the earlier painting, which keeps the sash the belt objects hang from.
     - **Iterations:** the first band also copied a cream patch of the runner's tunic, and the second a dark fold. The third, fitted band leaves neither.
   - **Prepared:** `prep.py` re-keyed and placed the four. The residuals are like the others: left -0.14 to 2.44 units, tip -0.4 to -2.18.
-  - **Vault:** the four are in `Dromos/Arte/` (24-26 KB each). The replaced files are kept in scratch `walker-set/old-vault/`, and the earlier raws in `walker-set/in/old/`. With this, stages 1-6 all carry the satchel.
+  - **Vault:** the four are in `Dromos/Arte/` (24-26 KB each). At the user's request ("borra las otras, no las respaldes"), the replaced files and the earlier raws were deleted, not kept. With this, stages 1-6 all carry the satchel.
 
