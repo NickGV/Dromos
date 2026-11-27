@@ -302,4 +302,13 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
     - **Options if needed:** a still shelf (0 %), 12 fps, or a smaller video.
   - **Parent check:** on the desk-at-night sheet, the motion stays around the lamp and the scroll band is calm.
   - **Vault:** all eight are in `Dromos/Arte/` and show at once in 0.28.0. The old ones are kept in scratch `landscape-art/motion/old-library/`.
+- **L22** (2026-11-27, user): the user sent the four repaints (`peregrino.jpeg`, `aprendiz.jpeg`, `discipulo.jpeg`, `viajero.jpeg`) and said "aqui te los mando, se hicieron cambios en el repositorio".
+  - **Repo:** origin/main was 15 commits ahead with 0.30.0 and 0.30.1 from another session. Local main had no changes of its own and was fast-forwarded. Nothing touched the walker's code.
+  - **Still no satchel:** none of the four repaints had the satchel or its strap, and the new apprentice had also lost its sash.
+  - **The fix:** all the paintings share one canvas and pose (1696 × 2528), so the runner's own satchel and strap were laid over each stage (scratch `walker-set/tools/satchel.py`).
+    - **The mask:** brown leather pixels inside bands fitted to the strap and the satchel. The red cloak, the gold sash and the cream tunic are left out, and the mask is feathered.
+    - **Bases:** the new paintings for the pilgrim, disciple and traveller. For the apprentice, the earlier painting, which keeps the sash the belt objects hang from.
+    - **Iterations:** the first band also copied a cream patch of the runner's tunic, and the second a dark fold. The third, fitted band leaves neither.
+  - **Prepared:** `prep.py` re-keyed and placed the four. The residuals are like the others: left -0.14 to 2.44 units, tip -0.4 to -2.18.
+  - **Vault:** the four are in `Dromos/Arte/` (24-26 KB each). The replaced files are kept in scratch `walker-set/old-vault/`, and the earlier raws in `walker-set/in/old/`. With this, stages 1-6 all carry the satchel.
 
