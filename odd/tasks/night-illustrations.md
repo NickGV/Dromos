@@ -20,7 +20,7 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
 | T0 | old S1-S6 | Mockups of the whole view dark at night | delegated; scratch only | done, superseded (L4, L5) | |
 | T0b | old S1-S4 | Mockups of night colors for the drawn Library | delegated; scratch only | done, superseded by 0.24.0-0.29.0 (L8) | |
 | T1 | S1-S5 | Night rules for the paintings and loops of the Library scenes and the Shop; the time of day passed to the book and resource cards; tests first; docs | inline | done (L9) | see L9 |
-| V1 | S1-S5 | Independent verifier: Risk item 6 (a visual change no test would catch), with the user's real paintings | delegated verifier | S1, S3-S5 PASS; blocker B1 and advisory A1 corrected, recheck pending (L10) | see L10 |
+| V1 | S1-S5 | Independent verifier: Risk item 6 (a visual change no test would catch), with the user's real paintings | delegated verifier | done: S1-S5 PASS after one correction (L10, L11) | `8a6de5c` |
 | M1 | S1-S5 | The user's look at night | the user | pending | |
 
 ## Log
@@ -84,3 +84,13 @@ The user's request (L1): "chat pregunta, en dromos la parte de arriba cambian de
     - B1: `ReadingDeskPanel` takes `period`, and `HomeScreen` passes the one it computes (`HomeScreen.tsx:518`). This is hook plumbing with no runnable unit test (no DOM in Vitest), so it is left to the recheck.
     - A1: the five buttons whose ring lies outside them (alcove, desk scroll, shelf scroll, archive door, pigeonhole) take `outline-color: #e8c98a`, the dark theme's focus, at night on a dark painting. Rings on parchment keep theirs.
   - RED: 1 new test failed for A1. GREEN: 8 passed; `npm test` 195 files, 2701 passed; lint 0 errors; build passed. Next: a recheck limited to B1 and A1.
+- **L11** (2026-11-26): The recheck, limited to B1 and A1 on `8a6de5c`, passed both.
+  - B1: the real `ReadingDeskPanel` was mounted with the user's desk paintings and a card opened as on Home. At night in the light theme it shows `desk-dark.webp`, plays the dark loop and keeps its rods. By day, without `period` and in the dark theme it is as at the baseline.
+  - A1: the focus rings over night paintings, median and 10th percentile:
+    - alcove 3.16/2.44 → 11.04/8.52 (1546);
+    - desk scroll 2.04/1.41 → 6.75/4.21 (390);
+    - archive door 1.88/1.44 → 6.56/4.93 (390);
+    - no ring pixel under 3:1.
+  - 260 other focus clips (rings on parchment and plates, every other period, theme and painting set) are pixel-identical to `d8948a5`, and to `76ff934` outside the night case.
+  - `npx vitest run` 2701 passed, tsc and eslint clean.
+  - The branch build was installed into the vault for M1 with `DROMOS_VAULT=/home/nickgv/Documents/logos`.
