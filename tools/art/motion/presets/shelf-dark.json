@@ -2,7 +2,7 @@
  "src": "shelf-dark.webp",
  "out": "shelf-dark.webm",
  "width": 1280,
- "fps": 15,
+ "fps": 12,
  "seconds": 10,
  "seed": 54,
  "encode": {

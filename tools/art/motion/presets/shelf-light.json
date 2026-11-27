@@ -2,7 +2,7 @@
  "src": "shelf-light.webp",
  "out": "shelf-light.webm",
  "width": 1280,
- "fps": 15,
+ "fps": 12,
  "seconds": 10,
  "seed": 23,
  "encode": {

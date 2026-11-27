@@ -157,7 +157,7 @@ A loop is a short, seamless WebM that plays over its painting: `<scene>-<theme>.
 
 ### The presets
 
-Each preset in `motion/presets/` is named after its file in `Dromos/Arte/`: `src` is the painting's file name inside the `--art` folder and `out` the video's file name. All of them render 15 fps, 10 s, VP8 at 1000k.
+Each preset in `motion/presets/` is named after its file in `Dromos/Arte/`: `src` is the painting's file name inside the `--art` folder and `out` the video's file name. All of them render 10 s, VP8 at 1000k, at 15 fps, except the two shelf presets at 12 fps: the shelf view repaints its panels over the video every frame, so 12 fps cuts its cost by about a fifth (landscape-art L24).
 
 | Presets | Width | Motion |
 |---|---|---|

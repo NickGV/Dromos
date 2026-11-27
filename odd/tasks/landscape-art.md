@@ -317,4 +317,15 @@ Branch: `feat/landscape-art`. Delivery: merge into main, release on the user's g
   - **Release branch:** release/0.30.2 holds the changelog and `npm version patch` (tag 0.30.2). It was merged back as 07f91fc.
   - **Checks:** 2708 tests pass, lint 0 errors (4 old warnings), build passes.
   - **Release:** run 46033155677 succeeded, and release 0.30.2 has main.js, manifest.json and styles.css. The main build, run 46033154015, succeeded too.
+- **L24** (2026-11-27, user): I proposed 12 fps for the shelf loops and the user answered "dale vamos con 12".
+  - **Measurement:** the real Library's shelf view with `tools/art/perf/screens.cjs`, median of 3 runs. This was the first use of the tools from the repo.
+
+    | Theme | 15 fps | 12 fps | Still |
+    |---|---|---|---|
+    | Light, day | 15.4 % | 12.3 % | 0.1 % |
+    | Dark, night | 16.0 % | 12.7 % | 0.2 % |
+
+  - **Why it does not drop further:** the cost comes mostly from the shelf's panels repainting over the video every frame.
+  - **The loops:** rendered with `tools/art/motion/motion.py` from the shelf presets set to 12 fps. shelf-light is 459 KB and shelf-dark 738 KB. Both are in `Dromos/Arte/` and show at once.
+  - **Repo:** the two presets now say 12 fps, and the README says so.
 
